@@ -1,6 +1,9 @@
 // Headless balance sim: plays seeded runs of the graybox with a simple bot (builds, picks the
 // first upgrade offered) and reports run length, win rate and deaths.
-//   npm run sim -- --runs 100 --seed 1 --max-min 30 [--json]
+//   npm run sim -- --runs 100 --seed 1 --max-min 30 [--data path.json] [--json]
+// --data takes a JSON file that overrides GRAYBOX fields (top level; `tuning` groups are
+// merged one by one), so data passes can be tried without editing src/data.
+import { readFileSync } from 'node:fs';
 import { createServer } from 'vite';
 
 const args = process.argv.slice(2);
@@ -12,6 +15,8 @@ const runs = opt('runs', 100);
 const seed0 = opt('seed', 1);
 const maxMin = opt('max-min', 30);
 const json = args.includes('--json');
+const dataIdx = args.indexOf('--data');
+const dataFile = dataIdx >= 0 ? args[dataIdx + 1] : undefined;
 
 const server = await createServer({
   configFile: false,
@@ -22,7 +27,8 @@ const server = await createServer({
 
 try {
   const sim = await server.ssrLoadModule('/src/sim/api.ts');
-  const { GRAYBOX } = await server.ssrLoadModule('/src/data/graybox.ts');
+  const { GRAYBOX: base } = await server.ssrLoadModule('/src/data/graybox.ts');
+  const GRAYBOX = dataFile ? withOverride(base, JSON.parse(readFileSync(dataFile, 'utf8'))) : base;
   const BUILD_ORDER = ['temple_aesir', 'market', 'shrine', 'tower'];
   const DT = 100;
   const results = [];
@@ -42,7 +48,7 @@ try {
         const p = snap.parties.find((x) => x.offer);
         sim.command(w, { kind: 'pickUpgrade', party: p.id, upgrade: p.offer[0] });
       }
-      if (t % 5000 === 0) botBuild(w, snap);
+      if (t % 5000 === 0) botTurn(w, snap);
     }
     snap = sim.snapshot(w);
     results.push({
@@ -55,12 +61,23 @@ try {
     });
   }
 
-  function botBuild(w, snap) {
+  // Build temple, market, shrine, tower as gold allows; with gold to spare, put a 50 gold flag
+  // on the lair nearest the town hall (one flag at a time).
+  function botTurn(w, snap) {
     for (const type of BUILD_ORDER) {
       if (snap.buildings.some((b) => b.type === type)) continue;
       const plot = snap.plots.find((p) => !p.occupied);
-      if (!plot) return;
+      if (!plot) break;
       sim.command(w, { kind: 'build', type, plot: plot.id });
+    }
+    if (snap.gold > 150 && snap.bounties.length === 0 && snap.lairs.length > 0) {
+      const hall = GRAYBOX.townHall;
+      const near = [...snap.lairs].sort(
+        (a, b) =>
+          Math.hypot(a.pos.x - hall.x, a.pos.y - hall.y) -
+          Math.hypot(b.pos.x - hall.x, b.pos.y - hall.y),
+      )[0];
+      sim.command(w, { kind: 'placeBounty', pos: near.pos, gold: 50 });
     }
   }
 
@@ -69,6 +86,20 @@ try {
   else print(report);
 } finally {
   await server.close();
+}
+
+function withOverride(base, over) {
+  const merged = { ...base, ...over };
+  if (base.tuning || over.tuning) {
+    merged.tuning = {};
+    for (const group of new Set([
+      ...Object.keys(base.tuning ?? {}),
+      ...Object.keys(over.tuning ?? {}),
+    ])) {
+      merged.tuning[group] = { ...base.tuning?.[group], ...over.tuning?.[group] };
+    }
+  }
+  return merged;
 }
 
 function pct(sorted, p) {
@@ -112,7 +143,9 @@ function summarize(results) {
 
 function print(rep) {
   const f = (n) => n.toFixed(1);
-  console.log(`Balance sim: ${rep.runs} runs (seed ${seed0}.., cap ${maxMin} min)`);
+  console.log(
+    `Balance sim: ${rep.runs} runs (seed ${seed0}.., cap ${maxMin} min${dataFile ? `, data ${dataFile}` : ''})`,
+  );
   console.log(
     `  won ${rep.won}  lost ${rep.lost}  timeout ${rep.timeout}  win rate ${(rep.winRate * 100).toFixed(0)}%`,
   );
