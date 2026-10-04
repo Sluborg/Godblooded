@@ -16,7 +16,7 @@ Fetch repo files as `https://raw.githubusercontent.com/Sluborg/Godblooded/main/<
 | Redo requests         | `art-tasks/REDO.md` (do these first)                                                             |
 | Batch tasks           | `art-tasks/B<n>.md`                                                                              |
 | Upload folder (Drive) | "Godblooded art-inbox": https://drive.google.com/drive/folders/1vVdOsRWXyz571xhMPKcae_loW-8AJgpC |
-| Upload log (GitHub)   | `art-inbox/STATUS.md` on branch `art-inbox`                                                      |
+| Upload log (GitHub)   | `art-inbox/STATUS.md` on branch `art-inbox` (append at the bottom)                               |
 
 ## Tracks: one chat per track
 
@@ -36,7 +36,8 @@ proportions, colours), changing only what the batch asks.
 
 ## Wake-ups
 
-The draft pull request **Godblooded art wake** (branch `art-wake`) is the bell. Art pushes a
+The draft pull request **Godblooded art wake** (https://github.com/Sluborg/Godblooded/pull/3,
+branch `art-wake`) is the bell. Art pushes a
 commit to it when there is new work; `art-wake/TRACKS.md` on that branch lists the tracks with
 work. Watch that pull request (opened, reopened, new commits). When it fires: read
 `art-wake/TRACKS.md`; if your track is listed, do "run all". If not, do nothing.

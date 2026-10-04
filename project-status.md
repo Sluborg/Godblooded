@@ -9,12 +9,13 @@ Lead keeps this to one screen. Read it first when resuming.
 
 ## Now
 
-- Setup done: scaffold (Phaser, Vite, TS, PWA, CI, Pages deploy), design, collaboration system,
-  art manual, start prompts.
-- Next: Lead spawns Sim, Scene and Art; milestone M1 (graybox) starts.
+- Team up: Lead, Sim, Scene, Art registered (`docs/sessions.md`). Workers cannot push to `main`;
+  they send docs PRs, Lead merges.
+- Shipped: Art pipeline (PR #2: key-out, check, ship, `validate:art`).
+- Working: Sim 10 (`api.ts` + world), Scene 10 (MapScene graybox), Art 20 (art-wake PR).
+- Next for Stefan: open ChatGPT when the style test B1 is ready (Art 30).
 
 ## Waiting on Stefan
 
-- Pages: Settings, Pages, Source = GitHub Actions (one time).
 - ChatGPT project "Godblooded art" with `art-tasks/PROJECT-INSTRUCTIONS.md` (when Art asks).
 - OPEN design items: `docs/game-design.md`, "OPEN".
