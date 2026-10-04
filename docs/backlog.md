@@ -21,8 +21,8 @@ Review (PR open), Done. A worker takes its top Open row.
 | 30    | Lean real-time combat from the Coda reference math (simplify if needed, log it in decisions)                                | Done   |
 | 35    | Build plots in the sim: `GameData.plots`, `build` takes a plot, refuses occupied plots; snapshot lists plots                | Done   |
 | 40    | Heroes: arrive at temples, explore, fight, return to heal and shop (gold flows to the town by tax)                          | Done   |
-| 45    | Move hero tuning (recruit timer, flee, rest, shop, tax, revive) from `heroes.ts` into `GameData.tuning`; Lead fills the row | Open   |
-| 50    | Parties: form by traits and bonds, move and fight together, share XP; party level up offers 3 upgrades                      | Doing  |
+| 45    | Move hero tuning (recruit timer, flee, rest, shop, tax, revive) from `heroes.ts` into `GameData.tuning`; Lead fills the row | Doing  |
+| 50    | Parties: form by traits and bonds, move and fight together, share XP; party level up offers 3 upgrades                      | Done   |
 | 60    | Bounty flags: heroes weigh bounty vs danger by trait; win (last lair) and lose (town hall) conditions                       | Open   |
 | 70    | Headless balance sim (`npm run sim`): 100 seeded runs, report run length, win rate, deaths                                  | Open   |
 
@@ -34,7 +34,7 @@ Review (PR open), Done. A worker takes its top Open row.
 | 20    | Build menu: tap a plot, pick a building, see cost; HUD with gold and run clock; 1x/2x/4x speed            | Done   |
 | 30    | Bounty flag: tap the map or a monster, set gold, flag shows; heroes' interest shown as markers            | Done   |
 | 35    | Plots from the snapshot (after Sim 35); delete `src/scenes/plots.ts` and the occupied check in MapScene   | Done   |
-| 40    | Level-up pick: a party levels, the game pauses, 3 upgrade cards, tap one                                  | Open   |
+| 40    | Level-up pick: a party levels, the game pauses, 3 upgrade cards, tap one                                  | Doing  |
 | 50    | Unit view: manifest sprite or placeholder, mirror by direction, bob/squash/lunge/hit-flash tweens         | Done   |
 | 55    | Hero interest markers on bounty flags (after Sim 40/60)                                                   | Open   |
 | 60    | Speech bubbles from sim events; end screen (win/lose, run summary, play again)                            | Doing  |

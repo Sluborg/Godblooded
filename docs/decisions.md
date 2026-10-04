@@ -32,3 +32,7 @@ Lead owns this file. One dated line per decision that changes how the game or th
   per temple); heroes flee below 30% hp, rest 10% hp/s (shrine 3x), spend 60% of their gold at
   the market and the town taxes 50% of it; knocked out heroes revive at the town hall after 10 s
   at 25% hp; heroes keep monster bounties. These numbers move to `src/data/` (Sim 45).
+- 2026-10-04: Graybox parties (Sim 50): every hero starts as a party of one with a random trait;
+  level-1 parties merge on meeting (max 4); party level n needs 30n shared XP; bonds grow on
+  shared kills and drop when a hero flees; a level up freezes the run until the player picks 1 of
+  3 different upgrades; tiers at party levels 3 and 6. Lead keeps 9 graybox upgrade cards.
