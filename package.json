@@ -16,7 +16,8 @@
     "validate:art": "node scripts/art/validate.mjs",
     "art:check": "node scripts/art/check.mjs",
     "art:ship": "node scripts/art/ship.mjs",
-    "icons": "node scripts/gen-icons.mjs"
+    "icons": "node scripts/gen-icons.mjs",
+    "smoke": "node scripts/smoke.mjs"
   },
   "dependencies": {
     "phaser": "^3.90.0"
@@ -27,6 +28,7 @@
     "eslint": "^10.11.0",
     "eslint-config-prettier": "^10.1.8",
     "globals": "^17.12.0",
+    "playwright-core": "^1.63.0",
     "pngjs": "^7.0.0",
     "prettier": "^3.9.9",
     "typescript": "~5.9",
