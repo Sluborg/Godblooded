@@ -11,6 +11,7 @@ import {
   kindOf,
   parseId,
   processImage,
+  processPair,
 } from './lib.mjs';
 import { validateAssets } from './validate.mjs';
 
@@ -50,9 +51,12 @@ describe('ids', () => {
     expect(kindOf('hero_warrior_t4_front')).toBeNull();
     expect(kindOf('hero_warrior_t1_left')).toBeNull();
     expect(kindOf('foo_bar')).toBeNull();
-    expect(parseId('hero_rogue_t3_back')).toEqual({ tier: 3, view: 'back' });
-    expect(parseId('bld_market_t2')).toEqual({ tier: 2, view: null });
-    expect(parseId('ter_grass_a')).toEqual({ tier: null, view: null });
+    expect(parseId('hero_rogue_t3_back')).toEqual({ tier: 3, view: 'back', part: null });
+    expect(parseId('bld_market_t2')).toEqual({ tier: 2, view: null, part: null });
+    expect(parseId('ter_grass_a')).toEqual({ tier: null, view: null, part: null });
+    expect(parseId('hero_warrior_t1_side_arm')).toEqual({ tier: 1, view: 'side', part: 'arm' });
+    expect(kindOf('hero_warrior_t1_front_body')?.kind).toBe('hero');
+    expect(kindOf('hero_warrior_t1_front_leg')).toBeNull();
   });
 });
 
@@ -120,13 +124,43 @@ describe('checkRaw', () => {
   });
 });
 
+describe('processPair', () => {
+  it('crops body and arm alike and finds the shoulder', () => {
+    // Body: the unit rectangle. Arm: a strip hanging beside it from y 300 down, touching it.
+    const body = canvas(1024, GREEN, unitRect);
+    const arm = canvas(1024, GREEN, { x: 380, y: 300, w: 32, h: 350 });
+    const r = processPair(body, arm, 'hero_warrior_t1_front');
+    expect(r.arm.image.width).toBe(r.body.image.width);
+    expect(r.arm.image.height).toBe(r.body.image.height);
+    expect(r.arm.anchorY).toBe(r.body.anchorY);
+    // Shoulder: top of the contact, at the arm's right edge next to the body.
+    expect(r.pivot.y).toBeGreaterThanOrEqual(298);
+    expect(r.pivot.y).toBeLessThan(345);
+    expect(r.pivot.x).toBeGreaterThan(395);
+    expect(r.arm.pivotX).toBeGreaterThan(0);
+    expect(r.arm.pivotY).toBeLessThan(0.4);
+  });
+
+  it('has no pivot when the arm does not touch', () => {
+    const body = canvas(1024, GREEN, unitRect);
+    const arm = canvas(1024, GREEN, { x: 200, y: 300, w: 32, h: 350 });
+    expect(processPair(body, arm, 'hero_warrior_t1_front').pivot).toBeNull();
+  });
+});
+
 describe('collectUploads', () => {
   it('reads batch, trial and plain names', () => {
     const dir = mkdtempSync(join(tmpdir(), 'art-'));
-    for (const f of ['B1--hero_a_t1_front.png', 'test--hero_a_t1_back.png', 'mon_b_t1_front.png'])
+    for (const f of [
+      'B1--hero_a_t1_front.png',
+      'test--hero_a_t1_back.png',
+      'mon_b_t1_front.png',
+      'R1--hero_a_t1_side_arm.png',
+    ])
       writeFileSync(join(dir, f), '');
     expect(collectUploads(dir).map(({ id, batch, test }) => [id, batch, test])).toEqual([
       ['hero_a_t1_front', 'B1', false],
+      ['hero_a_t1_side_arm', 'R1', false],
       ['mon_b_t1_front', null, false],
       ['hero_a_t1_back', null, true],
     ]);

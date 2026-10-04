@@ -42,11 +42,15 @@ export function validateAssets(root = '.') {
       continue;
     }
     if (row.kind !== k.kind) err(id, `kind must be "${k.kind}"`);
-    const { tier, view } = parseId(id);
+    const { tier, view, part } = parseId(id);
     if ((row.tier ?? null) !== tier) err(id, `tier must be ${tier}`);
     if ((row.view ?? null) !== view) err(id, `view must be ${view}`);
+    if ((row.part ?? null) !== part) err(id, `part must be ${part}`);
     for (const a of ['anchorX', 'anchorY'])
       if (typeof row[a] !== 'number' || row[a] < 0 || row[a] > 1) err(id, `${a} must be 0..1`);
+    for (const a of ['pivotX', 'pivotY'])
+      if (row[a] !== undefined && (typeof row[a] !== 'number' || row[a] < 0 || row[a] > 1))
+        err(id, `${a} must be 0..1`);
     const expected = `${k.dir}/${id}.png`;
     if (row.file !== expected) err(id, `file must be ${expected}`);
     const path = join(assets, row.file ?? '');

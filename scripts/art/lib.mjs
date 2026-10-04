@@ -25,13 +25,13 @@ export function blank(width, height) {
 // anchor: where the game places the sprite (Phaser origin), measured on the object.
 export const KINDS = {
   hero: {
-    re: /^hero_[a-z]+(-[a-z]+)*_t[1-3]_(front|back)$/,
+    re: /^hero_[a-z]+(-[a-z]+)*_t[1-3]_(front|back|side)(_(body|arm))?$/,
     dir: 'units',
     nominal: { axis: 'height', share: 0.75, px: 256 },
     anchor: 'feet',
   },
   mon: {
-    re: /^mon_[a-z]+(-[a-z]+)*_t[1-3]_(front|back)$/,
+    re: /^mon_[a-z]+(-[a-z]+)*_t[1-3]_(front|back|side)(_(body|arm))?$/,
     dir: 'units',
     nominal: { axis: 'height', share: 0.75, px: 256 },
     anchor: 'feet',
@@ -62,11 +62,15 @@ export function kindOf(id) {
   return k && k.re.test(id) ? { kind, ...k } : null;
 }
 
-// Tier and view from the id (null when the kind has none).
+// Tier, view and rig part from the id (null when the id has none).
 export function parseId(id) {
   const tier = /_t([1-3])(?:_|$)/.exec(id);
-  const view = /_(front|back)$/.exec(id);
-  return { tier: tier ? Number(tier[1]) : null, view: view ? view[1] : null };
+  const view = /_(front|back|side)(?:_(body|arm))?$/.exec(id);
+  return {
+    tier: tier ? Number(tier[1]) : null,
+    view: view ? view[1] : null,
+    part: view?.[2] ?? null,
+  };
 }
 
 // Key colour from the canvas border: 'green', 'magenta' or null (not a flat key).
@@ -288,34 +292,115 @@ export function anchorPoint(img, mode) {
   return { x: (x0 + x1 + 1) / 2, y: b.y + b.h, box: b };
 }
 
-// Raw ChatGPT canvas -> game sprite plus anchor (0..1, Phaser origin). Throws on bad input.
-export function processImage(raw, id) {
+// Raw ChatGPT canvas -> keyed full-size canvas. Throws on bad input.
+export function keyRaw(raw, id) {
   const k = kindOf(id);
   if (!k) throw new Error(`${id}: id does not match docs/asset-spec.md`);
   const { key } = detectKey(raw);
   if (!key) throw new Error(`${id}: border is not a flat green or magenta key`);
   const keyed = keyOut(raw, key);
   const specks = dropSpecks(keyed);
-  const anchor = anchorPoint(keyed, k.anchor);
-  if (!anchor) throw new Error(`${id}: nothing left after key-out`);
   const canvasSide = k.nominal.axis === 'height' ? raw.height : raw.width;
   const scale = k.nominal.px / (canvasSide * k.nominal.share);
-  // Trim to the visible box plus 2 px (output) margin, then scale.
-  const { box } = anchor;
+  return { k, key, keyed, specks, scale };
+}
+
+// The visible box plus a 2 px (output) margin, in source pixels.
+function trimRect(box, scale) {
   const m = 2 / scale;
-  const rect = { x: box.x - m, y: box.y - m, w: box.w + 2 * m, h: box.h + 2 * m };
+  return { x: box.x - m, y: box.y - m, w: box.w + 2 * m, h: box.h + 2 * m };
+}
+
+const round3 = (v) => Math.round(v * 1000) / 1000;
+
+function crop({ keyed, scale }, rect, anchor) {
   const ow = Math.max(1, Math.round(rect.w * scale));
   const oh = Math.max(1, Math.round(rect.h * scale));
-  const out = resample(keyed, rect, ow, oh);
-  const round = (v) => Math.round(v * 1000) / 1000;
   return {
-    image: out,
-    kind: k.kind,
-    dir: k.dir,
-    key,
-    specks,
-    anchorX: round((anchor.x - rect.x) / rect.w),
-    anchorY: round((anchor.y - rect.y) / rect.h),
+    image: resample(keyed, rect, ow, oh),
+    anchorX: round3((anchor.x - rect.x) / rect.w),
+    anchorY: round3((anchor.y - rect.y) / rect.h),
+  };
+}
+
+// Raw ChatGPT canvas -> game sprite plus anchor (0..1, Phaser origin). Throws on bad input.
+export function processImage(raw, id) {
+  const r = keyRaw(raw, id);
+  const anchor = anchorPoint(r.keyed, r.k.anchor);
+  if (!anchor) throw new Error(`${id}: nothing left after key-out`);
+  const out = crop(r, trimRect(anchor.box, r.scale), anchor);
+  return { ...out, kind: r.k.kind, dir: r.k.dir, key: r.key, specks: r.specks };
+}
+
+// Shoulder pivot of a rig arm on its body (source pixels): the top of the band where arm
+// pixels touch the body (within 4 px). Null when the pieces do not touch.
+export function shoulderPivot(body, arm) {
+  const { width: W, height: H } = body;
+  const b = visibleMask(body, 128);
+  const a = visibleMask(arm, 128);
+  const R = 4;
+  // Body mask dilated by R (square), separable max.
+  const rows = new Uint8Array(b.length);
+  for (let y = 0; y < H; y++)
+    for (let x = 0; x < W; x++) {
+      let v = 0;
+      for (let d = -R; d <= R && !v; d++) {
+        const xx = x + d;
+        if (xx >= 0 && xx < W && b[y * W + xx]) v = 1;
+      }
+      rows[y * W + x] = v;
+    }
+  let top = H;
+  let bottom = -1;
+  const contact = [];
+  for (let y = 0; y < H; y++)
+    for (let x = 0; x < W; x++) {
+      if (!a[y * W + x]) continue;
+      let v = 0;
+      for (let d = -R; d <= R && !v; d++) {
+        const yy = y + d;
+        if (yy >= 0 && yy < H && rows[yy * W + x]) v = 1;
+      }
+      if (!v) continue;
+      contact.push([x, y]);
+      top = Math.min(top, y);
+      bottom = Math.max(bottom, y);
+    }
+  if (!contact.length) return null;
+  // Contact pixels in the top 12% of the arm's height (at least 8 px) below the first contact.
+  const armBox = bbox(a, W, H);
+  const band = Math.max(8, armBox.h * 0.12);
+  const top_ = contact.filter(([, y]) => y <= top + band);
+  const x = top_.reduce((s, p) => s + p[0], 0) / top_.length;
+  const y = top_.reduce((s, p) => s + p[1], 0) / top_.length;
+  return { x, y, contactTop: top, contactBottom: bottom };
+}
+
+// Rig pair (`<base>_body`, `<base>_arm`) -> two sprites with one shared crop and scale, so they
+// stack exactly; anchor at the body's feet; pivot = shoulder, 0..1 of the shared image.
+export function processPair(rawBody, rawArm, base) {
+  const body = keyRaw(rawBody, `${base}_body`);
+  const arm = keyRaw(rawArm, `${base}_arm`);
+  if (rawBody.width !== rawArm.width || rawBody.height !== rawArm.height)
+    throw new Error(`${base}: body and arm canvases differ in size`);
+  const feet = anchorPoint(body.keyed, 'feet');
+  const armBox = bbox(visibleMask(arm.keyed, 128), rawArm.width, rawArm.height);
+  if (!feet || !armBox) throw new Error(`${base}: a piece is empty after key-out`);
+  const x0 = Math.min(feet.box.x, armBox.x);
+  const y0 = Math.min(feet.box.y, armBox.y);
+  const x1 = Math.max(feet.box.x + feet.box.w, armBox.x + armBox.w);
+  const y1 = Math.max(feet.box.y + feet.box.h, armBox.y + armBox.h);
+  const rect = trimRect({ x: x0, y: y0, w: x1 - x0, h: y1 - y0 }, body.scale);
+  const pivot = shoulderPivot(body.keyed, arm.keyed);
+  const shared = { kind: body.k.kind, dir: body.k.dir };
+  const pv = pivot && {
+    pivotX: round3((pivot.x - rect.x) / rect.w),
+    pivotY: round3((pivot.y - rect.y) / rect.h),
+  };
+  return {
+    body: { ...crop(body, rect, feet), ...shared, key: body.key, specks: body.specks },
+    arm: { ...crop(arm, rect, feet), ...shared, key: arm.key, specks: arm.specks, ...pv },
+    pivot,
   };
 }
 
@@ -366,7 +451,7 @@ export function collectUploads(dir) {
     .map((f) => {
       const test = f.startsWith('test--');
       const name = f.replace(/\.png$/, '').replace(/^test--/, '');
-      const m = /^(B\d+)--(.+)$/.exec(name);
+      const m = /^([A-Z]\d+)--(.+)$/.exec(name);
       return { id: m ? m[2] : name, batch: m ? m[1] : null, test, path: join(dir, f) };
     });
 }
@@ -389,6 +474,7 @@ export function checkRaw(raw, id) {
   const a = anchorPoint(keyed, k.anchor);
   if (!a) return [...problems, 'nothing left after key-out'];
   const pct = (v) => `${Math.round(v * 100)}%`;
+  if (parseId(id).part === 'arm') return problems; // a lone arm has no figure framing
   if (k.nominal.axis === 'height') {
     const h = a.box.h / raw.height;
     const feet = a.y / raw.height;
