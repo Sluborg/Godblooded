@@ -4,12 +4,12 @@ Each session fills in its own row on first start (`get_session` with no argument
 and records the trigger id of its 2-hour safety-net Routine. Ring a session with a one-shot
 `create_trigger` into its id (`docs/collaboration.md`, "Waking each other").
 
-| Role  | Session id | Model  | Safety-net trigger | Started |
-| ----- | ---------- | ------ | ------------------ | ------- |
-| Lead  |            | Opus   |                    |         |
-| Sim   |            | Sonnet |                    |         |
-| Scene |            | Sonnet |                    |         |
-| Art   |            | Opus   |                    |         |
+| Role  | Session id                       | Model      | Safety-net trigger            | Started    |
+| ----- | -------------------------------- | ---------- | ----------------------------- | ---------- |
+| Lead  | session_01QJ7Eau77boWNn7Xu4LueGq | Sonnet 5.5 | trig_01Lh3btH7Ase83C5cLexvKYH | 2026-10-04 |
+| Sim   |                                  | Sonnet     |                               |            |
+| Scene |                                  | Sonnet     |                               |            |
+| Art   |                                  | Opus       |                               |            |
 
 ## ChatGPT chats (one per art track, all in the ChatGPT project "Godblooded art")
 
