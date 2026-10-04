@@ -1,3 +1,4 @@
+import { fledParty, fleeThreshold, newParty, TRAITS } from './parties';
 import { dist, maxHp, speed, stepToward, TICK_MS } from './units';
 import type { World } from './world';
 import type { Vec2, UnitState } from './types';
@@ -8,7 +9,6 @@ import type { Vec2, UnitState } from './types';
 const FIRST_RECRUIT_MS = 5_000;
 const RECRUIT_MS = 15_000;
 const MAX_PER_TEMPLE = 4;
-const FLEE_HP = 0.3;
 const KO_MS = 10_000;
 const REVIVE_HP = 0.25;
 // Fraction of max hp healed per second while resting (shrines heal faster).
@@ -47,10 +47,14 @@ export function spawnHero(world: World, classId: string, pos: Vec2, temple = 0):
     target: null,
     ko: false,
     mode: 'explore',
+    party: 0,
+    trait: TRAITS[Math.floor(world.rng() * TRAITS.length)],
     gold: cls.startGold,
   });
   world.unitRuntime.set(id, { lair: null, cooldownMs: 0, target: null, idleMs: 0 });
   world.heroRuntime.set(id, { dest: null, koMs: 0, temple });
+  const hero = world.units[world.units.length - 1];
+  hero.party = newParty(world, id);
   world.events.push({ kind: 'arrived', unit: id, type: cls.id });
   return id;
 }
@@ -81,10 +85,11 @@ export function runHeroes(world: World): void {
     if (unit.ko) {
       rt.koMs -= TICK_MS;
       if (rt.koMs <= 0) revive(world, unit, rt);
-    } else if (unit.mode === 'explore' && unit.hp < unit.maxHp * FLEE_HP) {
+    } else if (unit.mode === 'explore' && unit.hp < unit.maxHp * fleeThreshold(world, unit)) {
       unit.mode = 'return';
       unit.target = null;
       rt.dest = null;
+      fledParty(world, unit);
       world.events.push({ kind: 'fled', unit: unit.id });
     }
   }
@@ -124,7 +129,13 @@ export function heroMove(world: World, unit: UnitState): void {
   };
   switch (unit.mode) {
     case 'explore': {
-      if (!rt.dest || dist(unit.pos, rt.dest) <= ARRIVE) rt.dest = exploreDest(world);
+      const lead = leaderOf(world, unit);
+      if (lead) {
+        // Followers go where their leader goes.
+        rt.dest = world.heroRuntime.get(lead.id)?.dest ?? lead.pos;
+      } else if (!rt.dest || dist(unit.pos, rt.dest) <= ARRIVE) {
+        rt.dest = exploreDest(world);
+      }
       step(rt.dest);
       break;
     }
@@ -159,6 +170,12 @@ export function heroMove(world: World, unit: UnitState): void {
       break;
     }
   }
+}
+
+// The party leader (first member) when it is someone else and out exploring.
+function leaderOf(world: World, unit: UnitState): UnitState | undefined {
+  const lead = world.units.find((u) => u.id === world.parties.get(unit.party)?.members[0]);
+  return lead && lead.id !== unit.id && lead.mode === 'explore' && !lead.ko ? lead : undefined;
 }
 
 // Mostly toward a lair (that is where the monsters are), sometimes anywhere.

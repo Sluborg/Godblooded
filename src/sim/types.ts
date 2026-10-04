@@ -49,6 +49,16 @@ export interface ClassDef {
   startGold: number;
 }
 
+// One of 3 cards offered when a party levels up. `effect` keys are read by Sim.
+export interface UpgradeDef {
+  id: string;
+  name: string;
+  text: string;
+  effect: { attr?: Partial<Attributes>; healPct?: number; flee?: number };
+}
+
+export type TraitId = 'brave' | 'coward' | 'greedy' | 'proud' | 'loyal' | 'vengeful' | 'curious';
+
 // Where a lair stands on the map.
 export interface LairSite {
   lair: string;
@@ -62,6 +72,7 @@ export interface GameData {
   // Optional until src/data and Scene's stub carry rows; missing means no lairs.
   classes?: readonly ClassDef[];
   monsters?: readonly MonsterDef[];
+  upgrades?: readonly UpgradeDef[];
   lairs?: readonly LairDef[];
   lairSites?: readonly LairSite[];
   startGold: number;
@@ -113,11 +124,26 @@ export interface UnitState {
   ko: boolean;
   // What the unit is doing. Monsters always 'wander'.
   mode: UnitMode;
+  // Heroes: the party they belong to (0 for monsters) and their personality.
+  party: number;
+  trait: TraitId | null;
   // Gold carried (heroes; monsters 0).
   gold: number;
 }
 
 export type UnitMode = 'wander' | 'explore' | 'return' | 'rest' | 'shop' | 'ko';
+
+export interface PartyState {
+  id: number;
+  members: number[];
+  level: number;
+  xp: number;
+  // XP needed for the next level.
+  xpNext: number;
+  upgrades: string[];
+  // Upgrade ids offered right now; the sim waits for pickUpgrade while this is set.
+  offer: string[] | null;
+}
 
 export interface BountyState {
   id: number;
@@ -131,6 +157,9 @@ export type SimEvent =
   | { kind: 'hit'; attacker: number; target: number; damage: number; dodged: boolean }
   | { kind: 'knockout'; unit: number; by: number }
   | { kind: 'died'; unit: number; type: string; by: number; bounty: number; xp: number }
+  | { kind: 'partyFormed'; party: number; members: number[] }
+  | { kind: 'levelUp'; party: number; level: number; offer: string[] }
+  | { kind: 'upgradePicked'; party: number; upgrade: string }
   | { kind: 'arrived'; unit: number; type: string }
   | { kind: 'fled'; unit: number }
   | { kind: 'revived'; unit: number }
@@ -141,7 +170,8 @@ export type Command =
   // `pos` is the legacy free-placement form, removed once Scene builds by plot.
   | { kind: 'build'; type: string; plot: number }
   | { kind: 'build'; type: string; pos: Vec2 }
-  | { kind: 'placeBounty'; pos: Vec2; gold: number };
+  | { kind: 'placeBounty'; pos: Vec2; gold: number }
+  | { kind: 'pickUpgrade'; party: number; upgrade: string };
 
 export type CommandResult = { ok: true; id: number } | { ok: false; reason: string };
 
@@ -154,6 +184,7 @@ export interface Snapshot {
   readonly buildings: readonly Readonly<BuildingState>[];
   readonly lairs: readonly Readonly<LairState>[];
   readonly units: readonly Readonly<UnitState>[];
+  readonly parties: readonly Readonly<PartyState>[];
   readonly bounties: readonly Readonly<BountyState>[];
   // Events since the previous snapshot() call (speech bubbles, sounds, juice).
   readonly events: readonly SimEvent[];

@@ -14,10 +14,13 @@ export type {
   LairSite,
   LairState,
   MonsterDef,
+  PartyState,
   PlotState,
   SimEvent,
   Snapshot,
+  TraitId,
   UnitMode,
   UnitState,
+  UpgradeDef,
   Vec2,
 } from './types';
