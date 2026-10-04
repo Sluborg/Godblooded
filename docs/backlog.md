@@ -14,16 +14,17 @@ Review (PR open), Done. A worker takes its top Open row.
 
 ## Sim
 
-| Order | Item                                                                                                         | Status |
-| ----- | ------------------------------------------------------------------------------------------------------------ | ------ |
-| 10    | `api.ts` + world: `createWorld(seed, data)`, `step(world, dtMs)`, `snapshot()`, `command()`; tick loop       | Done   |
-| 20    | Units move on the map (simple steering, no pathfinding yet); lairs spawn monsters on a timer                 | Done   |
-| 30    | Lean real-time combat from the Coda reference math (simplify if needed, log it in decisions)                 | Done   |
-| 35    | Build plots in the sim: `GameData.plots`, `build` takes a plot, refuses occupied plots; snapshot lists plots | Done   |
-| 40    | Heroes: arrive at temples, explore, fight, return to heal and shop (gold flows to the town by tax)           | Doing  |
-| 50    | Parties: form by traits and bonds, move and fight together, share XP; party level up offers 3 upgrades       | Open   |
-| 60    | Bounty flags: heroes weigh bounty vs danger by trait; win (last lair) and lose (town hall) conditions        | Open   |
-| 70    | Headless balance sim (`npm run sim`): 100 seeded runs, report run length, win rate, deaths                   | Open   |
+| Order | Item                                                                                                                        | Status |
+| ----- | --------------------------------------------------------------------------------------------------------------------------- | ------ |
+| 10    | `api.ts` + world: `createWorld(seed, data)`, `step(world, dtMs)`, `snapshot()`, `command()`; tick loop                      | Done   |
+| 20    | Units move on the map (simple steering, no pathfinding yet); lairs spawn monsters on a timer                                | Done   |
+| 30    | Lean real-time combat from the Coda reference math (simplify if needed, log it in decisions)                                | Done   |
+| 35    | Build plots in the sim: `GameData.plots`, `build` takes a plot, refuses occupied plots; snapshot lists plots                | Done   |
+| 40    | Heroes: arrive at temples, explore, fight, return to heal and shop (gold flows to the town by tax)                          | Done   |
+| 45    | Move hero tuning (recruit timer, flee, rest, shop, tax, revive) from `heroes.ts` into `GameData.tuning`; Lead fills the row | Open   |
+| 50    | Parties: form by traits and bonds, move and fight together, share XP; party level up offers 3 upgrades                      | Doing  |
+| 60    | Bounty flags: heroes weigh bounty vs danger by trait; win (last lair) and lose (town hall) conditions                       | Open   |
+| 70    | Headless balance sim (`npm run sim`): 100 seeded runs, report run length, win rate, deaths                                  | Open   |
 
 ## Scene
 

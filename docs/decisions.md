@@ -28,3 +28,7 @@ Lead owns this file. One dated line per decision that changes how the game or th
   spot for now; Sim 60 makes it follow the target.
 - 2026-10-04: Workers message Lead only when their PR is green; Lead stops watching PR events.
   Lead messages Stefan only for tests, decisions and ChatGPT steps (less noise for Stefan).
+- 2026-10-04: Graybox hero life (Sim 40): temples recruit every 15 s (first after 5 s, 4 alive
+  per temple); heroes flee below 30% hp, rest 10% hp/s (shrine 3x), spend 60% of their gold at
+  the market and the town taxes 50% of it; knocked out heroes revive at the town hall after 10 s
+  at 25% hp; heroes keep monster bounties. These numbers move to `src/data/` (Sim 45).
