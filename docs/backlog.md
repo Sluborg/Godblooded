@@ -38,7 +38,7 @@ Review (PR open), Done. A worker takes its top Open row.
 | 40    | Level-up pick: a party levels, the game pauses, 3 upgrade cards, tap one                                                                                      | Done   |
 | 45    | Party panel: tap a hero or party to see members, trait, level, XP bar, gold; small party badges over heroes                                                   | Done   |
 | 50    | Unit view: manifest sprite or placeholder, mirror by direction, bob/squash/lunge/hit-flash tweens                                                             | Done   |
-| 55    | Hero interest markers on bounty flags (after Sim 40/60)                                                                                                       | Open   |
+| 55    | Hero interest markers on bounty flags (after Sim 40/60)                                                                                                       | Done   |
 | 60    | Speech bubbles from sim events; end screen (win/lose, run summary, play again)                                                                                | Done   |
 | 65    | Smoke run: `npm run smoke` (Playwright, phone viewport) builds a temple and market, runs 4x for 3 game minutes, saves screenshots and fails on console errors | Done   |
 
