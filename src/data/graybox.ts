@@ -23,24 +23,24 @@ export const CLASSES: readonly ClassDef[] = [
 export const MONSTERS: readonly MonsterDef[] = [
   {
     id: 'draugr',
-    attrs: { str: 4, dex: 3, sta: 4, cha: 1, per: 3, int: 1, wp: 6 },
-    weapon: { baseAttackS: 1.8, range: 40 },
+    attrs: { str: 5, dex: 3, sta: 5, cha: 1, per: 3, int: 1, wp: 6 },
+    weapon: { baseAttackS: 1.7, range: 40 },
     bounty: 12,
     xp: 10,
   },
   {
     id: 'troll',
-    attrs: { str: 8, dex: 2, sta: 9, cha: 1, per: 2, int: 1, wp: 4 },
+    attrs: { str: 10, dex: 2, sta: 11, cha: 1, per: 2, int: 1, wp: 4 },
     weapon: { baseAttackS: 2.4, range: 50 },
     bounty: 40,
     xp: 35,
   },
 ];
 
-// M1 map: two lairs out in the fog; the troll den is the "final lair" (win when it falls).
+// The barrow is the early fight; the troll den is the final lair (win when it falls).
 export const LAIRS: readonly LairDef[] = [
-  { id: 'barrow', monster: 'draugr', spawnS: 20, maxAlive: 4, hp: 300 },
-  { id: 'troll-den', monster: 'troll', spawnS: 60, maxAlive: 2, hp: 600 },
+  { id: 'barrow', monster: 'draugr', spawnS: 10, maxAlive: 6, hp: 3500 },
+  { id: 'troll-den', monster: 'troll', spawnS: 25, maxAlive: 6, hp: 16000 },
 ];
 
 // Level-up cards; a party is offered 3 different ones. Graybox set: stats, sustain, nerve.
@@ -105,6 +105,12 @@ export const GRAYBOX: GameData = {
   startGold: 300,
   map: { width: 2400, height: 1600 },
   townHall: { x: 1200, y: 800 },
+  // Balance pass 1 (npm run sim, 100 runs, simple bot): win rate 62%, median run 15.2 min,
+  // about 17 knockouts per run. Unset keys use DEFAULT_TUNING in src/sim/tuning.ts.
+  tuning: {
+    hero: { maxPerTemple: 6, recruitMs: 25_000 },
+    town: { raidFirstMs: 360_000, raidEveryMs: 120_000, raidGrowEveryMs: 240_000 },
+  },
   classes: CLASSES,
   upgrades: UPGRADES,
   monsters: MONSTERS,
