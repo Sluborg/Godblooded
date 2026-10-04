@@ -17,7 +17,7 @@ Review (PR open), Done. A worker takes its top Open row.
 | Order | Item                                                                                                   | Status |
 | ----- | ------------------------------------------------------------------------------------------------------ | ------ |
 | 10    | `api.ts` + world: `createWorld(seed, data)`, `step(world, dtMs)`, `snapshot()`, `command()`; tick loop | Done   |
-| 20    | Units move on the map (simple steering, no pathfinding yet); lairs spawn monsters on a timer           | Open   |
+| 20    | Units move on the map (simple steering, no pathfinding yet); lairs spawn monsters on a timer           | Review |
 | 30    | Lean real-time combat from the Coda reference math (simplify if needed, log it in decisions)           | Open   |
 | 40    | Heroes: arrive at temples, explore, fight, return to heal and shop (gold flows to the town by tax)     | Open   |
 | 50    | Parties: form by traits and bonds, move and fight together, share XP; party level up offers 3 upgrades | Open   |
@@ -28,8 +28,8 @@ Review (PR open), Done. A worker takes its top Open row.
 
 | Order | Item                                                                                                      | Status |
 | ----- | --------------------------------------------------------------------------------------------------------- | ------ |
-| 10    | MapScene graybox: ground, camera drag and pinch zoom, render a snapshot as shapes (stub sim until Sim 10) | Review |
-| 20    | Build menu: tap a plot, pick a building, see cost; HUD with gold and run clock; 1x/2x/4x speed            | Open   |
+| 10    | MapScene graybox: ground, camera drag and pinch zoom, render a snapshot as shapes (stub sim until Sim 10) | Done   |
+| 20    | Build menu: tap a plot, pick a building, see cost; HUD with gold and run clock; 1x/2x/4x speed            | Doing  |
 | 30    | Bounty flag: tap the map or a monster, set gold, flag shows; heroes' interest shown as markers            | Open   |
 | 40    | Level-up pick: a party levels, the game pauses, 3 upgrade cards, tap one                                  | Open   |
 | 50    | Unit view: manifest sprite or placeholder, mirror by direction, bob/squash/lunge/hit-flash tweens         | Open   |

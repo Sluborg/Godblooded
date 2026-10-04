@@ -19,3 +19,5 @@ Lead owns this file. One dated line per decision that changes how the game or th
   fixed 50 ms ticks (Scene passes frame time times game speed), `snapshot(world)` returns a plain
   copy and drains `events`, `command(world, cmd)` returns `{ok, id}` or `{ok:false, reason}`.
   Commands: `build`, `placeBounty`. Scene imports nothing else from `src/sim/`.
+- 2026-10-04: Graybox derivations (Sim 20): move speed = 40 + dex * 8 world units/s, hp = sta * 8 +
+  str * 4. Revisit in the M4 balance pass.
