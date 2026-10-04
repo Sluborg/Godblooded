@@ -21,7 +21,7 @@ Review (PR open), Done. A worker takes its top Open row.
 | 30    | Lean real-time combat from the Coda reference math (simplify if needed, log it in decisions)                                | Done   |
 | 35    | Build plots in the sim: `GameData.plots`, `build` takes a plot, refuses occupied plots; snapshot lists plots                | Done   |
 | 40    | Heroes: arrive at temples, explore, fight, return to heal and shop (gold flows to the town by tax)                          | Done   |
-| 45    | Move hero tuning (recruit timer, flee, rest, shop, tax, revive) from `heroes.ts` into `GameData.tuning`; Lead fills the row | Doing  |
+| 45    | Move hero tuning (recruit timer, flee, rest, shop, tax, revive) from `heroes.ts` into `GameData.tuning`; Lead fills the row | Done   |
 | 50    | Parties: form by traits and bonds, move and fight together, share XP; party level up offers 3 upgrades                      | Done   |
 | 60    | Bounty flags: heroes weigh bounty vs danger by trait; win (last lair) and lose (town hall) conditions                       | Open   |
 | 70    | Headless balance sim (`npm run sim`): 100 seeded runs, report run length, win rate, deaths                                  | Open   |
