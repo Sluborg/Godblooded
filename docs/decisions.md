@@ -15,3 +15,7 @@ Lead owns this file. One dated line per decision that changes how the game or th
 - 2026-10-04: Worker messages go by `send_message` (instant wake plus content), not inbox edits:
   inbox appends in parallel PRs conflicted on every merge. Inboxes, backlog and sessions are
   Lead-only files; Lead keeps them current.
+- 2026-10-04: First `src/sim/api.ts` (PR #4): `createWorld(seed, data)`, `step(world, dtMs)` with
+  fixed 50 ms ticks (Scene passes frame time times game speed), `snapshot(world)` returns a plain
+  copy and drains `events`, `command(world, cmd)` returns `{ok, id}` or `{ok:false, reason}`.
+  Commands: `build`, `placeBounty`. Scene imports nothing else from `src/sim/`.

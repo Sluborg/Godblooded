@@ -8,15 +8,15 @@ Review (PR open), Done. A worker takes its top Open row.
 | Order | Item                                                                                      | Status |
 | ----- | ----------------------------------------------------------------------------------------- | ------ |
 | 10    | Spawn Sim, Scene and Art sessions (`docs/prompts/`), check they registered in sessions.md | Done   |
-| 20    | Agree the first `src/sim/api.ts` shape with Sim and Scene (inboxes), record in decisions  | Doing  |
-| 30    | First `src/data/` rows for the graybox: 2 classes, 2 monsters, 4 buildings, 3 upgrades    | Open   |
+| 20    | Agree the first `src/sim/api.ts` shape with Sim and Scene (inboxes), record in decisions  | Done   |
+| 30    | First `src/data/` rows for the graybox: 2 classes, 2 monsters, 4 buildings, 3 upgrades    | Doing  |
 | 40    | Review and merge M1 PRs; when M1 runs end to end, ask Stefan "is it fun to watch?"        | Open   |
 
 ## Sim
 
 | Order | Item                                                                                                   | Status |
 | ----- | ------------------------------------------------------------------------------------------------------ | ------ |
-| 10    | `api.ts` + world: `createWorld(seed, data)`, `step(world, dtMs)`, `snapshot()`, `command()`; tick loop | Review |
+| 10    | `api.ts` + world: `createWorld(seed, data)`, `step(world, dtMs)`, `snapshot()`, `command()`; tick loop | Done   |
 | 20    | Units move on the map (simple steering, no pathfinding yet); lairs spawn monsters on a timer           | Open   |
 | 30    | Lean real-time combat from the Coda reference math (simplify if needed, log it in decisions)           | Open   |
 | 40    | Heroes: arrive at temples, explore, fight, return to heal and shop (gold flows to the town by tax)     | Open   |
