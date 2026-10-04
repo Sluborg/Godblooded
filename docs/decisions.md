@@ -36,3 +36,10 @@ Lead owns this file. One dated line per decision that changes how the game or th
   level-1 parties merge on meeting (max 4); party level n needs 30n shared XP; bonds grow on
   shared kills and drop when a hero flees; a level up freezes the run until the player picks 1 of
   3 different upgrades; tiers at party levels 3 and 6. Lead keeps 9 graybox upgrade cards.
+- 2026-10-04: Graybox siege and win/lose (Sim 60): heroes storm lairs within 350; a lair pays 60
+  gold and 40 party XP; the run is won when the last lair falls and lost when the town hall
+  (500 hp) falls; raids start at 4 min, every 2 min, 2 monsters per lair (+1 per 5 min) and
+  march on the nearest building (200 hp). Bounty weighing by trait: greedy x1.5 gold, curious
+  x1.2, brave fear x0.5, coward fear x2, proud ignores flags under 40 gold.
+- 2026-10-04: First balance read (Sim 70 bot, 100 runs): 100% wins in 2.4 min, no knockouts.
+  Far too easy; Lead balance pass (Lead 35) targets median 15-18 min, win rate 55-75%.
