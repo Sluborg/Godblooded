@@ -8,9 +8,11 @@ import {
   step,
   type CommandResult,
   type Snapshot,
+  type UnitState,
   type Vec2,
   type World,
 } from '../sim/api';
+import { partyColor } from '../ui/partyLook';
 import { UnitViews } from '../ui/unitViews';
 import { OFFER_KEY, type LevelUpOffer } from './LevelUpScene';
 import { attachCameraControls } from '../ui/cameraControls';
@@ -26,6 +28,7 @@ const BUILDING_COLORS: Record<string, number> = {
 const BUILDING_SIZE = 96;
 const TARGET_RADIUS = 70;
 const PLOT_SIZE = 120;
+const INTEREST_MAX = 8;
 const PLOT_RADIUS = 110;
 
 export interface MapTap {
@@ -43,6 +46,8 @@ export class MapScene extends Phaser.Scene {
   private snap!: Snapshot;
   private plotViews = new Map<number, Phaser.GameObjects.Rectangle>();
   private unitViews!: UnitViews;
+  // Lines from the selected hero's party to the flags it is heading for.
+  private links!: Phaser.GameObjects.Graphics;
   // Party whose level-up cards are open (the sim is frozen until it is picked), or null.
   private offerParty: number | null = null;
   private views = new Map<string, Phaser.GameObjects.GameObject>();
@@ -70,6 +75,7 @@ export class MapScene extends Phaser.Scene {
     this.offerParty = null;
     this.registry.set('modal', false);
     this.unitViews = new UnitViews(this);
+    this.links = this.add.graphics().setDepth(1_000_000);
     this.snap = snapshot(this.world);
     this.sync();
     this.scene.launch('Hud');
@@ -190,6 +196,10 @@ export class MapScene extends Phaser.Scene {
       const key = `f${b.id}`;
       seen.add(key);
       if (!this.views.has(key)) this.views.set(key, this.makeBounty(b.gold, b.pos.x, b.pos.y));
+      this.updateInterest(
+        this.views.get(key),
+        this.snap.units.filter((u) => u.bounty === b.id),
+      );
     }
     for (const [key, view] of this.views) {
       if (!seen.has(key)) {
@@ -198,6 +208,7 @@ export class MapScene extends Phaser.Scene {
       }
     }
     this.unitViews.sync(this.snap.units, this.snap.events, this.snap.timeMs);
+    this.drawLinks();
     for (const e of this.snap.events) {
       if (e.kind !== 'hit') continue;
       const view = this.views.get(`b${e.target}`) ?? this.views.get(`l${e.target}`);
@@ -205,6 +216,46 @@ export class MapScene extends Phaser.Scene {
         this.tweens.add({ targets: view, alpha: 0.55, duration: 60, yoyo: true });
     }
     this.syncPlots();
+  }
+
+  // One dot per hero heading for this flag, in its party colour, under the gold amount.
+  private updateInterest(
+    view: Phaser.GameObjects.GameObject | undefined,
+    heroes: readonly Readonly<UnitState>[],
+  ): void {
+    if (!(view instanceof Phaser.GameObjects.Container)) return;
+    let g = view.getData('interest') as Phaser.GameObjects.Graphics | undefined;
+    if (!g) {
+      g = this.add.graphics();
+      view.add(g);
+      view.setData('interest', g);
+    }
+    g.clear();
+    const shown = heroes.slice(0, INTEREST_MAX);
+    shown.forEach((u, i) => {
+      const x = (i - (shown.length - 1) / 2) * 22;
+      g.fillStyle(u.party > 0 ? partyColor(u.party) : 0xffffff, 1).fillCircle(x, 50, 9);
+      g.lineStyle(2, 0x000000, 0.7).strokeCircle(x, 50, 9);
+    });
+  }
+
+  // While a hero is selected, its party's pick is drawn as lines to the flags they head for.
+  private drawLinks(): void {
+    this.links.clear();
+    const selected = this.snap.units.find((u) => u.id === this.registry.get('selectedUnit'));
+    if (!selected) return;
+    for (const u of this.snap.units) {
+      if (
+        u.bounty === null ||
+        (selected.party > 0 ? u.party !== selected.party : u.id !== selected.id)
+      )
+        continue;
+      const flag = this.snap.bounties.find((b) => b.id === u.bounty);
+      if (!flag) continue;
+      this.links
+        .lineStyle(4, u.party > 0 ? partyColor(u.party) : 0xffffff, 0.85)
+        .lineBetween(u.pos.x, u.pos.y - 40, flag.pos.x, flag.pos.y - 40);
+    }
   }
 
   // HP bar on a building or lair view, shown only while it is hurt. The bar graphics live
