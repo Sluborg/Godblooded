@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import type { SimEvent, UnitState, Vec2 } from '../sim/api';
 import { ANCHORS_KEY } from './assets';
+import { partyColor } from './partyLook';
 import { isSpeechEvent, pickLine, type SpeechKind } from './speechLines';
 
 // Height of a unit on the map in world units. Art ships about 256 px tall at nominal size.
@@ -27,6 +28,9 @@ class UnitView {
   private readonly dot: Phaser.GameObjects.Arc;
   private readonly nose: Phaser.GameObjects.Triangle;
   private readonly bar: Phaser.GameObjects.Graphics;
+  private readonly ring: Phaser.GameObjects.Graphics;
+  private readonly badge: Phaser.GameObjects.Text;
+  private ringKey = '';
   private last: Vec2;
   private moving = false;
   private bubble: Phaser.GameObjects.Container | null = null;
@@ -55,7 +59,24 @@ class UnitView {
       .setOrigin(0.5, 1);
     this.body = scene.add.container(0, 0, [this.dot, this.nose]);
     this.bar = scene.add.graphics();
-    this.container = scene.add.container(u.pos.x, u.pos.y, [this.body, this.bar, label]);
+    // Ring at the feet in the party colour (white and thicker when selected), badge with the
+    // party number beside the name.
+    this.ring = scene.add.graphics();
+    this.badge = scene.add
+      .text(-label.width / 2 - 14, -r * 2 - 18, '', {
+        fontFamily: 'Georgia, serif',
+        fontSize: '18px',
+        color: '#1a1410',
+        padding: { x: 7, y: 2 },
+      })
+      .setOrigin(0.5, 1);
+    this.container = scene.add.container(u.pos.x, u.pos.y, [
+      this.ring,
+      this.body,
+      this.bar,
+      label,
+      this.badge,
+    ]);
     this.last = { ...u.pos };
   }
 
@@ -74,6 +95,25 @@ class UnitView {
     this.body.y = this.moving && !u.ko ? -Math.abs(Math.sin(timeMs * 0.015)) * 7 : 0;
     this.body.setAngle(u.ko ? 90 : 0).setAlpha(u.ko ? 0.5 : 1);
     this.drawBar(u);
+    this.drawParty(u);
+  }
+
+  private drawParty(u: UnitState): void {
+    const selected = this.scene.registry.get('selectedUnit') === u.id;
+    const key = `${u.party}:${selected}`;
+    if (key === this.ringKey) return;
+    this.ringKey = key;
+    this.ring.clear();
+    this.badge.setVisible(u.party > 0);
+    if (u.party > 0) {
+      const c = partyColor(u.party);
+      this.badge.setText(`${u.party}`).setBackgroundColor(`#${c.toString(16).padStart(6, '0')}`);
+      this.ring
+        .lineStyle(selected ? 6 : 4, selected ? 0xffffff : c, 0.95)
+        .strokeEllipse(0, -4, 64, 24);
+    } else if (selected) {
+      this.ring.lineStyle(6, 0xffffff, 0.95).strokeEllipse(0, -4, 64, 24);
+    }
   }
 
   // Swaps in the sprite for this view when the manifest has it; else the placeholder stays.
