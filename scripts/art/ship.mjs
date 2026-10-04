@@ -6,10 +6,11 @@
 // Only files of that batch ship: `<batch>--<id>.png`, or unprefixed `<id>.png` (a folder holding
 // one batch). Trial images (`test--`) and other batches' files are skipped.
 import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { collectUploads, parseId, processImage, readPng, writePng } from './lib.mjs';
+import { collectUploads, parseId, processImage, processPair, readPng, writePng } from './lib.mjs';
 
 const [dir, batch, ...only] = process.argv.slice(2);
-if (!dir || !/^B\d+$/.test(batch ?? '')) throw new Error('usage: ship.mjs <folder> <B#> [id ...]');
+if (!dir || !/^[A-Z]\d+$/.test(batch ?? ''))
+  throw new Error('usage: ship.mjs <folder> <batch, e.g. B2 or R1> [id ...]');
 
 const LICENSE = "own (ChatGPT, Stefan's account)";
 const manifestPath = 'public/assets/manifest.json';
@@ -21,29 +22,51 @@ const uploads = collectUploads(dir).filter(
 );
 const dupes = uploads.map((u) => u.id).filter((id, i, all) => all.indexOf(id) !== i);
 if (dupes.length) throw new Error(`more than one upload for ${[...new Set(dupes)].join(', ')}`);
-for (const { id, path } of uploads) {
-  const raw = readPng(path);
-  const r = processImage(raw, id);
+// Rig pieces ship as pairs (`<base>_body` + `<base>_arm`) with one shared crop.
+const byId = new Map(uploads.map((u) => [u.id, u]));
+const ship = (id, path, r) => {
   mkdirSync(`assets/source/${batch}`, { recursive: true });
   copyFileSync(path, `assets/source/${batch}/${id}.png`);
   const file = `${r.dir}/${id}.png`;
   writePng(`public/assets/${file}`, r.image);
-  const { tier, view } = parseId(id);
+  const { tier, view, part } = parseId(id);
+  const pivot = r.pivotX === undefined ? {} : { pivotX: r.pivotX, pivotY: r.pivotY };
   rows.push({
     id,
     kind: r.kind,
     tier,
     view,
+    ...(part ? { part } : {}),
     file,
     anchorX: r.anchorX,
     anchorY: r.anchorY,
+    ...pivot,
     license: LICENSE,
     source: batch,
   });
+  const extra = r.pivotX === undefined ? '' : `, shoulder pivot ${r.pivotX},${r.pivotY}`;
   console.log(
-    `shipped ${file} ${r.image.width}x${r.image.height} (${r.key} key, anchor ${r.anchorX},${r.anchorY}, ${r.specks} speck px dropped)`,
+    `shipped ${file} ${r.image.width}x${r.image.height} (${r.key} key, anchor ${r.anchorX},${r.anchorY}${extra}, ${r.specks} speck px dropped)`,
   );
+};
+for (const { id, path } of uploads) {
+  const { part } = parseId(id);
+  if (part === 'arm') continue; // shipped with its body
+  if (part === 'body') {
+    const base = id.replace(/_body$/, '');
+    const arm = byId.get(`${base}_arm`);
+    if (!arm) throw new Error(`${id}: its arm (${base}_arm) is not in this batch`);
+    const pair = processPair(readPng(path), readPng(arm.path), base);
+    if (!pair.pivot) console.log(`WARN ${base}: arm does not touch the body, no pivot`);
+    ship(id, path, pair.body);
+    ship(arm.id, arm.path, pair.arm);
+    continue;
+  }
+  ship(id, path, processImage(readPng(path), id));
 }
+for (const u of uploads)
+  if (parseId(u.id).part === 'arm' && !byId.has(u.id.replace(/_arm$/, '_body')))
+    throw new Error(`${u.id}: its body is not in this batch`);
 const ids = new Set(rows.map((r) => r.id));
 manifest.assets = manifest.assets
   .filter((a) => !ids.has(a.id))

@@ -12,6 +12,9 @@ Art owns this file. The house style is `art-tasks/STYLE.md`; this is the technic
 | Terrain  | `ter_<name>`                        | `ter_grass_a`           |
 | UI       | `ui_<name>`                         | `ui_flag_bounty`        |
 
+Rig pieces (test, Lead's motion work): a unit id plus `_body` or `_arm`, and a `side` view
+(profile facing right), e.g. `hero_warrior_t1_side_arm`. See "Rig pieces" below.
+
 Names are lowercase letters; a name of several words joins them with a hyphen
 (`mon_jackal-man_t1_front`). The underscore only separates the parts of an id.
 
@@ -42,6 +45,16 @@ Names are lowercase letters; a name of several words joins them with a hyphen
 - **Anchor:** units and buildings at the feet / base (centre of the lowest 6% of the object,
   bottom edge); terrain and ui at the centre. Stored as 0..1 of the shipped image, i.e. the
   Phaser origin: `sprite.setOrigin(anchorX, anchorY)` puts the feet on the unit's map position.
+
+## Rig pieces
+
+A unit split so code can swing the weapon arm from the shoulder: `<unit>_body` (the figure
+without the weapon arm) and `<unit>_arm` (only that arm with its weapon). ChatGPT makes both as
+edits of one reference image, so they share canvas and position. `ship.mjs` ships them as a
+pair: one shared crop and scale (the two PNGs have the same size and stack exactly), the body's
+feet as anchor for both, and on the arm row `pivotX`/`pivotY` (0..1 of the image): the
+shoulder, found as the top of the band where the arm touches the body. Rotate the arm sprite
+around that point.
 
 ## Tiers
 
@@ -76,6 +89,7 @@ Silhouette must change between tiers (not only colour), so a tier reads at phone
 ```
 
 - `kind`: `hero`, `mon`, `bld`, `ter` or `ui`. `tier` and `view` are `null` when the id has none.
+- Rig pieces add `part` (`body` or `arm`); arm rows add `pivotX`, `pivotY`.
 - `file` is relative to `public/assets/`. `source` is the batch; the untouched upload is kept at
   `assets/source/<batch>/<id>.png`.
 - Sorted by id. `npm run validate:art` (also part of `npm test`) checks every row and PNG: id
@@ -88,7 +102,7 @@ Silhouette must change between tiers (not only colour), so a tier reads at phone
 | ----- | ----------------------------------------------- | ------------------------------------------------- |
 | Check | `npm run art:check -- <folder> --sheet out.png` | canvas, flat key, framing; contact sheet + anchor |
 | Look  | open the contact sheet                          | style, consistency, readable at phone size        |
-| Ship  | `npm run art:ship -- <folder> <B#> [id ...]`    | raw to source, sprite to game, manifest rows      |
+| Ship  | `npm run art:ship -- <folder> <B#/R#> [id ...]` | raw to source, sprite to game, manifest rows      |
 | Gate  | `npm run validate:art`                          | manifest and PNGs against this spec               |
 
 Uploads may be named `<batch>--<id>.png` (Drive), `<id>.png` (`art-inbox` branch) or base64
