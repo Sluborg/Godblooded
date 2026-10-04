@@ -5,6 +5,6 @@ and its draft pull request are never merged.
 
 If your track is listed below, do "run all" (`art-tasks/README.md` on `main`). If not, do nothing.
 
-| Track  | Since            | Why                                   |
-| ------ | ---------------- | ------------------------------------- |
-| heroes | 2026-10-04 22:42 | S1 art direction (5 styles), priority |
+| Track  | Since            | Why                                    |
+| ------ | ---------------- | -------------------------------------- |
+| heroes | 2026-10-05 00:08 | S2 animation test (8 frames), priority |
