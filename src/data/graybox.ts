@@ -54,14 +54,14 @@ export const GRAYBOX: GameData = {
   map: { width: 2400, height: 1600 },
   townHall: { x: 1200, y: 800 },
   buildings: [
-    { id: 'temple-aesir', cost: 150 },
+    { id: 'temple_aesir', cost: 150 },
     { id: 'market', cost: 100 },
     { id: 'shrine', cost: 120 },
     { id: 'tower', cost: 80 },
   ],
 };
 
-// Recruited by temple-aesir in M1 (pantheon temples split this in M3).
+// Recruited by temple_aesir in M1 (pantheon temples split this in M3).
 export const CLASSES: readonly ClassDef[] = [
   {
     id: 'warrior',
