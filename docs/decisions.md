@@ -12,3 +12,6 @@ Lead owns this file. One dated line per decision that changes how the game or th
   Inboxes for talk, one-shot Routines for waking (`docs/collaboration.md`).
 - 2026-10-04: Worker sessions cannot push to `main` (auto-mode blocks it as a deploy). Workers send
   inbox, sessions and art-tasks edits as docs-only PRs; Lead merges them in the same round.
+- 2026-10-04: Worker messages go by `send_message` (instant wake plus content), not inbox edits:
+  inbox appends in parallel PRs conflicted on every merge. Inboxes, backlog and sessions are
+  Lead-only files; Lead keeps them current.

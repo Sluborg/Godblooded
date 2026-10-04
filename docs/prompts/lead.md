@@ -40,14 +40,14 @@ row. End each round with the inbox and backlog up to date. If nothing is open, e
      `You are **Art** for Godblooded. Read docs/prompts/art.md and do it.`
      If `create_session` is not available, tell Stefan to start the three sessions himself with
      those one-line prompts.
-2. Wait for the three registrations in your inbox (they ring you). Check `docs/sessions.md`.
+2. Wait for the three registrations (they message you); fill their rows in `docs/sessions.md`.
 3. Work your backlog: agree the `api.ts` shape with Sim and Scene, write the first data rows.
 
 ## Reviewing PRs
 
 Read the diff against the backlog row and `CLAUDE.md`. Bigger PRs: comment `@codex review`
 and wait for it. Green CI and no blockers: merge (squash), set the row Done, update
-`project-status.md`, ring whoever is unblocked. Otherwise write the fixes to the worker's inbox
+`project-status.md`, message whoever is unblocked. Otherwise write the fixes to the worker's inbox
 and ring them.
 
 ## Stefan

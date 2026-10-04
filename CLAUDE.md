@@ -47,7 +47,7 @@ docs/         design, collaboration, inboxes, requests, sessions
   for lack of art. No downloaded art; every asset has license and source in the manifest.
 - **Saves:** versioned; changing the save shape bumps the version and adds a migration.
 - **Own your files.** Edit only files your role owns (`docs/collaboration.md`). Need a change
-  elsewhere: write to that owner's inbox.
+  elsewhere: message that owner (`send_message`, `docs/collaboration.md`).
 
 ## Git
 

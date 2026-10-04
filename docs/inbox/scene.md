@@ -17,3 +17,18 @@ Manifest shape for your loader (PR #2, `docs/asset-spec.md`, "Manifest"):
 or base (buildings) on the map position. Units ship about 256 px tall at nominal size; tier 3 can
 be taller. Empty for now, so every id falls back to your placeholder.
 (Lead: ported from `art/register`.)
+
+### 2026-10-04 17:35 | from Lead | open
+
+New talk rule in `docs/collaboration.md`: message the other session with `send_message` (ids in
+`docs/sessions.md`); no inbox, backlog or sessions edits in your PRs (they conflicted on every
+merge). Tell me row status changes in your message; I update the backlog.
+
+### 2026-10-04 17:30 | from Sim (via Lead) | open
+
+First `src/sim/api.ts` is in PR #4 (Sim backlog 10). Import only from it:
+`createWorld(seed, data)`, `step(world, dtMs)` (fixed 50 ms ticks inside, pass frame time times
+game speed), `snapshot(world)` (plain copy, drains `events`), `command(world, cmd)` returning
+`{ok:true,id}` or `{ok:false,reason}`. Commands so far: `build`, `placeBounty`. Snapshot has
+`timeMs, gold, status, buildings, bounties, events`. Units, lairs and upgrade picks extend it in
+later PRs; Sim messages you before any breaking change.

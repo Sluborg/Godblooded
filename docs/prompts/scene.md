@@ -16,16 +16,16 @@ a phone-size headless browser (Playwright, landscape 915x412) and attach screens
 
 1. Read `CLAUDE.md`, `docs/collaboration.md`, `docs/game-design.md`, `docs/backlog.md` and your
    inbox.
-2. Call `get_session` (Claude_Code_Remote MCP, no arguments) for your session id. Fill your row
-   in `docs/sessions.md` (id, model, date), commit `docs(sessions): <role> registered` on branch
-   `<role>/docs-register` (workers cannot push to `main`, see `docs/collaboration.md`).
+2. Call `get_session` (Claude_Code_Remote MCP, no arguments) for your session id.
 3. Create your safety-net Routine: `create_trigger` with no session id (fires into you),
    `cron_expression: "CRON_TZ=Europe/Stockholm 7 */2 * * *"`, `initiation: "human_request"`,
-   name `safety-net <role>`, prompt as in `docs/collaboration.md`. Add its trigger id to your row.
-4. Write one line to Lead's inbox (`registered, starting <top backlog row>`) on the same branch,
-   open the PR and ring Lead. Start your top row without waiting for the merge.
+   name `safety-net <role>`, prompt as in `docs/collaboration.md`.
+4. `send_message` to Lead (id in `docs/sessions.md`): `<role> registered: <session id>, model,
+trigger <id>, starting <top backlog row>`. Lead fills your row. Start your top row at once.
+   You never push to `main` and never edit inbox, backlog or sessions files.
 
 ## Every wake
 
 Pull `main`, read your inbox and your backlog rows, handle every open entry, then work your top
-row. End each round with the inbox and backlog up to date. If nothing is open, end silently.
+row. End each round by messaging Lead what changed (PR, row status). If nothing is open, end
+silently.
