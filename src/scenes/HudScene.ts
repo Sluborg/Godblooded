@@ -95,7 +95,7 @@ export class HudScene extends Phaser.Scene {
   }
 
   private onMapTap(map: MapScene, tap: MapTap): void {
-    if (tap.plot) {
+    if (tap.plot !== null) {
       const plot = tap.plot;
       this.openMenu(
         'Build here',

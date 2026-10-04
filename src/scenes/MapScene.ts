@@ -13,7 +13,6 @@ import {
 } from '../sim/api';
 import { UnitViews } from '../ui/unitViews';
 import { attachCameraControls } from '../ui/cameraControls';
-import { makePlots, PLOT_RADIUS, PLOT_SIZE } from './plots';
 import type { HudScene } from './HudScene';
 
 const BUILDING_COLORS: Record<string, number> = {
@@ -25,9 +24,12 @@ const BUILDING_COLORS: Record<string, number> = {
 };
 const BUILDING_SIZE = 96;
 const TARGET_RADIUS = 70;
+const PLOT_SIZE = 120;
+const PLOT_RADIUS = 110;
 
 export interface MapTap {
-  plot: Vec2 | null;
+  // Sim plot id of a free plot, or null.
+  plot: number | null;
   target: { pos: Vec2; label: string } | null;
 }
 
@@ -36,8 +38,7 @@ export interface MapTap {
 export class MapScene extends Phaser.Scene {
   private world!: World;
   private snap!: Snapshot;
-  private plots: Vec2[] = makePlots(GRAYBOX.townHall);
-  private plotViews: Phaser.GameObjects.Rectangle[] = [];
+  private plotViews = new Map<number, Phaser.GameObjects.Rectangle>();
   private unitViews!: UnitViews;
   private views = new Map<string, Phaser.GameObjects.GameObject>();
 
@@ -56,11 +57,6 @@ export class MapScene extends Phaser.Scene {
     cam.setBackgroundColor(COLORS.background);
     this.add.rectangle(width / 2, height / 2, width, height, COLORS.ground);
     this.drawGrid(width, height);
-    this.plotViews = this.plots.map((p) =>
-      this.add
-        .rectangle(p.x, p.y, PLOT_SIZE, PLOT_SIZE, 0xffffff, 0.08)
-        .setStrokeStyle(3, 0xffffff, 0.35),
-    );
     attachCameraControls(this, {
       minZoom,
       onTap: (w) => this.events.emit('mapTapped', this.resolveTap(w)),
@@ -83,8 +79,8 @@ export class MapScene extends Phaser.Scene {
   }
 
   // Sim command entry for the HUD. The sim decides; the result carries the refusal reason.
-  tryBuild(type: string, pos: Vec2): CommandResult {
-    return command(this.world, { kind: 'build', type, pos });
+  tryBuild(type: string, plot: number): CommandResult {
+    return command(this.world, { kind: 'build', type, plot });
   }
 
   // Bounty amounts are the HUD's choice; the sim validates and spends.
@@ -96,7 +92,7 @@ export class MapScene extends Phaser.Scene {
   // bare ground (bounty at that spot).
   private resolveTap(w: Phaser.Math.Vector2): MapTap {
     const plot = this.plotAt(w);
-    if (plot) return { plot, target: null };
+    if (plot !== null) return { plot, target: null };
     const hit = [...this.snap.units, ...this.snap.lairs]
       .map((e) => ({ e, d: Math.hypot(e.pos.x - w.x, e.pos.y - w.y) }))
       .filter(({ d }) => d < TARGET_RADIUS)
@@ -112,24 +108,18 @@ export class MapScene extends Phaser.Scene {
     return this.scene.get('Hud') as HudScene | null;
   }
 
-  // The free plot under a world position, or null.
-  private plotAt(w: Phaser.Math.Vector2): Vec2 | null {
-    let best: Vec2 | null = null;
+  // The id of the free plot under a world position, or null.
+  private plotAt(w: Phaser.Math.Vector2): number | null {
+    let best: number | null = null;
     let bestD = PLOT_RADIUS;
-    for (const p of this.plots) {
-      const d = Phaser.Math.Distance.Between(p.x, p.y, w.x, w.y);
-      if (d < bestD && !this.occupied(p)) {
-        best = p;
+    for (const p of this.snap.plots) {
+      const d = Phaser.Math.Distance.Between(p.pos.x, p.pos.y, w.x, w.y);
+      if (d < bestD && !p.occupied) {
+        best = p.id;
         bestD = d;
       }
     }
     return best;
-  }
-
-  private occupied(p: Vec2): boolean {
-    return this.snap.buildings.some(
-      (b) => Math.hypot(b.pos.x - p.x, b.pos.y - p.y) < PLOT_SIZE / 2,
-    );
   }
 
   private drawGrid(width: number, height: number): void {
@@ -163,7 +153,21 @@ export class MapScene extends Phaser.Scene {
       }
     }
     this.unitViews.sync(this.snap.units, this.snap.events, this.snap.timeMs);
-    this.plotViews.forEach((v, i) => v.setVisible(!this.occupied(this.plots[i])));
+    this.syncPlots();
+  }
+
+  // Plot squares come from the snapshot; an occupied plot hides its square.
+  private syncPlots(): void {
+    for (const p of this.snap.plots) {
+      let view = this.plotViews.get(p.id);
+      if (!view) {
+        view = this.add
+          .rectangle(p.pos.x, p.pos.y, PLOT_SIZE, PLOT_SIZE, 0xffffff, 0.08)
+          .setStrokeStyle(3, 0xffffff, 0.35);
+        this.plotViews.set(p.id, view);
+      }
+      view.setVisible(!p.occupied);
+    }
   }
 
   private makeBuilding(type: string, x: number, y: number): Phaser.GameObjects.Container {
