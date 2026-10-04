@@ -10,3 +10,5 @@ Lead owns this file. One dated line per decision that changes how the game or th
   back), left is mirrored. Party level-up = pick 1 of 3 upgrades; tier-ups at party levels 3, 6.
 - 2026-10-04: Four Claude sessions (Lead, Sim, Scene, Art) and one ChatGPT chat per art track.
   Inboxes for talk, one-shot Routines for waking (`docs/collaboration.md`).
+- 2026-10-04: Worker sessions cannot push to `main` (auto-mode blocks it as a deploy). Workers send
+  inbox, sessions and art-tasks edits as docs-only PRs; Lead merges them in the same round.

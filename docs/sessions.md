@@ -6,9 +6,9 @@ and records the trigger id of its 2-hour safety-net Routine. Ring a session with
 
 | Role  | Session id                       | Model      | Safety-net trigger            | Started    |
 | ----- | -------------------------------- | ---------- | ----------------------------- | ---------- |
-| Lead  | session_01QJ7Eau77boWNn7Xu4LueGq | Sonnet 5.5 | trig_01Lh3btH7Ase83C5cLexvKYH | 2026-10-04 |
-| Sim   |                                  | Sonnet     |                               |            |
-| Scene |                                  | Sonnet     |                               |            |
+| Lead  | session_01QJ7Eau77boWNn7Xu4LueGq | Opus 5.5   | trig_01Lh3btH7Ase83C5cLexvKYH | 2026-10-04 |
+| Sim   | session_01PnzfK6QeRX8oN5s2jT3phh | Sonnet 5.5 | trig_01GNDL57954FgLpV7cABZyqu | 2026-10-04 |
+| Scene | session_01EDKMoTWRabZMeHFkhrUDvd | Sonnet 5.5 | trig_01Q4WUTXAKqa2Fo2KFMPTmUo | 2026-10-04 |
 | Art   | session_01M68g8NmB4aDf4xUYCS1Xop | Opus 5.5   | trig_013jxwXaNesMAgNnVYefuwfN | 2026-10-04 |
 
 ## ChatGPT chats (one per art track, all in the ChatGPT project "Godblooded art")

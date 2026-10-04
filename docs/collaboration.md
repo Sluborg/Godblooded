@@ -44,8 +44,13 @@ Each role has an inbox: `docs/inbox/lead.md`, `sim.md`, `scene.md`, `art.md`.
   `> Lead: answer` under the entry), or turns it into a backlog row. Then flips `open` to `done`.
 - Inboxes are append-only for everyone except the status word. Pull first
   (`git pull --rebase origin main`), append, run `npx prettier --write docs/inbox`, commit
-  `docs(inbox): <role> <topic>`, and push straight to `main` (inbox, `docs/sessions.md` and Art's
-  `art-tasks/` are the only direct-to-main exceptions; they do not trigger a deploy).
+  `docs(inbox): <role> <topic>`.
+- **Only Lead pushes to `main`.** Workers' sessions are blocked from pushing to `main` (it
+  deploys). A worker puts inbox, `docs/sessions.md` and `art-tasks/` edits on a docs-only
+  branch `<role>/docs-<topic>`, opens a PR and rings Lead; the ring prompt names the PR and
+  carries the message in one line, because the inbox entry is not on `main` until merged.
+  Lead merges docs-only PRs in the same round. A worker with a code PR open may instead put its
+  inbox entry in that PR.
 - Decisions never live only in an inbox: the changed rule goes into the file it belongs to.
 
 ## Waking each other
