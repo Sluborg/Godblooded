@@ -17,8 +17,8 @@ Review (PR open), Done. A worker takes its top Open row.
 | Order | Item                                                                                                   | Status |
 | ----- | ------------------------------------------------------------------------------------------------------ | ------ |
 | 10    | `api.ts` + world: `createWorld(seed, data)`, `step(world, dtMs)`, `snapshot()`, `command()`; tick loop | Done   |
-| 20    | Units move on the map (simple steering, no pathfinding yet); lairs spawn monsters on a timer           | Review |
-| 30    | Lean real-time combat from the Coda reference math (simplify if needed, log it in decisions)           | Open   |
+| 20    | Units move on the map (simple steering, no pathfinding yet); lairs spawn monsters on a timer           | Done   |
+| 30    | Lean real-time combat from the Coda reference math (simplify if needed, log it in decisions)           | Doing  |
 | 40    | Heroes: arrive at temples, explore, fight, return to heal and shop (gold flows to the town by tax)     | Open   |
 | 50    | Parties: form by traits and bonds, move and fight together, share XP; party level up offers 3 upgrades | Open   |
 | 60    | Bounty flags: heroes weigh bounty vs danger by trait; win (last lair) and lose (town hall) conditions  | Open   |

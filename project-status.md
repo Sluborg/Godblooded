@@ -11,8 +11,9 @@ Lead keeps this to one screen. Read it first when resuming.
 
 - Team up: Lead, Sim, Scene, Art registered (`docs/sessions.md`). Workers cannot push to `main`;
   they send docs PRs, Lead merges.
-- Shipped: Art pipeline (PR #2), art-wake bell (draft PR #3, never merged), style test B1 queued.
-- Working: Sim 10 (`api.ts` + world, PR #4 merging), Scene 10 (MapScene graybox).
+- Shipped: Art pipeline, art-wake bell, B1-B7 batches (B2-B7 Draft), sim world + lairs and
+  wandering monsters, map scene (pan, pinch zoom), graybox data rows.
+- Working: Sim 30 (combat), Scene 20 (build menu, HUD, speed), Art waits on B1.
 - Sessions talk by `send_message`; inbox, backlog and sessions files are Lead-only.
 
 ## Waiting on Stefan
