@@ -9,7 +9,7 @@ Review (PR open), Done. A worker takes its top Open row.
 | ----- | ----------------------------------------------------------------------------------------- | ------ |
 | 10    | Spawn Sim, Scene and Art sessions (`docs/prompts/`), check they registered in sessions.md | Done   |
 | 20    | Agree the first `src/sim/api.ts` shape with Sim and Scene (inboxes), record in decisions  | Done   |
-| 30    | First `src/data/` rows for the graybox: 2 classes, 2 monsters, 4 buildings, 3 upgrades    | Doing  |
+| 30    | First `src/data/` rows for the graybox: 2 classes, 2 monsters, 4 buildings, 3 upgrades    | Done   |
 | 40    | Review and merge M1 PRs; when M1 runs end to end, ask Stefan "is it fun to watch?"        | Open   |
 
 ## Sim
