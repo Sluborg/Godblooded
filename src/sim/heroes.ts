@@ -1,5 +1,5 @@
 import { fledParty, fleeThreshold, newParty, TRAITS } from './parties';
-import { dist, maxHp, speed, stepToward, TICK_MS } from './units';
+import { aggroRange, dist, maxHp, speed, stepToward, TICK_MS } from './units';
 import type { World } from './world';
 import type { Vec2, UnitState } from './types';
 
@@ -9,6 +9,8 @@ import type { Vec2, UnitState } from './types';
 
 export interface HeroRuntime {
   dest: Vec2 | null;
+  // The bounty flag this hero is heading for.
+  bounty?: number;
   koMs: number;
   temple: number;
 }
@@ -42,6 +44,7 @@ export function spawnHero(world: World, classId: string, pos: Vec2, temple = 0):
   world.heroRuntime.set(id, { dest: null, koMs: 0, temple });
   const hero = world.units[world.units.length - 1];
   hero.party = newParty(world, id);
+  world.stats.heroesArrived++;
   world.events.push({ kind: 'arrived', unit: id, type: cls.id });
   return id;
 }
@@ -78,7 +81,20 @@ export function runHeroes(world: World): void {
       rt.dest = null;
       fledParty(world, unit);
       world.events.push({ kind: 'fled', unit: unit.id });
+    } else if (unit.mode === 'rest' || unit.mode === 'shop') {
+      defend(world, unit, rt);
     }
+  }
+}
+
+// A rested enough hero rejoins the fight when monsters come close to town.
+function defend(world: World, unit: UnitState, rt: HeroRuntime): void {
+  if (unit.hp < unit.maxHp * world.tuning.town.defendHp) return;
+  const cls = world.data.classes?.find((c) => c.id === unit.type);
+  const reach = cls ? aggroRange(cls.attrs) : 0;
+  if (world.units.some((m) => m.kind === 'monster' && dist(unit.pos, m.pos) <= reach)) {
+    unit.mode = 'explore';
+    rt.dest = null;
   }
 }
 
@@ -151,6 +167,7 @@ export function heroMove(world: World, unit: UnitState): void {
         const tax = Math.floor(spent * tune(world).taxRate);
         unit.gold -= spent;
         world.gold += tax;
+        world.stats.taxCollected += tax;
         world.events.push({ kind: 'shopped', unit: unit.id, spent, tax });
         unit.mode = 'explore';
         rt.dest = null;
@@ -212,4 +229,62 @@ function restSpot(world: World, from: Vec2): { pos: Vec2; shrine: boolean } {
   );
   if (shrine) return { pos: shrine.pos, shrine: true };
   return { pos: world.data.townHall, shrine: false };
+}
+
+// Danger around a flag: monsters nearby, plus a lair standing close.
+function flagDanger(world: World, pos: Vec2): number {
+  const t = world.tuning.bounty;
+  let danger = 0;
+  for (const u of world.units) {
+    if (u.kind === 'monster' && u.hp > 0 && dist(u.pos, pos) <= t.dangerRadius) danger++;
+  }
+  if (world.lairs.some((l) => dist(l.pos, pos) <= t.dangerRadius * 0.6)) danger += t.lairDanger;
+  return danger;
+}
+
+// How much a hero wants a flag (null: not worth it). Gold against danger, by personality.
+function flagAppetite(world: World, unit: UnitState, gold: number, pos: Vec2): number | null {
+  const t = world.tuning.bounty;
+  if (unit.trait === 'proud' && gold < t.proudMinGold) return null;
+  const worth =
+    gold *
+    (unit.trait === 'greedy' ? t.greedyGoldMult : unit.trait === 'curious' ? t.curiousGoldMult : 1);
+  const fear =
+    unit.trait === 'brave' ? t.braveFearMult : unit.trait === 'coward' ? t.cowardFearMult : 1;
+  const cost = flagDanger(world, pos) * t.costPerDanger * fear;
+  return worth >= cost ? worth - cost : null;
+}
+
+// Claims flags a hero stands on once the place is clear, and once a second lets exploring
+// party leaders pick the flag they like best.
+export function runBounties(world: World): void {
+  const t = world.tuning.bounty;
+  for (const flag of [...world.bounties]) {
+    const hero = world.units.find(
+      (u) => u.kind === 'hero' && !u.ko && dist(u.pos, flag.pos) <= t.claimRadius,
+    );
+    if (!hero || flagDanger(world, flag.pos) > 0) continue;
+    hero.gold += flag.gold;
+    world.bounties = world.bounties.filter((b) => b.id !== flag.id);
+    world.events.push({ kind: 'bountyClaimed', bounty: flag.id, unit: hero.id, gold: flag.gold });
+  }
+  if (world.tick % 20 !== 0) return;
+  for (const unit of world.units) {
+    const rt = world.heroRuntime.get(unit.id);
+    if (unit.kind !== 'hero' || !rt || unit.ko || unit.mode !== 'explore') continue;
+    if (leaderOf(world, unit)) continue;
+    let best: number | undefined;
+    let bestScore = 0;
+    for (const flag of world.bounties) {
+      const score = flagAppetite(world, unit, flag.gold, flag.pos);
+      if (score !== null && score > bestScore) {
+        best = flag.id;
+        bestScore = score;
+      }
+    }
+    if (best !== rt.bounty) {
+      rt.bounty = best;
+      rt.dest = null;
+    }
+  }
 }
