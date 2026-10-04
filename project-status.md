@@ -11,11 +11,12 @@ Lead keeps this to one screen. Read it first when resuming.
 
 - Team up: Lead, Sim, Scene, Art registered (`docs/sessions.md`). Workers cannot push to `main`;
   they send docs PRs, Lead merges.
-- Shipped: Art pipeline (PR #2: key-out, check, ship, `validate:art`).
-- Working: Sim 10 (`api.ts` + world), Scene 10 (MapScene graybox), Art 20 (art-wake PR).
-- Next for Stefan: open ChatGPT when the style test B1 is ready (Art 30).
+- Shipped: Art pipeline (PR #2), art-wake bell (draft PR #3, never merged), style test B1 queued.
+- Working: Sim 10 (`api.ts` + world, PR #4 merging), Scene 10 (MapScene graybox).
+- Sessions talk by `send_message`; inbox, backlog and sessions files are Lead-only.
 
 ## Waiting on Stefan
 
-- ChatGPT project "Godblooded art" with `art-tasks/PROJECT-INSTRUCTIONS.md` (when Art asks).
+- NOW: ChatGPT project "Godblooded art" (instructions: `art-tasks/PROJECT-INSTRUCTIONS.md`),
+  new chat, first message `heroes start`. Then approve the B1 style test.
 - OPEN design items: `docs/game-design.md`, "OPEN".
