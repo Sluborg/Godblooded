@@ -11,6 +11,7 @@ import {
   type Vec2,
   type World,
 } from '../sim/api';
+import { UnitViews } from '../ui/unitViews';
 import { attachCameraControls } from '../ui/cameraControls';
 import { makePlots, PLOT_RADIUS, PLOT_SIZE } from './plots';
 import type { HudScene } from './HudScene';
@@ -37,6 +38,7 @@ export class MapScene extends Phaser.Scene {
   private snap!: Snapshot;
   private plots: Vec2[] = makePlots(GRAYBOX.townHall);
   private plotViews: Phaser.GameObjects.Rectangle[] = [];
+  private unitViews!: UnitViews;
   private views = new Map<string, Phaser.GameObjects.GameObject>();
 
   constructor() {
@@ -64,6 +66,7 @@ export class MapScene extends Phaser.Scene {
       onTap: (w) => this.events.emit('mapTapped', this.resolveTap(w)),
       blocked: (x, y) => this.hud()?.blocks(x, y) ?? false,
     });
+    this.unitViews = new UnitViews(this);
     this.snap = snapshot(this.world);
     this.sync();
     this.scene.launch('Hud');
@@ -148,16 +151,6 @@ export class MapScene extends Phaser.Scene {
       seen.add(key);
       if (!this.views.has(key)) this.views.set(key, this.makeMarker(l.type, l.pos, 44, 0x2b1d33));
     }
-    for (const u of this.snap.units) {
-      const key = `u${u.id}`;
-      seen.add(key);
-      let view = this.views.get(key) as Phaser.GameObjects.Container | undefined;
-      if (!view) {
-        view = this.makeMarker(u.type, u.pos, 22, 0x8a3a3a);
-        this.views.set(key, view);
-      }
-      view.setPosition(u.pos.x, u.pos.y).setDepth(u.pos.y);
-    }
     for (const b of this.snap.bounties) {
       const key = `f${b.id}`;
       seen.add(key);
@@ -169,6 +162,7 @@ export class MapScene extends Phaser.Scene {
         this.views.delete(key);
       }
     }
+    this.unitViews.sync(this.snap.units, this.snap.events, this.snap.timeMs);
     this.plotViews.forEach((v, i) => v.setVisible(!this.occupied(this.plots[i])));
   }
 
