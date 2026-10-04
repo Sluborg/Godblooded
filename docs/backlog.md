@@ -16,7 +16,7 @@ Review (PR open), Done. A worker takes its top Open row.
 
 | Order | Item                                                                                                   | Status |
 | ----- | ------------------------------------------------------------------------------------------------------ | ------ |
-| 10    | `api.ts` + world: `createWorld(seed, data)`, `step(world, dtMs)`, `snapshot()`, `command()`; tick loop | Open   |
+| 10    | `api.ts` + world: `createWorld(seed, data)`, `step(world, dtMs)`, `snapshot()`, `command()`; tick loop | Review |
 | 20    | Units move on the map (simple steering, no pathfinding yet); lairs spawn monsters on a timer           | Open   |
 | 30    | Lean real-time combat from the Coda reference math (simplify if needed, log it in decisions)           | Open   |
 | 40    | Heroes: arrive at temples, explore, fight, return to heal and shop (gold flows to the town by tax)     | Open   |
