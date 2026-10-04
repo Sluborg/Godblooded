@@ -5,7 +5,8 @@ Take the first **Ready** batch of **your track** that is not in the upload log; 
 
 | Batch | Track     | File    | What                                                      | Images | Status |
 | ----- | --------- | ------- | --------------------------------------------------------- | ------ | ------ |
-| R1    | heroes    | `R1.md` | Rig test: warrior body and arm, front and side (priority) | 5      | Ready  |
+| S1    | heroes    | `S1.md` | Art direction: one warrior in five styles (priority)      | 5      | Ready  |
+| R1    | heroes    | `R1.md` | Rig test: warrior body and arm, front and side (priority) | 5      | Done   |
 | B1    | heroes    | `B1.md` | Style test: warrior front and back, draugr, town hall     | 4      | Ready  |
 | B2    | heroes    | `B2.md` | Ranger and wizard t1, front and back                      | 4      | Draft  |
 | B3    | heroes    | `B3.md` | Paladin and rogue t1, front and back                      | 4      | Draft  |
