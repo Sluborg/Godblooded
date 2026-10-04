@@ -378,7 +378,9 @@ export function shoulderPivot(body, arm) {
 
 // Rig pair (`<base>_body`, `<base>_arm`) -> two sprites with one shared crop and scale, so they
 // stack exactly; anchor at the body's feet; pivot = shoulder, 0..1 of the shared image.
-export function processPair(rawBody, rawArm, base) {
+// `pivotAt` ({ x, y } in source pixels) overrides the automatic shoulder, e.g. when the weapon
+// touches the body above the shoulder.
+export function processPair(rawBody, rawArm, base, pivotAt = null) {
   const body = keyRaw(rawBody, `${base}_body`);
   const arm = keyRaw(rawArm, `${base}_arm`);
   if (rawBody.width !== rawArm.width || rawBody.height !== rawArm.height)
@@ -391,7 +393,7 @@ export function processPair(rawBody, rawArm, base) {
   const x1 = Math.max(feet.box.x + feet.box.w, armBox.x + armBox.w);
   const y1 = Math.max(feet.box.y + feet.box.h, armBox.y + armBox.h);
   const rect = trimRect({ x: x0, y: y0, w: x1 - x0, h: y1 - y0 }, body.scale);
-  const pivot = shoulderPivot(body.keyed, arm.keyed);
+  const pivot = pivotAt ?? shoulderPivot(body.keyed, arm.keyed);
   const shared = { kind: body.k.kind, dir: body.k.dir };
   const pv = pivot && {
     pivotX: round3((pivot.x - rect.x) / rect.w),

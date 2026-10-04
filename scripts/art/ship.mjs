@@ -2,13 +2,24 @@
 // scaled sprite to public/assets/<dir>/<id>.png, manifest row added or replaced. Run
 // `npm run validate:art` afterwards.
 //
-// Usage: node scripts/art/ship.mjs <folder> <batch> [id ...]   (ids limit which files ship)
+// Usage: node scripts/art/ship.mjs <folder> <batch> [id ...] [--pivot <base>=<x>,<y>]
+// (ids limit which files ship)
 // Only files of that batch ship: `<batch>--<id>.png`, or unprefixed `<id>.png` (a folder holding
 // one batch). Trial images (`test--`) and other batches' files are skipped.
 import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { collectUploads, parseId, processImage, processPair, readPng, writePng } from './lib.mjs';
 
-const [dir, batch, ...only] = process.argv.slice(2);
+// `--pivot <base>=<x>,<y>` sets a rig pair's shoulder in source pixels (overrides the automatic
+// one; check it on the stacked preview).
+const argv = process.argv.slice(2);
+const pivots = {};
+for (let i = argv.indexOf('--pivot'); i >= 0; i = argv.indexOf('--pivot')) {
+  const m = /^(.+)=(\d+),(\d+)$/.exec(argv[i + 1] ?? '');
+  if (!m) throw new Error('--pivot expects <base>=<x>,<y>');
+  pivots[m[1]] = { x: Number(m[2]), y: Number(m[3]) };
+  argv.splice(i, 2);
+}
+const [dir, batch, ...only] = argv;
 if (!dir || !/^[A-Z]\d+$/.test(batch ?? ''))
   throw new Error('usage: ship.mjs <folder> <batch, e.g. B2 or R1> [id ...]');
 
@@ -56,7 +67,7 @@ for (const { id, path } of uploads) {
     const base = id.replace(/_body$/, '');
     const arm = byId.get(`${base}_arm`);
     if (!arm) throw new Error(`${id}: its arm (${base}_arm) is not in this batch`);
-    const pair = processPair(readPng(path), readPng(arm.path), base);
+    const pair = processPair(readPng(path), readPng(arm.path), base, pivots[base]);
     if (!pair.pivot) console.log(`WARN ${base}: arm does not touch the body, no pivot`);
     ship(id, path, pair.body);
     ship(arm.id, arm.path, pair.arm);

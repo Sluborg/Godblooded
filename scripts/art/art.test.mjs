@@ -141,6 +141,13 @@ describe('processPair', () => {
     expect(r.arm.pivotY).toBeLessThan(0.4);
   });
 
+  it('takes a given pivot over the automatic one', () => {
+    const body = canvas(1024, GREEN, unitRect);
+    const arm = canvas(1024, GREEN, { x: 380, y: 300, w: 32, h: 350 });
+    const r = processPair(body, arm, 'hero_warrior_t1_front', { x: 396, y: 320 });
+    expect(r.pivot).toEqual({ x: 396, y: 320 });
+  });
+
   it('has no pivot when the arm does not touch', () => {
     const body = canvas(1024, GREEN, unitRect);
     const arm = canvas(1024, GREEN, { x: 200, y: 300, w: 32, h: 350 });

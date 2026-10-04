@@ -1,3 +1,67 @@
 {
-  "assets": []
+  "assets": [
+    {
+      "id": "hero_warrior_t1_front_arm",
+      "kind": "hero",
+      "tier": 1,
+      "view": "front",
+      "part": "arm",
+      "file": "units/hero_warrior_t1_front_arm.png",
+      "anchorX": 0.509,
+      "anchorY": 0.993,
+      "pivotX": 0.377,
+      "pivotY": 0.509,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "R1"
+    },
+    {
+      "id": "hero_warrior_t1_front_body",
+      "kind": "hero",
+      "tier": 1,
+      "view": "front",
+      "part": "body",
+      "file": "units/hero_warrior_t1_front_body.png",
+      "anchorX": 0.509,
+      "anchorY": 0.993,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "R1"
+    },
+    {
+      "id": "hero_warrior_t1_side",
+      "kind": "hero",
+      "tier": 1,
+      "view": "side",
+      "file": "units/hero_warrior_t1_side.png",
+      "anchorX": 0.645,
+      "anchorY": 0.993,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "R1"
+    },
+    {
+      "id": "hero_warrior_t1_side_arm",
+      "kind": "hero",
+      "tier": 1,
+      "view": "side",
+      "part": "arm",
+      "file": "units/hero_warrior_t1_side_arm.png",
+      "anchorX": 0.646,
+      "anchorY": 0.993,
+      "pivotX": 0.555,
+      "pivotY": 0.434,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "R1"
+    },
+    {
+      "id": "hero_warrior_t1_side_body",
+      "kind": "hero",
+      "tier": 1,
+      "view": "side",
+      "part": "body",
+      "file": "units/hero_warrior_t1_side_body.png",
+      "anchorX": 0.646,
+      "anchorY": 0.993,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "R1"
+    }
+  ]
 }
