@@ -12,6 +12,7 @@ import {
   type World,
 } from '../sim/api';
 import { UnitViews } from '../ui/unitViews';
+import { OFFER_KEY, type LevelUpOffer } from './LevelUpScene';
 import { attachCameraControls } from '../ui/cameraControls';
 import type { HudScene } from './HudScene';
 
@@ -40,6 +41,8 @@ export class MapScene extends Phaser.Scene {
   private snap!: Snapshot;
   private plotViews = new Map<number, Phaser.GameObjects.Rectangle>();
   private unitViews!: UnitViews;
+  // Party whose level-up cards are open (the sim is frozen until it is picked), or null.
+  private offerParty: number | null = null;
   private views = new Map<string, Phaser.GameObjects.GameObject>();
 
   constructor() {
@@ -60,8 +63,10 @@ export class MapScene extends Phaser.Scene {
     attachCameraControls(this, {
       minZoom,
       onTap: (w) => this.events.emit('mapTapped', this.resolveTap(w)),
-      blocked: (x, y) => this.hud()?.blocks(x, y) ?? false,
+      blocked: (x, y) => this.registry.get('modal') === true || (this.hud()?.blocks(x, y) ?? false),
     });
+    this.offerParty = null;
+    this.registry.set('modal', false);
     this.unitViews = new UnitViews(this);
     this.snap = snapshot(this.world);
     this.sync();
@@ -75,12 +80,37 @@ export class MapScene extends Phaser.Scene {
     this.registry.set('gold', this.snap.gold);
     this.registry.set('timeMs', this.snap.timeMs);
     this.registry.set('status', this.snap.status);
+    this.syncOffer();
     this.sync();
+  }
+
+  // Level-up cards open while any party has an offer and close when the sim accepts a pick.
+  private syncOffer(): void {
+    const party = this.snap.parties.find((p) => p.offer !== null);
+    const id = party?.id ?? null;
+    if (id === this.offerParty) return;
+    if (this.offerParty !== null) this.scene.stop('LevelUp');
+    this.offerParty = id;
+    this.registry.set('modal', id !== null);
+    if (party?.offer) {
+      const offer: LevelUpOffer = {
+        party: party.id,
+        level: party.level,
+        size: party.members.length,
+        upgrades: [...party.offer],
+      };
+      this.registry.set(OFFER_KEY, offer);
+      this.scene.launch('LevelUp');
+    }
   }
 
   // Sim command entry for the HUD. The sim decides; the result carries the refusal reason.
   tryBuild(type: string, plot: number): CommandResult {
     return command(this.world, { kind: 'build', type, plot });
+  }
+
+  tryPick(party: number, upgrade: string): CommandResult {
+    return command(this.world, { kind: 'pickUpgrade', party, upgrade });
   }
 
   // Bounty amounts are the HUD's choice; the sim validates and spends.
