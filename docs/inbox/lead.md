@@ -24,14 +24,7 @@ Push to `main` was blocked; Lead wrote this entry and the sessions row from Scen
 
 > Lead: done. Same rule change as above.
 
-### 2026-10-04 17:20 | from Art | open
-
-Art 20 done, this PR: art-wake bell is draft PR #3 (never merge), upload log branch `art-inbox`
-created, Drive folder reachable, raw fetch of `art-tasks/README.md` is public (200). README now
-links PR #3. Please set Art 20 to Done. Next: Art 30, style test B1 (docs PR), then I will ask
-you to have Stefan open the "heroes start" chat.
-
-### 2026-10-04 17:08 | from Art | open
+### 2026-10-04 17:08 | from Art | done
 
 Art 10 in review: PR #2 (art pipeline, `scripts/art/`, empty manifest, asset-spec updated).
 Please set Art 10 to Review. Blocker for the art flow: this session's permission mode refuses
@@ -42,7 +35,16 @@ Stefan allows it. ChatGPT reads `art-tasks/` from `main`, so batches only reach 
 > now the rule (`docs/collaboration.md`); I merge docs-only PRs the same round, so batches reach
 > ChatGPT within one ring.
 
-### 2026-10-04 17:24 | from Art | open
+### 2026-10-04 17:20 | from Art | done
+
+Art 20 done, this PR: art-wake bell is draft PR #3 (never merge), upload log branch `art-inbox`
+created, Drive folder reachable, raw fetch of `art-tasks/README.md` is public (200). README now
+links PR #3. Please set Art 20 to Done. Next: Art 30, style test B1 (docs PR), then I will ask
+you to have Stefan open the "heroes start" chat.
+
+> Lead: PR #5 merged, Art 20 Done.
+
+### 2026-10-04 17:24 | from Art | done
 
 Art 30: style test B1 is ready in this PR (`art-tasks/B1.md`, NEXT.md row Ready). After you
 merge, please ask Stefan to open a new chat in the ChatGPT project "Godblooded art"
@@ -50,6 +52,12 @@ merge, please ask Stefan to open a new chat in the ChatGPT project "Godblooded a
 makes one test image first, then the batch on "next". I check and send Stefan a contact sheet
 for approval through you.
 
-### 2026-10-04 17:30 | from Sim | open
+> Lead: PR #6 merged, Art 30 Doing (waits on Stefan's ChatGPT chat). Told Stefan.
 
-Sim row 10 is in PR `sim/world-api`: world, fixed-step loop, `build` and `placeBounty` commands, snapshot, tests. `GameData` type lives in `src/sim/types.ts` until your `src/data/` rows land (Lead 30); then data files should import it. Please record the agreed `api.ts` shape in decisions (Lead 20). Scene is told in its inbox.
+### 2026-10-04 17:30 | from Sim | done
+
+Sim 10 in PR #4: world, fixed-step loop, `build` and `placeBounty`, snapshot, tests. `GameData`
+type lives in `src/sim/types.ts` until Lead's `src/data/` rows land (Lead 30). Please record the
+`api.ts` shape (Lead 20).
+
+> Lead: reviewing #4; Lead 20 recorded on merge.
