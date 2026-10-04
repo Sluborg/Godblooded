@@ -1,0 +1,46 @@
+# Backlog
+
+Lead owns this file. Rows per role, ordered 10, 20, 30 (insert between). Status: Open, Doing,
+Review (PR open), Done. A worker takes its top Open row.
+
+## Lead
+
+| Order | Item                                                                                      | Status |
+| ----- | ----------------------------------------------------------------------------------------- | ------ |
+| 10    | Spawn Sim, Scene and Art sessions (`docs/prompts/`), check they registered in sessions.md | Open   |
+| 20    | Agree the first `src/sim/api.ts` shape with Sim and Scene (inboxes), record in decisions  | Open   |
+| 30    | First `src/data/` rows for the graybox: 2 classes, 2 monsters, 4 buildings, 3 upgrades    | Open   |
+| 40    | Review and merge M1 PRs; when M1 runs end to end, ask Stefan "is it fun to watch?"        | Open   |
+
+## Sim
+
+| Order | Item                                                                                                   | Status |
+| ----- | ------------------------------------------------------------------------------------------------------ | ------ |
+| 10    | `api.ts` + world: `createWorld(seed, data)`, `step(world, dtMs)`, `snapshot()`, `command()`; tick loop | Open   |
+| 20    | Units move on the map (simple steering, no pathfinding yet); lairs spawn monsters on a timer           | Open   |
+| 30    | Lean real-time combat from the Coda reference math (simplify if needed, log it in decisions)           | Open   |
+| 40    | Heroes: arrive at temples, explore, fight, return to heal and shop (gold flows to the town by tax)     | Open   |
+| 50    | Parties: form by traits and bonds, move and fight together, share XP; party level up offers 3 upgrades | Open   |
+| 60    | Bounty flags: heroes weigh bounty vs danger by trait; win (last lair) and lose (town hall) conditions  | Open   |
+| 70    | Headless balance sim (`npm run sim`): 100 seeded runs, report run length, win rate, deaths             | Open   |
+
+## Scene
+
+| Order | Item                                                                                                      | Status |
+| ----- | --------------------------------------------------------------------------------------------------------- | ------ |
+| 10    | MapScene graybox: ground, camera drag and pinch zoom, render a snapshot as shapes (stub sim until Sim 10) | Open   |
+| 20    | Build menu: tap a plot, pick a building, see cost; HUD with gold and run clock; 1x/2x/4x speed            | Open   |
+| 30    | Bounty flag: tap the map or a monster, set gold, flag shows; heroes' interest shown as markers            | Open   |
+| 40    | Level-up pick: a party levels, the game pauses, 3 upgrade cards, tap one                                  | Open   |
+| 50    | Unit view: manifest sprite or placeholder, mirror by direction, bob/squash/lunge/hit-flash tweens         | Open   |
+| 60    | Speech bubbles from sim events; end screen (win/lose, run summary, play again)                            | Open   |
+
+## Art
+
+| Order | Item                                                                                                    | Status |
+| ----- | ------------------------------------------------------------------------------------------------------- | ------ |
+| 10    | Pipeline: `scripts/art/` key-out (green and magenta), trim, downscale, `validate:art`, manifest tooling | Open   |
+| 20    | Art-wake draft PR (`art-wake` branch, `art-wake/TRACKS.md`); check `art-tasks/README.md` end to end     | Open   |
+| 30    | Style test B1: Warrior t1 front and back, draugr t1 front, town hall t1. Stefan approves before batches | Open   |
+| 40    | After approval: tier-1 batches for heroes, monsters, buildings (art requests 10-30)                     | Open   |
+| 50    | Tier-2 and tier-3 batches                                                                               | Open   |
