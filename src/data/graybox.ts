@@ -1,18 +1,8 @@
 // Graybox content (M1). Lead owns these numbers; Sim reads them. Ids match the art manifest
 // types (`hero_<class>`, `mon_<type>`, `bld_<type>`), so `bld_${id}_t${tier}` finds the sprite.
-import type { GameData } from '../sim/types';
+import type { Attributes, GameData, LairDef, MonsterDef } from '../sim/types';
 
-// Attributes from the Coda combat reference: Str, Dex, Sta, Cha, Per, Int, Wp (1..10 at tier 1).
 // Derived (Sim): hp = sta * 8 + str * 4, damage = str, attack time = weapon base reduced by dex.
-export interface Attributes {
-  str: number;
-  dex: number;
-  sta: number;
-  cha: number;
-  per: number;
-  int: number;
-  wp: number;
-}
 
 export interface ClassDef {
   id: string;
@@ -23,24 +13,6 @@ export interface ClassDef {
   startGold: number;
 }
 
-export interface MonsterDef {
-  id: string;
-  attrs: Attributes;
-  weapon: { baseAttackS: number; range: number };
-  // Gold and party XP for the kill.
-  bounty: number;
-  xp: number;
-}
-
-export interface LairDef {
-  id: string;
-  monster: string;
-  // Seconds between spawns and the most monsters alive from this lair.
-  spawnS: number;
-  maxAlive: number;
-  hp: number;
-}
-
 // One of 3 cards offered when a party levels up. `effect` keys are read by Sim.
 export interface UpgradeDef {
   id: string;
@@ -48,18 +20,6 @@ export interface UpgradeDef {
   text: string;
   effect: { attr?: Partial<Attributes>; healPct?: number; flee?: number };
 }
-
-export const GRAYBOX: GameData = {
-  startGold: 300,
-  map: { width: 2400, height: 1600 },
-  townHall: { x: 1200, y: 800 },
-  buildings: [
-    { id: 'temple_aesir', cost: 150 },
-    { id: 'market', cost: 100 },
-    { id: 'shrine', cost: 120 },
-    { id: 'tower', cost: 80 },
-  ],
-};
 
 // Recruited by temple_aesir in M1 (pantheon temples split this in M3).
 export const CLASSES: readonly ClassDef[] = [
@@ -120,3 +80,22 @@ export const UPGRADES: readonly UpgradeDef[] = [
     effect: { healPct: 50, flee: 0.15 },
   },
 ];
+
+export const GRAYBOX: GameData = {
+  startGold: 300,
+  map: { width: 2400, height: 1600 },
+  townHall: { x: 1200, y: 800 },
+  monsters: MONSTERS,
+  lairs: LAIRS,
+  // M1 map: the barrow up left near town, the troll den far down right.
+  lairSites: [
+    { lair: 'barrow', pos: { x: 500, y: 450 } },
+    { lair: 'troll-den', pos: { x: 2100, y: 1350 } },
+  ],
+  buildings: [
+    { id: 'temple_aesir', cost: 150 },
+    { id: 'market', cost: 100 },
+    { id: 'shrine', cost: 120 },
+    { id: 'tower', cost: 80 },
+  ],
+};

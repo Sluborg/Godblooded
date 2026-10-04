@@ -5,15 +5,53 @@ export interface Vec2 {
   y: number;
 }
 
-// Content rows the sim reads. Lead owns the rows in src/data/; the shape lives here until
-// Lead's first rows land (backlog Lead 30), then data files import these types.
+// Content row shapes the sim reads. Lead owns the rows in src/data/ and imports these types.
 export interface BuildingDef {
   id: string;
   cost: number;
 }
 
+// Attributes from the Coda combat reference (1..10 at tier 1).
+export interface Attributes {
+  str: number;
+  dex: number;
+  sta: number;
+  cha: number;
+  per: number;
+  int: number;
+  wp: number;
+}
+
+export interface MonsterDef {
+  id: string;
+  attrs: Attributes;
+  // Seconds between attacks before dex; range in world units.
+  weapon: { baseAttackS: number; range: number };
+  bounty: number;
+  xp: number;
+}
+
+export interface LairDef {
+  id: string;
+  monster: string;
+  // Seconds between spawns and the most monsters alive from this lair.
+  spawnS: number;
+  maxAlive: number;
+  hp: number;
+}
+
+// Where a lair stands on the map.
+export interface LairSite {
+  lair: string;
+  pos: Vec2;
+}
+
 export interface GameData {
   buildings: readonly BuildingDef[];
+  // Optional until src/data and Scene's stub carry rows; missing means no lairs.
+  monsters?: readonly MonsterDef[];
+  lairs?: readonly LairDef[];
+  lairSites?: readonly LairSite[];
   startGold: number;
   // Map size in world units (Scene maps units to pixels).
   map: { width: number; height: number };
@@ -29,6 +67,26 @@ export interface BuildingState {
   hp: number;
 }
 
+export interface LairState {
+  id: number;
+  type: string;
+  tier: number;
+  pos: Vec2;
+  hp: number;
+}
+
+export interface UnitState {
+  id: number;
+  kind: 'monster';
+  type: string;
+  tier: number;
+  pos: Vec2;
+  // Unit vector of the last move; Scene picks front/back view and mirrors from it.
+  facing: Vec2;
+  hp: number;
+  maxHp: number;
+}
+
 export interface BountyState {
   id: number;
   pos: Vec2;
@@ -37,6 +95,7 @@ export interface BountyState {
 
 export type SimEvent =
   | { kind: 'built'; building: number; type: string }
+  | { kind: 'spawned'; unit: number; type: string; lair: number }
   | { kind: 'bountyPlaced'; bounty: number; gold: number };
 
 export type Command =
@@ -50,6 +109,8 @@ export interface Snapshot {
   readonly gold: number;
   readonly status: 'running' | 'won' | 'lost';
   readonly buildings: readonly Readonly<BuildingState>[];
+  readonly lairs: readonly Readonly<LairState>[];
+  readonly units: readonly Readonly<UnitState>[];
   readonly bounties: readonly Readonly<BountyState>[];
   // Events since the previous snapshot() call (speech bubbles, sounds, juice).
   readonly events: readonly SimEvent[];

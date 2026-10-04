@@ -4,11 +4,17 @@ export type { World } from './world';
 export type {
   BountyState,
   BuildingDef,
+  Attributes,
   BuildingState,
   Command,
   CommandResult,
   GameData,
+  LairDef,
+  LairSite,
+  LairState,
+  MonsterDef,
   SimEvent,
   Snapshot,
+  UnitState,
   Vec2,
 } from './types';
