@@ -57,6 +57,8 @@ export interface LairSite {
 
 export interface GameData {
   buildings: readonly BuildingDef[];
+  // Building plots; a plot id is its index. Optional until Lead's rows land.
+  plots?: readonly Vec2[];
   // Optional until src/data and Scene's stub carry rows; missing means no lairs.
   classes?: readonly ClassDef[];
   monsters?: readonly MonsterDef[];
@@ -74,7 +76,17 @@ export interface BuildingState {
   type: string;
   tier: number;
   pos: Vec2;
+  // Plot the building stands on; null for the town hall.
+  plot: number | null;
   hp: number;
+}
+
+export interface PlotState {
+  // Index into GameData.plots.
+  id: number;
+  pos: Vec2;
+  occupied: boolean;
+  building: number | null;
 }
 
 export interface LairState {
@@ -116,7 +128,10 @@ export type SimEvent =
   | { kind: 'bountyPlaced'; bounty: number; gold: number };
 
 export type Command =
-  { kind: 'build'; type: string; pos: Vec2 } | { kind: 'placeBounty'; pos: Vec2; gold: number };
+  // `pos` is the legacy free-placement form, removed once Scene builds by plot.
+  | { kind: 'build'; type: string; plot: number }
+  | { kind: 'build'; type: string; pos: Vec2 }
+  | { kind: 'placeBounty'; pos: Vec2; gold: number };
 
 export type CommandResult = { ok: true; id: number } | { ok: false; reason: string };
 
@@ -125,6 +140,7 @@ export interface Snapshot {
   readonly tick: number;
   readonly gold: number;
   readonly status: 'running' | 'won' | 'lost';
+  readonly plots: readonly Readonly<PlotState>[];
   readonly buildings: readonly Readonly<BuildingState>[];
   readonly lairs: readonly Readonly<LairState>[];
   readonly units: readonly Readonly<UnitState>[];

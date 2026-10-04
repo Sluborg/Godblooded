@@ -88,6 +88,7 @@ export function createWorld(seed: number, data: GameData): World {
     type: 'townhall',
     tier: 1,
     pos: { ...data.townHall },
+    plot: null,
     hp: 1,
   });
   for (const site of data.lairSites ?? []) {
@@ -296,11 +297,24 @@ export function command(world: World, cmd: Command): CommandResult {
     case 'build': {
       const def = world.data.buildings.find((b) => b.id === cmd.type);
       if (!def) return { ok: false, reason: 'unknown building' };
-      if (!inMap(world, cmd.pos)) return { ok: false, reason: 'off map' };
+      let pos: Vec2;
+      let plot: number | null = null;
+      if ('plot' in cmd) {
+        const at = Number.isInteger(cmd.plot) ? world.data.plots?.[cmd.plot] : undefined;
+        if (!at) return { ok: false, reason: 'unknown plot' };
+        if (world.buildings.some((b) => b.plot === cmd.plot)) {
+          return { ok: false, reason: 'plot taken' };
+        }
+        pos = at;
+        plot = cmd.plot;
+      } else {
+        if (!inMap(world, cmd.pos)) return { ok: false, reason: 'off map' };
+        pos = cmd.pos;
+      }
       if (world.gold < def.cost) return { ok: false, reason: 'not enough gold' };
       world.gold -= def.cost;
       const id = world.nextId++;
-      world.buildings.push({ id, type: def.id, tier: 1, pos: { ...cmd.pos }, hp: 1 });
+      world.buildings.push({ id, type: def.id, tier: 1, pos: { ...pos }, plot, hp: 1 });
       world.events.push({ kind: 'built', building: id, type: def.id });
       return { ok: true, id };
     }
@@ -331,6 +345,10 @@ export function snapshot(world: World): Snapshot {
     tick: world.tick,
     gold: world.gold,
     status: world.status,
+    plots: (world.data.plots ?? []).map((pos, id) => {
+      const b = world.buildings.find((x) => x.plot === id);
+      return { id, pos: { ...pos }, occupied: !!b, building: b ? b.id : null };
+    }),
     buildings: world.buildings.map((b) => ({ ...b, pos: { ...b.pos } })),
     lairs: world.lairs.map((l) => ({ ...l, pos: { ...l.pos } })),
     units: world.units.map((u) => ({ ...u, pos: { ...u.pos }, facing: { ...u.facing } })),
