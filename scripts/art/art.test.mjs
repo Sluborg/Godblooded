@@ -169,6 +169,18 @@ describe('processFrames', () => {
     expect(out[0].image.height).toBe(out[1].image.height);
     expect(out[0].anchorY).toBe(out[1].anchorY);
   });
+
+  it('moves a frame whose feet drifted onto the feet of the first frame', () => {
+    const f1 = canvas(1024, GREEN, unitRect);
+    const f2 = canvas(1024, GREEN, { ...unitRect, x: unitRect.x + 40, y: unitRect.y - 20 });
+    const out = processFrames([
+      { id: 'hero_warrior_t1_front_walk1', raw: f1 },
+      { id: 'hero_warrior_t1_front_walk2', raw: f2 },
+    ]);
+    expect(out[1].shifted).toEqual({ dx: -40, dy: 20 });
+    // Same figure, same place: the two crops are identical.
+    expect(out[1].image.data.equals(out[0].image.data)).toBe(true);
+  });
 });
 
 describe('collectUploads', () => {

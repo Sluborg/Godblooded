@@ -67,11 +67,24 @@ for (const u of uploads) {
   if (!frameGroups.has(base)) frameGroups.set(base, []);
   frameGroups.get(base).push(u);
 }
+// A unit's frames share one crop, so they ship together: refuse a partial re-ship.
+for (const [base, group] of frameGroups) {
+  const have = new Set(group.map((u) => u.id));
+  const missing = manifest.assets
+    .map((a) => a.id)
+    .filter((id) => id.startsWith(`${base}_`) && isFrame(parseId(id).part) && !have.has(id));
+  if (missing.length)
+    throw new Error(`${base}: re-ship all its frames together, missing ${missing.join(', ')}`);
+}
 for (const group of frameGroups.values()) {
   // The anchor comes from the first frame: put the neutral walk1 first when there is one.
   group.sort((a, b) => b.id.endsWith('_walk1') - a.id.endsWith('_walk1'));
   const out = processFrames(group.map((u) => ({ id: u.id, raw: readPng(u.path) })));
-  out.forEach((r, i) => ship(group[i].id, group[i].path, r));
+  out.forEach((r, i) => {
+    if (r.shifted.dx || r.shifted.dy)
+      console.log(`aligned ${r.id} feet: moved ${r.shifted.dx},${r.shifted.dy} px`);
+    ship(group[i].id, group[i].path, r);
+  });
 }
 for (const { id, path } of uploads) {
   const { part } = parseId(id);

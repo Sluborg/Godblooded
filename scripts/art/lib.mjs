@@ -404,16 +404,39 @@ export function processPair(rawBody, rawArm, base) {
   };
 }
 
-// Animation frames of one unit (`<base>_walk1` ...): one shared crop and scale over all frames
-// so they stack; anchor = the feet of the first frame given. frames: [{ id, raw }].
+// Moves an RGBA image by whole pixels (uncovered area transparent).
+export function shift(img, dx, dy) {
+  const { width: W, height: H } = img;
+  const out = blank(W, H);
+  for (let y = 0; y < H; y++) {
+    const sy = y - dy;
+    if (sy < 0 || sy >= H) continue;
+    for (let x = 0; x < W; x++) {
+      const sx = x - dx;
+      if (sx < 0 || sx >= W) continue;
+      img.data.copy(out.data, (y * W + x) * 4, (sy * W + sx) * 4, (sy * W + sx) * 4 + 4);
+    }
+  }
+  return out;
+}
+
+// Animation frames of one unit (`<base>_walk1` ...): every frame is moved so its feet sit on
+// the first frame's feet, then all get one shared crop and scale so they stack; anchor = those
+// feet. frames: [{ id, raw }]. Each result carries the shift applied (source pixels).
 export function processFrames(frames) {
   const keyed = frames.map(({ id, raw }) => ({ id, raw, ...keyRaw(raw, id) }));
   const { width: W, height: H } = frames[0].raw;
   if (frames.some(({ raw }) => raw.width !== W || raw.height !== H))
     throw new Error(`${frames[0].id}: frame canvases differ in size`);
+  const feet = keyed.map((f) => anchorPoint(f.keyed, 'feet'));
+  if (feet.some((a) => !a)) throw new Error(`${frames[0].id}: a frame is empty after key-out`);
+  const ref = feet[0];
+  keyed.forEach((f, i) => {
+    f.dx = Math.round(ref.x - feet[i].x);
+    f.dy = Math.round(ref.y - feet[i].y);
+    if (f.dx || f.dy) f.keyed = shift(f.keyed, f.dx, f.dy);
+  });
   const boxes = keyed.map((f) => bbox(visibleMask(f.keyed, 128), W, H));
-  if (boxes.some((b) => !b)) throw new Error(`${frames[0].id}: a frame is empty after key-out`);
-  const feet = anchorPoint(keyed[0].keyed, 'feet');
   const x0 = Math.min(...boxes.map((b) => b.x));
   const y0 = Math.min(...boxes.map((b) => b.y));
   const x1 = Math.max(...boxes.map((b) => b.x + b.w));
@@ -421,11 +444,12 @@ export function processFrames(frames) {
   const rect = trimRect({ x: x0, y: y0, w: x1 - x0, h: y1 - y0 }, keyed[0].scale);
   return keyed.map((f) => ({
     id: f.id,
-    ...crop(f, rect, feet),
+    ...crop(f, rect, ref),
     kind: f.k.kind,
     dir: f.k.dir,
     key: f.key,
     specks: f.specks,
+    shifted: { dx: f.dx, dy: f.dy },
   }));
 }
 
