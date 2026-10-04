@@ -3,6 +3,10 @@ import { command, createWorld, snapshot, step, TICK_MS, type GameData } from './
 
 const data: GameData = {
   buildings: [{ id: 'market', cost: 100 }],
+  plots: [
+    { x: 600, y: 300 },
+    { x: 400, y: 300 },
+  ],
   monsters: [
     {
       id: 'draugr',
@@ -110,5 +114,31 @@ describe('world', () => {
     };
     expect(run(3)).toBe(run(3));
     expect(run(3)).not.toBe(run(4));
+  });
+
+  it('builds on a plot, refuses a taken or unknown plot, and lists plots in the snapshot', () => {
+    const w = createWorld(1, { ...data, startGold: 500 });
+    const r = command(w, { kind: 'build', type: 'market', plot: 0 });
+    expect(r.ok).toBe(true);
+    expect(command(w, { kind: 'build', type: 'market', plot: 0 })).toEqual({
+      ok: false,
+      reason: 'plot taken',
+    });
+    for (const plot of [5, -1, 0.5]) {
+      expect(command(w, { kind: 'build', type: 'market', plot })).toEqual({
+        ok: false,
+        reason: 'unknown plot',
+      });
+    }
+    expect(w.gold).toBe(400);
+    const s = snapshot(w);
+    expect(s.plots).toEqual([
+      { id: 0, pos: { x: 600, y: 300 }, occupied: true, building: r.ok ? r.id : -1 },
+      { id: 1, pos: { x: 400, y: 300 }, occupied: false, building: null },
+    ]);
+    expect(s.buildings.find((b) => b.type === 'market')).toMatchObject({
+      plot: 0,
+      pos: { x: 600, y: 300 },
+    });
   });
 });

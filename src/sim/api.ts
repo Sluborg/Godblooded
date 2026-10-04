@@ -14,6 +14,7 @@ export type {
   LairSite,
   LairState,
   MonsterDef,
+  PlotState,
   SimEvent,
   Snapshot,
   UnitState,
