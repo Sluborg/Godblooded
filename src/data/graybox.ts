@@ -1,16 +1,8 @@
 // Graybox content (M1). Lead owns these numbers; Sim reads them. Ids match the art manifest
 // types (`hero_<class>`, `mon_<type>`, `bld_<type>`), so `bld_${id}_t${tier}` finds the sprite.
-import type { Attributes, ClassDef, GameData, LairDef, MonsterDef } from '../sim/types';
+import type { ClassDef, GameData, LairDef, MonsterDef, UpgradeDef } from '../sim/types';
 
 // Derived (Sim): hp = sta * 8 + str * 4, damage = str, attack time = weapon base reduced by dex.
-
-// One of 3 cards offered when a party levels up. `effect` keys are read by Sim.
-export interface UpgradeDef {
-  id: string;
-  name: string;
-  text: string;
-  effect: { attr?: Partial<Attributes>; healPct?: number; flee?: number };
-}
 
 // Recruited by temple_aesir in M1 (pantheon temples split this in M3).
 export const CLASSES: readonly ClassDef[] = [
@@ -51,6 +43,7 @@ export const LAIRS: readonly LairDef[] = [
   { id: 'troll-den', monster: 'troll', spawnS: 60, maxAlive: 2, hp: 600 },
 ];
 
+// Level-up cards; a party is offered 3 different ones. Graybox set: stats, sustain, nerve.
 export const UPGRADES: readonly UpgradeDef[] = [
   {
     id: 'iron-arms',
@@ -65,10 +58,46 @@ export const UPGRADES: readonly UpgradeDef[] = [
     effect: { attr: { sta: 2 } },
   },
   {
+    id: 'quick-feet',
+    name: 'Quick Feet',
+    text: '+2 Dexterity: faster attacks, more dodges',
+    effect: { attr: { dex: 2 } },
+  },
+  {
+    id: 'hawk-eyes',
+    name: 'Hawk Eyes',
+    text: '+3 Perception: spot monsters from further away',
+    effect: { attr: { per: 3 } },
+  },
+  {
+    id: 'iron-will',
+    name: 'Iron Will',
+    text: '+2 Willpower and +1 Stamina',
+    effect: { attr: { wp: 2, sta: 1 } },
+  },
+  {
+    id: 'battle-hymn',
+    name: 'Battle Hymn',
+    text: '+1 Strength and +1 Dexterity',
+    effect: { attr: { str: 1, dex: 1 } },
+  },
+  {
     id: 'odins-eye',
     name: "Odin's Eye",
     text: 'Heal 50% now; the party flees later (at 15% hp instead of 30%)',
     effect: { healPct: 50, flee: 0.15 },
+  },
+  {
+    id: 'second-wind',
+    name: 'Second Wind',
+    text: 'Heal the whole party to full now',
+    effect: { healPct: 100 },
+  },
+  {
+    id: 'berserker',
+    name: 'Berserker',
+    text: '+3 Strength, but the party never flees',
+    effect: { attr: { str: 3 }, flee: 0 },
   },
 ];
 
@@ -77,6 +106,7 @@ export const GRAYBOX: GameData = {
   map: { width: 2400, height: 1600 },
   townHall: { x: 1200, y: 800 },
   classes: CLASSES,
+  upgrades: UPGRADES,
   monsters: MONSTERS,
   lairs: LAIRS,
   // M1 map: the barrow up left near town, the troll den far down right.
