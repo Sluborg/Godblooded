@@ -1,5 +1,17 @@
 import { describe, expect, it } from 'vitest';
-import { blank, checkRaw, detectKey, keyOut, kindOf, parseId, processImage } from './lib.mjs';
+import { mkdtempSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import {
+  blank,
+  checkRaw,
+  collectUploads,
+  detectKey,
+  keyOut,
+  kindOf,
+  parseId,
+  processImage,
+} from './lib.mjs';
 import { validateAssets } from './validate.mjs';
 
 const GREEN = [0, 255, 0];
@@ -32,6 +44,9 @@ describe('ids', () => {
     expect(kindOf('mon_draugr_t1_back')?.dir).toBe('units');
     expect(kindOf('bld_temple_aesir_t3')?.kind).toBe('bld');
     expect(kindOf('bld_townhall_t1')?.kind).toBe('bld');
+    expect(kindOf('mon_jackal-man_t1_front')?.kind).toBe('mon');
+    expect(kindOf('bld_temple_aesir_t1')?.kind).toBe('bld');
+    expect(kindOf('mon_jackal_man_t1_front')).toBeNull();
     expect(kindOf('hero_warrior_t4_front')).toBeNull();
     expect(kindOf('hero_warrior_t1_left')).toBeNull();
     expect(kindOf('foo_bar')).toBeNull();
@@ -102,6 +117,19 @@ describe('checkRaw', () => {
     const small = { x: 462, y: 600, w: 100, h: 300 };
     const problems = checkRaw(canvas(1024, GREEN, small), 'hero_warrior_t1_front');
     expect(problems.join(' ')).toMatch(/canvas height/);
+  });
+});
+
+describe('collectUploads', () => {
+  it('reads batch, trial and plain names', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'art-'));
+    for (const f of ['B1--hero_a_t1_front.png', 'test--hero_a_t1_back.png', 'mon_b_t1_front.png'])
+      writeFileSync(join(dir, f), '');
+    expect(collectUploads(dir).map(({ id, batch, test }) => [id, batch, test])).toEqual([
+      ['hero_a_t1_front', 'B1', false],
+      ['mon_b_t1_front', null, false],
+      ['hero_a_t1_back', null, true],
+    ]);
   });
 });
 

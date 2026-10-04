@@ -12,6 +12,9 @@ Art owns this file. The house style is `art-tasks/STYLE.md`; this is the technic
 | Terrain  | `ter_<name>`                        | `ter_grass_a`           |
 | UI       | `ui_<name>`                         | `ui_flag_bounty`        |
 
+Names are lowercase letters; a name of several words joins them with a hyphen
+(`mon_jackal-man_t1_front`). The underscore only separates the parts of an id.
+
 ## Views and mirroring
 
 - **front:** the unit faces the camera, turned 3/4 toward the lower right.

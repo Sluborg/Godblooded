@@ -25,19 +25,19 @@ export function blank(width, height) {
 // anchor: where the game places the sprite (Phaser origin), measured on the object.
 export const KINDS = {
   hero: {
-    re: /^hero_[a-z]+_t[1-3]_(front|back)$/,
+    re: /^hero_[a-z]+(-[a-z]+)*_t[1-3]_(front|back)$/,
     dir: 'units',
     nominal: { axis: 'height', share: 0.75, px: 256 },
     anchor: 'feet',
   },
   mon: {
-    re: /^mon_[a-z]+_t[1-3]_(front|back)$/,
+    re: /^mon_[a-z]+(-[a-z]+)*_t[1-3]_(front|back)$/,
     dir: 'units',
     nominal: { axis: 'height', share: 0.75, px: 256 },
     anchor: 'feet',
   },
   bld: {
-    re: /^bld_[a-z]+(_[a-z]+)?_t[1-3]$/,
+    re: /^bld_[a-z]+(-[a-z]+)*(_[a-z]+(-[a-z]+)*)?_t[1-3]$/,
     dir: 'buildings',
     nominal: { axis: 'width', share: 0.85, px: 512 },
     anchor: 'feet',
@@ -345,7 +345,8 @@ export function alphaReport(img) {
 }
 
 // Uploads in a folder: `<batch>--<id>.png` (Drive), `<id>.png` (art-inbox branch), or base64
-// text `<id>.png.b64` / `.b64.001`, `.002`, ... (decoded in place). Returns [{ id, batch, path }].
+// text `<id>.png.b64` / `.b64.001`, `.002`, ... (decoded in place). `test--` prefixed files are
+// trial images. Returns [{ id, batch, test, path }].
 export function collectUploads(dir) {
   const parts = {};
   for (const f of readdirSync(dir)) {
@@ -363,9 +364,10 @@ export function collectUploads(dir) {
     .filter((f) => f.endsWith('.png'))
     .sort()
     .map((f) => {
+      const test = f.startsWith('test--');
       const name = f.replace(/\.png$/, '').replace(/^test--/, '');
       const m = /^(B\d+)--(.+)$/.exec(name);
-      return { id: m ? m[2] : name, batch: m ? m[1] : null, path: join(dir, f) };
+      return { id: m ? m[2] : name, batch: m ? m[1] : null, test, path: join(dir, f) };
     });
 }
 

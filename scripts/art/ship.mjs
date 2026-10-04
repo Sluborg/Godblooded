@@ -3,6 +3,8 @@
 // `npm run validate:art` afterwards.
 //
 // Usage: node scripts/art/ship.mjs <folder> <batch> [id ...]   (ids limit which files ship)
+// Only files of that batch ship: `<batch>--<id>.png`, or unprefixed `<id>.png` (a folder holding
+// one batch). Trial images (`test--`) and other batches' files are skipped.
 import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { collectUploads, parseId, processImage, readPng, writePng } from './lib.mjs';
 
@@ -13,8 +15,13 @@ const LICENSE = "own (ChatGPT, Stefan's account)";
 const manifestPath = 'public/assets/manifest.json';
 const manifest = JSON.parse(readFileSync(manifestPath, 'utf-8'));
 const rows = [];
-for (const { id, path } of collectUploads(dir)) {
-  if (only.length && !only.includes(id)) continue;
+const uploads = collectUploads(dir).filter(
+  (u) =>
+    !u.test && (u.batch === null || u.batch === batch) && (!only.length || only.includes(u.id)),
+);
+const dupes = uploads.map((u) => u.id).filter((id, i, all) => all.indexOf(id) !== i);
+if (dupes.length) throw new Error(`more than one upload for ${[...new Set(dupes)].join(', ')}`);
+for (const { id, path } of uploads) {
   const raw = readPng(path);
   const r = processImage(raw, id);
   mkdirSync(`assets/source/${batch}`, { recursive: true });
