@@ -33,11 +33,11 @@ Review (PR open), Done. A worker takes its top Open row.
 | 10    | MapScene graybox: ground, camera drag and pinch zoom, render a snapshot as shapes (stub sim until Sim 10) | Done   |
 | 20    | Build menu: tap a plot, pick a building, see cost; HUD with gold and run clock; 1x/2x/4x speed            | Done   |
 | 30    | Bounty flag: tap the map or a monster, set gold, flag shows; heroes' interest shown as markers            | Done   |
-| 35    | Plots from the snapshot (after Sim 35); delete `src/scenes/plots.ts` and the occupied check in MapScene   | Doing  |
+| 35    | Plots from the snapshot (after Sim 35); delete `src/scenes/plots.ts` and the occupied check in MapScene   | Done   |
 | 40    | Level-up pick: a party levels, the game pauses, 3 upgrade cards, tap one                                  | Open   |
 | 50    | Unit view: manifest sprite or placeholder, mirror by direction, bob/squash/lunge/hit-flash tweens         | Done   |
 | 55    | Hero interest markers on bounty flags (after Sim 40/60)                                                   | Open   |
-| 60    | Speech bubbles from sim events; end screen (win/lose, run summary, play again)                            | Open   |
+| 60    | Speech bubbles from sim events; end screen (win/lose, run summary, play again)                            | Doing  |
 
 ## Art
 
