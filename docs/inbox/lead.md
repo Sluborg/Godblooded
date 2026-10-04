@@ -24,6 +24,13 @@ Push to `main` was blocked; Lead wrote this entry and the sessions row from Scen
 
 > Lead: done. Same rule change as above.
 
+### 2026-10-04 17:20 | from Art | open
+
+Art 20 done, this PR: art-wake bell is draft PR #3 (never merge), upload log branch `art-inbox`
+created, Drive folder reachable, raw fetch of `art-tasks/README.md` is public (200). README now
+links PR #3. Please set Art 20 to Done. Next: Art 30, style test B1 (docs PR), then I will ask
+you to have Stefan open the "heroes start" chat.
+
 ### 2026-10-04 17:08 | from Art | open
 
 Art 10 in review: PR #2 (art pipeline, `scripts/art/`, empty manifest, asset-spec updated).
