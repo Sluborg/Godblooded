@@ -164,6 +164,10 @@ try {
     await sleep(500);
     s = await state();
   }
+  // A run that ended (won or lost) before the target time did not cover what smoke promises.
+  if (s.timeMs < GAME_MS && !process.exitCode) {
+    fail(`run ended early at ${Math.round(s.timeMs / 1000)} game s with status ${s.status}`);
+  }
   await page.screenshot({ path: `${OUT}/99-end.png` });
   console.log(
     `smoke: ${Math.round(s.timeMs / 1000)} game s in ${Math.round((Date.now() - started) / 1000)} real s, status ${s.status}, gold ${s.gold}, ` +
