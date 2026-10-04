@@ -82,6 +82,7 @@ export class MapScene extends Phaser.Scene {
     this.registry.set('gold', this.snap.gold);
     this.registry.set('timeMs', this.snap.timeMs);
     this.registry.set('status', this.snap.status);
+    this.events.emit('simEvents', this.snap.events);
     this.syncOffer();
     this.sync();
   }
@@ -177,11 +178,13 @@ export class MapScene extends Phaser.Scene {
       const key = `b${b.id}`;
       seen.add(key);
       if (!this.views.has(key)) this.views.set(key, this.makeBuilding(b.type, b.pos.x, b.pos.y));
+      this.updateBar(this.views.get(key), b.hp, b.maxHp, BUILDING_SIZE, -BUILDING_SIZE - 14);
     }
     for (const l of this.snap.lairs) {
       const key = `l${l.id}`;
       seen.add(key);
       if (!this.views.has(key)) this.views.set(key, this.makeMarker(l.type, l.pos, 44, 0x2b1d33));
+      this.updateBar(this.views.get(key), l.hp, l.maxHp, 90, -2 * 44 - 30);
     }
     for (const b of this.snap.bounties) {
       const key = `f${b.id}`;
@@ -195,7 +198,37 @@ export class MapScene extends Phaser.Scene {
       }
     }
     this.unitViews.sync(this.snap.units, this.snap.events, this.snap.timeMs);
+    for (const e of this.snap.events) {
+      if (e.kind !== 'hit') continue;
+      const view = this.views.get(`b${e.target}`) ?? this.views.get(`l${e.target}`);
+      if (view && !e.dodged)
+        this.tweens.add({ targets: view, alpha: 0.55, duration: 60, yoyo: true });
+    }
     this.syncPlots();
+  }
+
+  // HP bar on a building or lair view, shown only while it is hurt. The bar graphics live
+  // on the view's container, created on first use.
+  private updateBar(
+    view: Phaser.GameObjects.GameObject | undefined,
+    hp: number,
+    maxHp: number,
+    width: number,
+    y: number,
+  ): void {
+    if (!(view instanceof Phaser.GameObjects.Container)) return;
+    let bar = view.getData('bar') as Phaser.GameObjects.Graphics | undefined;
+    if (!bar) {
+      bar = this.add.graphics();
+      view.add(bar);
+      view.setData('bar', bar);
+    }
+    bar.clear();
+    if (hp >= maxHp || maxHp <= 0) return;
+    bar.fillStyle(0x000000, 0.65).fillRect(-width / 2, y, width, 10);
+    bar
+      .fillStyle(hp / maxHp > 0.4 ? 0x6fcf6f : 0xcf4f4f, 1)
+      .fillRect(-width / 2, y, width * Math.max(0, hp / maxHp), 10);
   }
 
   // Plot squares come from the snapshot; an occupied plot hides its square.

@@ -4,6 +4,7 @@ import { GRAYBOX } from '../data/graybox';
 import type { CommandResult } from '../sim/api';
 import { makeButton, type Button } from '../ui/button';
 import { PartyPanel } from '../ui/partyPanel';
+import type { SimEvent } from '../sim/api';
 import type { MapScene, MapTap } from './MapScene';
 
 const SPEEDS = [1, 2, 4];
@@ -28,6 +29,7 @@ export class HudScene extends Phaser.Scene {
   private goldText!: Phaser.GameObjects.Text;
   private clockText!: Phaser.GameObjects.Text;
   private toast!: Phaser.GameObjects.Text;
+  private banner!: Phaser.GameObjects.Text;
   private panel!: PartyPanel;
   private endObjects: Phaser.GameObjects.GameObject[] = [];
   private speedButtons: Button[] = [];
@@ -75,8 +77,24 @@ export class HudScene extends Phaser.Scene {
       })
       .setOrigin(0.5)
       .setAlpha(0);
-    map.events.on('mapTapped', (tap: MapTap) => this.onMapTap(map, tap));
-    this.events.once('shutdown', () => map.events.off('mapTapped'));
+    this.banner = this.add
+      .text(GAME_WIDTH / 2, 112, '', {
+        ...TEXT,
+        fontSize: '34px',
+        backgroundColor: '#8a1c2bdd',
+        padding: { x: 20, y: 8 },
+      })
+      .setOrigin(0.5)
+      .setAlpha(0);
+
+    const onTap = (tap: MapTap) => this.onMapTap(map, tap);
+    const onEvents = (events: readonly SimEvent[]) => this.onSimEvents(map, events);
+    map.events.on('mapTapped', onTap);
+    map.events.on('simEvents', onEvents);
+    this.events.once('shutdown', () => {
+      map.events.off('mapTapped', onTap);
+      map.events.off('simEvents', onEvents);
+    });
   }
 
   update(): void {
@@ -97,6 +115,29 @@ export class HudScene extends Phaser.Scene {
     return this.menuRect?.contains(x, y) ?? false;
   }
 
+  // Warnings the player must notice: raids, lost buildings, fallen lairs.
+  private onSimEvents(map: MapScene, events: readonly SimEvent[]): void {
+    for (const e of events) {
+      if (e.kind === 'raid') {
+        const lair = map.snapshot.lairs.find((l) => l.id === e.lair);
+        this.showBanner(
+          `RAID! ${e.size} ${lair?.type ?? 'monsters'} march on the town`,
+          '#8a1c2bdd',
+        );
+      } else if (e.kind === 'buildingDestroyed') {
+        this.showBanner(`${e.type.replace('_', ' ')} destroyed!`, '#8a1c2bdd');
+      } else if (e.kind === 'lairDestroyed') {
+        this.showBanner(`${e.type} lair destroyed!`, '#2f6b3aee');
+      }
+    }
+  }
+
+  private showBanner(text: string, color: string): void {
+    this.tweens.killTweensOf(this.banner);
+    this.banner.setText(text).setBackgroundColor(color).setAlpha(1);
+    this.tweens.add({ targets: this.banner, alpha: 0, delay: 3000, duration: 500 });
+  }
+
   // End screen: the sim reports 'won' or 'lost' and has stopped; show the summary and a way
   // to start over.
   private showEnd(status: 'won' | 'lost'): void {
@@ -104,7 +145,7 @@ export class HudScene extends Phaser.Scene {
     const cx = GAME_WIDTH / 2;
     const dim = this.add.rectangle(cx, 360, GAME_WIDTH, 720, 0x000000, 0.6).setInteractive();
     const title = this.add
-      .text(cx, 230, status === 'won' ? 'VICTORY' : 'TOWN LOST', {
+      .text(cx, 200, status === 'won' ? 'VICTORY' : 'TOWN LOST', {
         ...TEXT,
         fontSize: '84px',
         color: status === 'won' ? '#f2c14e' : '#d9534f',
@@ -112,10 +153,28 @@ export class HudScene extends Phaser.Scene {
       .setOrigin(0.5);
     const time = formatClock((this.registry.get('timeMs') as number) ?? 0);
     const summary = this.add
-      .text(cx, 335, `Run time ${time}   Gold ${this.registry.get('gold') ?? 0}`, TEXT)
+      .text(cx, 300, `Run time ${time}   Gold ${this.registry.get('gold') ?? 0}`, TEXT)
       .setOrigin(0.5);
-    const again = makeButton(this, cx, 450, 300, 100, 'Play again', () => this.playAgain());
-    this.endObjects = [dim, title, summary, again.container];
+    const st = (this.scene.get('Map') as MapScene).snapshot.stats;
+    const stats: [string, number][] = [
+      ['Monsters slain', st.monstersKilled],
+      ['Lairs destroyed', st.lairsDestroyed],
+      ['Heroes arrived', st.heroesArrived],
+      ['Knockouts', st.knockouts],
+      ['Buildings lost', st.buildingsLost],
+      ['Tax collected', Math.floor(st.taxCollected)],
+    ];
+    const statObjects = stats.map(([label, value], i) =>
+      this.add
+        .text(cx - 360 + (i % 3) * 360, 400 + Math.floor(i / 3) * 44, `${label} ${value}`, {
+          ...TEXT,
+          fontSize: '26px',
+          color: COLORS.textMuted,
+        })
+        .setOrigin(0, 0.5),
+    );
+    const again = makeButton(this, cx, 560, 300, 100, 'Play again', () => this.playAgain());
+    this.endObjects = [dim, title, summary, ...statObjects, again.container];
   }
 
   // A new run: stop the HUD and restart the map, which launches a fresh HUD.
