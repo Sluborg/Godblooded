@@ -1,17 +1,8 @@
 // Graybox content (M1). Lead owns these numbers; Sim reads them. Ids match the art manifest
 // types (`hero_<class>`, `mon_<type>`, `bld_<type>`), so `bld_${id}_t${tier}` finds the sprite.
-import type { Attributes, GameData, LairDef, MonsterDef } from '../sim/types';
+import type { Attributes, ClassDef, GameData, LairDef, MonsterDef } from '../sim/types';
 
 // Derived (Sim): hp = sta * 8 + str * 4, damage = str, attack time = weapon base reduced by dex.
-
-export interface ClassDef {
-  id: string;
-  attrs: Attributes;
-  // Seconds between attacks before dex; range in world units (melee about 40).
-  weapon: { baseAttackS: number; range: number };
-  // Gold a hero of this class carries on arrival (spends it in the town's shops).
-  startGold: number;
-}
 
 // One of 3 cards offered when a party levels up. `effect` keys are read by Sim.
 export interface UpgradeDef {
@@ -85,6 +76,7 @@ export const GRAYBOX: GameData = {
   startGold: 300,
   map: { width: 2400, height: 1600 },
   townHall: { x: 1200, y: 800 },
+  classes: CLASSES,
   monsters: MONSTERS,
   lairs: LAIRS,
   // M1 map: the barrow up left near town, the troll den far down right.
