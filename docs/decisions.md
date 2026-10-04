@@ -21,3 +21,8 @@ Lead owns this file. One dated line per decision that changes how the game or th
   Commands: `build`, `placeBounty`. Scene imports nothing else from `src/sim/`.
 - 2026-10-04: Graybox derivations (Sim 20): move speed = 40 + dex * 8 world units/s, hp = sta * 8 +
   str * 4. Revisit in the M4 balance pass.
+- 2026-10-04: Graybox combat (Sim 30): damage = str (min 1), attack time = weapon base / (1 + dex *
+  0.1), dodge = 0.9 * dex / (dex + 10), aggro range = 150 + per * 15, monster leash 420 from the
+  lair. No armor until gear exists. Heroes are knocked out, monsters die.
+- 2026-10-04: Bounty amounts 25/50/100/200 for the graybox (Scene 30). A bounty on a monster is a
+  spot for now; Sim 60 makes it follow the target.
