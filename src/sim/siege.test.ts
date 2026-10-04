@@ -224,6 +224,67 @@ describe('bounty flags', () => {
   });
 });
 
+describe('flag interest in the snapshot', () => {
+  const quiet: GameData = {
+    ...base,
+    lairs: [],
+    lairSites: [],
+    tuning: { town: { raidFirstMs: 10_000_000 } },
+  };
+
+  it("shows the flag a hero is heading for, followers show their leader's, null otherwise", () => {
+    const w = createWorld(1, quiet);
+    const a = spawnHero(w, 'warrior', { x: 700, y: 500 });
+    const b = spawnHero(w, 'warrior', { x: 700, y: 500 });
+    const ua = heroOf(w, a);
+    const ub = heroOf(w, b);
+    const party = w.parties.get(ua.party);
+    if (!party) throw new Error('setup');
+    w.parties.delete(ub.party);
+    ub.party = ua.party;
+    party.members.push(b);
+    ua.trait = 'greedy';
+    ub.trait = 'coward';
+    const placed = command(w, { kind: 'placeBounty', pos: { x: 1500, y: 900 }, gold: 100 });
+    if (!placed.ok) throw new Error('setup');
+    step(w, 1_200);
+    const s = snapshot(w);
+    const byId = (id: number) => s.units.find((u) => u.id === id);
+    expect(w.heroRuntime.get(a)?.dest).toEqual({ x: 1500, y: 900 });
+    expect(w.heroRuntime.get(b)?.dest).toEqual({ x: 1500, y: 900 });
+    expect(byId(a)?.bounty).toBe(placed.id);
+    expect(byId(b)?.bounty).toBe(placed.id);
+    for (let i = 0; i < 2000 && w.bounties.length > 0; i++) step(w, 50);
+    expect(w.bounties).toHaveLength(0);
+    step(w, 100);
+    expect(snapshot(w).units.every((u) => u.bounty === null)).toBe(true);
+  });
+
+  it('a hero knocked out or merged mid-tick never shows a stale flag', () => {
+    const w = createWorld(1, quiet);
+    const id = spawnHero(w, 'warrior', { x: 700, y: 500 });
+    const hero = heroOf(w, id);
+    hero.trait = 'greedy';
+    command(w, { kind: 'placeBounty', pos: { x: 1500, y: 900 }, gold: 100 });
+    step(w, 1_200);
+    expect(snapshot(w).units.find((u) => u.id === id)?.bounty).not.toBeNull();
+    hero.ko = true;
+    hero.mode = 'ko';
+    expect(snapshot(w).units.find((u) => u.id === id)?.bounty).toBeNull();
+  });
+
+  it('a resting hero and monsters show no flag', () => {
+    const w = createWorld(1, base);
+    const id = spawnHero(w, 'warrior', { x: 700, y: 500 });
+    const hero = heroOf(w, id);
+    hero.mode = 'rest';
+    hero.hp = 1;
+    command(w, { kind: 'placeBounty', pos: { x: 1100, y: 700 }, gold: 100 });
+    step(w, 1_200);
+    expect(snapshot(w).units.every((u) => u.bounty === null)).toBe(true);
+  });
+});
+
 describe('run stats and determinism', () => {
   it('counts what happened', () => {
     const w = createWorld(1, base);

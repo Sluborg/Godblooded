@@ -39,6 +39,7 @@ export function spawnHero(world: World, classId: string, pos: Vec2, temple = 0):
     party: 0,
     trait: TRAITS[Math.floor(world.rng() * TRAITS.length)],
     gold: cls.startGold,
+    bounty: null,
   });
   world.unitRuntime.set(id, { lair: null, cooldownMs: 0, target: null, idleMs: 0 });
   world.heroRuntime.set(id, { dest: null, koMs: 0, temple });
@@ -133,9 +134,13 @@ export function heroMove(world: World, unit: UnitState): void {
   switch (unit.mode) {
     case 'explore': {
       const lead = leaderOf(world, unit);
+      const flag =
+        rt.bounty === undefined ? undefined : world.bounties.find((b) => b.id === rt.bounty);
       if (lead) {
         // Followers go where their leader goes.
         rt.dest = world.heroRuntime.get(lead.id)?.dest ?? lead.pos;
+      } else if (flag) {
+        rt.dest = flag.pos;
       } else if (!rt.dest || dist(unit.pos, rt.dest) <= tune(world).arrive) {
         rt.dest = exploreDest(world);
       }
@@ -268,7 +273,22 @@ export function runBounties(world: World): void {
     world.bounties = world.bounties.filter((b) => b.id !== flag.id);
     world.events.push({ kind: 'bountyClaimed', bounty: flag.id, unit: hero.id, gold: flag.gold });
   }
-  if (world.tick % 20 !== 0) return;
+  if (world.tick % 20 === 0) chooseFlags(world);
+}
+
+// What the snapshot shows: the live flag each exploring hero is heading for. Called when a
+// snapshot is built, after every change of the tick (knockouts, party merges) has landed.
+export function syncFlagView(world: World): void {
+  for (const unit of world.units) {
+    if (unit.kind !== 'hero') continue;
+    const lead = unit.mode === 'explore' && !unit.ko ? leaderOf(world, unit) : undefined;
+    const id = world.heroRuntime.get((lead ?? unit).id)?.bounty;
+    const live = unit.mode === 'explore' && !unit.ko && world.bounties.some((b) => b.id === id);
+    unit.bounty = live && id !== undefined ? id : null;
+  }
+}
+
+function chooseFlags(world: World): void {
   for (const unit of world.units) {
     const rt = world.heroRuntime.get(unit.id);
     if (unit.kind !== 'hero' || !rt || unit.ko || unit.mode !== 'explore') continue;

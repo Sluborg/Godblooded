@@ -140,6 +140,7 @@ export function runRaids(world: World): void {
         party: 0,
         trait: null,
         gold: 0,
+        bounty: null,
       });
       world.unitRuntime.set(id, {
         lair: lair.id,
