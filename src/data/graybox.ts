@@ -84,6 +84,17 @@ export const GRAYBOX: GameData = {
     { lair: 'barrow', pos: { x: 500, y: 450 } },
     { lair: 'troll-den', pos: { x: 2100, y: 1350 } },
   ],
+  // 8 build plots in a ring around the town hall (plot id = index).
+  plots: [
+    { x: 1590, y: 800 },
+    { x: 1476, y: 1012 },
+    { x: 1200, y: 1100 },
+    { x: 924, y: 1012 },
+    { x: 810, y: 800 },
+    { x: 924, y: 588 },
+    { x: 1200, y: 500 },
+    { x: 1476, y: 588 },
+  ],
   buildings: [
     { id: 'temple_aesir', cost: 150 },
     { id: 'market', cost: 100 },
