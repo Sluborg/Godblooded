@@ -1,3 +1,4 @@
+import { attackBuilding, attackLair, nearestBuilding, pickLair, runRaids } from './town';
 import { resolveTuning } from './tuning';
 import { makeRng, type Rng } from './rng';
 import {
@@ -13,6 +14,7 @@ import {
   heroKnockedOut,
   heroMove,
   payBounty,
+  runBounties,
   runHeroes,
   runTemples,
   type HeroRuntime,
@@ -36,6 +38,7 @@ import type {
   CommandResult,
   GameData,
   LairState,
+  RunStats,
   SimEvent,
   Snapshot,
   Tuning,
@@ -52,9 +55,11 @@ const MAX_TICKS_PER_STEP = 400;
 interface LairRuntime {
   nextSpawnMs: number;
 }
-interface UnitRuntime {
+export interface UnitRuntime {
   // The lair a monster belongs to; null for heroes.
   lair: number | null;
+  // Raiders march on the town instead of wandering near their lair.
+  raid?: boolean;
   cooldownMs: number;
   target: Vec2 | null;
   idleMs: number;
@@ -80,6 +85,8 @@ export interface World {
   parties: Map<number, Party>;
   bonds: Map<string, number>;
   pendingDeaths: { victim: number; by: number }[];
+  nextRaidMs: number;
+  stats: RunStats;
   bounties: BountyState[];
   events: SimEvent[];
 }
@@ -105,6 +112,15 @@ export function createWorld(seed: number, data: GameData): World {
     parties: new Map(),
     bonds: new Map(),
     pendingDeaths: [],
+    nextRaidMs: 0,
+    stats: {
+      monstersKilled: 0,
+      lairsDestroyed: 0,
+      heroesArrived: 0,
+      knockouts: 0,
+      buildingsLost: 0,
+      taxCollected: 0,
+    },
     bounties: [],
     events: [],
   };
@@ -114,13 +130,22 @@ export function createWorld(seed: number, data: GameData): World {
     tier: 1,
     pos: { ...data.townHall },
     plot: null,
-    hp: 1,
+    hp: world.tuning.town.townHallHp,
+    maxHp: world.tuning.town.townHallHp,
   });
+  world.nextRaidMs = world.tuning.town.raidFirstMs;
   for (const site of data.lairSites ?? []) {
     const def = data.lairs?.find((l) => l.id === site.lair);
     if (!def) throw new Error(`lair site names unknown lair: ${site.lair}`);
     const id = world.nextId++;
-    world.lairs.push({ id, type: def.id, tier: 1, pos: { ...site.pos }, hp: def.hp });
+    world.lairs.push({
+      id,
+      type: def.id,
+      tier: 1,
+      pos: { ...site.pos },
+      hp: def.hp,
+      maxHp: def.hp,
+    });
     world.lairRuntime.set(id, { nextSpawnMs: def.spawnS * 1000 });
   }
   return world;
@@ -148,7 +173,9 @@ function runTick(world: World): void {
   world.timeMs += TICK_MS;
   runTemples(world);
   runLairs(world);
+  runRaids(world);
   runHeroes(world);
+  runBounties(world);
   runParties(world);
   runUnits(world);
   // Combat, heroes and the economy hook in here (Sim backlog 30 and up).
@@ -160,7 +187,10 @@ function runLairs(world: World): void {
     const def = world.data.lairs?.find((l) => l.id === lair.type);
     if (!rt || !def || world.timeMs < rt.nextSpawnMs) continue;
     rt.nextSpawnMs = world.timeMs + def.spawnS * 1000;
-    const alive = world.units.filter((u) => world.unitRuntime.get(u.id)?.lair === lair.id).length;
+    const alive = world.units.filter((u) => {
+      const r = world.unitRuntime.get(u.id);
+      return r?.lair === lair.id && !r.raid;
+    }).length;
     if (alive >= def.maxAlive) continue;
     const mon = world.data.monsters?.find((m) => m.id === def.monster);
     if (!mon) continue;
@@ -201,7 +231,8 @@ function runUnits(world: World): void {
     const stats = statsOf(world, unit);
     if (!rt || !stats || unit.ko) continue;
     rt.cooldownMs = Math.max(0, rt.cooldownMs - TICK_MS);
-    const home = world.lairs.find((l) => l.id === rt.lair);
+    // Raiders have no lair leash: they march on the town.
+    const home = rt.raid ? undefined : world.lairs.find((l) => l.id === rt.lair);
     // Heroes that are fleeing, resting or shopping do not pick fights.
     const busy = unit.kind === 'hero' && unit.mode !== 'explore';
     const foe = busy ? null : pickTarget(world, unit, stats, home?.pos);
@@ -209,7 +240,12 @@ function runUnits(world: World): void {
     if (foe) {
       fight(world, unit, rt, stats, foe);
     } else if (unit.kind === 'hero') {
-      heroMove(world, unit);
+      const lair = busy ? null : pickLair(world, unit);
+      if (lair) attackLair(world, unit, rt, stats, lair);
+      else heroMove(world, unit);
+    } else if (rt.raid) {
+      const b = nearestBuilding(world, unit.pos);
+      if (b) attackBuilding(world, unit, rt, stats, b);
     } else if (home) {
       wander(world, unit, rt, stats, home.pos);
     }
@@ -264,6 +300,7 @@ function settleDeaths(world: World): void {
       unit.ko = true;
       unit.target = null;
       heroKnockedOut(world, unit);
+      world.stats.knockouts++;
       world.events.push({ kind: 'knockout', unit: unit.id, by });
     } else {
       const mon = world.data.monsters?.find((m) => m.id === unit.type);
@@ -275,6 +312,7 @@ function settleDeaths(world: World): void {
         bounty: mon?.bounty ?? 0,
         xp: mon?.xp ?? 0,
       });
+      world.stats.monstersKilled++;
       payBounty(world, by, mon?.bounty ?? 0);
       shareXp(world, by, mon?.xp ?? 0);
     }
@@ -328,7 +366,15 @@ export function command(world: World, cmd: Command): CommandResult {
       if (world.gold < def.cost) return { ok: false, reason: 'not enough gold' };
       world.gold -= def.cost;
       const id = world.nextId++;
-      world.buildings.push({ id, type: def.id, tier: 1, pos: { ...at }, plot: cmd.plot, hp: 1 });
+      world.buildings.push({
+        id,
+        type: def.id,
+        tier: 1,
+        pos: { ...at },
+        plot: cmd.plot,
+        hp: world.tuning.town.buildingHp,
+        maxHp: world.tuning.town.buildingHp,
+      });
       world.events.push({ kind: 'built', building: id, type: def.id });
       return { ok: true, id };
     }
@@ -361,6 +407,7 @@ export function snapshot(world: World): Snapshot {
     tick: world.tick,
     gold: world.gold,
     status: world.status,
+    stats: { ...world.stats },
     plots: (world.data.plots ?? []).map((pos, id) => {
       const b = world.buildings.find((x) => x.plot === id);
       return { id, pos: { ...pos }, occupied: !!b, building: b ? b.id : null };

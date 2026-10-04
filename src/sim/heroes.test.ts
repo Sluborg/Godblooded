@@ -38,8 +38,8 @@ const data: GameData = {
   lairSites: [{ lair: 'barrow', pos: { x: 1000, y: 500 } }],
 };
 
-function town(buildings: string[]) {
-  const w = createWorld(1, data);
+function town(buildings: string[], quiet = false) {
+  const w = createWorld(1, quiet ? { ...data, lairSites: [] } : data);
   buildings.forEach((type, plot) => command(w, { kind: 'build', type, plot }));
   return w;
 }
@@ -76,7 +76,7 @@ describe('hero life', () => {
   });
 
   it('a hurt hero flees, rests at the town hall and heals fully', () => {
-    const w = town([]);
+    const w = town([], true);
     const id = spawnHero(w, 'warrior', { x: 1500, y: 900 });
     const hero = w.units.find((u) => u.id === id);
     if (!hero) throw new Error('setup');
@@ -91,7 +91,7 @@ describe('hero life', () => {
 
   it('a shrine heals faster than the town hall', () => {
     const healTime = (buildings: string[]) => {
-      const w = town(buildings);
+      const w = town(buildings, true);
       const id = spawnHero(w, 'warrior', { x: 800, y: 500 });
       const hero = w.units.find((u) => u.id === id);
       if (!hero) throw new Error('setup');
@@ -108,7 +108,7 @@ describe('hero life', () => {
   });
 
   it('a knocked out hero is revived at the town hall', () => {
-    const w = town([]);
+    const w = town([], true);
     const id = spawnHero(w, 'warrior', { x: 1500, y: 900 });
     const hero = w.units.find((u) => u.id === id);
     if (!hero) throw new Error('setup');

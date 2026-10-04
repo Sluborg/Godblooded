@@ -96,12 +96,49 @@ export interface MonsterTuning {
   idleMinMs: number;
   idleMaxMs: number;
   leash: number;
+  // Gold and party xp for destroying a lair.
+  lairBounty: number;
+  lairXp: number;
+  // How far a hero notices a lair, in world units.
+  lairAggro: number;
+}
+
+export interface TownTuning {
+  townHallHp: number;
+  buildingHp: number;
+  // Raids: monsters from every lair march on the town.
+  raidFirstMs: number;
+  raidEveryMs: number;
+  raidSize: number;
+  // Raids get one monster bigger per lair every this many ms.
+  raidGrowEveryMs: number;
+  // A resting hero at or above this hp fraction rejoins the fight when raiders come near.
+  defendHp: number;
+}
+
+export interface BountyTuning {
+  // Monsters within this radius of a flag count as its danger.
+  dangerRadius: number;
+  // A lair near the flag adds this much danger.
+  lairDanger: number;
+  // Gold a hero wants per point of danger.
+  costPerDanger: number;
+  // A hero standing this close to a cleared flag claims it.
+  claimRadius: number;
+  greedyGoldMult: number;
+  curiousGoldMult: number;
+  braveFearMult: number;
+  cowardFearMult: number;
+  // Proud heroes ignore flags paying less than this.
+  proudMinGold: number;
 }
 
 export interface Tuning {
   hero: HeroTuning;
   party: PartyTuning;
   monster: MonsterTuning;
+  town: TownTuning;
+  bounty: BountyTuning;
 }
 
 export interface GameData {
@@ -117,6 +154,8 @@ export interface GameData {
     hero?: Partial<HeroTuning>;
     party?: Partial<PartyTuning>;
     monster?: Partial<MonsterTuning>;
+    town?: Partial<TownTuning>;
+    bounty?: Partial<BountyTuning>;
   };
   lairs?: readonly LairDef[];
   lairSites?: readonly LairSite[];
@@ -135,6 +174,7 @@ export interface BuildingState {
   // Plot the building stands on; null for the town hall.
   plot: number | null;
   hp: number;
+  maxHp: number;
 }
 
 export interface PlotState {
@@ -151,6 +191,7 @@ export interface LairState {
   tier: number;
   pos: Vec2;
   hp: number;
+  maxHp: number;
 }
 
 export interface UnitState {
@@ -205,6 +246,12 @@ export type SimEvent =
   | { kind: 'partyFormed'; party: number; members: number[] }
   | { kind: 'levelUp'; party: number; level: number; offer: string[] }
   | { kind: 'upgradePicked'; party: number; upgrade: string }
+  | { kind: 'raid'; lair: number; size: number }
+  | { kind: 'lairDestroyed'; lair: number; type: string; by: number; bounty: number }
+  | { kind: 'buildingDestroyed'; building: number; type: string }
+  | { kind: 'bountyClaimed'; bounty: number; unit: number; gold: number }
+  | { kind: 'won' }
+  | { kind: 'lost' }
   | { kind: 'arrived'; unit: number; type: string }
   | { kind: 'fled'; unit: number }
   | { kind: 'revived'; unit: number }
@@ -218,11 +265,21 @@ export type Command =
 
 export type CommandResult = { ok: true; id: number } | { ok: false; reason: string };
 
+export interface RunStats {
+  monstersKilled: number;
+  lairsDestroyed: number;
+  heroesArrived: number;
+  knockouts: number;
+  buildingsLost: number;
+  taxCollected: number;
+}
+
 export interface Snapshot {
   readonly timeMs: number;
   readonly tick: number;
   readonly gold: number;
   readonly status: 'running' | 'won' | 'lost';
+  readonly stats: Readonly<RunStats>;
   readonly plots: readonly Readonly<PlotState>[];
   readonly buildings: readonly Readonly<BuildingState>[];
   readonly lairs: readonly Readonly<LairState>[];

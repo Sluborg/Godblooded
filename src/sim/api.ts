@@ -4,6 +4,7 @@ export { DEFAULT_TUNING } from './tuning';
 export type { World } from './world';
 export type {
   BountyState,
+  BountyTuning,
   BuildingDef,
   Attributes,
   BuildingState,
@@ -20,9 +21,11 @@ export type {
   PartyState,
   PartyTuning,
   PlotState,
+  RunStats,
   SimEvent,
   Snapshot,
   TraitId,
+  TownTuning,
   Tuning,
   UnitMode,
   UnitState,
