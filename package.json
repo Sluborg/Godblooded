@@ -12,6 +12,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "tsc --noEmit",
+    "sim": "node scripts/sim/run.mjs",
     "validate:art": "node scripts/art/validate.mjs",
     "art:check": "node scripts/art/check.mjs",
     "art:ship": "node scripts/art/ship.mjs",
