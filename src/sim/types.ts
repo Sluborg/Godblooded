@@ -212,9 +212,7 @@ export type SimEvent =
   | { kind: 'bountyPlaced'; bounty: number; gold: number };
 
 export type Command =
-  // `pos` is the legacy free-placement form, removed once Scene builds by plot.
   | { kind: 'build'; type: string; plot: number }
-  | { kind: 'build'; type: string; pos: Vec2 }
   | { kind: 'placeBounty'; pos: Vec2; gold: number }
   | { kind: 'pickUpgrade'; party: number; upgrade: string };
 

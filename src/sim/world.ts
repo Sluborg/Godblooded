@@ -320,24 +320,15 @@ export function command(world: World, cmd: Command): CommandResult {
     case 'build': {
       const def = world.data.buildings.find((b) => b.id === cmd.type);
       if (!def) return { ok: false, reason: 'unknown building' };
-      let pos: Vec2;
-      let plot: number | null = null;
-      if ('plot' in cmd) {
-        const at = Number.isInteger(cmd.plot) ? world.data.plots?.[cmd.plot] : undefined;
-        if (!at) return { ok: false, reason: 'unknown plot' };
-        if (world.buildings.some((b) => b.plot === cmd.plot)) {
-          return { ok: false, reason: 'plot taken' };
-        }
-        pos = at;
-        plot = cmd.plot;
-      } else {
-        if (!inMap(world, cmd.pos)) return { ok: false, reason: 'off map' };
-        pos = cmd.pos;
+      const at = Number.isInteger(cmd.plot) ? world.data.plots?.[cmd.plot] : undefined;
+      if (!at) return { ok: false, reason: 'unknown plot' };
+      if (world.buildings.some((b) => b.plot === cmd.plot)) {
+        return { ok: false, reason: 'plot taken' };
       }
       if (world.gold < def.cost) return { ok: false, reason: 'not enough gold' };
       world.gold -= def.cost;
       const id = world.nextId++;
-      world.buildings.push({ id, type: def.id, tier: 1, pos: { ...pos }, plot, hp: 1 });
+      world.buildings.push({ id, type: def.id, tier: 1, pos: { ...at }, plot: cmd.plot, hp: 1 });
       world.events.push({ kind: 'built', building: id, type: def.id });
       return { ok: true, id };
     }
