@@ -9,12 +9,12 @@ Lead keeps this to one screen. Read it first when resuming.
 
 ## Now
 
-- Team up: Lead, Sim, Scene, Art registered (`docs/sessions.md`). Workers cannot push to `main`;
-  they send docs PRs, Lead merges.
-- Shipped: Art pipeline, art-wake bell, B1-B7 batches (B2-B7 Draft), sim world + lairs and
-  wandering monsters, map scene (pan, pinch zoom), graybox data rows.
-- Working: Sim 30 (combat), Scene 20 (build menu, HUD, speed), Art waits on B1.
-- Sessions talk by `send_message`; inbox, backlog and sessions files are Lead-only.
+- M1 graybox playable end to end: build on 8 plots, heroes arrive at the Aesir temple, form
+  parties, hunt, flee, rest, shop (tax), level up (pick 1 of 3 cards), storm lairs; raids hit
+  the town; win when the troll den falls, lose when the town hall falls; end screen with stats.
+- Balance pass 1: sim bot wins 62%, median run 15 min.
+- Art: B1 test image approved by Lead, waiting on Stefan's A+ (separate weapon) or B choice.
+- Next: Stefan judges "fun to watch?"; Scene 55 (hero interest markers on flags).
 
 ## Waiting on Stefan
 
