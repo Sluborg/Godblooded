@@ -1,14 +1,22 @@
 import { makeRng, type Rng } from './rng';
 import {
+  heroKnockedOut,
+  heroMove,
+  payBounty,
+  runHeroes,
+  runTemples,
+  type HeroRuntime,
+} from './heroes';
+import {
   aggroRange,
   attackMs,
   damage,
   dist,
   dodgeChance,
-  maxHp,
   monsterHp,
   speed,
   stepToward,
+  TICK_MS,
   type Stats,
 } from './units';
 import type {
@@ -24,9 +32,7 @@ import type {
   Vec2,
 } from './types';
 
-// Fixed simulation step. Scene passes frame time (times game speed); the world runs whole
-// ticks, so results never depend on the frame rate.
-export const TICK_MS = 50;
+export { TICK_MS };
 // Guard against a stalled tab handing us minutes of dt at once.
 const MAX_TICKS_PER_STEP = 400;
 // Monsters idle near their lair and wander inside this radius.
@@ -59,6 +65,8 @@ export interface World {
   units: UnitState[];
   lairRuntime: Map<number, LairRuntime>;
   unitRuntime: Map<number, UnitRuntime>;
+  heroRuntime: Map<number, HeroRuntime>;
+  templeNextMs: Map<number, number>;
   pendingDeaths: { victim: number; by: number }[];
   bounties: BountyState[];
   events: SimEvent[];
@@ -79,6 +87,8 @@ export function createWorld(seed: number, data: GameData): World {
     units: [],
     lairRuntime: new Map(),
     unitRuntime: new Map(),
+    heroRuntime: new Map(),
+    templeNextMs: new Map(),
     pendingDeaths: [],
     bounties: [],
     events: [],
@@ -116,7 +126,9 @@ export function step(world: World, dtMs: number): void {
 function runTick(world: World): void {
   world.tick++;
   world.timeMs += TICK_MS;
+  runTemples(world);
   runLairs(world);
+  runHeroes(world);
   runUnits(world);
   // Combat, heroes and the economy hook in here (Sim backlog 30 and up).
 }
@@ -144,6 +156,8 @@ function runLairs(world: World): void {
       maxHp: hp,
       target: null,
       ko: false,
+      mode: 'wander',
+      gold: 0,
     });
     world.unitRuntime.set(id, { lair: lair.id, cooldownMs: 0, target: null, idleMs: 0 });
     world.events.push({ kind: 'spawned', unit: id, type: mon.id, lair: lair.id });
@@ -166,10 +180,14 @@ function runUnits(world: World): void {
     if (!rt || !stats || unit.ko) continue;
     rt.cooldownMs = Math.max(0, rt.cooldownMs - TICK_MS);
     const home = world.lairs.find((l) => l.id === rt.lair);
-    const foe = pickTarget(world, unit, stats, home?.pos);
+    // Heroes that are fleeing, resting or shopping do not pick fights.
+    const busy = unit.kind === 'hero' && unit.mode !== 'explore';
+    const foe = busy ? null : pickTarget(world, unit, stats, home?.pos);
     unit.target = foe ? foe.id : null;
     if (foe) {
       fight(world, unit, rt, stats, foe);
+    } else if (unit.kind === 'hero') {
+      heroMove(world, unit);
     } else if (home) {
       wander(world, unit, rt, stats, home.pos);
     }
@@ -223,6 +241,7 @@ function settleDeaths(world: World): void {
     if (unit.kind === 'hero') {
       unit.ko = true;
       unit.target = null;
+      heroKnockedOut(world, unit);
       world.events.push({ kind: 'knockout', unit: unit.id, by });
     } else {
       const mon = world.data.monsters?.find((m) => m.id === unit.type);
@@ -234,6 +253,7 @@ function settleDeaths(world: World): void {
         bounty: mon?.bounty ?? 0,
         xp: mon?.xp ?? 0,
       });
+      payBounty(world, by, mon?.bounty ?? 0);
     }
   }
   world.pendingDeaths = [];
@@ -258,29 +278,6 @@ function wander(world: World, unit: UnitState, rt: UnitRuntime, stats: Stats, ho
   }
 }
 
-// Test and Sim 40 hook: put a hero of `classId` on the map. Arrival logic (temples) lands
-// in Sim 40; Scene never calls this.
-export function spawnHero(world: World, classId: string, pos: Vec2): number {
-  const cls = world.data.classes?.find((c) => c.id === classId);
-  if (!cls) throw new Error(`unknown class: ${classId}`);
-  const id = world.nextId++;
-  const hp = maxHp(cls.attrs);
-  world.units.push({
-    id,
-    kind: 'hero',
-    type: cls.id,
-    tier: 1,
-    pos: { ...pos },
-    facing: { x: 0, y: 1 },
-    hp,
-    maxHp: hp,
-    target: null,
-    ko: false,
-  });
-  world.unitRuntime.set(id, { lair: null, cooldownMs: 0, target: null, idleMs: 0 });
-  return id;
-}
-
 function wanderPoint(world: World, center: Vec2): Vec2 {
   const { width, height } = world.data.map;
   const angle = world.rng() * Math.PI * 2;
@@ -290,6 +287,8 @@ function wanderPoint(world: World, center: Vec2): Vec2 {
     y: Math.min(height, Math.max(0, center.y + Math.sin(angle) * r)),
   };
 }
+
+export { spawnHero } from './heroes';
 
 export function command(world: World, cmd: Command): CommandResult {
   if (world.status !== 'running') return { ok: false, reason: 'run over' };

@@ -17,6 +17,7 @@ export type {
   PlotState,
   SimEvent,
   Snapshot,
+  UnitMode,
   UnitState,
   Vec2,
 } from './types';

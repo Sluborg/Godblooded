@@ -109,9 +109,15 @@ export interface UnitState {
   maxHp: number;
   // Unit being attacked, if any (Scene lunges toward it).
   target: number | null;
-  // Knocked out (heroes only, monsters are removed). Out of the fight until healed.
+  // Knocked out (heroes only, monsters are removed). Out of the fight until revived.
   ko: boolean;
+  // What the unit is doing. Monsters always 'wander'.
+  mode: UnitMode;
+  // Gold carried (heroes; monsters 0).
+  gold: number;
 }
+
+export type UnitMode = 'wander' | 'explore' | 'return' | 'rest' | 'shop' | 'ko';
 
 export interface BountyState {
   id: number;
@@ -125,6 +131,10 @@ export type SimEvent =
   | { kind: 'hit'; attacker: number; target: number; damage: number; dodged: boolean }
   | { kind: 'knockout'; unit: number; by: number }
   | { kind: 'died'; unit: number; type: string; by: number; bounty: number; xp: number }
+  | { kind: 'arrived'; unit: number; type: string }
+  | { kind: 'fled'; unit: number }
+  | { kind: 'revived'; unit: number }
+  | { kind: 'shopped'; unit: number; spent: number; tax: number }
   | { kind: 'bountyPlaced'; bounty: number; gold: number };
 
 export type Command =

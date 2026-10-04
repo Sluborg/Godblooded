@@ -67,11 +67,15 @@ describe('combat', () => {
     hero.hp = 1;
     mon.hp = mon.maxHp = 100_000;
     mon.pos = { ...hero.pos };
-    step(w, 30_000);
+    let knockedOut = false;
+    for (let i = 0; i < 600 && !knockedOut; i++) {
+      step(w, 50);
+      knockedOut = w.events.some((e) => e.kind === 'knockout');
+    }
+    expect(knockedOut).toBe(true);
     const s = snapshot(w);
-    expect(s.events.some((e) => e.kind === 'knockout')).toBe(true);
     const h = s.units.find((u) => u.kind === 'hero');
-    expect(h).toMatchObject({ ko: true, hp: 0, target: null });
+    expect(h).toMatchObject({ ko: true, hp: 0, target: null, mode: 'ko' });
     expect(s.units.some((u) => u.kind === 'monster')).toBe(true);
   });
 
