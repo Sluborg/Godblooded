@@ -15,6 +15,9 @@ Art owns this file. The house style is `art-tasks/STYLE.md`; this is the technic
 Rig pieces (test, Lead's motion work): a unit id plus `_body` or `_arm`, and a `side` view
 (profile facing right), e.g. `hero_warrior_t1_side_arm`. See "Rig pieces" below.
 
+Animation frames: a unit id plus `_walk1`-`_walk4`, `_attack1`-`_attack3` or `_hurt`
+(`hero_warrior_t1_front_walk2`); all frames of a unit share canvas, scale and feet position.
+
 Names are lowercase letters; a name of several words joins them with a hyphen
 (`mon_jackal-man_t1_front`). The underscore only separates the parts of an id.
 

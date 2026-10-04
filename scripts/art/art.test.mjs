@@ -11,6 +11,7 @@ import {
   kindOf,
   parseId,
   processImage,
+  processFrames,
   processPair,
 } from './lib.mjs';
 import { validateAssets } from './validate.mjs';
@@ -57,6 +58,14 @@ describe('ids', () => {
     expect(parseId('hero_warrior_t1_side_arm')).toEqual({ tier: 1, view: 'side', part: 'arm' });
     expect(kindOf('hero_warrior_t1_front_body')?.kind).toBe('hero');
     expect(kindOf('hero_warrior_t1_front_leg')).toBeNull();
+    expect(parseId('hero_warrior_t1_front_walk3')).toEqual({
+      tier: 1,
+      view: 'front',
+      part: 'walk3',
+    });
+    expect(kindOf('mon_draugr_t1_front_attack2')?.kind).toBe('mon');
+    expect(kindOf('hero_warrior_t1_front_hurt')?.kind).toBe('hero');
+    expect(kindOf('hero_warrior_t1_front_walk5')).toBeNull();
   });
 });
 
@@ -145,6 +154,20 @@ describe('processPair', () => {
     const body = canvas(1024, GREEN, unitRect);
     const arm = canvas(1024, GREEN, { x: 200, y: 300, w: 32, h: 350 });
     expect(processPair(body, arm, 'hero_warrior_t1_front').pivot).toBeNull();
+  });
+});
+
+describe('processFrames', () => {
+  it('crops all frames of a unit alike', () => {
+    const f1 = canvas(1024, GREEN, unitRect);
+    const f2 = canvas(1024, GREEN, { x: 380, y: 160, w: 300, h: 741 });
+    const out = processFrames([
+      { id: 'hero_warrior_t1_front_walk1', raw: f1 },
+      { id: 'hero_warrior_t1_front_walk2', raw: f2 },
+    ]);
+    expect(out[0].image.width).toBe(out[1].image.width);
+    expect(out[0].image.height).toBe(out[1].image.height);
+    expect(out[0].anchorY).toBe(out[1].anchorY);
   });
 });
 

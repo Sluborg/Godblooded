@@ -25,13 +25,13 @@ export function blank(width, height) {
 // anchor: where the game places the sprite (Phaser origin), measured on the object.
 export const KINDS = {
   hero: {
-    re: /^hero_[a-z]+(-[a-z]+)*_t[1-3]_(front|back|side)(_(body|arm))?$/,
+    re: /^hero_[a-z]+(-[a-z]+)*_t[1-3]_(front|back|side)(_(body|arm|walk[1-4]|attack[1-3]|hurt))?$/,
     dir: 'units',
     nominal: { axis: 'height', share: 0.75, px: 256 },
     anchor: 'feet',
   },
   mon: {
-    re: /^mon_[a-z]+(-[a-z]+)*_t[1-3]_(front|back|side)(_(body|arm))?$/,
+    re: /^mon_[a-z]+(-[a-z]+)*_t[1-3]_(front|back|side)(_(body|arm|walk[1-4]|attack[1-3]|hurt))?$/,
     dir: 'units',
     nominal: { axis: 'height', share: 0.75, px: 256 },
     anchor: 'feet',
@@ -62,10 +62,10 @@ export function kindOf(id) {
   return k && k.re.test(id) ? { kind, ...k } : null;
 }
 
-// Tier, view and rig part from the id (null when the id has none).
+// Tier, view and part (rig piece or animation frame) from the id (null when the id has none).
 export function parseId(id) {
   const tier = /_t([1-3])(?:_|$)/.exec(id);
-  const view = /_(front|back|side)(?:_(body|arm))?$/.exec(id);
+  const view = /_(front|back|side)(?:_(body|arm|walk[1-4]|attack[1-3]|hurt))?$/.exec(id);
   return {
     tier: tier ? Number(tier[1]) : null,
     view: view ? view[1] : null,
@@ -402,6 +402,31 @@ export function processPair(rawBody, rawArm, base) {
     arm: { ...crop(arm, rect, feet), ...shared, key: arm.key, specks: arm.specks, ...pv },
     pivot,
   };
+}
+
+// Animation frames of one unit (`<base>_walk1` ...): one shared crop and scale over all frames
+// so they stack; anchor = the feet of the first frame given. frames: [{ id, raw }].
+export function processFrames(frames) {
+  const keyed = frames.map(({ id, raw }) => ({ id, raw, ...keyRaw(raw, id) }));
+  const { width: W, height: H } = frames[0].raw;
+  if (frames.some(({ raw }) => raw.width !== W || raw.height !== H))
+    throw new Error(`${frames[0].id}: frame canvases differ in size`);
+  const boxes = keyed.map((f) => bbox(visibleMask(f.keyed, 128), W, H));
+  if (boxes.some((b) => !b)) throw new Error(`${frames[0].id}: a frame is empty after key-out`);
+  const feet = anchorPoint(keyed[0].keyed, 'feet');
+  const x0 = Math.min(...boxes.map((b) => b.x));
+  const y0 = Math.min(...boxes.map((b) => b.y));
+  const x1 = Math.max(...boxes.map((b) => b.x + b.w));
+  const y1 = Math.max(...boxes.map((b) => b.y + b.h));
+  const rect = trimRect({ x: x0, y: y0, w: x1 - x0, h: y1 - y0 }, keyed[0].scale);
+  return keyed.map((f) => ({
+    id: f.id,
+    ...crop(f, rect, feet),
+    kind: f.k.kind,
+    dir: f.k.dir,
+    key: f.key,
+    specks: f.specks,
+  }));
 }
 
 // Alpha quality of a shipped sprite.
