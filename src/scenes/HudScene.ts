@@ -1,11 +1,18 @@
 import Phaser from 'phaser';
 import { COLORS, GAME_WIDTH, MIN_TOUCH } from '../config';
 import { GRAYBOX } from '../data/graybox';
-import type { Vec2 } from '../sim/api';
+import type { CommandResult } from '../sim/api';
 import { makeButton, type Button } from '../ui/button';
-import type { MapScene } from './MapScene';
+import type { MapScene, MapTap } from './MapScene';
 
 const SPEEDS = [1, 2, 4];
+const BOUNTY_AMOUNTS = [25, 50, 100, 200];
+
+interface MenuOption {
+  label: string;
+  cost: number;
+  pick: () => void;
+}
 const TEXT = { fontFamily: 'Georgia, serif', fontSize: '30px', color: COLORS.text };
 
 function formatClock(ms: number): string {
@@ -25,7 +32,6 @@ export class HudScene extends Phaser.Scene {
   private menu: Phaser.GameObjects.GameObject[] = [];
   private menuButtons: { button: Button; cost: number }[] = [];
   private menuRect: Phaser.Geom.Rectangle | null = null;
-  private menuPlot: Vec2 | null = null;
 
   constructor() {
     super('Hud');
@@ -64,10 +70,8 @@ export class HudScene extends Phaser.Scene {
       .text(GAME_WIDTH / 2, 300, '', { ...TEXT, fontSize: '72px', color: '#f2c14e' })
       .setOrigin(0.5);
 
-    map.events.on('plotTapped', (plot: Vec2 | null) =>
-      plot ? this.openMenu(plot) : this.closeMenu(),
-    );
-    this.events.once('shutdown', () => map.events.off('plotTapped'));
+    map.events.on('mapTapped', (tap: MapTap) => this.onMapTap(map, tap));
+    this.events.once('shutdown', () => map.events.off('mapTapped'));
   }
 
   update(): void {
@@ -90,10 +94,33 @@ export class HudScene extends Phaser.Scene {
     this.speedButtons.forEach((b, i) => b.setActive(SPEEDS[i] === cur));
   }
 
-  private openMenu(plot: Vec2): void {
+  private onMapTap(map: MapScene, tap: MapTap): void {
+    if (tap.plot) {
+      const plot = tap.plot;
+      this.openMenu(
+        'Build here',
+        GRAYBOX.buildings.map((def) => ({
+          label: `${def.id.replace('_', ' ')}\n${def.cost} gold`,
+          cost: def.cost,
+          pick: () => this.run(map.tryBuild(def.id, plot)),
+        })),
+      );
+    } else if (tap.target) {
+      const { pos, label } = tap.target;
+      this.openMenu(
+        `Bounty on ${label}`,
+        BOUNTY_AMOUNTS.map((gold) => ({
+          label: `${gold}\ngold`,
+          cost: gold,
+          pick: () => this.run(map.tryBounty(pos, gold)),
+        })),
+      );
+    } else this.closeMenu();
+  }
+
+  private openMenu(title: string, options: MenuOption[]): void {
     this.closeMenu();
-    this.menuPlot = plot;
-    const n = GRAYBOX.buildings.length;
+    const n = options.length;
     const bw = 230;
     const bh = 100;
     const gap = 14;
@@ -105,28 +132,15 @@ export class HudScene extends Phaser.Scene {
     const panel = this.add
       .rectangle(cx, cy, w, h, 0x120d09, 0.92)
       .setStrokeStyle(3, COLORS.gold, 0.8);
-    const title = this.add
-      .text(cx, cy - h / 2 + 24, 'Build here', {
-        ...TEXT,
-        fontSize: '24px',
-        color: COLORS.textMuted,
-      })
+    const heading = this.add
+      .text(cx, cy - h / 2 + 24, title, { ...TEXT, fontSize: '24px', color: COLORS.textMuted })
       .setOrigin(0.5);
-    this.menu.push(panel, title);
-    GRAYBOX.buildings.forEach((def, i) => {
+    this.menu.push(panel, heading);
+    options.forEach((opt, i) => {
       const x = cx - w / 2 + gap + bw / 2 + i * (bw + gap);
-      const y = cy + 20;
-      const button = makeButton(
-        this,
-        x,
-        y,
-        bw,
-        bh,
-        `${def.id.replace('_', ' ')}\n${def.cost} gold`,
-        () => this.build(def.id),
-      );
+      const button = makeButton(this, x, cy + 20, bw, bh, opt.label, opt.pick);
       this.menu.push(button.container);
-      this.menuButtons.push({ button, cost: def.cost });
+      this.menuButtons.push({ button, cost: opt.cost });
     });
   }
 
@@ -135,13 +149,10 @@ export class HudScene extends Phaser.Scene {
     this.menu = [];
     this.menuButtons = [];
     this.menuRect = null;
-    this.menuPlot = null;
   }
 
-  private build(type: string): void {
-    if (!this.menuPlot) return;
-    const map = this.scene.get('Map') as MapScene;
-    const res = map.tryBuild(type, this.menuPlot);
+  // The sim already decided; close on success, show its reason otherwise.
+  private run(res: CommandResult): void {
     if (res.ok) this.closeMenu();
     else this.showToast(res.reason);
   }
