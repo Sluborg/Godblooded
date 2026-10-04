@@ -7,6 +7,7 @@ export type {
   Attributes,
   BuildingState,
   Command,
+  ClassDef,
   CommandResult,
   GameData,
   LairDef,
