@@ -1,5 +1,9 @@
 import type { Attributes, MonsterDef, Vec2 } from './types';
 
+// Fixed simulation step. Scene passes frame time (times game speed); the world runs whole
+// ticks, so results never depend on the frame rate.
+export const TICK_MS = 50;
+
 export interface Stats {
   attrs: Attributes;
   weapon: { baseAttackS: number; range: number };
