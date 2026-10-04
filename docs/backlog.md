@@ -28,7 +28,7 @@ Review (PR open), Done. A worker takes its top Open row.
 
 | Order | Item                                                                                                      | Status |
 | ----- | --------------------------------------------------------------------------------------------------------- | ------ |
-| 10    | MapScene graybox: ground, camera drag and pinch zoom, render a snapshot as shapes (stub sim until Sim 10) | Doing  |
+| 10    | MapScene graybox: ground, camera drag and pinch zoom, render a snapshot as shapes (stub sim until Sim 10) | Review |
 | 20    | Build menu: tap a plot, pick a building, see cost; HUD with gold and run clock; 1x/2x/4x speed            | Open   |
 | 30    | Bounty flag: tap the map or a monster, set gold, flag shows; heroes' interest shown as markers            | Open   |
 | 40    | Level-up pick: a party levels, the game pauses, 3 upgrade cards, tap one                                  | Open   |
