@@ -26,3 +26,5 @@ Lead owns this file. One dated line per decision that changes how the game or th
   lair. No armor until gear exists. Heroes are knocked out, monsters die.
 - 2026-10-04: Bounty amounts 25/50/100/200 for the graybox (Scene 30). A bounty on a monster is a
   spot for now; Sim 60 makes it follow the target.
+- 2026-10-04: Workers message Lead only when their PR is green; Lead stops watching PR events.
+  Lead messages Stefan only for tests, decisions and ChatGPT steps (less noise for Stefan).

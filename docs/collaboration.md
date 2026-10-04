@@ -73,7 +73,9 @@ silently.` A missed message then costs at most 2 hours. Lead records its trigger
 1. Lead keeps `docs/backlog.md`: rows per role, ordered 10, 20, 30, each small enough for one
    PR. Lead assigns by adding rows, writing to the inbox and ringing.
 2. A worker takes its top `Open` row, branches (`<role>/<topic>`), builds, runs the checks,
-   self-reviews, opens a PR (code only, no inbox or backlog edits) and messages Lead.
+   self-reviews, opens a PR (code only, no inbox or backlog edits), **waits until CI on the PR
+   is green** (fix it if red), then messages Lead. Lead does not watch PRs; the message is the
+   signal that a PR is ready to merge.
 3. Lead reviews (and asks `@codex review` on bigger PRs), writes fixes to the worker's inbox and
    messages it, or merges on green and sets the row `Done`.
 4. Work that crosses roles is split: Sim ships the rule plus its API, Scene ships the view.
