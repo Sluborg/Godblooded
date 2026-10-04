@@ -6,7 +6,15 @@
 // Only files of that batch ship: `<batch>--<id>.png`, or unprefixed `<id>.png` (a folder holding
 // one batch). Trial images (`test--`) and other batches' files are skipped.
 import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { collectUploads, parseId, processImage, processPair, readPng, writePng } from './lib.mjs';
+import {
+  collectUploads,
+  parseId,
+  processFrames,
+  processImage,
+  processPair,
+  readPng,
+  writePng,
+} from './lib.mjs';
 
 const [dir, batch, ...only] = process.argv.slice(2);
 if (!dir || !/^[A-Z]\d+$/.test(batch ?? ''))
@@ -49,9 +57,38 @@ const ship = (id, path, r) => {
     `shipped ${file} ${r.image.width}x${r.image.height} (${r.key} key, anchor ${r.anchorX},${r.anchorY}${extra}, ${r.specks} speck px dropped)`,
   );
 };
+// Animation frames ship per unit with one shared crop, so they stack.
+const isFrame = (part) => /^(walk|attack|hurt)/.test(part ?? '');
+const frameGroups = new Map();
+for (const u of uploads) {
+  const { part } = parseId(u.id);
+  if (!isFrame(part)) continue;
+  const base = u.id.slice(0, -part.length - 1);
+  if (!frameGroups.has(base)) frameGroups.set(base, []);
+  frameGroups.get(base).push(u);
+}
+// A unit's frames share one crop, so they ship together: refuse a partial re-ship.
+for (const [base, group] of frameGroups) {
+  const have = new Set(group.map((u) => u.id));
+  const missing = manifest.assets
+    .map((a) => a.id)
+    .filter((id) => id.startsWith(`${base}_`) && isFrame(parseId(id).part) && !have.has(id));
+  if (missing.length)
+    throw new Error(`${base}: re-ship all its frames together, missing ${missing.join(', ')}`);
+}
+for (const group of frameGroups.values()) {
+  // The anchor comes from the first frame: put the neutral walk1 first when there is one.
+  group.sort((a, b) => b.id.endsWith('_walk1') - a.id.endsWith('_walk1'));
+  const out = processFrames(group.map((u) => ({ id: u.id, raw: readPng(u.path) })));
+  out.forEach((r, i) => {
+    if (r.shifted.dx || r.shifted.dy)
+      console.log(`aligned ${r.id} feet: moved ${r.shifted.dx},${r.shifted.dy} px`);
+    ship(group[i].id, group[i].path, r);
+  });
+}
 for (const { id, path } of uploads) {
   const { part } = parseId(id);
-  if (part === 'arm') continue; // shipped with its body
+  if (part === 'arm' || isFrame(part)) continue; // shipped with its body / frame group
   if (part === 'body') {
     const base = id.replace(/_body$/, '');
     const arm = byId.get(`${base}_arm`);

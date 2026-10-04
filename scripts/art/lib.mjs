@@ -25,13 +25,13 @@ export function blank(width, height) {
 // anchor: where the game places the sprite (Phaser origin), measured on the object.
 export const KINDS = {
   hero: {
-    re: /^hero_[a-z]+(-[a-z]+)*_t[1-3]_(front|back|side)(_(body|arm))?$/,
+    re: /^hero_[a-z]+(-[a-z]+)*_t[1-3]_(front|back|side)(_(body|arm|walk[1-4]|attack[1-3]|hurt))?$/,
     dir: 'units',
     nominal: { axis: 'height', share: 0.75, px: 256 },
     anchor: 'feet',
   },
   mon: {
-    re: /^mon_[a-z]+(-[a-z]+)*_t[1-3]_(front|back|side)(_(body|arm))?$/,
+    re: /^mon_[a-z]+(-[a-z]+)*_t[1-3]_(front|back|side)(_(body|arm|walk[1-4]|attack[1-3]|hurt))?$/,
     dir: 'units',
     nominal: { axis: 'height', share: 0.75, px: 256 },
     anchor: 'feet',
@@ -62,10 +62,10 @@ export function kindOf(id) {
   return k && k.re.test(id) ? { kind, ...k } : null;
 }
 
-// Tier, view and rig part from the id (null when the id has none).
+// Tier, view and part (rig piece or animation frame) from the id (null when the id has none).
 export function parseId(id) {
   const tier = /_t([1-3])(?:_|$)/.exec(id);
-  const view = /_(front|back|side)(?:_(body|arm))?$/.exec(id);
+  const view = /_(front|back|side)(?:_(body|arm|walk[1-4]|attack[1-3]|hurt))?$/.exec(id);
   return {
     tier: tier ? Number(tier[1]) : null,
     view: view ? view[1] : null,
@@ -402,6 +402,55 @@ export function processPair(rawBody, rawArm, base) {
     arm: { ...crop(arm, rect, feet), ...shared, key: arm.key, specks: arm.specks, ...pv },
     pivot,
   };
+}
+
+// Moves an RGBA image by whole pixels (uncovered area transparent).
+export function shift(img, dx, dy) {
+  const { width: W, height: H } = img;
+  const out = blank(W, H);
+  for (let y = 0; y < H; y++) {
+    const sy = y - dy;
+    if (sy < 0 || sy >= H) continue;
+    for (let x = 0; x < W; x++) {
+      const sx = x - dx;
+      if (sx < 0 || sx >= W) continue;
+      img.data.copy(out.data, (y * W + x) * 4, (sy * W + sx) * 4, (sy * W + sx) * 4 + 4);
+    }
+  }
+  return out;
+}
+
+// Animation frames of one unit (`<base>_walk1` ...): every frame is moved so its feet sit on
+// the first frame's feet, then all get one shared crop and scale so they stack; anchor = those
+// feet. frames: [{ id, raw }]. Each result carries the shift applied (source pixels).
+export function processFrames(frames) {
+  const keyed = frames.map(({ id, raw }) => ({ id, raw, ...keyRaw(raw, id) }));
+  const { width: W, height: H } = frames[0].raw;
+  if (frames.some(({ raw }) => raw.width !== W || raw.height !== H))
+    throw new Error(`${frames[0].id}: frame canvases differ in size`);
+  const feet = keyed.map((f) => anchorPoint(f.keyed, 'feet'));
+  if (feet.some((a) => !a)) throw new Error(`${frames[0].id}: a frame is empty after key-out`);
+  const ref = feet[0];
+  keyed.forEach((f, i) => {
+    f.dx = Math.round(ref.x - feet[i].x);
+    f.dy = Math.round(ref.y - feet[i].y);
+    if (f.dx || f.dy) f.keyed = shift(f.keyed, f.dx, f.dy);
+  });
+  const boxes = keyed.map((f) => bbox(visibleMask(f.keyed, 128), W, H));
+  const x0 = Math.min(...boxes.map((b) => b.x));
+  const y0 = Math.min(...boxes.map((b) => b.y));
+  const x1 = Math.max(...boxes.map((b) => b.x + b.w));
+  const y1 = Math.max(...boxes.map((b) => b.y + b.h));
+  const rect = trimRect({ x: x0, y: y0, w: x1 - x0, h: y1 - y0 }, keyed[0].scale);
+  return keyed.map((f) => ({
+    id: f.id,
+    ...crop(f, rect, ref),
+    kind: f.k.kind,
+    dir: f.k.dir,
+    key: f.key,
+    specks: f.specks,
+    shifted: { dx: f.dx, dy: f.dy },
+  }));
 }
 
 // Alpha quality of a shipped sprite.
