@@ -3,23 +3,9 @@ import { dist, maxHp, speed, stepToward, TICK_MS } from './units';
 import type { World } from './world';
 import type { Vec2, UnitState } from './types';
 
-// Graybox hero life, simplified and logged in docs/decisions.md (Lead may move these numbers
-// into src/data/ later): temples recruit on a timer, heroes explore and hunt, flee when hurt,
-// rest at the town hall or a shrine, shop at the market (the town taxes what they spend).
-const FIRST_RECRUIT_MS = 5_000;
-const RECRUIT_MS = 15_000;
-const MAX_PER_TEMPLE = 4;
-const KO_MS = 10_000;
-const REVIVE_HP = 0.25;
-// Fraction of max hp healed per second while resting (shrines heal faster).
-const REST_PER_S = 0.1;
-const SHRINE_MULT = 3;
-const SHOP_MIN_GOLD = 20;
-const SPEND_SHARE = 0.6;
-const TAX_RATE = 0.5;
-const ARRIVE = 50;
-const LAIR_SEARCH_RADIUS = 250;
-const LAIR_SEARCH_SHARE = 0.7;
+// Graybox hero life, simplified and logged in docs/decisions.md: temples recruit on a timer,
+// heroes explore and hunt, flee when hurt, rest at the town hall or a shrine, shop at the
+// market (the town taxes what they spend). Numbers come from GameData.tuning.hero.
 
 export interface HeroRuntime {
   dest: Vec2 | null;
@@ -27,6 +13,7 @@ export interface HeroRuntime {
   temple: number;
 }
 
+const tune = (world: World) => world.tuning.hero;
 const isTemple = (type: string) => type.startsWith('temple');
 
 // Puts a hero of `classId` on the map at `pos`. Used by temples and by tests.
@@ -65,13 +52,13 @@ export function runTemples(world: World): void {
   if (classes.length === 0) return;
   for (const b of world.buildings) {
     if (!isTemple(b.type)) continue;
-    const next = world.templeNextMs.get(b.id) ?? world.timeMs + FIRST_RECRUIT_MS;
+    const next = world.templeNextMs.get(b.id) ?? world.timeMs + tune(world).firstRecruitMs;
     world.templeNextMs.set(b.id, next);
     if (world.timeMs < next) continue;
-    world.templeNextMs.set(b.id, world.timeMs + RECRUIT_MS);
+    world.templeNextMs.set(b.id, world.timeMs + tune(world).recruitMs);
     let alive = 0;
     for (const rt of world.heroRuntime.values()) if (rt.temple === b.id) alive++;
-    if (alive >= MAX_PER_TEMPLE) continue;
+    if (alive >= tune(world).maxPerTemple) continue;
     const cls = classes[Math.floor(world.rng() * classes.length)];
     spawnHero(world, cls.id, b.pos, b.id);
   }
@@ -97,7 +84,7 @@ export function runHeroes(world: World): void {
 
 function revive(world: World, unit: UnitState, rt: HeroRuntime): void {
   unit.ko = false;
-  unit.hp = Math.ceil(unit.maxHp * REVIVE_HP);
+  unit.hp = Math.ceil(unit.maxHp * tune(world).reviveHp);
   unit.pos = { ...world.data.townHall };
   unit.mode = 'rest';
   rt.dest = null;
@@ -108,7 +95,7 @@ export function heroKnockedOut(world: World, unit: UnitState): void {
   const rt = world.heroRuntime.get(unit.id);
   if (!rt) return;
   unit.mode = 'ko';
-  rt.koMs = KO_MS;
+  rt.koMs = tune(world).koMs;
   rt.dest = null;
 }
 
@@ -125,7 +112,7 @@ export function heroMove(world: World, unit: UnitState): void {
   const step = (to: Vec2): boolean => {
     const dir = stepToward(unit.pos, to, (speed(cls.attrs) * TICK_MS) / 1000);
     if (dir.x !== 0 || dir.y !== 0) unit.facing = dir;
-    return dist(unit.pos, to) <= ARRIVE;
+    return dist(unit.pos, to) <= tune(world).arrive;
   };
   switch (unit.mode) {
     case 'explore': {
@@ -133,7 +120,7 @@ export function heroMove(world: World, unit: UnitState): void {
       if (lead) {
         // Followers go where their leader goes.
         rt.dest = world.heroRuntime.get(lead.id)?.dest ?? lead.pos;
-      } else if (!rt.dest || dist(unit.pos, rt.dest) <= ARRIVE) {
+      } else if (!rt.dest || dist(unit.pos, rt.dest) <= tune(world).arrive) {
         rt.dest = exploreDest(world);
       }
       step(rt.dest);
@@ -145,10 +132,11 @@ export function heroMove(world: World, unit: UnitState): void {
     }
     case 'rest': {
       const spot = restSpot(world, unit.pos);
-      const rate = REST_PER_S * (spot.shrine ? SHRINE_MULT : 1);
+      const rate = tune(world).restPerS * (spot.shrine ? tune(world).shrineMult : 1);
       unit.hp = Math.min(unit.maxHp, unit.hp + (unit.maxHp * rate * TICK_MS) / 1000);
       if (unit.hp >= unit.maxHp) {
-        unit.mode = unit.gold >= SHOP_MIN_GOLD && findMarket(world, unit.pos) ? 'shop' : 'explore';
+        unit.mode =
+          unit.gold >= tune(world).shopMinGold && findMarket(world, unit.pos) ? 'shop' : 'explore';
       }
       break;
     }
@@ -159,8 +147,8 @@ export function heroMove(world: World, unit: UnitState): void {
         break;
       }
       if (step(market.pos)) {
-        const spent = Math.floor(unit.gold * SPEND_SHARE);
-        const tax = Math.floor(spent * TAX_RATE);
+        const spent = Math.floor(unit.gold * tune(world).spendShare);
+        const tax = Math.floor(spent * tune(world).taxRate);
         unit.gold -= spent;
         world.gold += tax;
         world.events.push({ kind: 'shopped', unit: unit.id, spent, tax });
@@ -184,10 +172,10 @@ function exploreDest(world: World): Vec2 {
   const sites = world.lairs;
   let x: number;
   let y: number;
-  if (sites.length > 0 && world.rng() < LAIR_SEARCH_SHARE) {
+  if (sites.length > 0 && world.rng() < tune(world).lairSearchShare) {
     const lair = sites[Math.floor(world.rng() * sites.length)];
     const a = world.rng() * Math.PI * 2;
-    const r = Math.sqrt(world.rng()) * LAIR_SEARCH_RADIUS;
+    const r = Math.sqrt(world.rng()) * tune(world).lairSearchRadius;
     x = lair.pos.x + Math.cos(a) * r;
     y = lair.pos.y + Math.sin(a) * r;
   } else {

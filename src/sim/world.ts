@@ -1,3 +1,4 @@
+import { resolveTuning } from './tuning';
 import { makeRng, type Rng } from './rng';
 import {
   runParties,
@@ -37,6 +38,7 @@ import type {
   LairState,
   SimEvent,
   Snapshot,
+  Tuning,
   UnitState,
   Vec2,
 } from './types';
@@ -45,8 +47,6 @@ export { TICK_MS };
 // Guard against a stalled tab handing us minutes of dt at once.
 const MAX_TICKS_PER_STEP = 400;
 // Monsters idle near their lair and wander inside this radius.
-const WANDER_RADIUS = 160;
-const IDLE_MS = [1000, 4000] as const;
 
 // Server-side bookkeeping per lair and unit, not part of the snapshot.
 interface LairRuntime {
@@ -76,6 +76,7 @@ export interface World {
   unitRuntime: Map<number, UnitRuntime>;
   heroRuntime: Map<number, HeroRuntime>;
   templeNextMs: Map<number, number>;
+  tuning: Tuning;
   parties: Map<number, Party>;
   bonds: Map<string, number>;
   pendingDeaths: { victim: number; by: number }[];
@@ -100,6 +101,7 @@ export function createWorld(seed: number, data: GameData): World {
     unitRuntime: new Map(),
     heroRuntime: new Map(),
     templeNextMs: new Map(),
+    tuning: resolveTuning(data),
     parties: new Map(),
     bonds: new Map(),
     pendingDeaths: [],
@@ -185,9 +187,6 @@ function runLairs(world: World): void {
   }
 }
 
-// Monsters give up a chase this far from their lair.
-const LEASH = 420;
-
 function statsOf(world: World, unit: UnitState): Stats | undefined {
   if (unit.kind === 'hero') {
     const cls = world.data.classes?.find((c) => c.id === unit.type);
@@ -227,7 +226,7 @@ function pickTarget(world: World, unit: UnitState, stats: Stats, home?: Vec2): U
     if (other.kind === unit.kind || other.ko || other.hp <= 0) continue;
     const d = dist(unit.pos, other.pos);
     if (d > reach || d >= bestD) continue;
-    if (home && dist(home, other.pos) > LEASH) continue;
+    if (home && dist(home, other.pos) > world.tuning.monster.leash) continue;
     best = other;
     bestD = d;
   }
@@ -297,15 +296,16 @@ function wander(world: World, unit: UnitState, rt: UnitRuntime, stats: Stats, ho
   const dir = stepToward(unit.pos, rt.target, (speed(stats.attrs) * TICK_MS) / 1000);
   if (dir.x !== 0 || dir.y !== 0) unit.facing = dir;
   if (unit.pos.x === rt.target.x && unit.pos.y === rt.target.y) {
+    const tm = world.tuning.monster;
     rt.target = null;
-    rt.idleMs = IDLE_MS[0] + world.rng() * (IDLE_MS[1] - IDLE_MS[0]);
+    rt.idleMs = tm.idleMinMs + world.rng() * (tm.idleMaxMs - tm.idleMinMs);
   }
 }
 
 function wanderPoint(world: World, center: Vec2): Vec2 {
   const { width, height } = world.data.map;
   const angle = world.rng() * Math.PI * 2;
-  const r = Math.sqrt(world.rng()) * WANDER_RADIUS;
+  const r = Math.sqrt(world.rng()) * world.tuning.monster.wanderRadius;
   return {
     x: Math.min(width, Math.max(0, center.x + Math.cos(angle) * r)),
     y: Math.min(height, Math.max(0, center.y + Math.sin(angle) * r)),
@@ -380,7 +380,7 @@ export function snapshot(world: World): Snapshot {
       members: [...p.members],
       level: p.level,
       xp: p.xp,
-      xpNext: xpNext(p.level),
+      xpNext: xpNext(world, p.level),
       upgrades: [...p.upgrades],
       offer: p.offer ? [...p.offer] : null,
     })),

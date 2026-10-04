@@ -5,14 +5,10 @@ import type { Attributes, TraitId, UnitState, UpgradeDef } from './types';
 // Graybox parties, simplified and logged in docs/decisions.md. Every hero belongs to a party
 // from arrival (a party of one). Parties of level 1 merge when they meet; after the first
 // level up a party keeps its members. The party shares XP, levels up together and the player
-// picks one of 3 upgrades. Tiers go up at party levels 3 and 6.
-const MAX_PARTY = 4;
-const MERGE_RANGE = 250;
-const MERGE_EVERY_TICKS = 20;
-const XP_PER_LEVEL = 30;
-const OFFER_SIZE = 3;
-const BOND_CAP = 10;
-const BASE_FLEE = 0.3;
+// picks one of 3 upgrades. Tiers go up at party levels 3 and 6. Numbers come from
+// GameData.tuning.party.
+
+const tune = (world: World) => world.tuning.party;
 
 export const TRAITS: readonly TraitId[] = [
   'brave',
@@ -33,7 +29,7 @@ export interface Party {
   offer: string[] | null;
 }
 
-export const xpNext = (level: number) => XP_PER_LEVEL * level;
+export const xpNext = (world: World, level: number) => tune(world).xpPerLevel * level;
 
 export function newParty(world: World, member: number): number {
   const id = world.nextId++;
@@ -71,7 +67,7 @@ export function effectiveAttrs(world: World, unit: UnitState, base: Attributes):
 // Hp percent below which a hero flees: the party's upgrade, scaled by personality.
 export function fleeThreshold(world: World, unit: UnitState): number {
   const party = world.parties.get(unit.party);
-  let flee = BASE_FLEE;
+  let flee = tune(world).baseFlee;
   for (const up of upgradeDefs(world, party?.upgrades ?? [])) {
     if (up.effect.flee !== undefined) flee = Math.min(flee, up.effect.flee);
   }
@@ -84,7 +80,7 @@ const bondKey = (a: number, b: number) => (a < b ? `${a}:${b}` : `${b}:${a}`);
 const bond = (world: World, a: number, b: number) => world.bonds.get(bondKey(a, b)) ?? 0;
 
 export function addBond(world: World, a: number, b: number, delta: number): void {
-  const v = Math.max(-3, Math.min(BOND_CAP, bond(world, a, b) + delta));
+  const v = Math.max(-3, Math.min(tune(world).bondCap, bond(world, a, b) + delta));
   world.bonds.set(bondKey(a, b), v);
 }
 
@@ -99,8 +95,8 @@ export function shareXp(world: World, killer: number, xp: number): void {
     }
   }
   party.xp += xp;
-  while (party.xp >= xpNext(party.level) && !party.offer) {
-    party.xp -= xpNext(party.level);
+  while (party.xp >= xpNext(world, party.level) && !party.offer) {
+    party.xp -= xpNext(world, party.level);
     party.level++;
     retier(world, party);
     const ids = offerIds(world);
@@ -112,7 +108,7 @@ export function shareXp(world: World, killer: number, xp: number): void {
 function offerIds(world: World): string[] {
   const pool = (world.data.upgrades ?? []).map((u) => u.id);
   const picked: string[] = [];
-  while (picked.length < OFFER_SIZE && pool.length > 0) {
+  while (picked.length < tune(world).offerSize && pool.length > 0) {
     picked.push(...pool.splice(Math.floor(world.rng() * pool.length), 1));
   }
   return picked;
@@ -163,7 +159,7 @@ export function fledParty(world: World, unit: UnitState): void {
 // Level 1 parties that meet while exploring may join up, more likely with a bond or a loyal
 // member. Runs once a second.
 export function runParties(world: World): void {
-  if (world.tick % MERGE_EVERY_TICKS !== 0) return;
+  if (world.tick % tune(world).mergeEveryTicks !== 0) return;
   const ids = [...world.parties.keys()].sort((a, b) => a - b);
   for (const aId of ids) {
     const a = world.parties.get(aId);
@@ -171,11 +167,11 @@ export function runParties(world: World): void {
     const leaderA = world.units.find((u) => u.id === a.members[0]);
     if (!leaderA) continue;
     let best: Party | null = null;
-    let bestD = MERGE_RANGE;
+    let bestD = tune(world).mergeRange;
     for (const bId of ids) {
       const b = world.parties.get(bId);
       if (!b || b.id <= a.id || !mergeable(world, b)) continue;
-      if (a.members.length + b.members.length > MAX_PARTY) continue;
+      if (a.members.length + b.members.length > tune(world).maxParty) continue;
       const leaderB = world.units.find((u) => u.id === b.members[0]);
       const d = leaderB ? dist(leaderA.pos, leaderB.pos) : Infinity;
       if (d <= bestD) {

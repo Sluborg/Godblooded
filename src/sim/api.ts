@@ -1,5 +1,6 @@
-// The only module Scene imports from src/sim/. Changing it: write to Scene's inbox first.
+// The only module Scene imports from src/sim/. Changing it: message Scene first.
 export { createWorld, step, command, snapshot, TICK_MS } from './world';
+export { DEFAULT_TUNING } from './tuning';
 export type { World } from './world';
 export type {
   BountyState,
@@ -10,15 +11,19 @@ export type {
   ClassDef,
   CommandResult,
   GameData,
+  HeroTuning,
   LairDef,
   LairSite,
   LairState,
   MonsterDef,
+  MonsterTuning,
   PartyState,
+  PartyTuning,
   PlotState,
   SimEvent,
   Snapshot,
   TraitId,
+  Tuning,
   UnitMode,
   UnitState,
   UpgradeDef,
