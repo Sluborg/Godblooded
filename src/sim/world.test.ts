@@ -48,14 +48,14 @@ describe('world', () => {
 
   it('builds when affordable and rejects otherwise', () => {
     const w = createWorld(1, data);
-    expect(command(w, { kind: 'build', type: 'market', pos: { x: 10, y: 10 } }).ok).toBe(true);
+    expect(command(w, { kind: 'build', type: 'market', plot: 0 }).ok).toBe(true);
     expect(w.gold).toBe(50);
-    expect(command(w, { kind: 'build', type: 'market', pos: { x: 20, y: 20 } })).toEqual({
+    expect(command(w, { kind: 'build', type: 'market', plot: 1 })).toEqual({
       ok: false,
       reason: 'not enough gold',
     });
-    expect(command(w, { kind: 'build', type: 'nope', pos: { x: 1, y: 1 } }).ok).toBe(false);
-    expect(command(w, { kind: 'build', type: 'market', pos: { x: -1, y: 1 } }).ok).toBe(false);
+    expect(command(w, { kind: 'build', type: 'nope', plot: 1 }).ok).toBe(false);
+    expect(command(w, { kind: 'build', type: 'market', plot: -1 }).ok).toBe(false);
   });
 
   it('places bounties and drains events once', () => {
