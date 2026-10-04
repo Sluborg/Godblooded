@@ -1,5 +1,14 @@
 import { makeRng, type Rng } from './rng';
 import {
+  runParties,
+  hasPendingPick,
+  effectiveAttrs,
+  pickUpgrade,
+  shareXp,
+  xpNext,
+  type Party,
+} from './parties';
+import {
   heroKnockedOut,
   heroMove,
   payBounty,
@@ -67,6 +76,8 @@ export interface World {
   unitRuntime: Map<number, UnitRuntime>;
   heroRuntime: Map<number, HeroRuntime>;
   templeNextMs: Map<number, number>;
+  parties: Map<number, Party>;
+  bonds: Map<string, number>;
   pendingDeaths: { victim: number; by: number }[];
   bounties: BountyState[];
   events: SimEvent[];
@@ -89,6 +100,8 @@ export function createWorld(seed: number, data: GameData): World {
     unitRuntime: new Map(),
     heroRuntime: new Map(),
     templeNextMs: new Map(),
+    parties: new Map(),
+    bonds: new Map(),
     pendingDeaths: [],
     bounties: [],
     events: [],
@@ -115,7 +128,12 @@ export function step(world: World, dtMs: number): void {
   if (world.status !== 'running' || dtMs <= 0) return;
   world.accumulatorMs += dtMs;
   let ticks = 0;
+  // The run waits while a party has a level-up pick pending.
   while (world.accumulatorMs >= TICK_MS && ticks < MAX_TICKS_PER_STEP) {
+    if (hasPendingPick(world)) {
+      world.accumulatorMs = 0;
+      return;
+    }
     world.accumulatorMs -= TICK_MS;
     runTick(world);
     ticks++;
@@ -129,6 +147,7 @@ function runTick(world: World): void {
   runTemples(world);
   runLairs(world);
   runHeroes(world);
+  runParties(world);
   runUnits(world);
   // Combat, heroes and the economy hook in here (Sim backlog 30 and up).
 }
@@ -157,6 +176,8 @@ function runLairs(world: World): void {
       target: null,
       ko: false,
       mode: 'wander',
+      party: 0,
+      trait: null,
       gold: 0,
     });
     world.unitRuntime.set(id, { lair: lair.id, cooldownMs: 0, target: null, idleMs: 0 });
@@ -168,9 +189,11 @@ function runLairs(world: World): void {
 const LEASH = 420;
 
 function statsOf(world: World, unit: UnitState): Stats | undefined {
-  return unit.kind === 'hero'
-    ? world.data.classes?.find((c) => c.id === unit.type)
-    : world.data.monsters?.find((m) => m.id === unit.type);
+  if (unit.kind === 'hero') {
+    const cls = world.data.classes?.find((c) => c.id === unit.type);
+    return cls && { weapon: cls.weapon, attrs: effectiveAttrs(world, unit, cls.attrs) };
+  }
+  return world.data.monsters?.find((m) => m.id === unit.type);
 }
 
 function runUnits(world: World): void {
@@ -254,6 +277,7 @@ function settleDeaths(world: World): void {
         xp: mon?.xp ?? 0,
       });
       payBounty(world, by, mon?.bounty ?? 0);
+      shareXp(world, by, mon?.xp ?? 0);
     }
   }
   world.pendingDeaths = [];
@@ -317,6 +341,8 @@ export function command(world: World, cmd: Command): CommandResult {
       world.events.push({ kind: 'built', building: id, type: def.id });
       return { ok: true, id };
     }
+    case 'pickUpgrade':
+      return pickUpgrade(world, cmd.party, cmd.upgrade);
     case 'placeBounty': {
       if (!inMap(world, cmd.pos)) return { ok: false, reason: 'off map' };
       if (!Number.isInteger(cmd.gold) || cmd.gold <= 0) return { ok: false, reason: 'bad amount' };
@@ -349,6 +375,15 @@ export function snapshot(world: World): Snapshot {
       return { id, pos: { ...pos }, occupied: !!b, building: b ? b.id : null };
     }),
     buildings: world.buildings.map((b) => ({ ...b, pos: { ...b.pos } })),
+    parties: [...world.parties.values()].map((p) => ({
+      id: p.id,
+      members: [...p.members],
+      level: p.level,
+      xp: p.xp,
+      xpNext: xpNext(p.level),
+      upgrades: [...p.upgrades],
+      offer: p.offer ? [...p.offer] : null,
+    })),
     lairs: world.lairs.map((l) => ({ ...l, pos: { ...l.pos } })),
     units: world.units.map((u) => ({ ...u, pos: { ...u.pos }, facing: { ...u.facing } })),
     bounties: world.bounties.map((b) => ({ ...b, pos: { ...b.pos } })),
