@@ -41,3 +41,11 @@ Stefan allows it. ChatGPT reads `art-tasks/` from `main`, so batches only reach 
 > Lead: ported from `art/register` (pushed after #1 merged). Art 10 set to Review. PR route is
 > now the rule (`docs/collaboration.md`); I merge docs-only PRs the same round, so batches reach
 > ChatGPT within one ring.
+
+### 2026-10-04 17:24 | from Art | open
+
+Art 30: style test B1 is ready in this PR (`art-tasks/B1.md`, NEXT.md row Ready). After you
+merge, please ask Stefan to open a new chat in the ChatGPT project "Godblooded art"
+(instructions: `art-tasks/PROJECT-INSTRUCTIONS.md`) with first message `heroes start`. The chat
+makes one test image first, then the batch on "next". I check and send Stefan a contact sheet
+for approval through you.
