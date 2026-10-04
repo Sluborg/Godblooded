@@ -40,6 +40,15 @@ export interface LairDef {
   hp: number;
 }
 
+export interface ClassDef {
+  id: string;
+  attrs: Attributes;
+  // Seconds between attacks before dex; range in world units (melee about 40).
+  weapon: { baseAttackS: number; range: number };
+  // Gold a hero of this class carries on arrival.
+  startGold: number;
+}
+
 // Where a lair stands on the map.
 export interface LairSite {
   lair: string;
@@ -49,6 +58,7 @@ export interface LairSite {
 export interface GameData {
   buildings: readonly BuildingDef[];
   // Optional until src/data and Scene's stub carry rows; missing means no lairs.
+  classes?: readonly ClassDef[];
   monsters?: readonly MonsterDef[];
   lairs?: readonly LairDef[];
   lairSites?: readonly LairSite[];
@@ -77,7 +87,7 @@ export interface LairState {
 
 export interface UnitState {
   id: number;
-  kind: 'monster';
+  kind: 'hero' | 'monster';
   type: string;
   tier: number;
   pos: Vec2;
@@ -85,6 +95,10 @@ export interface UnitState {
   facing: Vec2;
   hp: number;
   maxHp: number;
+  // Unit being attacked, if any (Scene lunges toward it).
+  target: number | null;
+  // Knocked out (heroes only, monsters are removed). Out of the fight until healed.
+  ko: boolean;
 }
 
 export interface BountyState {
@@ -96,6 +110,9 @@ export interface BountyState {
 export type SimEvent =
   | { kind: 'built'; building: number; type: string }
   | { kind: 'spawned'; unit: number; type: string; lair: number }
+  | { kind: 'hit'; attacker: number; target: number; damage: number; dodged: boolean }
+  | { kind: 'knockout'; unit: number; by: number }
+  | { kind: 'died'; unit: number; type: string; by: number; bounty: number; xp: number }
   | { kind: 'bountyPlaced'; bounty: number; gold: number };
 
 export type Command =

@@ -1,5 +1,16 @@
 import { makeRng, type Rng } from './rng';
-import { monsterHp, speed, stepToward } from './units';
+import {
+  aggroRange,
+  attackMs,
+  damage,
+  dist,
+  dodgeChance,
+  maxHp,
+  monsterHp,
+  speed,
+  stepToward,
+  type Stats,
+} from './units';
 import type {
   BountyState,
   BuildingState,
@@ -27,7 +38,9 @@ interface LairRuntime {
   nextSpawnMs: number;
 }
 interface UnitRuntime {
-  lair: number;
+  // The lair a monster belongs to; null for heroes.
+  lair: number | null;
+  cooldownMs: number;
   target: Vec2 | null;
   idleMs: number;
 }
@@ -46,6 +59,7 @@ export interface World {
   units: UnitState[];
   lairRuntime: Map<number, LairRuntime>;
   unitRuntime: Map<number, UnitRuntime>;
+  pendingDeaths: { victim: number; by: number }[];
   bounties: BountyState[];
   events: SimEvent[];
 }
@@ -65,6 +79,7 @@ export function createWorld(seed: number, data: GameData): World {
     units: [],
     lairRuntime: new Map(),
     unitRuntime: new Map(),
+    pendingDeaths: [],
     bounties: [],
     events: [],
   };
@@ -126,30 +141,143 @@ function runLairs(world: World): void {
       facing: { x: 0, y: 1 },
       hp,
       maxHp: hp,
+      target: null,
+      ko: false,
     });
-    world.unitRuntime.set(id, { lair: lair.id, target: null, idleMs: 0 });
+    world.unitRuntime.set(id, { lair: lair.id, cooldownMs: 0, target: null, idleMs: 0 });
     world.events.push({ kind: 'spawned', unit: id, type: mon.id, lair: lair.id });
   }
+}
+
+// Monsters give up a chase this far from their lair.
+const LEASH = 420;
+
+function statsOf(world: World, unit: UnitState): Stats | undefined {
+  return unit.kind === 'hero'
+    ? world.data.classes?.find((c) => c.id === unit.type)
+    : world.data.monsters?.find((m) => m.id === unit.type);
 }
 
 function runUnits(world: World): void {
   for (const unit of world.units) {
     const rt = world.unitRuntime.get(unit.id);
-    const mon = world.data.monsters?.find((m) => m.id === unit.type);
-    const lair = world.lairs.find((l) => l.id === rt?.lair);
-    if (!rt || !mon || !lair) continue;
-    if (!rt.target) {
-      rt.idleMs -= TICK_MS;
-      if (rt.idleMs > 0) continue;
-      rt.target = wanderPoint(world, lair.pos);
-    }
-    const dir = stepToward(unit.pos, rt.target, (speed(mon.attrs) * TICK_MS) / 1000);
-    if (dir.x !== 0 || dir.y !== 0) unit.facing = dir;
-    if (unit.pos.x === rt.target.x && unit.pos.y === rt.target.y) {
-      rt.target = null;
-      rt.idleMs = IDLE_MS[0] + world.rng() * (IDLE_MS[1] - IDLE_MS[0]);
+    const stats = statsOf(world, unit);
+    if (!rt || !stats || unit.ko) continue;
+    rt.cooldownMs = Math.max(0, rt.cooldownMs - TICK_MS);
+    const home = world.lairs.find((l) => l.id === rt.lair);
+    const foe = pickTarget(world, unit, stats, home?.pos);
+    unit.target = foe ? foe.id : null;
+    if (foe) {
+      fight(world, unit, rt, stats, foe);
+    } else if (home) {
+      wander(world, unit, rt, stats, home.pos);
     }
   }
+  settleDeaths(world);
+}
+
+// Nearest living enemy inside aggro range (and the leash, for monsters).
+function pickTarget(world: World, unit: UnitState, stats: Stats, home?: Vec2): UnitState | null {
+  const reach = aggroRange(stats.attrs);
+  let best: UnitState | null = null;
+  let bestD = Infinity;
+  for (const other of world.units) {
+    if (other.kind === unit.kind || other.ko || other.hp <= 0) continue;
+    const d = dist(unit.pos, other.pos);
+    if (d > reach || d >= bestD) continue;
+    if (home && dist(home, other.pos) > LEASH) continue;
+    best = other;
+    bestD = d;
+  }
+  return best;
+}
+
+function fight(world: World, unit: UnitState, rt: UnitRuntime, stats: Stats, foe: UnitState): void {
+  const d = dist(unit.pos, foe.pos);
+  if (d > stats.weapon.range) {
+    const dir = stepToward(unit.pos, foe.pos, (speed(stats.attrs) * TICK_MS) / 1000);
+    if (dir.x !== 0 || dir.y !== 0) unit.facing = dir;
+    return;
+  }
+  if (d > 0) unit.facing = { x: (foe.pos.x - unit.pos.x) / d, y: (foe.pos.y - unit.pos.y) / d };
+  if (rt.cooldownMs > 0) return;
+  rt.cooldownMs = attackMs(stats);
+  const foeStats = statsOf(world, foe);
+  const dodged = !!foeStats && world.rng() < dodgeChance(foeStats.attrs);
+  const dmg = dodged ? 0 : damage(stats.attrs);
+  foe.hp -= dmg;
+  world.events.push({ kind: 'hit', attacker: unit.id, target: foe.id, damage: dmg, dodged });
+  if (foe.hp <= 0) {
+    foe.hp = 0;
+    world.pendingDeaths.push({ victim: foe.id, by: unit.id });
+  }
+}
+
+function settleDeaths(world: World): void {
+  const settled = new Set<number>();
+  for (const { victim, by } of world.pendingDeaths) {
+    const unit = world.units.find((u) => u.id === victim);
+    if (!unit || unit.ko || settled.has(victim)) continue;
+    settled.add(victim);
+    if (unit.kind === 'hero') {
+      unit.ko = true;
+      unit.target = null;
+      world.events.push({ kind: 'knockout', unit: unit.id, by });
+    } else {
+      const mon = world.data.monsters?.find((m) => m.id === unit.type);
+      world.events.push({
+        kind: 'died',
+        unit: unit.id,
+        type: unit.type,
+        by,
+        bounty: mon?.bounty ?? 0,
+        xp: mon?.xp ?? 0,
+      });
+    }
+  }
+  world.pendingDeaths = [];
+  world.units = world.units.filter((u) => {
+    const gone = u.kind === 'monster' && u.hp <= 0;
+    if (gone) world.unitRuntime.delete(u.id);
+    return !gone;
+  });
+}
+
+function wander(world: World, unit: UnitState, rt: UnitRuntime, stats: Stats, home: Vec2): void {
+  if (!rt.target) {
+    rt.idleMs -= TICK_MS;
+    if (rt.idleMs > 0) return;
+    rt.target = wanderPoint(world, home);
+  }
+  const dir = stepToward(unit.pos, rt.target, (speed(stats.attrs) * TICK_MS) / 1000);
+  if (dir.x !== 0 || dir.y !== 0) unit.facing = dir;
+  if (unit.pos.x === rt.target.x && unit.pos.y === rt.target.y) {
+    rt.target = null;
+    rt.idleMs = IDLE_MS[0] + world.rng() * (IDLE_MS[1] - IDLE_MS[0]);
+  }
+}
+
+// Test and Sim 40 hook: put a hero of `classId` on the map. Arrival logic (temples) lands
+// in Sim 40; Scene never calls this.
+export function spawnHero(world: World, classId: string, pos: Vec2): number {
+  const cls = world.data.classes?.find((c) => c.id === classId);
+  if (!cls) throw new Error(`unknown class: ${classId}`);
+  const id = world.nextId++;
+  const hp = maxHp(cls.attrs);
+  world.units.push({
+    id,
+    kind: 'hero',
+    type: cls.id,
+    tier: 1,
+    pos: { ...pos },
+    facing: { x: 0, y: 1 },
+    hp,
+    maxHp: hp,
+    target: null,
+    ko: false,
+  });
+  world.unitRuntime.set(id, { lair: null, cooldownMs: 0, target: null, idleMs: 0 });
+  return id;
 }
 
 function wanderPoint(world: World, center: Vec2): Vec2 {
