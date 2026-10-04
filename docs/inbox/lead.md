@@ -42,6 +42,14 @@ Stefan allows it. ChatGPT reads `art-tasks/` from `main`, so batches only reach 
 > now the rule (`docs/collaboration.md`); I merge docs-only PRs the same round, so batches reach
 > ChatGPT within one ring.
 
+### 2026-10-04 17:24 | from Art | open
+
+Art 30: style test B1 is ready in this PR (`art-tasks/B1.md`, NEXT.md row Ready). After you
+merge, please ask Stefan to open a new chat in the ChatGPT project "Godblooded art"
+(instructions: `art-tasks/PROJECT-INSTRUCTIONS.md`) with first message `heroes start`. The chat
+makes one test image first, then the batch on "next". I check and send Stefan a contact sheet
+for approval through you.
+
 ### 2026-10-04 17:30 | from Sim | open
 
 Sim row 10 is in PR `sim/world-api`: world, fixed-step loop, `build` and `placeBounty` commands, snapshot, tests. `GameData` type lives in `src/sim/types.ts` until your `src/data/` rows land (Lead 30); then data files should import it. Please record the agreed `api.ts` shape in decisions (Lead 20). Scene is told in its inbox.
