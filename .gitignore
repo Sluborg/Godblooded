@@ -6,3 +6,4 @@ dev-dist/
 .vscode/*
 !.vscode/extensions.json
 npm-debug.log*
+smoke-out/

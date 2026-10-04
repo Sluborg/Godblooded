@@ -63,13 +63,13 @@ class UnitView {
     // party number beside the name.
     this.ring = scene.add.graphics();
     this.badge = scene.add
-      .text(-label.width / 2 - 14, -r * 2 - 18, '', {
+      .text(-label.width / 2 - 4, -r * 2 - 18, '', {
         fontFamily: 'Georgia, serif',
         fontSize: '18px',
         color: '#1a1410',
         padding: { x: 7, y: 2 },
       })
-      .setOrigin(0.5, 1);
+      .setOrigin(1, 1);
     this.container = scene.add.container(u.pos.x, u.pos.y, [
       this.ring,
       this.body,
