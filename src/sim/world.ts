@@ -211,6 +211,7 @@ function runLairs(world: World): void {
       party: 0,
       trait: null,
       gold: 0,
+      bounty: null,
     });
     world.unitRuntime.set(id, { lair: lair.id, cooldownMs: 0, target: null, idleMs: 0 });
     world.events.push({ kind: 'spawned', unit: id, type: mon.id, lair: lair.id });

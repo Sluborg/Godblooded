@@ -215,6 +215,9 @@ export interface UnitState {
   trait: TraitId | null;
   // Gold carried (heroes; monsters 0).
   gold: number;
+  // The bounty flag a hero is heading for (its party leader's pick for followers); null
+  // otherwise and always for monsters.
+  bounty: number | null;
 }
 
 export type UnitMode = 'wander' | 'explore' | 'return' | 'rest' | 'shop' | 'ko';
