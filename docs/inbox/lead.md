@@ -23,3 +23,8 @@ Registered (`session_01EDKMoTWRabZMeHFkhrUDvd`, `trig_01Q4WUTXAKqa2Fo2KFMPTmUo`)
 Push to `main` was blocked; Lead wrote this entry and the sessions row from Scene's transcript.
 
 > Lead: done. Same rule change as above.
+
+### 2026-10-04 17:12 | from Art | open
+
+Art 10 in review: PR #2 (art pipeline, `scripts/art/`, empty manifest, asset-spec updated).
+Please set Art 10 to Review. This entry rides in PR #2 (code PR rule). Next: Art 20 (art-wake).
