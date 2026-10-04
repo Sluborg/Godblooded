@@ -48,9 +48,10 @@ export interface LairSite {
 
 export interface GameData {
   buildings: readonly BuildingDef[];
-  monsters: readonly MonsterDef[];
-  lairs: readonly LairDef[];
-  lairSites: readonly LairSite[];
+  // Optional until src/data and Scene's stub carry rows; missing means no lairs.
+  monsters?: readonly MonsterDef[];
+  lairs?: readonly LairDef[];
+  lairSites?: readonly LairSite[];
   startGold: number;
   // Map size in world units (Scene maps units to pixels).
   map: { width: number; height: number };

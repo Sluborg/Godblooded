@@ -75,8 +75,8 @@ export function createWorld(seed: number, data: GameData): World {
     pos: { ...data.townHall },
     hp: 1,
   });
-  for (const site of data.lairSites) {
-    const def = data.lairs.find((l) => l.id === site.lair);
+  for (const site of data.lairSites ?? []) {
+    const def = data.lairs?.find((l) => l.id === site.lair);
     if (!def) throw new Error(`lair site names unknown lair: ${site.lair}`);
     const id = world.nextId++;
     world.lairs.push({ id, type: def.id, tier: 1, pos: { ...site.pos }, hp: def.hp });
@@ -108,12 +108,12 @@ function runTick(world: World): void {
 function runLairs(world: World): void {
   for (const lair of world.lairs) {
     const rt = world.lairRuntime.get(lair.id);
-    const def = world.data.lairs.find((l) => l.id === lair.type);
+    const def = world.data.lairs?.find((l) => l.id === lair.type);
     if (!rt || !def || world.timeMs < rt.nextSpawnMs) continue;
     rt.nextSpawnMs = world.timeMs + def.spawnS * 1000;
     const alive = world.units.filter((u) => world.unitRuntime.get(u.id)?.lair === lair.id).length;
     if (alive >= def.maxAlive) continue;
-    const mon = world.data.monsters.find((m) => m.id === def.monster);
+    const mon = world.data.monsters?.find((m) => m.id === def.monster);
     if (!mon) continue;
     const id = world.nextId++;
     const hp = monsterHp(mon);
@@ -135,7 +135,7 @@ function runLairs(world: World): void {
 function runUnits(world: World): void {
   for (const unit of world.units) {
     const rt = world.unitRuntime.get(unit.id);
-    const mon = world.data.monsters.find((m) => m.id === unit.type);
+    const mon = world.data.monsters?.find((m) => m.id === unit.type);
     const lair = world.lairs.find((l) => l.id === rt?.lair);
     if (!rt || !mon || !lair) continue;
     if (!rt.target) {
