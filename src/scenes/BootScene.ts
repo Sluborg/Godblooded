@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { COLORS, GAME_HEIGHT, GAME_WIDTH } from '../config';
+import { loadManifest } from '../ui/assets';
 
 // Placeholder title screen until the graybox lands (Scene owns this file).
 export class BootScene extends Phaser.Scene {
@@ -8,6 +9,10 @@ export class BootScene extends Phaser.Scene {
   }
 
   create(): void {
+    loadManifest(this, () => this.showTitle());
+  }
+
+  private showTitle(): void {
     const cx = GAME_WIDTH / 2;
     this.add.rectangle(cx, GAME_HEIGHT - 120, GAME_WIDTH, 240, COLORS.ground);
     this.add
