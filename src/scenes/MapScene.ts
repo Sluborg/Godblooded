@@ -17,7 +17,6 @@ import type { HudScene } from './HudScene';
 
 const BUILDING_COLORS: Record<string, number> = {
   townhall: 0xc9a227,
-  townHall: 0xc9a227,
   temple_aesir: 0xb5a4d6,
   market: 0x4a7fb5,
   shrine: 0x7fbf9a,
