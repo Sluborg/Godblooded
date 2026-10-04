@@ -20,7 +20,10 @@ falls or your town hall burns.
    you choose its upgrade (1 of 3, autobattler style).
 4. **Everything has 3 tiers.** Heroes, monsters and buildings each show tier 1, 2, 3 as a new
    skin. Tier is the visual reward and reads threat at a glance.
-5. **Phone first.** Landscape, one thumb, readable chibi art, short runs.
+5. **Phone first.** Landscape, one thumb, short runs.
+6. **Art direction: classic fantasy strategy** (Stefan's pick, style S1-c): Majesty-like
+   proportions (about 4.5 heads), weathered and slightly grim, painted shading. Not chibi.
+   Readability at phone size comes from strong silhouettes, class colours and the unit scale.
 
 ## Lore (from StefanCoda "Godblood Knowledge", the source of truth)
 
