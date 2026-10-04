@@ -3,6 +3,7 @@ import { registerSW } from 'virtual:pwa-register';
 import { COLORS, GAME_HEIGHT, GAME_WIDTH } from './config';
 import { BootScene } from './scenes/BootScene';
 import { HudScene } from './scenes/HudScene';
+import { LevelUpScene } from './scenes/LevelUpScene';
 import { MapScene } from './scenes/MapScene';
 
 // Auto-update: a new deploy is picked up and the page reloads with it.
@@ -32,7 +33,7 @@ const game = new Phaser.Game({
     height: GAME_HEIGHT,
   },
   input: { activePointers: 2 },
-  scene: [BootScene, MapScene, HudScene],
+  scene: [BootScene, MapScene, HudScene, LevelUpScene],
 });
 
 // Test hook: with ?debug in the URL the game object is reachable from the console and from
