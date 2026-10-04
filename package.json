@@ -12,6 +12,9 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "tsc --noEmit",
+    "validate:art": "node scripts/art/validate.mjs",
+    "art:check": "node scripts/art/check.mjs",
+    "art:ship": "node scripts/art/ship.mjs",
     "icons": "node scripts/gen-icons.mjs"
   },
   "dependencies": {
@@ -23,6 +26,7 @@
     "eslint": "^10.11.0",
     "eslint-config-prettier": "^10.1.8",
     "globals": "^17.12.0",
+    "pngjs": "^7.0.0",
     "prettier": "^3.9.9",
     "typescript": "~5.9",
     "typescript-eslint": "^8.71.0",
