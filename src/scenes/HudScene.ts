@@ -27,7 +27,7 @@ export class HudScene extends Phaser.Scene {
   private goldText!: Phaser.GameObjects.Text;
   private clockText!: Phaser.GameObjects.Text;
   private toast!: Phaser.GameObjects.Text;
-  private statusText!: Phaser.GameObjects.Text;
+  private endObjects: Phaser.GameObjects.GameObject[] = [];
   private speedButtons: Button[] = [];
   private menu: Phaser.GameObjects.GameObject[] = [];
   private menuButtons: { button: Button; cost: number }[] = [];
@@ -38,6 +38,12 @@ export class HudScene extends Phaser.Scene {
   }
 
   create(): void {
+    // Scene instances are reused on restart: drop state that pointed at the old display list.
+    this.endObjects = [];
+    this.speedButtons = [];
+    this.menu = [];
+    this.menuButtons = [];
+    this.menuRect = null;
     const map = this.scene.get('Map') as MapScene;
     this.add.rectangle(GAME_WIDTH / 2, 36, GAME_WIDTH, 72, 0x000000, 0.45);
     this.goldText = this.add.text(20, 36, '', { ...TEXT, color: '#f2c14e' }).setOrigin(0, 0.5);
@@ -66,10 +72,6 @@ export class HudScene extends Phaser.Scene {
       })
       .setOrigin(0.5)
       .setAlpha(0);
-    this.statusText = this.add
-      .text(GAME_WIDTH / 2, 300, '', { ...TEXT, fontSize: '72px', color: '#f2c14e' })
-      .setOrigin(0.5);
-
     map.events.on('mapTapped', (tap: MapTap) => this.onMapTap(map, tap));
     this.events.once('shutdown', () => map.events.off('mapTapped'));
   }
@@ -78,15 +80,43 @@ export class HudScene extends Phaser.Scene {
     this.goldText.setText(`Gold ${this.registry.get('gold') ?? 0}`);
     this.clockText.setText(formatClock((this.registry.get('timeMs') as number) ?? 0));
     const status = this.registry.get('status') as string | undefined;
-    this.statusText.setText(status === 'won' ? 'VICTORY' : status === 'lost' ? 'TOWN LOST' : '');
+    if ((status === 'won' || status === 'lost') && this.endObjects.length === 0)
+      this.showEnd(status);
     const gold = (this.registry.get('gold') as number) ?? 0;
     for (const { button, cost } of this.menuButtons) button.setEnabled(gold >= cost);
   }
 
   // True when a screen point is over HUD controls, so the map ignores the press.
   blocks(x: number, y: number): boolean {
-    if (y < 72) return true;
+    if (y < 72 || this.endObjects.length > 0) return true;
     return this.menuRect?.contains(x, y) ?? false;
+  }
+
+  // End screen: the sim reports 'won' or 'lost' and has stopped; show the summary and a way
+  // to start over.
+  private showEnd(status: 'won' | 'lost'): void {
+    this.closeMenu();
+    const cx = GAME_WIDTH / 2;
+    const dim = this.add.rectangle(cx, 360, GAME_WIDTH, 720, 0x000000, 0.6).setInteractive();
+    const title = this.add
+      .text(cx, 230, status === 'won' ? 'VICTORY' : 'TOWN LOST', {
+        ...TEXT,
+        fontSize: '84px',
+        color: status === 'won' ? '#f2c14e' : '#d9534f',
+      })
+      .setOrigin(0.5);
+    const time = formatClock((this.registry.get('timeMs') as number) ?? 0);
+    const summary = this.add
+      .text(cx, 335, `Run time ${time}   Gold ${this.registry.get('gold') ?? 0}`, TEXT)
+      .setOrigin(0.5);
+    const again = makeButton(this, cx, 450, 300, 100, 'Play again', () => this.playAgain());
+    this.endObjects = [dim, title, summary, again.container];
+  }
+
+  // A new run: stop the HUD and restart the map, which launches a fresh HUD.
+  private playAgain(): void {
+    this.scene.stop();
+    this.scene.get('Map').scene.restart();
   }
 
   private refreshSpeed(): void {
