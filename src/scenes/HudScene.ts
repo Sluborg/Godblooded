@@ -3,6 +3,7 @@ import { COLORS, GAME_WIDTH, MIN_TOUCH } from '../config';
 import { GRAYBOX } from '../data/graybox';
 import type { CommandResult } from '../sim/api';
 import { makeButton, type Button } from '../ui/button';
+import { PartyPanel } from '../ui/partyPanel';
 import type { MapScene, MapTap } from './MapScene';
 
 const SPEEDS = [1, 2, 4];
@@ -27,6 +28,7 @@ export class HudScene extends Phaser.Scene {
   private goldText!: Phaser.GameObjects.Text;
   private clockText!: Phaser.GameObjects.Text;
   private toast!: Phaser.GameObjects.Text;
+  private panel!: PartyPanel;
   private endObjects: Phaser.GameObjects.GameObject[] = [];
   private speedButtons: Button[] = [];
   private menu: Phaser.GameObjects.GameObject[] = [];
@@ -39,6 +41,7 @@ export class HudScene extends Phaser.Scene {
 
   create(): void {
     // Scene instances are reused on restart: drop state that pointed at the old display list.
+    this.panel = new PartyPanel(this);
     this.endObjects = [];
     this.speedButtons = [];
     this.menu = [];
@@ -82,6 +85,7 @@ export class HudScene extends Phaser.Scene {
     const status = this.registry.get('status') as string | undefined;
     if ((status === 'won' || status === 'lost') && this.endObjects.length === 0)
       this.showEnd(status);
+    this.panel.update((this.scene.get('Map') as MapScene).snapshot);
     const gold = (this.registry.get('gold') as number) ?? 0;
     for (const { button, cost } of this.menuButtons) button.setEnabled(gold >= cost);
   }
@@ -89,6 +93,7 @@ export class HudScene extends Phaser.Scene {
   // True when a screen point is over HUD controls, so the map ignores the press.
   blocks(x: number, y: number): boolean {
     if (y < 72 || this.endObjects.length > 0) return true;
+    if (this.panel.isOpen && this.panel.rect.contains(x, y)) return true;
     return this.menuRect?.contains(x, y) ?? false;
   }
 
@@ -125,6 +130,12 @@ export class HudScene extends Phaser.Scene {
   }
 
   private onMapTap(map: MapScene, tap: MapTap): void {
+    if (tap.hero) {
+      this.closeMenu();
+      this.panel.show(tap.hero);
+      return;
+    }
+    this.panel.hide();
     if (tap.plot !== null) {
       const plot = tap.plot;
       this.openMenu(

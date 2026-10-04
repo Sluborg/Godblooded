@@ -31,6 +31,8 @@ const PLOT_RADIUS = 110;
 export interface MapTap {
   // Sim plot id of a free plot, or null.
   plot: number | null;
+  // Id of a tapped hero (opens the party panel), or null.
+  hero?: number | null;
   target: { pos: Vec2; label: string } | null;
 }
 
@@ -123,6 +125,12 @@ export class MapScene extends Phaser.Scene {
   private resolveTap(w: Phaser.Math.Vector2): MapTap {
     const plot = this.plotAt(w);
     if (plot !== null) return { plot, target: null };
+    const hero = this.snap.units
+      .filter((u) => u.kind === 'hero')
+      .map((u) => ({ u, d: Math.hypot(u.pos.x - w.x, u.pos.y - w.y) }))
+      .filter(({ d }) => d < TARGET_RADIUS)
+      .sort((a, b) => a.d - b.d)[0];
+    if (hero) return { plot: null, hero: hero.u.id, target: null };
     const hit = [...this.snap.units, ...this.snap.lairs]
       .map((e) => ({ e, d: Math.hypot(e.pos.x - w.x, e.pos.y - w.y) }))
       .filter(({ d }) => d < TARGET_RADIUS)
@@ -132,6 +140,10 @@ export class MapScene extends Phaser.Scene {
       plot: null,
       target: { pos: { x: Math.round(w.x), y: Math.round(w.y) }, label: 'this spot' },
     };
+  }
+
+  get snapshot(): Snapshot {
+    return this.snap;
   }
 
   private hud(): HudScene | null {
