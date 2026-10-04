@@ -16,7 +16,7 @@ bullets, file paths, no code, no em-dash.
    inbox.
 2. Call `get_session` (Claude_Code_Remote MCP, no arguments) for your session id. Fill your row
    in `docs/sessions.md` (id, model, date), commit `docs(sessions): <role> registered`, push to
-   `main`.
+   `main` (Lead is the only role that pushes to `main`).
 3. Create your safety-net Routine: `create_trigger` with no session id (fires into you),
    `cron_expression: "CRON_TZ=Europe/Stockholm 7 */2 * * *"`, `initiation: "human_request"`,
    name `safety-net <role>`, prompt as in `docs/collaboration.md`. Add its trigger id to your row.
