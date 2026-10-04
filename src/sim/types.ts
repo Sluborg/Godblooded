@@ -65,6 +65,45 @@ export interface LairSite {
   pos: Vec2;
 }
 
+export interface HeroTuning {
+  firstRecruitMs: number;
+  recruitMs: number;
+  maxPerTemple: number;
+  koMs: number;
+  reviveHp: number;
+  restPerS: number;
+  shrineMult: number;
+  shopMinGold: number;
+  spendShare: number;
+  taxRate: number;
+  arrive: number;
+  lairSearchRadius: number;
+  lairSearchShare: number;
+}
+
+export interface PartyTuning {
+  maxParty: number;
+  mergeRange: number;
+  mergeEveryTicks: number;
+  xpPerLevel: number;
+  offerSize: number;
+  bondCap: number;
+  baseFlee: number;
+}
+
+export interface MonsterTuning {
+  wanderRadius: number;
+  idleMinMs: number;
+  idleMaxMs: number;
+  leash: number;
+}
+
+export interface Tuning {
+  hero: HeroTuning;
+  party: PartyTuning;
+  monster: MonsterTuning;
+}
+
 export interface GameData {
   buildings: readonly BuildingDef[];
   // Building plots; a plot id is its index. Optional until Lead's rows land.
@@ -73,6 +112,12 @@ export interface GameData {
   classes?: readonly ClassDef[];
   monsters?: readonly MonsterDef[];
   upgrades?: readonly UpgradeDef[];
+  // Any subset of the tunable numbers; the rest use DEFAULT_TUNING (src/sim/tuning.ts).
+  tuning?: {
+    hero?: Partial<HeroTuning>;
+    party?: Partial<PartyTuning>;
+    monster?: Partial<MonsterTuning>;
+  };
   lairs?: readonly LairDef[];
   lairSites?: readonly LairSite[];
   startGold: number;
