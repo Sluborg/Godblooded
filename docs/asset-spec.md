@@ -1,6 +1,8 @@
 # Asset spec
 
-Art owns this file. The house style is `art-tasks/STYLE.md`; this is the technical contract.
+Art owns this file. The house style is `art-tasks/STYLE.md` (classic fantasy strategy, about
+4.5 heads tall, reference `art-tasks/ref/hero_warrior_t1_front.png`); this is the technical
+contract.
 
 ## Ids
 
