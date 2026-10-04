@@ -37,7 +37,7 @@ Review (PR open), Done. A worker takes its top Open row.
 | 40    | Level-up pick: a party levels, the game pauses, 3 upgrade cards, tap one                                  | Doing  |
 | 50    | Unit view: manifest sprite or placeholder, mirror by direction, bob/squash/lunge/hit-flash tweens         | Done   |
 | 55    | Hero interest markers on bounty flags (after Sim 40/60)                                                   | Open   |
-| 60    | Speech bubbles from sim events; end screen (win/lose, run summary, play again)                            | Doing  |
+| 60    | Speech bubbles from sim events; end screen (win/lose, run summary, play again)                            | Review |
 
 ## Art
 
