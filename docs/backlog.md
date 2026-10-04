@@ -39,7 +39,7 @@ Review (PR open), Done. A worker takes its top Open row.
 
 | Order | Item                                                                                                    | Status |
 | ----- | ------------------------------------------------------------------------------------------------------- | ------ |
-| 10    | Pipeline: `scripts/art/` key-out (green and magenta), trim, downscale, `validate:art`, manifest tooling | Open   |
+| 10    | Pipeline: `scripts/art/` key-out (green and magenta), trim, downscale, `validate:art`, manifest tooling | Review |
 | 20    | Art-wake draft PR (`art-wake` branch, `art-wake/TRACKS.md`); check `art-tasks/README.md` end to end     | Open   |
 | 30    | Style test B1: Warrior t1 front and back, draugr t1 front, town hall t1. Stefan approves before batches | Open   |
 | 40    | After approval: tier-1 batches for heroes, monsters, buildings (art requests 10-30)                     | Open   |
