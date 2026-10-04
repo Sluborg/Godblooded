@@ -10,7 +10,7 @@ Review (PR open), Done. A worker takes its top Open row.
 | 10    | Spawn Sim, Scene and Art sessions (`docs/prompts/`), check they registered in sessions.md              | Done   |
 | 20    | Agree the first `src/sim/api.ts` shape with Sim and Scene (inboxes), record in decisions               | Done   |
 | 30    | First `src/data/` rows for the graybox: 2 classes, 2 monsters, 4 buildings, 3 upgrades                 | Done   |
-| 35    | Balance pass on GRAYBOX with `npm run sim`: median run 15-18 min, win rate 55-75%, knockouts every run | Open   |
+| 35    | Balance pass on GRAYBOX with `npm run sim`: median run 15-18 min, win rate 55-75%, knockouts every run | Review |
 | 40    | Review and merge M1 PRs; when M1 runs end to end, ask Stefan "is it fun to watch?"                     | Open   |
 
 ## Sim
@@ -25,7 +25,7 @@ Review (PR open), Done. A worker takes its top Open row.
 | 45    | Move hero tuning (recruit timer, flee, rest, shop, tax, revive) from `heroes.ts` into `GameData.tuning`; Lead fills the row | Done   |
 | 50    | Parties: form by traits and bonds, move and fight together, share XP; party level up offers 3 upgrades                      | Done   |
 | 60    | Bounty flags: heroes weigh bounty vs danger by trait; win (last lair) and lose (town hall) conditions                       | Done   |
-| 70    | Headless balance sim (`npm run sim`): 100 seeded runs, report run length, win rate, deaths                                  | Doing  |
+| 70    | Headless balance sim (`npm run sim`): 100 seeded runs, report run length, win rate, deaths                                  | Done   |
 
 ## Scene
 
@@ -40,7 +40,7 @@ Review (PR open), Done. A worker takes its top Open row.
 | 50    | Unit view: manifest sprite or placeholder, mirror by direction, bob/squash/lunge/hit-flash tweens                                                             | Done   |
 | 55    | Hero interest markers on bounty flags (after Sim 40/60)                                                                                                       | Open   |
 | 60    | Speech bubbles from sim events; end screen (win/lose, run summary, play again)                                                                                | Review |
-| 65    | Smoke run: `npm run smoke` (Playwright, phone viewport) builds a temple and market, runs 4x for 3 game minutes, saves screenshots and fails on console errors | Open   |
+| 65    | Smoke run: `npm run smoke` (Playwright, phone viewport) builds a temple and market, runs 4x for 3 game minutes, saves screenshots and fails on console errors | Done   |
 
 ## Art
 

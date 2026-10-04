@@ -43,3 +43,5 @@ Lead owns this file. One dated line per decision that changes how the game or th
   x1.2, brave fear x0.5, coward fear x2, proud ignores flags under 40 gold.
 - 2026-10-04: First balance read (Sim 70 bot, 100 runs): 100% wins in 2.4 min, no knockouts.
   Far too easy; Lead balance pass (Lead 35) targets median 15-18 min, win rate 55-75%.
+- 2026-10-04: Balance pass 1 (PR #32): lairs 3500/16000 hp, 6 alive each, spawn 10/25 s; 6 heroes per
+  temple every 25 s; first raid at 6 min. Sim bot: 62% wins, median run 15.2 min, 17 knockouts.
