@@ -24,6 +24,12 @@ const BUILDING_COLORS: Record<string, number> = {
   tower: 0x9a9a9a,
 };
 const BUILDING_SIZE = 96;
+const TARGET_RADIUS = 70;
+
+export interface MapTap {
+  plot: Vec2 | null;
+  target: { pos: Vec2; label: string } | null;
+}
 
 // Renders the sim snapshot as shapes. Holds no rules: it steps the world, draws what the
 // snapshot says and turns taps into commands.
@@ -56,7 +62,7 @@ export class MapScene extends Phaser.Scene {
     );
     attachCameraControls(this, {
       minZoom,
-      onTap: (w) => this.events.emit('plotTapped', this.plotAt(w)),
+      onTap: (w) => this.events.emit('mapTapped', this.resolveTap(w)),
       blocked: (x, y) => this.hud()?.blocks(x, y) ?? false,
     });
     this.snap = snapshot(this.world);
@@ -77,6 +83,27 @@ export class MapScene extends Phaser.Scene {
   // Sim command entry for the HUD. The sim decides; the result carries the refusal reason.
   tryBuild(type: string, pos: Vec2): CommandResult {
     return command(this.world, { kind: 'build', type, pos });
+  }
+
+  // Bounty amounts are the HUD's choice; the sim validates and spends.
+  tryBounty(pos: Vec2, gold: number): CommandResult {
+    return command(this.world, { kind: 'placeBounty', pos, gold });
+  }
+
+  // What a tap means: a free plot (build), else a monster or lair (bounty on it), else the
+  // bare ground (bounty at that spot).
+  private resolveTap(w: Phaser.Math.Vector2): MapTap {
+    const plot = this.plotAt(w);
+    if (plot) return { plot, target: null };
+    const hit = [...this.snap.units, ...this.snap.lairs]
+      .map((e) => ({ e, d: Math.hypot(e.pos.x - w.x, e.pos.y - w.y) }))
+      .filter(({ d }) => d < TARGET_RADIUS)
+      .sort((a, b) => a.d - b.d)[0];
+    if (hit) return { plot: null, target: { pos: { ...hit.e.pos }, label: hit.e.type } };
+    return {
+      plot: null,
+      target: { pos: { x: Math.round(w.x), y: Math.round(w.y) }, label: 'this spot' },
+    };
   }
 
   private hud(): HudScene | null {
@@ -117,6 +144,21 @@ export class MapScene extends Phaser.Scene {
       seen.add(key);
       if (!this.views.has(key)) this.views.set(key, this.makeBuilding(b.type, b.pos.x, b.pos.y));
     }
+    for (const l of this.snap.lairs) {
+      const key = `l${l.id}`;
+      seen.add(key);
+      if (!this.views.has(key)) this.views.set(key, this.makeMarker(l.type, l.pos, 44, 0x2b1d33));
+    }
+    for (const u of this.snap.units) {
+      const key = `u${u.id}`;
+      seen.add(key);
+      let view = this.views.get(key) as Phaser.GameObjects.Container | undefined;
+      if (!view) {
+        view = this.makeMarker(u.type, u.pos, 22, 0x8a3a3a);
+        this.views.set(key, view);
+      }
+      view.setPosition(u.pos.x, u.pos.y).setDepth(u.pos.y);
+    }
     for (const b of this.snap.bounties) {
       const key = `f${b.id}`;
       seen.add(key);
@@ -149,6 +191,24 @@ export class MapScene extends Phaser.Scene {
       })
       .setOrigin(0.5);
     return this.add.container(x, y, [body, label]).setDepth(y);
+  }
+
+  // Stand-in for lairs and monsters until the unit view (Scene 50): a dot with its type.
+  private makeMarker(
+    type: string,
+    pos: Vec2,
+    r: number,
+    color: number,
+  ): Phaser.GameObjects.Container {
+    const dot = this.add.circle(0, -r, r, color).setStrokeStyle(3, 0x000000, 0.5);
+    const label = this.add
+      .text(0, -r * 2 - 4, type, {
+        fontFamily: 'Georgia, serif',
+        fontSize: '18px',
+        color: '#f4ead5',
+      })
+      .setOrigin(0.5, 1);
+    return this.add.container(pos.x, pos.y, [dot, label]).setDepth(pos.y);
   }
 
   private makeBounty(gold: number, x: number, y: number): Phaser.GameObjects.Container {
