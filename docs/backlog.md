@@ -10,8 +10,8 @@ Review (PR open), Done. A worker takes its top Open row.
 | 10    | Spawn Sim, Scene and Art sessions (`docs/prompts/`), check they registered in sessions.md              | Done   |
 | 20    | Agree the first `src/sim/api.ts` shape with Sim and Scene (inboxes), record in decisions               | Done   |
 | 30    | First `src/data/` rows for the graybox: 2 classes, 2 monsters, 4 buildings, 3 upgrades                 | Done   |
-| 35    | Balance pass on GRAYBOX with `npm run sim`: median run 15-18 min, win rate 55-75%, knockouts every run | Review |
-| 40    | Review and merge M1 PRs; when M1 runs end to end, ask Stefan "is it fun to watch?"                     | Open   |
+| 35    | Balance pass on GRAYBOX with `npm run sim`: median run 15-18 min, win rate 55-75%, knockouts every run | Done   |
+| 40    | Review and merge M1 PRs; when M1 runs end to end, ask Stefan "is it fun to watch?"                     | Doing  |
 
 ## Sim
 
@@ -39,7 +39,7 @@ Review (PR open), Done. A worker takes its top Open row.
 | 45    | Party panel: tap a hero or party to see members, trait, level, XP bar, gold; small party badges over heroes                                                   | Done   |
 | 50    | Unit view: manifest sprite or placeholder, mirror by direction, bob/squash/lunge/hit-flash tweens                                                             | Done   |
 | 55    | Hero interest markers on bounty flags (after Sim 40/60)                                                                                                       | Open   |
-| 60    | Speech bubbles from sim events; end screen (win/lose, run summary, play again)                                                                                | Review |
+| 60    | Speech bubbles from sim events; end screen (win/lose, run summary, play again)                                                                                | Done   |
 | 65    | Smoke run: `npm run smoke` (Playwright, phone viewport) builds a temple and market, runs 4x for 3 game minutes, saves screenshots and fails on console errors | Done   |
 
 ## Art
