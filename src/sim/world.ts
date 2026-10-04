@@ -15,6 +15,7 @@ import {
   heroMove,
   payBounty,
   runBounties,
+  syncFlagView,
   runHeroes,
   runTemples,
   type HeroRuntime,
@@ -401,6 +402,7 @@ function inMap(world: World, p: { x: number; y: number }): boolean {
 
 // Copies out the state; the returned object never aliases the live world. Drains events.
 export function snapshot(world: World): Snapshot {
+  syncFlagView(world);
   const events = world.events;
   world.events = [];
   return {

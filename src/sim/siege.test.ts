@@ -260,6 +260,19 @@ describe('flag interest in the snapshot', () => {
     expect(snapshot(w).units.every((u) => u.bounty === null)).toBe(true);
   });
 
+  it('a hero knocked out or merged mid-tick never shows a stale flag', () => {
+    const w = createWorld(1, quiet);
+    const id = spawnHero(w, 'warrior', { x: 700, y: 500 });
+    const hero = heroOf(w, id);
+    hero.trait = 'greedy';
+    command(w, { kind: 'placeBounty', pos: { x: 1500, y: 900 }, gold: 100 });
+    step(w, 1_200);
+    expect(snapshot(w).units.find((u) => u.id === id)?.bounty).not.toBeNull();
+    hero.ko = true;
+    hero.mode = 'ko';
+    expect(snapshot(w).units.find((u) => u.id === id)?.bounty).toBeNull();
+  });
+
   it('a resting hero and monsters show no flag', () => {
     const w = createWorld(1, base);
     const id = spawnHero(w, 'warrior', { x: 700, y: 500 });

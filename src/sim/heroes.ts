@@ -274,11 +274,11 @@ export function runBounties(world: World): void {
     world.events.push({ kind: 'bountyClaimed', bounty: flag.id, unit: hero.id, gold: flag.gold });
   }
   if (world.tick % 20 === 0) chooseFlags(world);
-  syncFlagView(world);
 }
 
-// What the snapshot shows: the live flag each exploring hero is heading for.
-function syncFlagView(world: World): void {
+// What the snapshot shows: the live flag each exploring hero is heading for. Called when a
+// snapshot is built, after every change of the tick (knockouts, party merges) has landed.
+export function syncFlagView(world: World): void {
   for (const unit of world.units) {
     if (unit.kind !== 'hero') continue;
     const lead = unit.mode === 'explore' && !unit.ko ? leaderOf(world, unit) : undefined;
