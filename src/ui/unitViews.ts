@@ -21,7 +21,7 @@ import {
 import { pickVariant, rotateHue, sizeJitter, tierStyle } from './monsterLook';
 import { partyColor, partyRole, type PartyRole } from './partyLook';
 import { isSpeechEvent, pickLine, type SpeechKind } from './speechLines';
-import { buildStrike, FxLayer, type Vec } from './strikeFx';
+import { buildHeal, buildStrike, FxLayer, type Vec } from './strikeFx';
 import { ART_NOMINAL_PX, PLACEHOLDER, UNIT_HEIGHT, baseType, unitArtId } from './unitLook';
 
 // Speech bubbles: how long one stays, the most on screen at once, and the quiet time per unit.
@@ -51,6 +51,8 @@ interface Attack {
   targetId: number;
   damage: number;
   dodged: boolean;
+  // A heal cast: the amount (null for a strike). It lands as a beam, not a blow.
+  heal: number | null;
   // Started by a sim `windup` event: waits for the matching `hit` (which carries the damage) and
   // is cancelled if none comes within the lead time plus CANCEL_GRACE_S.
   awaitingHit: boolean;
@@ -69,6 +71,8 @@ interface FrameCtx {
   chestOf: (id: number) => Vec | undefined;
   // Receives the visual side of a landed strike (flash, knockback, number).
   hurt: (targetId: number, fromX: number, power: number, damage: number, dodged: boolean) => void;
+  // Receives the visual side of a landed heal (green tint, sparkles, number).
+  healed: (targetId: number, amount: number) => void;
 }
 
 // One on-screen unit. All motion is the shared system in motionPose.ts and strikeFx.ts: a
@@ -118,6 +122,8 @@ export class UnitView {
   private ay = 1;
   private row: ManifestAsset | undefined;
   private artId = '';
+  // Green heal tint, 1 right after a heal and fading to 0.
+  private healGlow = 0;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -272,6 +278,19 @@ export class UnitView {
     this.startAttack(targetId, damage, dodged, null, false);
   }
 
+  // A `heal` from the sim: the cast lands now. A windup under way for this target is released;
+  // otherwise the cast plays with the windup squeezed in.
+  landHeal(targetId: number, amount: number): void {
+    const a = this.attack;
+    if (a?.awaitingHit && a.targetId === targetId) {
+      a.awaitingHit = false;
+      a.heal = amount;
+      return;
+    }
+    this.startAttack(targetId, 0, false, null, false);
+    if (this.attack) (this.attack as Attack).heal = amount;
+  }
+
   private startAttack(
     targetId: number,
     damage: number,
@@ -288,6 +307,7 @@ export class UnitView {
       targetId,
       damage,
       dodged,
+      heal: null,
       awaitingHit,
       leadS: leadS ?? DEFAULT_LEAD_S,
       backFirst: Math.random() < 0.5,
@@ -310,6 +330,13 @@ export class UnitView {
     const c = this.chest();
     fx.sparks(c.x, c.y, [255, 225, 160], 7);
     fx.blood(c.x, c.y, dir);
+  }
+
+  // The visual side of being healed: a brief green tint and sparkles. The sim already added hp.
+  receiveHeal(fx: FxLayer): void {
+    this.healGlow = 1;
+    const c = this.chest();
+    fx.sparkle(c.x, c.y, 10);
   }
 
   // The unit left the snapshot (died or was removed): fall over and fade out.
@@ -355,6 +382,7 @@ export class UnitView {
     const moving = this.movingFor > 0;
     if (Math.abs(facingX) > 0.25) this.face = facingX < 0 ? -1 : 1;
     if (this.hit > 0) this.hit = Math.max(0, this.hit - s * 3);
+    if (this.healGlow > 0) this.healGlow = Math.max(0, this.healGlow - s * 2.2);
     this.kb *= Math.pow(0.0005, s);
 
     // knocked-out fall and get-up
@@ -434,6 +462,11 @@ export class UnitView {
       this.row?.weapon2X !== undefined && this.row.weapon2Y !== undefined
         ? this.weaponWorld(this.row.weapon2X, this.row.weapon2Y)
         : undefined;
+    if (a.heal !== null) {
+      ctx.fx.add(buildHeal(weapon, target, this.face));
+      ctx.healed(a.targetId, a.heal);
+      return;
+    }
     const r = buildStrike({
       strike: a.strike,
       x: this.x,
@@ -475,7 +508,9 @@ export class UnitView {
       .fillStyle(0x000000, 0.32 - lift)
       .fillEllipse(fall, 0, rx * 2, UNIT_HEIGHT * this.look.footprint * 0.48);
     // hurt flash: white, then red, on the picture (or the placeholder body)
-    const f = hurtFlash(this.hit);
+    const f =
+      hurtFlash(this.hit) ??
+      (this.healGlow > 0 ? { color: 0x7dff9a, alpha: 0.5 * this.healGlow } : null);
     if (this.flash) {
       this.flash.setVisible(f !== null);
       if (f) this.flash.setTintFill(f.color).setAlpha(f.alpha);
@@ -622,12 +657,20 @@ export class UnitViews {
         if (!dodged && damage > 0)
           this.floatText(t.container.x, t.container.y - t.height - 10, `${damage}`);
       },
+      healed: (targetId, amount) => {
+        const t = this.views.get(targetId) ?? this.dying.get(targetId);
+        if (!t) return;
+        t.receiveHeal(this.fx);
+        if (amount > 0)
+          this.floatText(t.container.x, t.container.y - t.height - 10, `+${amount}`, '#b6ffb0');
+      },
     };
     // Events first: a unit that died this tick is already gone from the snapshot but still
     // has its view, so its last words can be said before the fall.
     for (const e of events) {
       if (e.kind === 'hit') this.onHit(e, ctx);
       else if (e.kind === 'windup') this.onWindup(e);
+      else if (e.kind === 'heal') this.onHeal(e, ctx);
       else if (isSpeechEvent(e)) this.onSpeech(e, timeMs);
     }
     const seen = new Set<number>();
@@ -676,16 +719,22 @@ export class UnitViews {
     else ctx.hurt(e.target, Number.NaN, 1, e.damage, e.dodged);
   }
 
+  private onHeal(e: Extract<SimEvent, { kind: 'heal' }>, ctx: FrameCtx): void {
+    const healer = this.views.get(e.healer);
+    if (healer) healer.landHeal(e.target, e.amount);
+    else ctx.healed(e.target, e.amount);
+  }
+
   private onWindup(e: Extract<SimEvent, { kind: 'windup' }>): void {
     this.views.get(e.attacker)?.beginWindup(e.target, e.inMs / 1000);
   }
 
-  private floatText(x: number, y: number, text: string): void {
+  private floatText(x: number, y: number, text: string, color = '#ffd9d9'): void {
     const t = this.scene.add
       .text(x, y, text, {
         fontFamily: 'Georgia, serif',
         fontSize: '26px',
-        color: '#ffd9d9',
+        color,
         stroke: '#000000',
         strokeThickness: 4,
       })

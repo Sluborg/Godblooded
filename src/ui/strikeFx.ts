@@ -41,6 +41,8 @@ export type FxEffect =
     }
   | { type: 'bolt'; x: number; y: number; tx: number; ty: number; age: number; life: number }
   | { type: 'ring'; x: number; y: number; r: number; age: number; life: number }
+  // A heal: a soft gold-green beam from the healer's weapon to the target's chest.
+  | { type: 'heal'; x: number; y: number; tx: number; ty: number; age: number; life: number }
   | { type: 'arrow'; x: number; y: number; tx: number; ty: number; age: number; life: number };
 
 export interface StrikeInput {
@@ -70,6 +72,17 @@ export interface StrikeResult {
   effects: FxEffect[];
   // Spawn a dust ring and shake the camera (smash).
   smash: Vec | null;
+}
+
+export const HEAL_BEAM_S = 0.55;
+
+// The beam of a heal, from the healer's weapon to the target (or a point ahead when the target
+// is not on the map).
+export function buildHeal(weapon: Vec, target: Vec | null, face: 1 | -1): FxEffect[] {
+  const to = target ?? { x: weapon.x + face * 80, y: weapon.y };
+  return [
+    { type: 'heal', x: weapon.x, y: weapon.y, tx: to.x, ty: to.y, age: 0, life: HEAL_BEAM_S },
+  ];
 }
 
 const defaultRnd = (a: number, b: number) => a + Math.random() * (b - a);
@@ -293,6 +306,24 @@ export class FxLayer {
     }
   }
 
+  // Gold-green sparkles rising off a healed unit.
+  sparkle(x: number, y: number, n: number): void {
+    for (let i = 0; i < n; i++)
+      this.parts.push({
+        x: x + (Math.random() - 0.5) * 46,
+        y: y + (Math.random() - 0.3) * 50,
+        vx: (Math.random() - 0.5) * 24,
+        vy: -50 - Math.random() * 60,
+        r: 2 + Math.random() * 2.5,
+        g: -40,
+        age: 0,
+        life: 0.55 + Math.random() * 0.3,
+        col: Math.random() < 0.5 ? [150, 255, 160] : [255, 240, 150],
+        grow: 0,
+        a: 1,
+      });
+  }
+
   blood(x: number, y: number, dir: number): void {
     for (let i = 0; i < 5; i++)
       this.parts.push({
@@ -393,6 +424,23 @@ export class FxLayer {
         g.lineStyle(lw, col, al).strokePoints(pts as Phaser.Types.Math.Vector2Like[], false);
       }
       g.fillStyle(0xc8e1ff, 0.7 * (1 - p)).fillCircle(e.x, e.y, 9 * (1 - p) + 3);
+    } else if (e.type === 'heal') {
+      // a glow, a thinner bright line that travels from the weapon to the target, then fades
+      const head = Math.min(1, p * 2.5);
+      const hx = e.x + (e.tx - e.x) * head;
+      const hy = e.y + (e.ty - e.y) * head - Math.sin(Math.PI * head) * 18;
+      const mx = e.x + (hx - e.x) * 0.5;
+      const my = e.y + (hy - e.y) * 0.5 - Math.sin(Math.PI * head * 0.5) * 18;
+      const pts = [
+        { x: e.x, y: e.y },
+        { x: mx, y: my },
+        { x: hx, y: hy },
+      ] as Phaser.Types.Math.Vector2Like[];
+      const a = 1 - p;
+      g.lineStyle(14, 0x7dff9a, 0.22 * a).strokePoints(pts, false);
+      g.lineStyle(5, 0xc8ffb0, 0.7 * a).strokePoints(pts, false);
+      g.lineStyle(2, 0xfff6c8, a).strokePoints(pts, false);
+      g.fillStyle(0xe8ffc8, 0.8 * a).fillCircle(hx, hy, 8 * a + 3);
     } else if (e.type === 'ring') {
       g.lineStyle(6 * (1 - p) + 1, 0xe6d2aa, 0.8 * (1 - p));
       g.strokeEllipse(e.x, e.y, e.r * (0.2 + p) * 2, e.r * (0.2 + p) * 0.64);

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { STRIKES } from './motionPose';
-import { buildStrike, fromWeapon, type StrikeInput } from './strikeFx';
+import { buildHeal, buildStrike, fromWeapon, HEAL_BEAM_S, type StrikeInput } from './strikeFx';
 
 const base: StrikeInput = {
   strike: 'chop',
@@ -72,5 +72,19 @@ describe('strike effects', () => {
 
   it('an arc that must start at a weapon low behind the body wraps below the back', () => {
     expect(fromWeapon(100, 250, { x: 60, y: 290 }, 1, -1.7)).toBeLessThan(-Math.PI);
+  });
+});
+
+describe('buildHeal', () => {
+  it('runs a beam from the weapon to the target chest', () => {
+    const [e] = buildHeal({ x: 10, y: -40 }, { x: 90, y: -60 }, 1);
+    expect(e).toMatchObject({ type: 'heal', x: 10, y: -40, tx: 90, ty: -60, age: 0 });
+    expect(e.life).toBe(HEAL_BEAM_S);
+  });
+  it('aims ahead of the healer when the target is off the map', () => {
+    const [left] = buildHeal({ x: 100, y: -40 }, null, -1);
+    const [right] = buildHeal({ x: 100, y: -40 }, null, 1);
+    expect(left).toMatchObject({ tx: 20 });
+    expect(right).toMatchObject({ tx: 180 });
   });
 });
