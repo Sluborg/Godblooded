@@ -18,6 +18,24 @@ export const STRIKES: readonly Strike[] = [
   'shot',
 ];
 
+export function isStrike(v: unknown): v is Strike {
+  return typeof v === 'string' && (STRIKES as readonly string[]).includes(v);
+}
+
+// Which strike to play: the manifest row's, else the type's fallback from the data, else a chop.
+// A row with an unknown strike string must never throw, so it is reported once (`warn`) and
+// the fallbacks are used.
+export function resolveStrike(
+  rowStrike: unknown,
+  fallback: unknown,
+  warn: (message: string) => void = () => {},
+): Strike {
+  if (rowStrike === undefined || rowStrike === null) return isStrike(fallback) ? fallback : 'chop';
+  if (isStrike(rowStrike)) return rowStrike;
+  warn(`unknown strike "${String(rowStrike)}" in the manifest, using the type's fallback`);
+  return isStrike(fallback) ? fallback : 'chop';
+}
+
 export interface Pose {
   rot: number;
   dx: number;

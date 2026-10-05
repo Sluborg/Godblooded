@@ -13,6 +13,7 @@ import {
   swingStep,
   koPose,
   walkPose,
+  resolveStrike,
   windupFor,
   type Pose,
   type Strike,
@@ -20,7 +21,7 @@ import {
 import { partyColor } from './partyLook';
 import { isSpeechEvent, pickLine, type SpeechKind } from './speechLines';
 import { buildStrike, FxLayer, type Vec } from './strikeFx';
-import { ART_NOMINAL_PX, PLACEHOLDER, UNIT_HEIGHT } from './unitLook';
+import { ART_NOMINAL_PX, PLACEHOLDER, UNIT_HEIGHT, baseType } from './unitLook';
 
 // Speech bubbles: how long one stays, the most on screen at once, and the quiet time per unit.
 const BUBBLE_MS = 2200;
@@ -33,6 +34,14 @@ const DEFAULT_LEAD_S = 0.09;
 const MAX_DT_S = 0.05;
 // Rendered position follows the sim with this time constant (the sim steps in 50 ms ticks).
 const SMOOTH_S = 0.06;
+
+// Each distinct complaint is logged once, however many units hit it.
+const warned = new Set<string>();
+function warnOnce(message: string): void {
+  if (warned.has(message)) return;
+  warned.add(message);
+  console.warn(`[godblooded] ${message}`);
+}
 
 function manifestId(u: UnitState, view: 'front' | 'back'): string {
   const kind = u.kind === 'hero' ? 'hero' : 'mon';
@@ -114,7 +123,7 @@ export class UnitView {
     private readonly scene: Phaser.Scene,
     u: UnitState,
   ) {
-    this.look = lookOf(u.type);
+    this.look = lookOf(baseType(u.type));
     this.isHero = u.kind === 'hero';
     this.x = u.pos.x;
     this.y = u.pos.y;
@@ -173,7 +182,7 @@ export class UnitView {
   }
 
   private strikeKind(): Strike {
-    return this.row?.strike ?? this.look.strike;
+    return resolveStrike(this.row?.strike, this.look.strike, warnOnce);
   }
 
   // ---------- art ----------
