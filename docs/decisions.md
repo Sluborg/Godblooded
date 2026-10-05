@@ -69,3 +69,6 @@ Lead owns this file. One dated line per decision that changes how the game or th
 - 2026-10-05: House style locked: **chunky** (batch S4), about 3.5 to 4 heads tall, oversized
   weapons, thick outline, gritty concept-sheet palette (`art-tasks/STYLE.md`). Casters hold the
   staff in the front hand. Back views: undecided, both kept for now.
+- 2026-10-05: Windup (Sim PR #51): every strike announces itself `windupMs` (300, at most 40% of
+  the attack cycle) before it lands, so Scene plays the full windup. Rebalance (PR #54): first
+  raid at 6:40. Sim bot: 71% wins, median run 15.5 min.
