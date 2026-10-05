@@ -24,6 +24,7 @@ export const LOOKS: Record<string, Partial<UnitLook>> = {
   wizard: { color: 0x8a5fc0, strike: 'bolt' },
   paladin: { color: 0xb03a2e, strike: 'smash' },
   rogue: { color: 0xd2782a, scale: 0.92, strike: 'double' },
+  healer: { color: 0xe8dcb0, strike: 'bolt' },
   // monsters
   draugr: { color: 0x7a8c8f, strike: 'chop' },
   troll: { color: 0x6b4a2f, scale: 1.45, footprint: 0.95, strike: 'stomp' },
