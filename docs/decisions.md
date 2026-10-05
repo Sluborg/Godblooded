@@ -54,3 +54,15 @@ Lead owns this file. One dated line per decision that changes how the game or th
   double chop for dual wielders, side sweep, upward, thrust, bolt, smash), hurt flash, knock-out
   fall. Each unit's data row adds: picture facing, weapon point(s), footprint radius, strike.
   Proof: https://claude.ai/artifact/Q4fbxESdGgQsstWkVTFvFg. Next: chunky proportions test (S4).
+- 2026-10-05: Pose standard for every unit picture (Stefan): all art faces **right** (three-quarter
+  view toward the lower right); the game mirrors it for left. The weapon's position in the picture
+  is fixed by the unit's strike, so the strike always starts at the weapon:
+  - overhead chop (axe, sword, mace): weapon raised high behind the back shoulder
+  - double chop (two weapons): one weapon high behind the back shoulder, one low in front
+  - side sweep (greatsword, polearm, scythe): weapon held level behind the hip
+  - upward (claws, fists, low blades): weapon low in front of the body
+  - thrust (spear, dagger, rapier): weapon level at chest height, tip pointing forward
+  - smash (giants, hammers, clubs): weapon raised over the head
+  - bolt (casters): staff head, orb or open hand raised in front at shoulder height
+  - shot (bows): bow held in front at chest height
+  Art measures each picture's feet anchor and weapon point(s) and ships them in the manifest.
