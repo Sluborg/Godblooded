@@ -4,21 +4,24 @@ Lead keeps this to one screen. Read it first when resuming.
 
 ## Live
 
-- Game: https://sluborg.github.io/Godblooded/ (title screen only so far)
+- Game: https://sluborg.github.io/Godblooded/
 - Repo: https://github.com/Sluborg/Godblooded
+- Motion test: https://claude.ai/artifact/Q4fbxESdGgQsstWkVTFvFg
 
 ## Now
 
-- M1 graybox playable end to end: build on 8 plots, heroes arrive at the Aesir temple, form
-  parties, hunt, flee, rest, shop (tax), level up (pick 1 of 3 cards), storm lairs; raids hit
-  the town; win when the troll den falls, lose when the town hall falls; end screen with stats.
-- Balance pass 1: sim bot wins 62%, median run 15 min.
-- Art: animation system chosen (one still per unit, motion in code, `docs/decisions.md`).
-  S4 chunky test (5 units) queued for ChatGPT; result goes into the motion test artifact.
-- Next: Stefan judges "fun to watch?"; Scene 55 (hero interest markers on flags).
+- M1 graybox done; M2 first art in progress. Five classes (warrior, ranger, wizard, paladin,
+  rogue) with chunky tier-1 art in the game; at most two of each class. Sim bot: 60% wins,
+  median run 15 min.
+- Motion system in the game: one still per unit, all motion in code (hop walk with foot dust,
+  windup from the sim, strike effects from the manifest weapon point, stomp, hurt, KO). Party
+  colours (ring and pennant), monster tiers by colour, monster variants supported.
+- Art in flight (ChatGPT): monsters B4/B5, buildings B6/B7, logo options U1, Aesir heroes A1
+  (healer tier 1 and the six Aesir tier-2 paths).
+- Sim next: healer class (Sim 90), then favor paths at tier-up (Sim 100).
 
 ## Waiting on Stefan
 
-- NOW: type `next` in the heroes ChatGPT chat (batch S4, chunky test). Then judge chunky vs
-  current in the motion test.
+- Pick a logo when U1 lands (three options, A shield, B weapons, C blood drop).
+- Is the game fun to watch? (decides M3 scope)
 - OPEN design items: `docs/game-design.md`, "OPEN".
