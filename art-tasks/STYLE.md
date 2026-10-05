@@ -17,16 +17,16 @@ proportions are **chunky** (batch S4, approved).
 - **Weapon position = the unit's strike** (the batch names it). The strike starts where the weapon
   is drawn:
 
-  | Strike        | Weapons                      | Draw the weapon                                                                                      |
-  | ------------- | ---------------------------- | ---------------------------------------------------------------------------------------------------- |
-  | overhead chop | axe, sword, mace             | raised high behind the back shoulder                                                                 |
-  | double chop   | two weapons                  | one high behind the back shoulder, one low in front                                                  |
-  | side sweep    | greatsword, polearm, scythe  | held level behind the hip                                                                            |
-  | upward        | claws, fists, low blades     | low in front of the body                                                                             |
-  | thrust        | spear, dagger, rapier, bite  | level at chest height, tip pointing forward                                                          |
-  | smash         | giants, hammers, clubs       | raised over the head                                                                                 |
-  | bolt          | staffs, wands, casting hands | staff or wand in the FRONT hand, head raised at shoulder height; a free casting hand may glow behind |
-  | shot          | bows, slings                 | the bow held in front at chest height                                                                |
+  | Strike        | Weapons                      | Draw the weapon                                                                                                                                                                  |
+  | ------------- | ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+  | overhead chop | axe, sword, mace             | raised high behind the back shoulder                                                                                                                                             |
+  | double chop   | two weapons                  | one high behind the back shoulder, one low in front                                                                                                                              |
+  | side sweep    | greatsword, polearm, scythe  | held level behind the hip                                                                                                                                                        |
+  | upward        | claws, fists, low blades     | low in front of the body                                                                                                                                                         |
+  | thrust        | spear, dagger, rapier, bite  | level at chest height, tip pointing forward                                                                                                                                      |
+  | smash         | giants, hammers, clubs       | raised over the head                                                                                                                                                             |
+  | bolt          | staffs, wands, casting hands | staff or wand in the FRONT hand, head raised at shoulder height; a free casting hand may glow behind. No staff: the focus (orb, casting hand) raised in front at shoulder height |
+  | shot          | bows, slings                 | the bow held in front at chest height                                                                                                                                            |
 
   Grip like a real fighter (axe and hammer at the lower end of the handle). The whole weapon is
   inside the picture, never cut off.
