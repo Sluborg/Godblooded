@@ -1,0 +1,20 @@
+{
+  "note": "S4 chunky test. Cut-outs keyed to alpha, trimmed, heroes and draugr 256 px figure height, troll 384 px (1.5x). anchor = feet (Phaser origin). Points are [x, y] fractions of the image.",
+  "units": {
+    "test_chunky_warrior": { "size": [273, 260], "anchor": [0.559, 0.992], "weapon": [0.09, 0.19] },
+    "test_chunky_duelist": {
+      "size": [223, 260],
+      "anchor": [0.47, 0.992],
+      "weaponBack": [0.12, 0.18],
+      "weaponFront": [0.86, 0.55]
+    },
+    "test_chunky_oracle": {
+      "size": [236, 260],
+      "anchor": [0.485, 0.992],
+      "weapon": [0.18, 0.1],
+      "castHand": [0.82, 0.3]
+    },
+    "test_chunky_draugr": { "size": [265, 260], "anchor": [0.593, 0.992], "weapon": [0.03, 0.77] },
+    "test_chunky_troll": { "size": [384, 388], "anchor": [0.518, 0.995], "weapon": [0.78, 0.82] }
+  }
+}
