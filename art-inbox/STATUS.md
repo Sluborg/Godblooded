@@ -49,3 +49,5 @@ B2 | 2026-10-05T04:50:35.454Z | heroes | started
 
 B2 | 2026-10-05T04:55:58.015Z | heroes | hero_ranger_t1_front, hero_ranger_t1_back, hero_wizard_t1_front, hero_wizard_t1_back | uploaded
 B2 delivery: unchanged 1254x1254 built-in PNGs; Drive metadata verified names, MIME, sizes, folder. Ranger front (1522584 bytes): https://drive.google.com/file/d/1PQs7MsJv426wLLL5-39q8l9AtIGdTCQ8/view ; ranger back (1631255): https://drive.google.com/file/d/1anqagI6R45MbLiWDDYMpsShif9Lq-Q0A/view ; wizard front (1485019): https://drive.google.com/file/d/1C6roBGPr9YSeQGbpUrRH7bSZx0HAh5cu/view ; wizard back (1547845): https://drive.google.com/file/d/1N2CdlXwBIb2fyOD1TynJw9zFg9BZMQbX/view . Required warrior style reference used; back views edited from each front. Review: crisp chunky style, right-facing shot/bolt poses and complete weapons. Figures oversized versus75%/88% specification. Wizard has more gold decorative trim than simple tier1 brief and spark pixels outside palm; staff crystal above shoulder, rather than exactly at shoulder. Background near key instead of exact. No crop/resize/conversion/recompression.
+
+B3 | 2026-10-05T04:56:09.940Z | heroes | started
