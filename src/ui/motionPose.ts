@@ -159,3 +159,30 @@ export function hurtFlash(hit: number): { color: number; alpha: number } | null 
     ? { color: 0xffffff, alpha: hit - 0.2 }
     : { color: 0xc0201a, alpha: (hit - 0.2) * 0.7 };
 }
+
+// How long after the promised time a swing started by a sim `windup` waits for its `hit`
+// before it counts as cancelled.
+export const CANCEL_GRACE_S = 0.1;
+
+export interface SwingClock {
+  strike: Strike;
+  t: number;
+  windup: number;
+  // Started by a sim `windup` event and still waiting for the matching `hit`.
+  awaitingHit: boolean;
+  leadS: number;
+  fired: readonly [boolean, boolean];
+}
+
+// What to do this frame: which impacts to fire now, and whether the swing was cancelled. An
+// impact waits for its hit when the swing came from a windup event; it fires at its scheduled
+// time (or at once if the hit came late) once the hit has arrived.
+export function swingStep(c: SwingClock): { fire: (0 | 1)[]; cancel: boolean } {
+  if (c.awaitingHit) return { fire: [], cancel: c.t > c.leadS + CANCEL_GRACE_S };
+  const fire: (0 | 1)[] = [];
+  for (const n of [0, 1] as const) {
+    if (n === 1 && c.strike !== 'double') continue;
+    if (!c.fired[n] && c.t >= impactTime(c.strike, c.windup, n)) fire.push(n);
+  }
+  return { fire, cancel: false };
+}

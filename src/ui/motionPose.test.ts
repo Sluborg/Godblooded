@@ -8,6 +8,7 @@ import {
   idlePose,
   impactTime,
   koPose,
+  swingStep,
   walkPose,
   windupFor,
 } from './motionPose';
@@ -68,5 +69,44 @@ describe('motion poses', () => {
     expect(hurtFlash(1)?.color).toBe(0xffffff);
     expect(hurtFlash(0.5)?.color).toBe(0xc0201a);
     expect(hurtFlash(0.1)).toBeNull();
+  });
+
+  it('a swing from a windup event waits for its hit, then fires at once if the hit was late', () => {
+    const w = windupFor('chop', 0.3);
+    const base = { strike: 'chop' as const, windup: w, leadS: 0.3, fired: [false, false] as const };
+    // before the hit arrives nothing fires, even past the impact time
+    expect(swingStep({ ...base, t: 0.31, awaitingHit: true })).toEqual({ fire: [], cancel: false });
+    // the hit arrived: fires once the impact time is reached
+    expect(swingStep({ ...base, t: w, awaitingHit: false }).fire).toEqual([]);
+    expect(swingStep({ ...base, t: impactTime('chop', w, 0), awaitingHit: false }).fire).toEqual([
+      0,
+    ]);
+    // already fired: not again
+    expect(swingStep({ ...base, t: 0.5, awaitingHit: false, fired: [true, false] }).fire).toEqual(
+      [],
+    );
+  });
+
+  it('a windup with no hit by lead plus the grace period is cancelled', () => {
+    const base = {
+      strike: 'chop' as const,
+      windup: 0.25,
+      leadS: 0.3,
+      fired: [false, false] as const,
+      awaitingHit: true,
+    };
+    expect(swingStep({ ...base, t: 0.35 }).cancel).toBe(false);
+    expect(swingStep({ ...base, t: 0.45 }).cancel).toBe(true);
+  });
+
+  it('a double strike fires its second impact after the first', () => {
+    const w = windupFor('double', null);
+    const base = { strike: 'double' as const, windup: w, leadS: 0.1, awaitingHit: false };
+    expect(
+      swingStep({ ...base, t: impactTime('double', w, 0), fired: [false, false] }).fire,
+    ).toEqual([0]);
+    expect(
+      swingStep({ ...base, t: impactTime('double', w, 1), fired: [true, false] }).fire,
+    ).toEqual([1]);
   });
 });
