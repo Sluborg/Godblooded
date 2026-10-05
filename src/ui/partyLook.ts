@@ -1,9 +1,33 @@
 import type { TraitId, UnitMode } from '../sim/api';
 
-// One colour per party so groups can be told apart on the map and in the panel.
-const PARTY_COLORS = [
-  0xe6b422, 0xd9534f, 0x5bc0de, 0xa569bd, 0xf0ad4e, 0x5cb85c, 0xff8fb1, 0xb0b8c0,
-];
+// One colour per party so groups can be told apart on the map and in the panel. Eight colours
+// that read on the green ground and next to each other (no green, no brown); a party's colour
+// is fixed by its id, so it never changes while the party lives.
+export const PARTY_COLORS = [
+  0xe6b422, // gold
+  0xd9534f, // red
+  0x5bc0de, // cyan
+  0xa569bd, // violet
+  0xf0862a, // orange
+  0xff8fb1, // pink
+  0xffffff, // white
+  0x3d6fe0, // royal blue
+] as const;
+
+export type PartyRole = 'leader' | 'member' | 'solo';
+
+// A hero's place in its party: the leader is the first member; a party of one is solo and gets
+// no party colour.
+export function partyRole(
+  unitId: number,
+  partyId: number,
+  parties: readonly { id: number; members: readonly number[] }[],
+): PartyRole {
+  if (partyId <= 0) return 'solo';
+  const p = parties.find((x) => x.id === partyId);
+  if (!p || p.members.length < 2) return 'solo';
+  return p.members[0] === unitId ? 'leader' : 'member';
+}
 
 export function partyColor(party: number): number {
   return PARTY_COLORS[(Math.max(1, party) - 1) % PARTY_COLORS.length];

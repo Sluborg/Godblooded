@@ -19,7 +19,7 @@ import {
   type Strike,
 } from './motionPose';
 import { pickVariant, rotateHue, sizeJitter, tierStyle } from './monsterLook';
-import { partyColor } from './partyLook';
+import { partyColor, partyRole, type PartyRole } from './partyLook';
 import { isSpeechEvent, pickLine, type SpeechKind } from './speechLines';
 import { buildStrike, FxLayer, type Vec } from './strikeFx';
 import { ART_NOMINAL_PX, PLACEHOLDER, UNIT_HEIGHT, baseType, unitArtId } from './unitLook';
@@ -85,6 +85,7 @@ export class UnitView {
   private readonly bar: Phaser.GameObjects.Graphics;
   private readonly ring: Phaser.GameObjects.Graphics;
   private readonly badge: Phaser.GameObjects.Text;
+  private readonly pennant: Phaser.GameObjects.Graphics;
   private readonly label: Phaser.GameObjects.Text;
   private ringKey = '';
   private bubble: Phaser.GameObjects.Container | null = null;
@@ -158,6 +159,7 @@ export class UnitView {
     // Ring at the feet in the party colour (white and thicker when selected), badge with the
     // party number beside the name.
     this.ring = scene.add.graphics();
+    this.pennant = scene.add.graphics();
     this.badge = scene.add
       .text(-this.label.width / 2 - 4, this.label.y, '', {
         fontFamily: 'Georgia, serif',
@@ -173,6 +175,7 @@ export class UnitView {
       this.bar,
       this.label,
       this.badge,
+      this.pennant,
     ]);
   }
 
@@ -321,11 +324,12 @@ export class UnitView {
 
   // ---------- per frame ----------
 
-  update(u: UnitState, ctx: FrameCtx): void {
+  update(u: UnitState, ctx: FrameCtx, role: PartyRole = 'solo'): void {
     this.applyArt(u);
     this.tick(u.pos, u.facing.x, u.ko, ctx);
     this.drawBar(u);
-    this.drawParty(u);
+    this.drawParty(u, role);
+    this.drawPennant(u, role);
   }
 
   // A unit that left the snapshot: it stays where it fell and keeps going down and fading.
@@ -482,22 +486,40 @@ export class UnitView {
 
   // ---------- overlays ----------
 
-  private drawParty(u: UnitState): void {
+  // Party colour under the feet: a tinted ring for every member of a party of two or more, with
+  // the party number beside the name. A solo hero has no party colour (only the white ring
+  // when selected).
+  private drawParty(u: UnitState, role: PartyRole): void {
     const selected = this.scene.registry.get('selectedUnit') === u.id;
-    const key = `${u.party}:${selected}`;
+    const key = `${role}:${u.party}:${selected}`;
     if (key === this.ringKey) return;
     this.ringKey = key;
     this.ring.clear();
-    this.badge.setVisible(u.party > 0);
-    if (u.party > 0) {
+    const inParty = role !== 'solo';
+    this.badge.setVisible(inParty);
+    if (inParty) {
       const c = partyColor(u.party);
       this.badge.setText(`${u.party}`).setBackgroundColor(`#${c.toString(16).padStart(6, '0')}`);
-      this.ring
-        .lineStyle(selected ? 6 : 4, selected ? 0xffffff : c, 0.95)
-        .strokeEllipse(0, -4, 64, 24);
-    } else if (selected) {
-      this.ring.lineStyle(6, 0xffffff, 0.95).strokeEllipse(0, -4, 64, 24);
+      this.ring.fillStyle(c, 0.22).fillEllipse(0, -4, 74, 28);
+      this.ring.lineStyle(5, c, 0.98).strokeEllipse(0, -4, 74, 28);
     }
+    if (selected) this.ring.lineStyle(3, 0xffffff, 0.95).strokeEllipse(0, -4, 86, 34);
+  }
+
+  // The party leader flies a small pennant in the party colour beside its name.
+  private drawPennant(u: UnitState, role: PartyRole): void {
+    this.pennant.clear();
+    if (role !== 'leader') return;
+    const c = partyColor(u.party);
+    const x = this.label.width / 2 + 12;
+    const base = this.label.y;
+    const top = base - 34;
+    const wave = Math.sin(this.phase * 7) * 2.5;
+    this.pennant.lineStyle(3, 0x1a1410, 0.9).lineBetween(x, base, x, top);
+    this.pennant.fillStyle(c, 1).fillTriangle(x, top, x + 24, top + 8 + wave, x, top + 17);
+    this.pennant
+      .lineStyle(2, 0x1a1410, 0.8)
+      .strokeTriangle(x, top, x + 24, top + 8 + wave, x, top + 17);
   }
 
   private drawBar(u: UnitState): void {
@@ -580,6 +602,7 @@ export class UnitViews {
     timeMs: number,
     dtMs: number,
     others: (id: number) => Vec2 | undefined = () => undefined,
+    parties: readonly { id: number; members: readonly number[] }[] = [],
   ): void {
     const dtS = Math.min(MAX_DT_S, dtMs / 1000);
     const ctx: FrameCtx = {
@@ -615,7 +638,7 @@ export class UnitViews {
         view = new UnitView(this.scene, u);
         this.views.set(u.id, view);
       }
-      view.update(u, ctx);
+      view.update(u, ctx, partyRole(u.id, u.party, parties));
     }
     for (const [id, view] of this.views) {
       if (!seen.has(id)) {
