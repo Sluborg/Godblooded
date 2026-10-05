@@ -65,4 +65,4 @@ Lead owns this file. One dated line per decision that changes how the game or th
   - smash (giants, hammers, clubs): weapon raised over the head
   - bolt (casters): staff head, orb or open hand raised in front at shoulder height
   - shot (bows): bow held in front at chest height
-  Art measures each picture's feet anchor and weapon point(s) and ships them in the manifest.
+    Art measures each picture's feet anchor and weapon point(s) and ships them in the manifest.
