@@ -74,7 +74,7 @@ persists, and the currency.
 
 | Kind      | First set                                                                    | Tiers |
 | --------- | ---------------------------------------------------------------------------- | ----- |
-| Classes   | Warrior, Ranger, Wizard, Paladin, Rogue (from Coda); OPEN: a sixth (healer?) | 3     |
+| Classes   | Warrior, Paladin, Ranger, Rogue, Wizard, Healer (heals and buffs)            | 3     |
 | Monsters  | 6 types, draft: draugr, troll, harpy, minotaur, jackal-man, wyrm (boss)      | 3     |
 | Buildings | Town hall, 3 temples (one per pantheon), market, smithy, shrine, guard tower | 3     |
 | Traits    | Brave, Coward, Greedy, Proud, Loyal, Vengeful, Curious                       | n/a   |
@@ -90,18 +90,27 @@ armor as saturating curves capped at 90%; attack time from weapon base reduced b
 knockout by default, permadeath only against bosses). Sim may simplify for the graybox and
 says so in `docs/decisions.md`.
 
-## Favor paths (draft, OPEN for Stefan)
+## Favor paths
 
-Taken at the first tier-up (party level 3); the second tier-up (level 6) is the same path's
-stronger form. Names from Stefan's concept sheets where they exist.
+Six tier 1 classes shared by every pantheon: two strength (warrior, paladin), two dexterity
+(ranger, rogue), two casters (wizard, healer). At most two heroes of each class in town. At the
+first tier-up (party level 3) a hero takes a **favor path**: one god of a pantheon whose temple
+stands, one hero per path at a time; tier 3 (level 6) is the same path's stronger form. One path
+per class per pantheon, so a second hero of a class needs a second pantheon's temple to tier up.
+If more than one path is free, the player picks it on the level-up card.
 
-| Class   | Aesir                   | Greek                         | Egyptian                  |
-| ------- | ----------------------- | ----------------------------- | ------------------------- |
-| Warrior | Storm Berserker (Thor)  | Witchblade (Hecate)           | Moonclaw Duelist (Bastet) |
-| Rogue   | Rune Trickster (Loki)   | (new: Hermes)                 | Night Stalker (Bastet)    |
-| Wizard  | Fate Weaver (Frigg)     | Storm Oracle (Zeus)           | Hieroglyph Sage (Thoth)   |
-| Paladin | Valkyrie Skald (Freyja) | Queen of Seasons (Persephone) | Soul Warden (Anubis)      |
-| Ranger  | (new: Skadi)            | (new: Artemis)                | Divine Artificer (Ptah)   |
+**Aesir (Stefan, 2026-10-05):**
+
+| Class   | Path            | God      | Strike | Look                                                     |
+| ------- | --------------- | -------- | ------ | -------------------------------------------------------- |
+| Warrior | Storm Berserker | Thor     | chop   | Daughter of Thor (concept sheet): axe or hammer, storm   |
+| Paladin | Oathsworn       | Tyr      | chop   | one-handed sword, big round shield, iron and honour      |
+| Ranger  | Bifrost Warden  | Heimdall | shot   | watchman with a bow and the Gjallarhorn, rainbow accents |
+| Rogue   | Rune Trickster  | Loki     | double | Son of Loki (concept sheet): twin daggers, green, masks  |
+| Wizard  | Raven Seer      | Odin     | bolt   | spear-staff, one eye, two ravens, runes                  |
+| Healer  | Valkyrie Skald  | Freyja   | bolt   | Son of Freyja (concept sheet): harp, feathered cloak     |
+
+Greek and Egyptian paths: later, same shape (one path per class per pantheon).
 
 ## Milestones
 
@@ -117,5 +126,4 @@ Art for M2 starts in parallel with M1 once the style test (Art backlog) is appro
 ## OPEN (Stefan decides)
 
 - The 3 gods per pantheon and each pantheon's boon theme.
-- Sixth class.
 - What persists between runs.

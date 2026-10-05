@@ -83,3 +83,7 @@ Lead owns this file. One dated line per decision that changes how the game or th
   - **UI:** a button and panel kit plus a logo and app icon (new ChatGPT track `ui`).
 - 2026-10-05: Five graybox classes (PR #63: wizard, paladin, rogue added) and the class cap of two
   (Sim PR #62). Sim bot: 60% wins, median run 15.1 min.
+- 2026-10-05: Heroes structure (Stefan): six classes (two strength, two dexterity, two casters;
+  the sixth is the Healer), one favor path per class per pantheon. Aesir paths: Thor (warrior),
+  Tyr (paladin), Heimdall (ranger), Loki (rogue), Odin (wizard), Freyja (healer). Table in
+  `docs/game-design.md`, "Favor paths".
