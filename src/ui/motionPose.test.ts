@@ -7,6 +7,8 @@ import {
   hurtFlash,
   idlePose,
   impactTime,
+  isStrike,
+  resolveStrike,
   koPose,
   swingStep,
   walkPose,
@@ -122,5 +124,23 @@ describe('motion poses', () => {
     expect(slam.sy).toBeLessThan(0.93);
     const end = attackPose('stomp', attackDuration('stomp', w), 100, w);
     expect(Math.abs(end.sx - 1) + Math.abs(end.sy - 1)).toBeLessThan(0.01);
+  });
+
+  it('resolves the strike from the row, then the type, then a chop, and never throws', () => {
+    const warnings: string[] = [];
+    const warn = (m: string) => warnings.push(m);
+    expect(resolveStrike('thrust', 'bolt', warn)).toBe('thrust');
+    expect(resolveStrike(undefined, 'bolt', warn)).toBe('bolt');
+    expect(resolveStrike(undefined, undefined, warn)).toBe('chop');
+    expect(warnings).toEqual([]);
+    // an unknown string falls back to the type's strike, else a chop, and is reported
+    expect(resolveStrike('flurry', 'sweep', warn)).toBe('sweep');
+    expect(resolveStrike('flurry', 'also-unknown', warn)).toBe('chop');
+    expect(resolveStrike(42, null, warn)).toBe('chop');
+    expect(warnings).toHaveLength(3);
+    // whatever it returns is a strike the timeline knows
+    for (const v of ['flurry', 42, null, undefined, {}, 'constructor'])
+      expect(isStrike(resolveStrike(v, undefined))).toBe(true);
+    expect(() => attackPose(resolveStrike('toString', undefined), 0.1, 100, 0.2)).not.toThrow();
   });
 });
