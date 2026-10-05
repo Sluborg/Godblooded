@@ -15,8 +15,8 @@ Take the first **Ready** batch of **your track** that is not in the upload log; 
 | B1    | heroes    | `B1.md` | Style test: warrior front and back, draugr, town hall           | 4      | Void   |
 | B2    | heroes    | `B2.md` | Ranger and wizard t1, front and back                            | 4      | Done   |
 | B3    | heroes    | `B3.md` | Paladin and rogue t1, front and back                            | 4      | Done   |
-| B4    | monsters  | `B4.md` | Draugr, troll, harpy t1, front only                             | 3      | Ready  |
-| B5    | monsters  | `B5.md` | Minotaur, jackal-man, wyrm t1, front only                       | 3      | Ready  |
-| B6    | buildings | `B6.md` | Temples t1: Aesir, Greek, Egyptian                              | 3      | Ready  |
-| B7    | buildings | `B7.md` | Town hall, market, smithy, shrine, tower t1                     | 5      | Ready  |
+| B4    | monsters  | `B4.md` | Draugr, troll, harpy t1, front only                             | 3      | Done   |
+| B5    | monsters  | `B5.md` | Minotaur, jackal-man, wyrm t1, front only                       | 3      | Done   |
+| B6    | buildings | `B6.md` | Temples t1: Aesir, Greek, Egyptian                              | 3      | Done   |
+| B7    | buildings | `B7.md` | Town hall, market, smithy, shrine, tower t1                     | 5      | Done   |
 | B8    | heroes    | `B8.md` | Warrior t1 back (front = S4 chunky warrior)                     | 1      | Done   |

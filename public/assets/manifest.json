@@ -1,6 +1,94 @@
 {
   "assets": [
     {
+      "id": "bld_market_t1",
+      "kind": "bld",
+      "tier": 1,
+      "view": null,
+      "file": "buildings/bld_market_t1.png",
+      "anchorX": 0.606,
+      "anchorY": 0.995,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "B7"
+    },
+    {
+      "id": "bld_shrine_t1",
+      "kind": "bld",
+      "tier": 1,
+      "view": null,
+      "file": "buildings/bld_shrine_t1.png",
+      "anchorX": 0.558,
+      "anchorY": 0.996,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "B7"
+    },
+    {
+      "id": "bld_smithy_t1",
+      "kind": "bld",
+      "tier": 1,
+      "view": null,
+      "file": "buildings/bld_smithy_t1.png",
+      "anchorX": 0.58,
+      "anchorY": 0.996,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "B7"
+    },
+    {
+      "id": "bld_temple_aesir_t1",
+      "kind": "bld",
+      "tier": 1,
+      "view": null,
+      "file": "buildings/bld_temple_aesir_t1.png",
+      "anchorX": 0.701,
+      "anchorY": 0.996,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "B6"
+    },
+    {
+      "id": "bld_temple_egyptian_t1",
+      "kind": "bld",
+      "tier": 1,
+      "view": null,
+      "file": "buildings/bld_temple_egyptian_t1.png",
+      "anchorX": 0.689,
+      "anchorY": 0.996,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "B6"
+    },
+    {
+      "id": "bld_temple_greek_t1",
+      "kind": "bld",
+      "tier": 1,
+      "view": null,
+      "file": "buildings/bld_temple_greek_t1.png",
+      "anchorX": 0.529,
+      "anchorY": 0.996,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "B6"
+    },
+    {
+      "id": "bld_tower_t1",
+      "kind": "bld",
+      "tier": 1,
+      "view": null,
+      "file": "buildings/bld_tower_t1.png",
+      "anchorX": 0.577,
+      "anchorY": 0.997,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "B7"
+    },
+    {
+      "id": "bld_townhall_t1",
+      "kind": "bld",
+      "tier": 1,
+      "view": null,
+      "file": "buildings/bld_townhall_t1.png",
+      "anchorX": 0.615,
+      "anchorY": 0.996,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "B7"
+    },
+    {
       "id": "hero_paladin_t1_back",
       "kind": "hero",
       "tier": 1,
@@ -143,6 +231,90 @@
       "weaponY": 0.105,
       "license": "own (ChatGPT, Stefan's account)",
       "source": "B2"
+    },
+    {
+      "id": "mon_draugr_t1_front",
+      "kind": "mon",
+      "tier": 1,
+      "view": "front",
+      "file": "units/mon_draugr_t1_front.png",
+      "anchorX": 0.529,
+      "anchorY": 0.992,
+      "strike": "chop",
+      "weaponX": 0.413,
+      "weaponY": 0.137,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "B4"
+    },
+    {
+      "id": "mon_harpy_t1_front",
+      "kind": "mon",
+      "tier": 1,
+      "view": "front",
+      "file": "units/mon_harpy_t1_front.png",
+      "anchorX": 0.595,
+      "anchorY": 0.992,
+      "strike": "upward",
+      "weaponX": 0.633,
+      "weaponY": 0.873,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "B4"
+    },
+    {
+      "id": "mon_jackal-man_t1_front",
+      "kind": "mon",
+      "tier": 1,
+      "view": "front",
+      "file": "units/mon_jackal-man_t1_front.png",
+      "anchorX": 0.586,
+      "anchorY": 0.992,
+      "strike": "sweep",
+      "weaponX": 0.139,
+      "weaponY": 0.447,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "B5"
+    },
+    {
+      "id": "mon_minotaur_t1_front",
+      "kind": "mon",
+      "tier": 1,
+      "view": "front",
+      "file": "units/mon_minotaur_t1_front.png",
+      "anchorX": 0.56,
+      "anchorY": 0.992,
+      "strike": "chop",
+      "weaponX": 0.2,
+      "weaponY": 0.124,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "B5"
+    },
+    {
+      "id": "mon_troll_t1_front",
+      "kind": "mon",
+      "tier": 1,
+      "view": "front",
+      "file": "units/mon_troll_t1_front.png",
+      "anchorX": 0.619,
+      "anchorY": 0.992,
+      "strike": "stomp",
+      "weaponX": 0.892,
+      "weaponY": 0.938,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "B4"
+    },
+    {
+      "id": "mon_wyrm_t1_front",
+      "kind": "mon",
+      "tier": 1,
+      "view": "front",
+      "file": "units/mon_wyrm_t1_front.png",
+      "anchorX": 0.428,
+      "anchorY": 0.992,
+      "strike": "thrust",
+      "weaponX": 0.929,
+      "weaponY": 0.321,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "B5"
     }
   ]
 }
