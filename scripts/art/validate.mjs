@@ -6,6 +6,8 @@ import { fileURLToPath } from 'node:url';
 import { alphaReport, kindOf, parseId, readPng } from './lib.mjs';
 
 const FIELDS = ['id', 'kind', 'file', 'license', 'source'];
+// Strike types (docs/asset-spec.md, pose standard).
+export const STRIKES = ['chop', 'double', 'sweep', 'upward', 'thrust', 'smash', 'bolt', 'shot'];
 // Upper bounds on shipped size (px), a little above nominal so tier-3 silhouettes fit.
 const MAX = { units: [400, 420], buildings: [640, 720], terrain: [512, 512], ui: [512, 512] };
 
@@ -48,9 +50,23 @@ export function validateAssets(root = '.') {
     if ((row.part ?? null) !== part) err(id, `part must be ${part}`);
     for (const a of ['anchorX', 'anchorY'])
       if (typeof row[a] !== 'number' || row[a] < 0 || row[a] > 1) err(id, `${a} must be 0..1`);
-    for (const a of ['pivotX', 'pivotY'])
+    for (const a of ['pivotX', 'pivotY', 'weaponX', 'weaponY', 'weapon2X', 'weapon2Y'])
       if (row[a] !== undefined && (typeof row[a] !== 'number' || row[a] < 0 || row[a] > 1))
         err(id, `${a} must be 0..1`);
+    for (const p of ['pivot', 'weapon', 'weapon2'])
+      if ((row[`${p}X`] === undefined) !== (row[`${p}Y`] === undefined))
+        err(id, `${p}X and ${p}Y go together`);
+    // A unit still (hero or monster, no rig or frame part) must carry its strike and weapon.
+    if (k.dir === 'units' && part === null) {
+      if (row.strike === undefined) err(id, 'unit needs "strike"');
+      if (row.weaponX === undefined) err(id, 'unit needs weaponX/weaponY');
+    }
+    if (row.strike !== undefined && !STRIKES.includes(row.strike))
+      err(id, `strike must be one of ${STRIKES.join(', ')}`);
+    if (row.strike === 'double' && row.weapon2X === undefined)
+      err(id, 'strike "double" needs weapon2X/weapon2Y');
+    if (row.weapon2X !== undefined && row.strike !== 'double')
+      err(id, 'weapon2X/weapon2Y only go with strike "double"');
     const expected = `${k.dir}/${id}.png`;
     if (row.file !== expected) err(id, `file must be ${expected}`);
     const path = join(assets, row.file ?? '');

@@ -5,9 +5,14 @@
 // Usage: node scripts/art/ship.mjs <folder> <batch> [id ...]   (ids limit which files ship)
 // Only files of that batch ship: `<batch>--<id>.png`, or unprefixed `<id>.png` (a folder holding
 // one batch). Trial images (`test--`) and other batches' files are skipped.
-import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+// Unit stills need an entry in `<folder>/points.json` (Art writes it at review, raw canvas px):
+//   { "<id>": { "strike": "chop", "weapon": [x, y], "weapon2": [x, y] } }   (weapon2: double only)
+// It is kept as assets/source/<batch>/points.json, so a re-ship finds the points again.
+import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 import {
   collectUploads,
+  kindOf,
   parseId,
   processFrames,
   processImage,
@@ -32,7 +37,10 @@ const dupes = uploads.map((u) => u.id).filter((id, i, all) => all.indexOf(id) !=
 if (dupes.length) throw new Error(`more than one upload for ${[...new Set(dupes)].join(', ')}`);
 // Rig pieces ship as pairs (`<base>_body` + `<base>_arm`) with one shared crop.
 const byId = new Map(uploads.map((u) => [u.id, u]));
-const ship = (id, path, r) => {
+const readJson = (p) => (existsSync(p) ? JSON.parse(readFileSync(p, 'utf-8')) : {});
+const keptPointsPath = `assets/source/${batch}/points.json`;
+const points = { ...readJson(keptPointsPath), ...readJson(join(dir, 'points.json')) };
+const ship = (id, path, r, strike) => {
   mkdirSync(`assets/source/${batch}`, { recursive: true });
   copyFileSync(path, `assets/source/${batch}/${id}.png`);
   const file = `${r.dir}/${id}.png`;
@@ -49,6 +57,9 @@ const ship = (id, path, r) => {
     anchorX: r.anchorX,
     anchorY: r.anchorY,
     ...pivot,
+    ...(strike ? { strike } : {}),
+    ...(r.weaponX === undefined ? {} : { weaponX: r.weaponX, weaponY: r.weaponY }),
+    ...(r.weapon2X === undefined ? {} : { weapon2X: r.weapon2X, weapon2Y: r.weapon2Y }),
     license: LICENSE,
     source: batch,
   });
@@ -99,7 +110,15 @@ for (const { id, path } of uploads) {
     ship(arm.id, arm.path, pair.arm);
     continue;
   }
-  ship(id, path, processImage(readPng(path), id));
+  if (kindOf(id)?.dir !== 'units' || part) {
+    ship(id, path, processImage(readPng(path), id));
+    continue;
+  }
+  const p = points[id];
+  if (!p?.strike || !p.weapon)
+    throw new Error(`${id}: needs strike and weapon in ${dir}/points.json (see ship.mjs header)`);
+  const at = { weapon: p.weapon, ...(p.weapon2 ? { weapon2: p.weapon2 } : {}) };
+  ship(id, path, processImage(readPng(path), id, at), p.strike);
 }
 for (const u of uploads)
   if (parseId(u.id).part === 'arm' && !byId.has(u.id.replace(/_arm$/, '_body')))
@@ -110,4 +129,8 @@ manifest.assets = manifest.assets
   .concat(rows)
   .sort((a, b) => a.id.localeCompare(b.id));
 writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + '\n');
+if (Object.keys(points).length) {
+  mkdirSync(`assets/source/${batch}`, { recursive: true });
+  writeFileSync(keptPointsPath, JSON.stringify(points, null, 2) + '\n');
+}
 console.log(`manifest: ${rows.length} rows added or replaced, ${manifest.assets.length} total`);

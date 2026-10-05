@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { mkdtempSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
@@ -13,6 +13,7 @@ import {
   processImage,
   processFrames,
   processPair,
+  writePng,
 } from './lib.mjs';
 import { validateAssets } from './validate.mjs';
 
@@ -119,6 +120,20 @@ describe('processImage', () => {
     expect(processImage(img, 'hero_warrior_t1_front').specks).toBeGreaterThan(0);
   });
 
+  it('maps raw weapon points onto the shipped picture', () => {
+    const r = processImage(canvas(1024, GREEN, unitRect), 'hero_warrior_t1_front', {
+      weapon: [unitRect.x, unitRect.y],
+      weapon2: [512, 901],
+    });
+    // Top-left corner of the figure: just inside the 2 px margin.
+    expect(r.weaponX).toBeGreaterThan(0);
+    expect(r.weaponX).toBeLessThan(0.06);
+    expect(r.weaponY).toBeLessThan(0.02);
+    // Bottom centre of the figure: the feet anchor.
+    expect(r.weapon2X).toBeCloseTo(r.anchorX, 2);
+    expect(r.weapon2Y).toBeCloseTo(r.anchorY, 2);
+  });
+
   it('refuses a non-key background', () => {
     expect(() => processImage(canvas(256, [80, 80, 80], unitRect), 'hero_x_t1_front')).toThrow();
   });
@@ -199,6 +214,50 @@ describe('collectUploads', () => {
       ['mon_b_t1_front', null, false],
       ['hero_a_t1_back', null, true],
     ]);
+  });
+});
+
+describe('strike fields', () => {
+  // A temp repo with one shipped unit and the given extra manifest fields.
+  function errorsFor(extra) {
+    const root = mkdtempSync(join(tmpdir(), 'art-'));
+    mkdirSync(join(root, 'public/assets/units'), { recursive: true });
+    const r = processImage(canvas(1024, GREEN, unitRect), 'hero_warrior_t1_front');
+    writePng(join(root, 'public/assets/units/hero_warrior_t1_front.png'), r.image);
+    const row = {
+      id: 'hero_warrior_t1_front',
+      kind: 'hero',
+      tier: 1,
+      view: 'front',
+      file: 'units/hero_warrior_t1_front.png',
+      anchorX: r.anchorX,
+      anchorY: r.anchorY,
+      license: 'own',
+      source: 'T1',
+      ...extra,
+    };
+    writeFileSync(join(root, 'public/assets/manifest.json'), JSON.stringify({ assets: [row] }));
+    return validateAssets(root).errors;
+  }
+
+  it('accepts a strike with its weapon point', () => {
+    expect(errorsFor({ strike: 'chop', weaponX: 0.1, weaponY: 0.2 })).toEqual([]);
+    expect(
+      errorsFor({ strike: 'double', weaponX: 0.1, weaponY: 0.2, weapon2X: 0.9, weapon2Y: 0.6 }),
+    ).toEqual([]);
+  });
+
+  it('requires strike and weapon on a unit still', () => {
+    const errors = errorsFor({}).join();
+    expect(errors).toMatch(/needs "strike"/);
+    expect(errors).toMatch(/needs weaponX/);
+  });
+
+  it('rejects bad strikes and half points', () => {
+    expect(errorsFor({ strike: 'kick' }).join()).toMatch(/strike must be/);
+    expect(errorsFor({ strike: 'chop', weaponX: 0.1 }).join()).toMatch(/go together/);
+    expect(errorsFor({ strike: 'double', weaponX: 0.1, weaponY: 0.2 }).join()).toMatch(/needs/);
+    expect(errorsFor({ weaponX: 1.5, weaponY: 0.2 }).join()).toMatch(/0\.\.1/);
   });
 });
 

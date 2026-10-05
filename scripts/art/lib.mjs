@@ -324,11 +324,18 @@ function crop({ keyed, scale }, rect, anchor) {
 }
 
 // Raw ChatGPT canvas -> game sprite plus anchor (0..1, Phaser origin). Throws on bad input.
-export function processImage(raw, id) {
+// `points` ({ weapon: [x, y], weapon2: [x, y] }, raw canvas pixels) come back as weaponX/weaponY
+// etc., 0..1 of the shipped image.
+export function processImage(raw, id, points = {}) {
   const r = keyRaw(raw, id);
   const anchor = anchorPoint(r.keyed, r.k.anchor);
   if (!anchor) throw new Error(`${id}: nothing left after key-out`);
-  const out = crop(r, trimRect(anchor.box, r.scale), anchor);
+  const rect = trimRect(anchor.box, r.scale);
+  const out = crop(r, rect, anchor);
+  for (const [name, [x, y]] of Object.entries(points)) {
+    out[`${name}X`] = round3((x - rect.x) / rect.w);
+    out[`${name}Y`] = round3((y - rect.y) / rect.h);
+  }
   return { ...out, kind: r.k.kind, dir: r.k.dir, key: r.key, specks: r.specks };
 }
 
