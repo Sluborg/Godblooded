@@ -44,8 +44,8 @@ Review (PR open), Done. A worker takes its top Open row.
 | 65    | Smoke run: `npm run smoke` (Playwright, phone viewport) builds a temple and market, runs 4x for 3 game minutes, saves screenshots and fails on console errors                                             | Done   |
 | 70    | Motion system (decisions 2026-10-05): hop walk, windup + lunge, strike effect from manifest `strike` + weapon points, hurt flash, KO fall, footprint spacing; reference `docs/reference/motion-test.html` | Done   |
 | 85    | Front picture only, mirrored; drop the `_back` lookup                                                                                                                                                     | Done   |
-| 90    | Party colours: ring under each member, banner over the leader, stable colour per party                                                                                                                    | Open   |
-| 95    | Monster tiers by colour (hue shift + size), skin variants `-v2`/`-v3` per unit id, small scale jitter                                                                                                     | Open   |
+| 90    | Party colours: ring under each member, banner over the leader, stable colour per party                                                                                                                    | Done   |
+| 95    | Monster tiers by colour (hue shift + size), skin variants `-v2`/`-v3` per unit id, small scale jitter                                                                                                     | Done   |
 
 ## Art
 
