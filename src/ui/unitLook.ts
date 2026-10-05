@@ -6,6 +6,12 @@ export const UNIT_HEIGHT = 120;
 // Art ships about 256 px tall at nominal size, so this is the scale of a picture.
 export const ART_NOMINAL_PX = 256;
 
+// Manifest id of a unit's picture. Front view only (decisions 2026-10-05): the picture faces
+// right and is mirrored by direction, so facing up or down never picks another picture.
+export function unitArtId(kind: 'hero' | 'monster', type: string, tier: number): string {
+  return `${kind === 'hero' ? 'hero' : 'mon'}_${type}_t${tier}_front`;
+}
+
 // Skin variants of one unit share its look: `draugr-v2` is a draugr. Strips a trailing `-v<n>`.
 export function baseType(name: string): string {
   return name.replace(/-v\d+$/, '');
