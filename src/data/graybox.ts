@@ -1,6 +1,6 @@
 // Graybox content (M1). Lead owns these numbers; Sim reads them. Ids match the art manifest
 // types (`hero_<class>`, `mon_<type>`, `bld_<type>`), so `bld_${id}_t${tier}` finds the sprite.
-import type { ClassDef, GameData, LairDef, MonsterDef, UpgradeDef } from '../sim/types';
+import type { ClassDef, GameData, LairDef, MonsterDef, PathDef, UpgradeDef } from '../sim/types';
 
 // Derived (Sim): hp = sta * 8 + str * 4, damage = str, attack time = weapon base reduced by dex.
 
@@ -47,6 +47,77 @@ export const CLASSES: readonly ClassDef[] = [
   },
 ];
 
+// Aesir favor paths (docs/game-design.md, "Favor paths"); ids match the art (hero_<id>_t2_front).
+// Bonus is [tier 2, tier 3 total], kept modest: the tier is the visual reward.
+export const PATHS: readonly PathDef[] = [
+  {
+    id: 'warrior-thor',
+    class: 'warrior',
+    pantheon: 'aesir',
+    god: 'thor',
+    name: 'Storm Berserker',
+    attrs: [
+      { str: 1, sta: 1 },
+      { str: 2, sta: 2 },
+    ],
+  },
+  {
+    id: 'paladin-tyr',
+    class: 'paladin',
+    pantheon: 'aesir',
+    god: 'tyr',
+    name: 'Oathsworn',
+    attrs: [
+      { sta: 1, wp: 1 },
+      { sta: 2, wp: 2 },
+    ],
+  },
+  {
+    id: 'ranger-heimdall',
+    class: 'ranger',
+    pantheon: 'aesir',
+    god: 'heimdall',
+    name: 'Bifrost Warden',
+    attrs: [
+      { dex: 1, per: 1 },
+      { dex: 2, per: 2 },
+    ],
+  },
+  {
+    id: 'rogue-loki',
+    class: 'rogue',
+    pantheon: 'aesir',
+    god: 'loki',
+    name: 'Rune Trickster',
+    attrs: [
+      { dex: 1, str: 1 },
+      { dex: 2, str: 2 },
+    ],
+  },
+  {
+    id: 'wizard-odin',
+    class: 'wizard',
+    pantheon: 'aesir',
+    god: 'odin',
+    name: 'Raven Seer',
+    attrs: [
+      { str: 1, int: 1 },
+      { str: 2, int: 2 },
+    ],
+  },
+  {
+    id: 'healer-freyja',
+    class: 'healer',
+    pantheon: 'aesir',
+    god: 'freyja',
+    name: 'Valkyrie Skald',
+    attrs: [
+      { int: 1, wp: 1 },
+      { int: 2, wp: 2 },
+    ],
+  },
+];
+
 export const MONSTERS: readonly MonsterDef[] = [
   {
     id: 'draugr',
@@ -67,7 +138,7 @@ export const MONSTERS: readonly MonsterDef[] = [
 // The barrow is the early fight; the troll den is the final lair (win when it falls).
 export const LAIRS: readonly LairDef[] = [
   { id: 'barrow', monster: 'draugr', spawnS: 10, maxAlive: 6, hp: 3500 },
-  { id: 'troll-den', monster: 'troll', spawnS: 25, maxAlive: 6, hp: 22000 },
+  { id: 'troll-den', monster: 'troll', spawnS: 25, maxAlive: 6, hp: 27000 },
 ];
 
 // Level-up cards; a party is offered 3 different ones. Graybox set: stats, sustain, nerve.
@@ -139,6 +210,7 @@ export const GRAYBOX: GameData = {
     town: { raidFirstMs: 400_000, raidEveryMs: 120_000, raidGrowEveryMs: 240_000 },
   },
   classes: CLASSES,
+  paths: PATHS,
   upgrades: UPGRADES,
   monsters: MONSTERS,
   lairs: LAIRS,
