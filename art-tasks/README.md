@@ -42,9 +42,17 @@ commit to it when there is new work; `art-wake/TRACKS.md` on that branch lists t
 work. Watch that pull request (opened, reopened, new commits). When it fires: read
 `art-wake/TRACKS.md`; if your track is listed, do "run all". If not, do nothing.
 
-**No double work:** when you start a batch, append `<batch> | <date time> | started` to
-`art-inbox/STATUS.md`. Skip a batch with a `started` line from the last 90 minutes or an
-`uploaded` line.
+**No double work:** there is exactly **one chat per track**, so every claim of your track is
+yours. When you start a batch, append `<batch> | <date time> | <track> | started` to
+`art-inbox/STATUS.md`.
+
+- A batch with an `uploaded` line is done: skip it.
+- A batch of **your track** with a `started` line but no `uploaded` line is **yours** (a wake-up
+  and a command from Stefan can both start the same chat, seconds apart): continue it, do not
+  stop, do not add a second claim.
+- If writing the log fails with a conflict (HTTP 409), fetch the file again, check whether your
+  line is already there, and append it once if not. Never stop because of a conflict.
+- If Stefan's command and a wake-up overlap, follow Stefan's command and make each image once.
 
 ## Commands from Stefan
 
@@ -66,7 +74,7 @@ work. Watch that pull request (opened, reopened, new commits). When it fires: re
 - **Images:** unchanged PNG, uploaded to the Drive folder "Godblooded art-inbox", named
   `<batch>--<id>.png` (e.g. `B2--hero_warrior_t1_front.png`). A redo reuses the name. Never resize,
   crop, convert or recompress.
-- **Upload log:** after each batch append `<batch> | <date time> | <ids> | uploaded` to
+- **Upload log:** after each batch append `<batch> | <date time> | <track> | <ids> | uploaded` to
   `art-inbox/STATUS.md` on branch `art-inbox`. Never write to `main`; never edit other files.
 - **Fallbacks if Drive fails:** PNG to GitHub `art-inbox/<batch>/<id>.png` on branch
   `art-inbox`; if too large, base64 text `<id>.png.b64` (split `.b64.001`, `.002`, ... if needed).
