@@ -253,6 +253,10 @@ describe('strike fields', () => {
     expect(errors).toMatch(/needs weaponX/);
   });
 
+  it('accepts a stomp with the front foot as its point', () => {
+    expect(errorsFor({ strike: 'stomp', weaponX: 0.6, weaponY: 0.98 })).toEqual([]);
+  });
+
   it('rejects bad strikes and half points', () => {
     expect(errorsFor({ strike: 'kick' }).join()).toMatch(/strike must be/);
     expect(errorsFor({ strike: 'chop', weaponX: 0.1 }).join()).toMatch(/go together/);

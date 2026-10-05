@@ -7,7 +7,17 @@ import { alphaReport, kindOf, parseId, readPng } from './lib.mjs';
 
 const FIELDS = ['id', 'kind', 'file', 'license', 'source'];
 // Strike types (docs/asset-spec.md, pose standard).
-export const STRIKES = ['chop', 'double', 'sweep', 'upward', 'thrust', 'smash', 'bolt', 'shot'];
+export const STRIKES = [
+  'chop',
+  'double',
+  'sweep',
+  'upward',
+  'thrust',
+  'smash',
+  'bolt',
+  'shot',
+  'stomp',
+];
 // Upper bounds on shipped size (px), a little above nominal so tier-3 silhouettes fit.
 const MAX = { units: [400, 420], buildings: [640, 720], terrain: [512, 512], ui: [512, 512] };
 

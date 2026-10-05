@@ -29,8 +29,8 @@ Names are lowercase letters; a name of several words joins them with a hyphen
   strike effect, flash, fall). Whether units keep a `back` view is open (Stefan); until he
   decides, both views stay and each follows this rule.
 - The **weapon's position is fixed by the unit's strike** (table in `art-tasks/STYLE.md`): overhead
-  chop, double chop, side sweep, upward, thrust, smash, bolt, shot. Every batch item names its
-  strike.
+  chop, double chop, side sweep, upward, thrust, smash, stomp, bolt, shot. Every batch item names
+  its strike.
 - The shipped picture carries the **feet anchor** and the **weapon point(s)** (see Manifest), so
   the strike effect starts at the weapon.
 
@@ -108,10 +108,10 @@ Silhouette must change between tiers (not only colour), so a tier reads at phone
 - Rig pieces add `part` (`body` or `arm`); arm rows add `pivotX`, `pivotY`.
 - Unit stills (hero and mon rows without `part`) must carry the strike and weapon points (all
   fractions 0..1 of the shipped picture):
-  - `strike`: `chop`, `double`, `sweep`, `upward`, `thrust`, `smash`, `bolt` or `shot`
+  - `strike`: `chop`, `double`, `sweep`, `upward`, `thrust`, `smash`, `stomp`, `bolt` or `shot`
   - `weaponX`, `weaponY`: where the strike starts (the weapon head or tip; for `bolt` the head of
     the staff or wand in the front hand, or the focus (orb, casting hand) when there is none; for
-    `shot` the bow)
+    `shot` the bow; for `stomp` the front foot, where the shockwave starts)
   - `weapon2X`, `weapon2Y`: the second weapon, only for `double` (`weapon` = the one high behind,
     `weapon2` = the one low in front)
 - `file` is relative to `public/assets/`. `source` is the batch; the untouched upload is kept at
