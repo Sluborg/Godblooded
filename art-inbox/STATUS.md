@@ -90,3 +90,5 @@ B5 delivery: unchanged 1254x1254 PNGs from built-in image generation with requir
 B4 measurements supplement: draugr1566413 bytes height87.7%/lowest91.3%; troll1764782 bytes74.7%/86.9%; harpy1692442 bytes89.9%/93.8%. Corner RGB draugr/troll241,11,239;harpy244,10,241. All untouched original generated PNGs.
 
 B7 | 2026-10-05T05:45:55.456Z | buildings | bld_townhall_t1, bld_market_t1, bld_smithy_t1, bld_shrine_t1, bld_tower_t1 | uploaded
+
+A1 | 2026-10-05T06:31:44Z | heroes | started
