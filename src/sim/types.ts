@@ -69,6 +69,8 @@ export interface HeroTuning {
   firstRecruitMs: number;
   recruitMs: number;
   maxPerTemple: number;
+  // Most heroes of one class alive in town (knocked-out ones count); temples skip a full class.
+  maxPerClass: number;
   koMs: number;
   reviveHp: number;
   restPerS: number;

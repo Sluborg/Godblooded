@@ -63,7 +63,14 @@ export function runTemples(world: World): void {
     let alive = 0;
     for (const rt of world.heroRuntime.values()) if (rt.temple === b.id) alive++;
     if (alive >= tune(world).maxPerTemple) continue;
-    const cls = classes[Math.floor(world.rng() * classes.length)];
+    // Classes already at the cap are skipped; with none left, nobody comes this cycle.
+    const open = classes.filter(
+      (c) =>
+        world.units.filter((u) => u.kind === 'hero' && u.type === c.id).length <
+        tune(world).maxPerClass,
+    );
+    if (open.length === 0) continue;
+    const cls = open[Math.floor(world.rng() * open.length)];
     spawnHero(world, cls.id, b.pos, b.id);
   }
 }
