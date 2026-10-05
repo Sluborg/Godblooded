@@ -66,3 +66,6 @@ Lead owns this file. One dated line per decision that changes how the game or th
   - bolt (casters): staff head, orb or open hand raised in front at shoulder height
   - shot (bows): bow held in front at chest height
     Art measures each picture's feet anchor and weapon point(s) and ships them in the manifest.
+- 2026-10-05: House style locked: **chunky** (batch S4), about 3.5 to 4 heads tall, oversized
+  weapons, thick outline, gritty concept-sheet palette (`art-tasks/STYLE.md`). Casters hold the
+  staff in the front hand. Back views: undecided, both kept for now.
