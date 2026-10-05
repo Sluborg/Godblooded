@@ -6,6 +6,8 @@ import {
   runParties,
   hasPendingPick,
   effectiveAttrs,
+  pathStates,
+  pickPath,
   pickUpgrade,
   shareXp,
   xpNext,
@@ -204,6 +206,7 @@ function runLairs(world: World): void {
       kind: 'monster',
       type: mon.id,
       tier: lair.tier,
+      path: null,
       pos: { ...lair.pos },
       facing: { x: 0, y: 1 },
       hp,
@@ -428,6 +431,8 @@ export function command(world: World, cmd: Command): CommandResult {
     }
     case 'pickUpgrade':
       return pickUpgrade(world, cmd.party, cmd.upgrade);
+    case 'pickPath':
+      return pickPath(world, cmd.party, cmd.path);
     case 'placeBounty': {
       if (!inMap(world, cmd.pos)) return { ok: false, reason: 'off map' };
       if (!Number.isInteger(cmd.gold) || cmd.gold <= 0) return { ok: false, reason: 'bad amount' };
@@ -470,7 +475,9 @@ export function snapshot(world: World): Snapshot {
       xpNext: xpNext(world, p.level),
       upgrades: [...p.upgrades],
       offer: p.offer ? [...p.offer] : null,
+      pathOffer: p.pathOffer ? { hero: p.pathOffer.hero, options: [...p.pathOffer.options] } : null,
     })),
+    paths: pathStates(world),
     lairs: world.lairs.map((l) => ({ ...l, pos: { ...l.pos } })),
     units: world.units.map((u) => ({ ...u, pos: { ...u.pos }, facing: { ...u.facing } })),
     bounties: world.bounties.map((b) => ({ ...b, pos: { ...b.pos } })),
