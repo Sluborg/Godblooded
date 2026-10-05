@@ -208,11 +208,18 @@ export class MapScene extends Phaser.Scene {
         this.views.delete(key);
       }
     }
-    this.unitViews.sync(this.snap.units, this.snap.events, this.snap.timeMs, dtMs, (id) => {
-      const e =
-        this.snap.lairs.find((l) => l.id === id) ?? this.snap.buildings.find((b) => b.id === id);
-      return e?.pos;
-    });
+    this.unitViews.sync(
+      this.snap.units,
+      this.snap.events,
+      this.snap.timeMs,
+      dtMs,
+      (id) => {
+        const e =
+          this.snap.lairs.find((l) => l.id === id) ?? this.snap.buildings.find((b) => b.id === id);
+        return e?.pos;
+      },
+      this.snap.parties,
+    );
     this.drawLinks();
     for (const e of this.snap.events) {
       if (e.kind !== 'hit') continue;
