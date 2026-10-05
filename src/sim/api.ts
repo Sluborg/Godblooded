@@ -10,6 +10,7 @@ export type {
   BuildingState,
   Command,
   ClassDef,
+  CombatTuning,
   CommandResult,
   GameData,
   HeroTuning,

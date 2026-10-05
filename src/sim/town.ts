@@ -1,5 +1,6 @@
-import { attackMs, damage, dist, maxHp, speed, stepToward, TICK_MS, type Stats } from './units';
+import { damage, dist, maxHp, speed, stepToward, TICK_MS, type Stats } from './units';
 import { shareXp } from './parties';
+import { swing } from './swing';
 import type { UnitRuntime, World } from './world';
 import type { BuildingState, LairState, UnitState, Vec2 } from './types';
 
@@ -42,19 +43,23 @@ export function attackBuilding(
   b: BuildingState,
 ): void {
   unit.target = b.id;
-  if (!approach(unit, stats, b.pos) || rt.cooldownMs > 0) return;
-  rt.cooldownMs = attackMs(stats);
-  const dmg = damage(stats.attrs);
-  b.hp -= dmg;
-  world.events.push({ kind: 'hit', attacker: unit.id, target: b.id, damage: dmg, dodged: false });
-  if (b.hp > 0) return;
-  world.buildings = world.buildings.filter((x) => x.id !== b.id);
-  world.stats.buildingsLost++;
-  world.events.push({ kind: 'buildingDestroyed', building: b.id, type: b.type });
-  if (b.type === 'townhall') {
-    world.status = 'lost';
-    world.events.push({ kind: 'lost' });
+  if (!approach(unit, stats, b.pos)) {
+    rt.swing = undefined;
+    return;
   }
+  swing(world, unit, rt, stats, b.id, () => {
+    const dmg = damage(stats.attrs);
+    b.hp -= dmg;
+    world.events.push({ kind: 'hit', attacker: unit.id, target: b.id, damage: dmg, dodged: false });
+    if (b.hp > 0) return;
+    world.buildings = world.buildings.filter((x) => x.id !== b.id);
+    world.stats.buildingsLost++;
+    world.events.push({ kind: 'buildingDestroyed', building: b.id, type: b.type });
+    if (b.type === 'townhall') {
+      world.status = 'lost';
+      world.events.push({ kind: 'lost' });
+    }
+  });
 }
 
 // Nearest lair a hero would storm (inside the lair aggro range).
@@ -81,35 +86,39 @@ export function attackLair(
   lair: LairState,
 ): void {
   unit.target = lair.id;
-  if (!approach(unit, stats, lair.pos) || rt.cooldownMs > 0) return;
-  rt.cooldownMs = attackMs(stats);
-  const dmg = damage(stats.attrs);
-  lair.hp -= dmg;
-  world.events.push({
-    kind: 'hit',
-    attacker: unit.id,
-    target: lair.id,
-    damage: dmg,
-    dodged: false,
-  });
-  if (lair.hp > 0) return;
-  const tm = world.tuning.monster;
-  world.lairs = world.lairs.filter((l) => l.id !== lair.id);
-  world.lairRuntime.delete(lair.id);
-  world.stats.lairsDestroyed++;
-  unit.gold += tm.lairBounty;
-  world.events.push({
-    kind: 'lairDestroyed',
-    lair: lair.id,
-    type: lair.type,
-    by: unit.id,
-    bounty: tm.lairBounty,
-  });
-  shareXp(world, unit.id, tm.lairXp);
-  if ((world.data.lairSites?.length ?? 0) > 0 && world.lairs.length === 0) {
-    world.status = 'won';
-    world.events.push({ kind: 'won' });
+  if (!approach(unit, stats, lair.pos)) {
+    rt.swing = undefined;
+    return;
   }
+  swing(world, unit, rt, stats, lair.id, () => {
+    const dmg = damage(stats.attrs);
+    lair.hp -= dmg;
+    world.events.push({
+      kind: 'hit',
+      attacker: unit.id,
+      target: lair.id,
+      damage: dmg,
+      dodged: false,
+    });
+    if (lair.hp > 0) return;
+    const tm = world.tuning.monster;
+    world.lairs = world.lairs.filter((l) => l.id !== lair.id);
+    world.lairRuntime.delete(lair.id);
+    world.stats.lairsDestroyed++;
+    unit.gold += tm.lairBounty;
+    world.events.push({
+      kind: 'lairDestroyed',
+      lair: lair.id,
+      type: lair.type,
+      by: unit.id,
+      bounty: tm.lairBounty,
+    });
+    shareXp(world, unit.id, tm.lairXp);
+    if ((world.data.lairSites?.length ?? 0) > 0 && world.lairs.length === 0) {
+      world.status = 'won';
+      world.events.push({ kind: 'won' });
+    }
+  });
 }
 
 // Every raidEveryMs each lair sends a few of its monsters to march on the town.

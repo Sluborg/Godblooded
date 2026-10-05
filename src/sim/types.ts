@@ -133,7 +133,14 @@ export interface BountyTuning {
   proudMinGold: number;
 }
 
+export interface CombatTuning {
+  // Time between an attacker committing to a swing and the strike landing (capped at 40% of
+  // the attack cycle).
+  windupMs: number;
+}
+
 export interface Tuning {
+  combat: CombatTuning;
   hero: HeroTuning;
   party: PartyTuning;
   monster: MonsterTuning;
@@ -151,6 +158,7 @@ export interface GameData {
   upgrades?: readonly UpgradeDef[];
   // Any subset of the tunable numbers; the rest use DEFAULT_TUNING (src/sim/tuning.ts).
   tuning?: {
+    combat?: Partial<CombatTuning>;
     hero?: Partial<HeroTuning>;
     party?: Partial<PartyTuning>;
     monster?: Partial<MonsterTuning>;
@@ -243,6 +251,7 @@ export interface BountyState {
 export type SimEvent =
   | { kind: 'built'; building: number; type: string }
   | { kind: 'spawned'; unit: number; type: string; lair: number }
+  | { kind: 'windup'; attacker: number; target: number; inMs: number }
   | { kind: 'hit'; attacker: number; target: number; damage: number; dodged: boolean }
   | { kind: 'knockout'; unit: number; by: number }
   | { kind: 'died'; unit: number; type: string; by: number; bounty: number; xp: number }
