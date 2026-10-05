@@ -109,7 +109,7 @@ Silhouette must change between tiers (not only colour), so a tier reads at phone
 - Unit stills (hero and mon rows without `part`) must carry the strike and weapon points (all
   fractions 0..1 of the shipped picture):
   - `strike`: `chop`, `double`, `sweep`, `upward`, `thrust`, `smash`, `bolt` or `shot`
-  - `weaponX`, `weaponY`: where the strike starts (the weapon head or tip; for `bolt` the focus,
+  - `weaponX`, `weaponY`: where the strike starts (the weapon head or tip; for `bolt` the head of the staff or wand in the front hand,
     for `shot` the bow)
   - `weapon2X`, `weapon2Y`: the second weapon, only for `double` (`weapon` = the one high behind,
     `weapon2` = the one low in front)
