@@ -1,102 +1,404 @@
 import Phaser from 'phaser';
 import type { SimEvent, UnitState, Vec2 } from '../sim/api';
-import { ANCHORS_KEY } from './assets';
+import { ASSETS_KEY, type ManifestAsset } from './assets';
+import {
+  FALL_S,
+  RISE_S,
+  STEP_LENGTH,
+  attackDuration,
+  attackPose,
+  hurtFlash,
+  idlePose,
+  impactTime,
+  koPose,
+  walkPose,
+  windupFor,
+  type Pose,
+  type Strike,
+} from './motionPose';
 import { partyColor } from './partyLook';
 import { isSpeechEvent, pickLine, type SpeechKind } from './speechLines';
+import { buildStrike, FxLayer, type Vec } from './strikeFx';
+import { ART_NOMINAL_PX, PLACEHOLDER, UNIT_HEIGHT, lookOf, type UnitLook } from './unitLook';
 
-// Height of a unit on the map in world units. Art ships about 256 px tall at nominal size.
-const UNIT_HEIGHT = 120;
-const ART_NOMINAL_PX = 256;
 // Speech bubbles: how long one stays, the most on screen at once, and the quiet time per unit.
 const BUBBLE_MS = 2200;
 const MAX_BUBBLES = 4;
 const UNIT_COOLDOWN_MS = 2500;
-const HERO_COLORS: Record<string, number> = { warrior: 0x3a6ea5, ranger: 0x4f9d69 };
-const MONSTER_COLORS: Record<string, number> = { draugr: 0x7a8c8f, troll: 0x6b4a2f };
+// How far ahead of the impact the windup is allowed to start when the sim gives no warning:
+// the `hit` event arrives at impact, so the windup is squeezed into this (docs/api: Scene 70).
+const DEFAULT_LEAD_S = 0.09;
+// The longest frame the motion will simulate, so a stalled tab does not skip whole swings.
+const MAX_DT_S = 0.05;
+// Rendered position follows the sim with this time constant (the sim steps in 50 ms ticks).
+const SMOOTH_S = 0.06;
 
 function manifestId(u: UnitState, view: 'front' | 'back'): string {
   const kind = u.kind === 'hero' ? 'hero' : 'mon';
   return `${kind}_${u.type}_t${u.tier}_${view}`;
 }
 
-// One on-screen unit: a manifest sprite, or a placeholder shape when the id has no art.
-// Tweens only touch the inner `body`, never the container the sim positions.
-class UnitView {
+interface Attack {
+  strike: Strike;
+  t: number;
+  windup: number;
+  targetId: number;
+  damage: number;
+  dodged: boolean;
+  backFirst: boolean;
+  cross: boolean;
+  fired: [boolean, boolean];
+}
+
+// What a view needs from the world around it each frame.
+interface FrameCtx {
+  dtS: number;
+  fx: FxLayer;
+  shake: () => void;
+  // Chest of a unit, building or lair by sim id, if it is on the map.
+  chestOf: (id: number) => Vec | undefined;
+  // Receives the visual side of a landed strike (flash, knockback, number).
+  hurt: (targetId: number, fromX: number, power: number, damage: number, dodged: boolean) => void;
+}
+
+// One on-screen unit. All motion is the shared system in motionPose.ts and strikeFx.ts: a
+// picture that faces right, mirrored by direction, or a placeholder body with the same motion.
+// The container sits on the sim position; the `body` inside carries the pose.
+export class UnitView {
   readonly container: Phaser.GameObjects.Container;
   private readonly body: Phaser.GameObjects.Container;
-  private sprite: Phaser.GameObjects.Image | null = null;
-  private readonly dot: Phaser.GameObjects.Arc;
+  private readonly shadow: Phaser.GameObjects.Graphics;
+  private readonly capsule: Phaser.GameObjects.Ellipse;
   private readonly nose: Phaser.GameObjects.Triangle;
+  private sprite: Phaser.GameObjects.Image | null = null;
+  private flash: Phaser.GameObjects.Image | null = null;
   private readonly bar: Phaser.GameObjects.Graphics;
   private readonly ring: Phaser.GameObjects.Graphics;
   private readonly badge: Phaser.GameObjects.Text;
+  private readonly label: Phaser.GameObjects.Text;
   private ringKey = '';
-  private last: Vec2;
-  private moving = false;
   private bubble: Phaser.GameObjects.Container | null = null;
   readonly isHero: boolean;
+  readonly look: UnitLook;
   spoken = 0;
   lastSpokeAt = -Infinity;
-  private flashing = false;
-  private readonly baseColor: number;
+
+  // motion state
+  private x: number;
+  private y: number;
+  private face: 1 | -1 = 1;
+  private stepT = Math.random();
+  private movingFor = 0;
+  private phase = Math.random() * 9;
+  private attack: Attack | null = null;
+  private hit = 0;
+  private kb = 0;
+  private koK = 0;
+  private koDir: 1 | -1 = 1;
+  private dying = false;
+  private fade = 1;
+  // picture geometry, from the current art or the placeholder
+  private w = PLACEHOLDER.w;
+  private h = PLACEHOLDER.h;
+  private ax = 0.5;
+  private ay = 1;
+  private row: ManifestAsset | undefined;
+  private artId = '';
 
   constructor(
     private readonly scene: Phaser.Scene,
     u: UnitState,
   ) {
-    const color = (u.kind === 'hero' ? HERO_COLORS : MONSTER_COLORS)[u.type] ?? 0x999999;
-    this.baseColor = color;
+    this.look = lookOf(u.type);
     this.isHero = u.kind === 'hero';
-    const r = UNIT_HEIGHT / 4;
-    this.dot = scene.add.circle(0, -r, r, color).setStrokeStyle(3, 0x000000, 0.6);
-    this.nose = scene.add.triangle(0, -r, 0, -8, 0, 8, 14, 0, 0xffffff, 0.9);
-    const label = scene.add
-      .text(0, -r * 2 - 18, u.type, {
+    this.x = u.pos.x;
+    this.y = u.pos.y;
+    this.face = u.facing.x < 0 ? -1 : 1;
+    const w = PLACEHOLDER.w * this.look.scale;
+    const h = PLACEHOLDER.h * this.look.scale;
+    this.w = w;
+    this.h = h;
+    this.shadow = scene.add.graphics();
+    this.capsule = scene.add
+      .ellipse(0, -h / 2, w, h, this.look.color)
+      .setStrokeStyle(3, 0x000000, 0.6);
+    this.nose = scene.add.triangle(w * 0.3, -h * 0.62, 0, -9, 0, 9, 16, 0, 0xffffff, 0.9);
+    this.label = scene.add
+      .text(0, -UNIT_HEIGHT * this.look.scale - 6, u.type, {
         fontFamily: 'Georgia, serif',
         fontSize: '16px',
         color: '#f4ead5',
       })
       .setOrigin(0.5, 1);
-    this.body = scene.add.container(0, 0, [this.dot, this.nose]);
+    this.body = scene.add.container(0, 0, [this.capsule, this.nose]);
     this.bar = scene.add.graphics();
     // Ring at the feet in the party colour (white and thicker when selected), badge with the
     // party number beside the name.
     this.ring = scene.add.graphics();
     this.badge = scene.add
-      .text(-label.width / 2 - 4, -r * 2 - 18, '', {
+      .text(-this.label.width / 2 - 4, this.label.y, '', {
         fontFamily: 'Georgia, serif',
         fontSize: '18px',
         color: '#1a1410',
         padding: { x: 7, y: 2 },
       })
       .setOrigin(1, 1);
-    this.container = scene.add.container(u.pos.x, u.pos.y, [
+    this.container = scene.add.container(this.x, this.y, [
+      this.shadow,
       this.ring,
       this.body,
       this.bar,
-      label,
+      this.label,
       this.badge,
     ]);
-    this.last = { ...u.pos };
   }
 
-  update(u: UnitState, timeMs: number): void {
-    this.moving = Math.hypot(u.pos.x - this.last.x, u.pos.y - this.last.y) > 0.2;
-    this.last = { ...u.pos };
-    this.container.setPosition(u.pos.x, u.pos.y).setDepth(u.pos.y);
-    const view = u.facing.y < 0 ? 'back' : 'front';
-    const mirror = u.facing.x < 0;
-    this.applyArt(manifestId(u, view), mirror);
-    this.nose.setPosition(
-      this.dot.x + u.facing.x * UNIT_HEIGHT * 0.25,
-      this.dot.y + u.facing.y * UNIT_HEIGHT * 0.25,
-    );
-    // Walk bob: a small hop while moving, level when standing.
-    this.body.y = this.moving && !u.ko ? -Math.abs(Math.sin(timeMs * 0.015)) * 7 : 0;
-    this.body.setAngle(u.ko ? 90 : 0).setAlpha(u.ko ? 0.5 : 1);
+  // ---------- geometry ----------
+
+  get height(): number {
+    return this.h;
+  }
+
+  chest(): Vec {
+    return { x: this.x, y: this.y - this.h * 0.55 };
+  }
+
+  private weaponWorld(fx: number, fy: number): Vec {
+    return { x: this.x + (fx - this.ax) * this.w * this.face, y: this.y + (fy - this.ay) * this.h };
+  }
+
+  private strikeKind(): Strike {
+    return this.row?.strike ?? this.look.strike;
+  }
+
+  // ---------- art ----------
+
+  // Swaps in the picture for this unit when the manifest has it; else the placeholder stays.
+  private applyArt(u: UnitState): void {
+    let id = manifestId(u, u.facing.y < 0 ? 'back' : 'front');
+    if (!this.scene.textures.exists(id)) id = manifestId(u, u.facing.y < 0 ? 'front' : 'back');
+    if (!this.scene.textures.exists(id)) {
+      if (this.artId !== '') {
+        this.sprite?.destroy();
+        this.flash?.destroy();
+        this.sprite = this.flash = null;
+        this.artId = '';
+        this.row = undefined;
+        this.w = PLACEHOLDER.w * this.look.scale;
+        this.h = PLACEHOLDER.h * this.look.scale;
+        this.ax = 0.5;
+        this.ay = 1;
+        this.capsule.setVisible(true);
+        this.nose.setVisible(true);
+      }
+      return;
+    }
+    if (id === this.artId) return;
+    this.artId = id;
+    const rows = this.scene.registry.get(ASSETS_KEY) as Map<string, ManifestAsset> | undefined;
+    this.row = rows?.get(id);
+    this.ax = this.row?.anchorX ?? 0.5;
+    this.ay = this.row?.anchorY ?? 1;
+    const scale = (UNIT_HEIGHT * this.look.scale) / ART_NOMINAL_PX;
+    if (!this.sprite) {
+      this.sprite = this.scene.add.image(0, 0, id);
+      this.flash = this.scene.add.image(0, 0, id).setVisible(false);
+      this.body.addAt(this.sprite, 0);
+      this.body.add(this.flash);
+    }
+    for (const img of [this.sprite, this.flash]) {
+      img?.setTexture(id).setOrigin(this.ax, this.ay).setScale(scale);
+    }
+    const frame = this.scene.textures.get(id).getSourceImage();
+    this.w = frame.width * scale;
+    this.h = frame.height * scale;
+    this.capsule.setVisible(false);
+    this.nose.setVisible(false);
+  }
+
+  // ---------- events from the sim ----------
+
+  // A `hit` at impact: play the swing. The windup is squeezed to what fits before the impact.
+  startAttack(targetId: number, damage: number, dodged: boolean, leadS: number | null): void {
+    if (this.koK > 0 || this.dying) return;
+    const strike = this.strikeKind();
+    this.attack = {
+      strike,
+      t: 0,
+      windup: windupFor(strike, leadS ?? DEFAULT_LEAD_S),
+      targetId,
+      damage,
+      dodged,
+      backFirst: Math.random() < 0.5,
+      cross: Math.random() < 0.4,
+      fired: [false, false],
+    };
+  }
+
+  // The visual side of being hit: flash, knockback, sparks. The sim already took the hp.
+  receiveHit(fromX: number, power: number, dodged: boolean, fx: FxLayer): void {
+    // knocked away from the blow; with no known attacker, backwards
+    const dir: 1 | -1 = Number.isNaN(fromX) ? (this.face === 1 ? -1 : 1) : this.x < fromX ? -1 : 1;
+    this.koDir = dir;
+    if (dodged) {
+      this.kb = dir * this.h * 0.06;
+      return;
+    }
+    this.hit = 1;
+    this.kb = dir * this.h * 0.12 * power;
+    const c = this.chest();
+    fx.sparks(c.x, c.y, [255, 225, 160], 7);
+    fx.blood(c.x, c.y, dir);
+  }
+
+  // The unit left the snapshot (died or was removed): fall over and fade out.
+  die(): void {
+    this.dying = true;
+    this.attack = null;
+  }
+
+  get gone(): boolean {
+    return this.dying && this.fade <= 0;
+  }
+
+  // ---------- per frame ----------
+
+  update(u: UnitState, ctx: FrameCtx): void {
+    this.applyArt(u);
+    this.tick(u.pos, u.facing.x, u.ko, ctx);
     this.drawBar(u);
     this.drawParty(u);
   }
+
+  // A unit that left the snapshot: it stays where it fell and keeps going down and fading.
+  updateDying(ctx: FrameCtx): void {
+    this.tick({ x: this.x, y: this.y }, 0, true, ctx);
+    this.bar.clear();
+  }
+
+  // Movement and pose for one frame. `to` is where the sim says the unit is.
+  private tick(to: Vec2, facingX: number, ko: boolean, ctx: FrameCtx): void {
+    const s = ctx.dtS;
+    this.phase += s;
+    // follow the sim position smoothly; snap on a teleport (revive, spawn)
+    const far = Math.hypot(to.x - this.x, to.y - this.y) > 300;
+    const k = far ? 1 : 1 - Math.exp(-s / SMOOTH_S);
+    const ox = this.x;
+    const oy = this.y;
+    this.x += (to.x - this.x) * k;
+    this.y += (to.y - this.y) * k;
+    const step = far ? 0 : Math.hypot(this.x - ox, this.y - oy);
+    if (step > 0.15) this.movingFor = 0.12;
+    else this.movingFor = Math.max(0, this.movingFor - s);
+    const moving = this.movingFor > 0;
+    if (Math.abs(facingX) > 0.25) this.face = facingX < 0 ? -1 : 1;
+    if (this.hit > 0) this.hit = Math.max(0, this.hit - s * 3);
+    this.kb *= Math.pow(0.0005, s);
+
+    // knocked-out fall and get-up
+    const down = ko || this.dying;
+    this.koK = down ? Math.min(1, this.koK + s / FALL_S) : Math.max(0, this.koK - s / RISE_S);
+    if (this.dying && this.koK >= 1) this.fade = Math.max(0, this.fade - s / 0.6);
+
+    let pose: Pose;
+    let alpha = 1;
+    if (this.koK > 0) {
+      const ko = koPose(this.koK, this.koDir);
+      pose = ko.pose;
+      alpha = ko.alpha;
+      this.attack = null;
+    } else if (this.attack) {
+      pose = this.runAttack(ctx);
+    } else if (moving) {
+      const before = Math.floor(this.stepT);
+      this.stepT += step / (this.h * STEP_LENGTH);
+      if (Math.floor(this.stepT) !== before)
+        ctx.fx.dust(this.x - this.face * this.h * 0.08, this.y, 0.5 * this.look.scale);
+      pose = walkPose(this.stepT, this.h, this.face);
+    } else {
+      pose = idlePose(this.phase);
+    }
+    this.applyPose(pose, alpha * this.fade);
+    this.container.setPosition(this.x, this.y).setDepth(this.y);
+  }
+
+  private runAttack(ctx: FrameCtx): Pose {
+    const a = this.attack as Attack;
+    a.t += ctx.dtS;
+    const target = ctx.chestOf(a.targetId);
+    if (target && Math.abs(target.x - this.x) > 2) this.face = target.x < this.x ? -1 : 1;
+    for (const n of [0, 1] as const) {
+      if (n === 1 && a.strike !== 'double') continue;
+      if (!a.fired[n] && a.t >= impactTime(a.strike, a.windup, n)) {
+        a.fired[n] = true;
+        this.fire(a, n, target ?? null, ctx);
+      }
+    }
+    if (a.t > attackDuration(a.strike, a.windup)) {
+      this.attack = null;
+      return idlePose(this.phase);
+    }
+    return attackPose(a.strike, a.t, this.h, a.windup);
+  }
+
+  // The impact: the strike effect from the weapon, then the target's reaction.
+  private fire(a: Attack, n: 0 | 1, target: Vec | null, ctx: FrameCtx): void {
+    const wx = this.row?.weaponX ?? PLACEHOLDER.weaponX;
+    const wy = this.row?.weaponY ?? PLACEHOLDER.weaponY;
+    const weapon = this.weaponWorld(wx, wy);
+    const weapon2 =
+      this.row?.weapon2X !== undefined && this.row.weapon2Y !== undefined
+        ? this.weaponWorld(this.row.weapon2X, this.row.weapon2Y)
+        : undefined;
+    const r = buildStrike({
+      strike: a.strike,
+      x: this.x,
+      y: this.y,
+      face: this.face,
+      h: this.h,
+      weapon,
+      weapon2,
+      target,
+      n,
+      backFirst: a.backFirst,
+      cross: a.cross,
+      reach: UNIT_HEIGHT * (this.look.footprint + 0.25),
+    });
+    ctx.fx.add(r.effects);
+    if (r.smash) {
+      for (let i = 0; i < 6; i++)
+        ctx.fx.dust(r.smash.x + (Math.random() - 0.5) * this.h * 0.4, r.smash.y, 0.9);
+      ctx.shake();
+    }
+    ctx.hurt(a.targetId, this.x, a.strike === 'smash' ? 2 : 1, n === 0 ? a.damage : 0, a.dodged);
+  }
+
+  private applyPose(p: Pose, alpha: number): void {
+    const bx =
+      p.dx * this.face + this.kb + (this.hit > 0 ? Math.sin(this.hit * 50) * 3 * this.hit : 0);
+    this.body.setPosition(bx, p.dy);
+    this.body.setRotation(p.rot * this.face);
+    this.body.setScale(p.sx * this.face, p.sy);
+    this.container.setAlpha(alpha);
+    // shadow: shrinks and fades while the unit hops
+    const lift = Math.max(0, -p.dy) / this.h;
+    const fall = this.koK > 0 ? this.koDir * this.h * 0.3 * Math.min(1, this.koK) : 0;
+    const rx = UNIT_HEIGHT * this.look.footprint * 0.85 * (1 - lift);
+    this.shadow
+      .clear()
+      .fillStyle(0x000000, 0.32 - lift)
+      .fillEllipse(fall, 0, rx * 2, UNIT_HEIGHT * this.look.footprint * 0.48);
+    // hurt flash: white, then red, on the picture (or the placeholder body)
+    const f = hurtFlash(this.hit);
+    if (this.flash) {
+      this.flash.setVisible(f !== null);
+      if (f) this.flash.setTintFill(f.color).setAlpha(f.alpha);
+    } else {
+      this.capsule.setFillStyle(f ? f.color : this.look.color, f ? Math.max(0.6, f.alpha) : 1);
+    }
+  }
+
+  // ---------- overlays ----------
 
   private drawParty(u: UnitState): void {
     const selected = this.scene.registry.get('selectedUnit') === u.id;
@@ -116,35 +418,11 @@ class UnitView {
     }
   }
 
-  // Swaps in the sprite for this view when the manifest has it; else the placeholder stays.
-  private applyArt(id: string, mirror: boolean): void {
-    if (!this.scene.textures.exists(id)) {
-      this.sprite?.destroy();
-      this.sprite = null;
-      this.dot.setVisible(true);
-      this.nose.setVisible(true);
-      return;
-    }
-    if (!this.sprite) {
-      this.sprite = this.scene.add.image(0, 0, id);
-      this.body.addAt(this.sprite, 0);
-    }
-    const anchors = this.scene.registry.get(ANCHORS_KEY) as Map<string, Vec2> | undefined;
-    const a = anchors?.get(id) ?? { x: 0.5, y: 1 };
-    this.sprite
-      .setTexture(id)
-      .setOrigin(a.x, a.y)
-      .setFlipX(mirror)
-      .setScale(UNIT_HEIGHT / ART_NOMINAL_PX);
-    this.dot.setVisible(false);
-    this.nose.setVisible(false);
-  }
-
   private drawBar(u: UnitState): void {
     this.bar.clear();
     if (u.hp >= u.maxHp) return;
     const w = 56;
-    const y = -UNIT_HEIGHT - 10;
+    const y = -this.h - 22;
     this.bar.fillStyle(0x000000, 0.6).fillRect(-w / 2, y, w, 8);
     this.bar
       .fillStyle(u.kind === 'hero' ? 0x6fcf6f : 0xcf4f4f, 1)
@@ -169,7 +447,7 @@ class UnitView {
     bg.fillTriangle(-8, h / 2 - 1, 8, h / 2 - 1, 0, h / 2 + 12);
     bg.lineStyle(2, 0x1a1410, 0.7).strokeRoundedRect(-w / 2, -h / 2, w, h, 10);
     const bubble = this.scene.add
-      .container(0, -UNIT_HEIGHT - 44, [bg, label])
+      .container(0, -this.h - 56, [bg, label])
       .setScale(0.6)
       .setAlpha(0);
     this.container.add(bubble);
@@ -193,58 +471,59 @@ class UnitView {
     });
   }
 
-  lunge(toward: Vec2): void {
-    const dx = toward.x - this.container.x;
-    const dy = toward.y - this.container.y;
-    const d = Math.hypot(dx, dy) || 1;
-    this.scene.tweens.add({
-      targets: this.body,
-      x: (dx / d) * 18,
-      y: (dy / d) * 18,
-      duration: 70,
-      yoyo: true,
-      ease: 'Quad.easeOut',
-    });
-  }
-
-  hitFlash(): void {
-    if (this.flashing) return;
-    this.flashing = true;
-    this.sprite?.setTintFill(0xffffff);
-    this.dot.setFillStyle(0xffffff);
-    this.scene.tweens.add({
-      targets: this.body,
-      scaleY: 0.82,
-      scaleX: 1.12,
-      duration: 70,
-      yoyo: true,
-    });
-    this.scene.time.delayedCall(90, () => {
-      this.flashing = false;
-      this.sprite?.clearTint();
-      this.dot.setFillStyle(this.baseColor);
-    });
-  }
-
-  // The unit left the snapshot (died or was removed): fade out, then free the view.
-  die(): void {
-    this.scene.tweens.add({
-      targets: this.container,
-      alpha: 0,
-      scale: 0.6,
-      duration: 300,
-      onComplete: () => this.container.destroy(),
-    });
+  destroy(): void {
+    this.container.destroy();
   }
 }
 
-// Keeps one UnitView per snapshot unit and plays the juice for sim events (hit, lunge).
+// Keeps one UnitView per snapshot unit, plays the shared motion system for sim events and owns
+// the strike-effect layer.
 export class UnitViews {
   private readonly views = new Map<number, UnitView>();
+  private readonly dying = new Map<number, UnitView>();
+  private readonly fx: FxLayer;
 
-  constructor(private readonly scene: Phaser.Scene) {}
+  constructor(
+    private readonly scene: Phaser.Scene,
+    private readonly shake: () => void = () => {},
+  ) {
+    this.fx = new FxLayer(scene);
+  }
 
-  sync(units: readonly Readonly<UnitState>[], events: readonly SimEvent[], timeMs: number): void {
+  // `others` finds a building or lair by sim id (hits can land on those too); `dtMs` is the
+  // frame time already scaled by the game speed.
+  sync(
+    units: readonly Readonly<UnitState>[],
+    events: readonly SimEvent[],
+    timeMs: number,
+    dtMs: number,
+    others: (id: number) => Vec2 | undefined = () => undefined,
+  ): void {
+    const dtS = Math.min(MAX_DT_S, dtMs / 1000);
+    const ctx: FrameCtx = {
+      dtS,
+      fx: this.fx,
+      shake: this.shake,
+      chestOf: (id) => {
+        const v = this.views.get(id) ?? this.dying.get(id);
+        if (v) return v.chest();
+        const p = others(id);
+        return p ? { x: p.x, y: p.y - 40 } : undefined;
+      },
+      hurt: (targetId, fromX, power, damage, dodged) => {
+        const t = this.views.get(targetId) ?? this.dying.get(targetId);
+        if (!t) return;
+        t.receiveHit(fromX, power, dodged, this.fx);
+        if (!dodged && damage > 0)
+          this.floatText(t.container.x, t.container.y - t.height - 10, `${damage}`);
+      },
+    };
+    // Events first: a unit that died this tick is already gone from the snapshot but still
+    // has its view, so its last words can be said before the fall.
+    for (const e of events) {
+      if (e.kind === 'hit') this.onHit(e, ctx);
+      else if (isSpeechEvent(e)) this.onSpeech(e, timeMs);
+    }
     const seen = new Set<number>();
     for (const u of units) {
       seen.add(u.id);
@@ -253,20 +532,24 @@ export class UnitViews {
         view = new UnitView(this.scene, u);
         this.views.set(u.id, view);
       }
-      view.update(u, timeMs);
-    }
-    // Events first: a unit that died this tick is already gone from the snapshot but still
-    // has its view, so its last words can be said before the fade.
-    for (const e of events) {
-      if (e.kind === 'hit') this.onHit(e);
-      else if (isSpeechEvent(e)) this.onSpeech(e, timeMs);
+      view.update(u, ctx);
     }
     for (const [id, view] of this.views) {
       if (!seen.has(id)) {
         view.die();
+        this.dying.set(id, view);
         this.views.delete(id);
       }
     }
+    // Units that left the snapshot keep falling and fading until they are gone.
+    for (const [id, view] of this.dying) {
+      view.updateDying(ctx);
+      if (view.gone) {
+        view.destroy();
+        this.dying.delete(id);
+      }
+    }
+    this.fx.update(dtS);
   }
 
   // Heroes only, rate limited: at most MAX_BUBBLES at once, one per unit every few seconds.
@@ -281,14 +564,10 @@ export class UnitViews {
     view.say(pickLine(e.kind, e.unit, view.spoken++));
   }
 
-  private onHit(e: Extract<SimEvent, { kind: 'hit' }>): void {
+  private onHit(e: Extract<SimEvent, { kind: 'hit' }>, ctx: FrameCtx): void {
     const attacker = this.views.get(e.attacker);
-    const target = this.views.get(e.target);
-    if (!target) return;
-    attacker?.lunge({ x: target.container.x, y: target.container.y });
-    if (e.dodged) return;
-    target.hitFlash();
-    this.floatText(target.container.x, target.container.y - UNIT_HEIGHT, `${e.damage}`);
+    if (attacker) attacker.startAttack(e.target, e.damage, e.dodged, null);
+    else ctx.hurt(e.target, Number.NaN, 1, e.damage, e.dodged);
   }
 
   private floatText(x: number, y: number, text: string): void {

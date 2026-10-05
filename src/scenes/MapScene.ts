@@ -74,7 +74,7 @@ export class MapScene extends Phaser.Scene {
     });
     this.offerParty = null;
     this.registry.set('modal', false);
-    this.unitViews = new UnitViews(this);
+    this.unitViews = new UnitViews(this, () => this.cameras.main.shake(130, 0.004));
     this.links = this.add.graphics().setDepth(1_000_000);
     this.snap = snapshot(this.world);
     this.sync();
@@ -90,7 +90,8 @@ export class MapScene extends Phaser.Scene {
     this.registry.set('status', this.snap.status);
     this.events.emit('simEvents', this.snap.events);
     this.syncOffer();
-    this.sync();
+    // Motion runs at the game speed, but not past 2x: a 4x swing would be a blur.
+    this.sync(deltaMs * Math.min(speed, 2));
   }
 
   // Level-up cards open while any party has an offer and close when the sim accepts a pick.
@@ -178,7 +179,7 @@ export class MapScene extends Phaser.Scene {
   }
 
   // Creates, moves and removes one view per snapshot entity, keyed by kind and sim id.
-  private sync(): void {
+  private sync(dtMs = 0): void {
     const seen = new Set<string>();
     for (const b of this.snap.buildings) {
       const key = `b${b.id}`;
@@ -207,7 +208,11 @@ export class MapScene extends Phaser.Scene {
         this.views.delete(key);
       }
     }
-    this.unitViews.sync(this.snap.units, this.snap.events, this.snap.timeMs);
+    this.unitViews.sync(this.snap.units, this.snap.events, this.snap.timeMs, dtMs, (id) => {
+      const e =
+        this.snap.lairs.find((l) => l.id === id) ?? this.snap.buildings.find((b) => b.id === id);
+      return e?.pos;
+    });
     this.drawLinks();
     for (const e of this.snap.events) {
       if (e.kind !== 'hit') continue;
