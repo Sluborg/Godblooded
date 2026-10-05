@@ -20,6 +20,8 @@ export type {
   MonsterDef,
   MonsterTuning,
   PartyState,
+  PathDef,
+  PathState,
   PartyTuning,
   PlotState,
   RunStats,

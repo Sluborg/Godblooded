@@ -1,0 +1,17 @@
+{
+  "mon_draugr_t1_front": {
+    "strike": "chop",
+    "weapon": [550, 190],
+    "fit": true
+  },
+  "mon_harpy_t1_front": {
+    "strike": "upward",
+    "weapon": [790, 1040],
+    "fit": true
+  },
+  "mon_troll_t1_front": {
+    "strike": "stomp",
+    "weapon": [1110, 1040],
+    "fit": true
+  }
+}

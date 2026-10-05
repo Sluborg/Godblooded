@@ -29,6 +29,7 @@ export function spawnHero(world: World, classId: string, pos: Vec2, temple = 0):
     kind: 'hero',
     type: cls.id,
     tier: 1,
+    path: null,
     pos: { ...pos },
     facing: { x: 0, y: 1 },
     hp,

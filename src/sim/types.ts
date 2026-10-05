@@ -9,6 +9,22 @@ export interface Vec2 {
 export interface BuildingDef {
   id: string;
   cost: number;
+  // Temples: the pantheon whose favor paths this building makes available. Missing on an id
+  // like `temple_aesir` means the part after `temple_`.
+  pantheon?: string;
+}
+
+// A favor path: the tier 2 and 3 identity a hero of `class` takes from a god of a built
+// temple's pantheon. One hero per path, town-wide.
+export interface PathDef {
+  id: string;
+  class: string;
+  pantheon: string;
+  god: string;
+  name: string;
+  // Attribute bonus on top of the class attributes: [tier 2, tier 3]. The tier 3 entry is the
+  // total bonus at tier 3, not added to the tier 2 one.
+  attrs: readonly [Partial<Attributes>, Partial<Attributes>];
 }
 
 // Attributes from the Coda combat reference (1..10 at tier 1).
@@ -165,6 +181,8 @@ export interface GameData {
   classes?: readonly ClassDef[];
   monsters?: readonly MonsterDef[];
   upgrades?: readonly UpgradeDef[];
+  // Favor paths. A class with no path rows tiers up by party level alone.
+  paths?: readonly PathDef[];
   // Any subset of the tunable numbers; the rest use DEFAULT_TUNING (src/sim/tuning.ts).
   tuning?: {
     combat?: Partial<CombatTuning>;
@@ -216,6 +234,8 @@ export interface UnitState {
   kind: 'hero' | 'monster';
   type: string;
   tier: number;
+  // Heroes: the favor path id taken at tier 2, else null.
+  path: string | null;
   pos: Vec2;
   // Unit vector of the last move; Scene picks front/back view and mirrors from it.
   facing: Vec2;
@@ -249,6 +269,21 @@ export interface PartyState {
   upgrades: string[];
   // Upgrade ids offered right now; the sim waits for pickUpgrade while this is set.
   offer: string[] | null;
+  // A hero with several free favor paths waits for pickPath (one hero at a time). While set,
+  // pickUpgrade is refused: the path card comes first.
+  pathOffer: { hero: number; options: string[] } | null;
+}
+
+export interface PathState {
+  id: string;
+  class: string;
+  pantheon: string;
+  god: string;
+  name: string;
+  // A built temple of its pantheon exists.
+  available: boolean;
+  // Hero holding the path, or null.
+  takenBy: number | null;
 }
 
 export interface BountyState {
@@ -268,6 +303,8 @@ export type SimEvent =
   | { kind: 'partyFormed'; party: number; members: number[] }
   | { kind: 'levelUp'; party: number; level: number; offer: string[] }
   | { kind: 'upgradePicked'; party: number; upgrade: string }
+  | { kind: 'tierUp'; unit: number; tier: number; path: string | null }
+  | { kind: 'pathOffer'; party: number; hero: number; options: string[] }
   | { kind: 'raid'; lair: number; size: number }
   | { kind: 'lairDestroyed'; lair: number; type: string; by: number; bounty: number }
   | { kind: 'buildingDestroyed'; building: number; type: string }
@@ -283,7 +320,8 @@ export type SimEvent =
 export type Command =
   | { kind: 'build'; type: string; plot: number }
   | { kind: 'placeBounty'; pos: Vec2; gold: number }
-  | { kind: 'pickUpgrade'; party: number; upgrade: string };
+  | { kind: 'pickUpgrade'; party: number; upgrade: string }
+  | { kind: 'pickPath'; party: number; path: string };
 
 export type CommandResult = { ok: true; id: number } | { ok: false; reason: string };
 
@@ -307,6 +345,7 @@ export interface Snapshot {
   readonly lairs: readonly Readonly<LairState>[];
   readonly units: readonly Readonly<UnitState>[];
   readonly parties: readonly Readonly<PartyState>[];
+  readonly paths: readonly Readonly<PathState>[];
   readonly bounties: readonly Readonly<BountyState>[];
   // Events since the previous snapshot() call (speech bubbles, sounds, juice).
   readonly events: readonly SimEvent[];

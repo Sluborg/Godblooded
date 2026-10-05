@@ -1,0 +1,17 @@
+{
+  "mon_minotaur_t1_front": {
+    "strike": "chop",
+    "weapon": [347, 197],
+    "fit": true
+  },
+  "mon_jackal-man_t1_front": {
+    "strike": "sweep",
+    "weapon": [225, 580],
+    "fit": true
+  },
+  "mon_wyrm_t1_front": {
+    "strike": "thrust",
+    "weapon": [1145, 497],
+    "fit": true
+  }
+}
