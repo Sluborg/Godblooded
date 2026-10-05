@@ -64,3 +64,6 @@ Measured review supplement B2/B3: raw height% / lowest point% using key-color di
 B4-test | 2026-10-05T05:32:18.892Z | monsters | started
 
 B6-test | 2026-10-05T05:33:14.367Z | buildings | started
+
+B4-test | 2026-10-05T05:34:29.243Z | monsters | mon_draugr_t1_front | uploaded
+Test delivery: test--mon_draugr_t1_front.png unchanged PNG, 1254x1254, 1516869 bytes; https://drive.google.com/file/d/1B4oJGPh17aNWOgRY5DqrT1Af9RgjG5Pz/view . Built-in image edit using art-tasks/ref/chunky-draugr.png for identity and chunky-warrior.png for style. Prompt: same draugr facing right, overhead chop sword raised high behind back shoulder, front-arm round shield; preserve skull face and rusted armour, chunky crisp pixel rendering, flat magenta background, nominal 75% height and feet88%. Review: character and gear preserved, whole sword visible, no text/scenery/cast shadow; framing oversized (91.9% including raised sword, lowest point94.7%), corner near-magenta RGB243,11,242 instead of exact hex; blue wisps extend outside silhouette. No resizing/cropping/conversion/recompression. Test does not complete B4. Monsters PR#3 new-commit wake-up watch enabled.
