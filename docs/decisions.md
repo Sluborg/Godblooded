@@ -81,3 +81,5 @@ Lead owns this file. One dated line per decision that changes how the game or th
     monsters get 2-3 variants made as edits of the base picture (same pose, new head or weapon),
     ids `<type>-v2`, `<type>-v3`.
   - **UI:** a button and panel kit plus a logo and app icon (new ChatGPT track `ui`).
+- 2026-10-05: Five graybox classes (PR #63: wizard, paladin, rogue added) and the class cap of two
+  (Sim PR #62). Sim bot: 60% wins, median run 15.1 min.

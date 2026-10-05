@@ -26,7 +26,7 @@ Review (PR open), Done. A worker takes its top Open row.
 | 50    | Parties: form by traits and bonds, move and fight together, share XP; party level up offers 3 upgrades                      | Done   |
 | 60    | Bounty flags: heroes weigh bounty vs danger by trait; win (last lair) and lose (town hall) conditions                       | Done   |
 | 70    | Headless balance sim (`npm run sim`): 100 seeded runs, report run length, win rate, deaths                                  | Done   |
-| 80    | Hero cap: at most `tuning.hero.maxPerClass` (2) heroes of each class alive; temples skip full classes                       | Open   |
+| 80    | Hero cap: at most `tuning.hero.maxPerClass` (2) heroes of each class alive; temples skip full classes                       | Done   |
 
 ## Scene
 
