@@ -1,3 +1,18 @@
 {
-  "assets": []
+  "assets": [
+    {
+      "id": "hero_warrior_t1_front",
+      "kind": "hero",
+      "tier": 1,
+      "view": "front",
+      "file": "units/hero_warrior_t1_front.png",
+      "anchorX": 0.551,
+      "anchorY": 0.992,
+      "strike": "chop",
+      "weaponX": 0.102,
+      "weaponY": 0.253,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "S4"
+    }
+  ]
 }
