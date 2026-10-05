@@ -82,3 +82,5 @@ B5 | 2026-10-05T05:38:29.372Z | monsters | started
 
 B6 | 2026-10-05T05:39:35.455Z | buildings | bld_temple_aesir_t1, bld_temple_greek_t1, bld_temple_egyptian_t1 | uploaded
 B6 delivery: unchanged 1254x1254 built-in PNGs using required chunky-warrior rendering reference. Drive metadata verified names, PNG MIME, sizes and folder. Aesir (2201603 bytes): https://drive.google.com/file/d/1HZbKnlE0BsYN6wb4h0zv-mQYHFDNHpR1/view ; Greek (1805177): https://drive.google.com/file/d/1Mcb3lOReFvlAikasdFCdtiu1ZT0muLKD/view ; Egyptian (1869071): https://drive.google.com/file/d/17aZwQO3PyTEPUwGKbTBzZLro2-F2UwPz/view . Review: architectures and requested details present, whole objects visible. Aesir trim/carvings more detailed than humble tier1; Greek trim prominent gold and side supports may read as extra columns. Widths measured87.1%,83.4%,89.9% versus85%; corners near-magenta RGB236,12,240;238,12,240;239,12,240 rather than exact hex. No resize/crop/conversion/recompression.
+
+B7 | 2026-10-05T05:39:51.318Z | buildings | started
