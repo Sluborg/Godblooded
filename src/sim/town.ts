@@ -139,6 +139,7 @@ export function runRaids(world: World): void {
         kind: 'monster',
         type: mon.id,
         tier: lair.tier,
+        path: null,
         pos: { x: lair.pos.x + i * 8, y: lair.pos.y },
         facing: { x: 0, y: 1 },
         hp,

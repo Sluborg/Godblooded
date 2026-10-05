@@ -1,6 +1,6 @@
 import { dist, maxHp } from './units';
 import type { World } from './world';
-import type { Attributes, TraitId, UnitState, UpgradeDef } from './types';
+import type { Attributes, PathDef, PathState, TraitId, UnitState, UpgradeDef } from './types';
 
 // Graybox parties, simplified and logged in docs/decisions.md. Every hero belongs to a party
 // from arrival (a party of one). Parties of level 1 merge when they meet; after the first
@@ -27,18 +27,30 @@ export interface Party {
   xp: number;
   upgrades: string[];
   offer: string[] | null;
+  // Favor path card for one hero (see PartyState.pathOffer) and the heroes still waiting.
+  pathOffer: { hero: number; options: string[] } | null;
+  pathQueue: number[];
 }
 
 export const xpNext = (world: World, level: number) => tune(world).xpPerLevel * level;
 
 export function newParty(world: World, member: number): number {
   const id = world.nextId++;
-  world.parties.set(id, { id, members: [member], level: 1, xp: 0, upgrades: [], offer: null });
+  world.parties.set(id, {
+    id,
+    members: [member],
+    level: 1,
+    xp: 0,
+    upgrades: [],
+    offer: null,
+    pathOffer: null,
+    pathQueue: [],
+  });
   return id;
 }
 
 export function hasPendingPick(world: World): boolean {
-  for (const p of world.parties.values()) if (p.offer) return true;
+  for (const p of world.parties.values()) if (p.offer || p.pathOffer) return true;
   return false;
 }
 
@@ -51,16 +63,17 @@ function upgradeDefs(world: World, ids: readonly string[]): UpgradeDef[] {
   return out;
 }
 
-// Class attributes plus the party's upgrades.
+// Class attributes plus the party's upgrades and the hero's favor path.
 export function effectiveAttrs(world: World, unit: UnitState, base: Attributes): Attributes {
   const party = world.parties.get(unit.party);
-  if (!party || party.upgrades.length === 0) return base;
+  const path = unit.tier >= 2 ? pathDef(world, unit.path) : undefined;
+  if ((!party || party.upgrades.length === 0) && !path) return base;
   const a = { ...base };
-  for (const up of upgradeDefs(world, party.upgrades)) {
-    for (const k of Object.keys(up.effect.attr ?? {}) as (keyof Attributes)[]) {
-      a[k] += up.effect.attr?.[k] ?? 0;
-    }
-  }
+  const add = (bonus: Partial<Attributes> | undefined) => {
+    for (const k of Object.keys(bonus ?? {}) as (keyof Attributes)[]) a[k] += bonus?.[k] ?? 0;
+  };
+  for (const up of upgradeDefs(world, party?.upgrades ?? [])) add(up.effect.attr);
+  if (path) add(path.attrs[unit.tier >= 3 ? 1 : 0]);
   return a;
 }
 
@@ -95,13 +108,13 @@ export function shareXp(world: World, killer: number, xp: number): void {
     }
   }
   party.xp += xp;
-  while (party.xp >= xpNext(world, party.level) && !party.offer) {
+  while (party.xp >= xpNext(world, party.level) && !party.offer && !party.pathOffer) {
     party.xp -= xpNext(world, party.level);
     party.level++;
-    retier(world, party);
     const ids = offerIds(world);
     if (ids.length > 0) party.offer = ids;
     world.events.push({ kind: 'levelUp', party: party.id, level: party.level, offer: ids });
+    settleTiers(world, party);
   }
 }
 
@@ -114,12 +127,133 @@ function offerIds(world: World): string[] {
   return picked;
 }
 
+const pathDef = (world: World, id: string | null): PathDef | undefined =>
+  id ? world.data.paths?.find((p) => p.id === id) : undefined;
+
+// Pantheons of the temples built so far (BuildingDef.pantheon, else `temple_<pantheon>`).
+function builtPantheons(world: World): Set<string> {
+  const out = new Set<string>();
+  for (const b of world.buildings) {
+    const def = world.data.buildings.find((d) => d.id === b.type);
+    const pantheon = def?.pantheon ?? (b.type.startsWith('temple_') ? b.type.slice(7) : undefined);
+    if (pantheon) out.add(pantheon);
+  }
+  return out;
+}
+
+const pathTaken = (world: World, id: string): number | null =>
+  world.units.find((u) => u.kind === 'hero' && u.path === id)?.id ?? null;
+
+export function pathStates(world: World): PathState[] {
+  const built = builtPantheons(world);
+  return (world.data.paths ?? []).map((p) => ({
+    id: p.id,
+    class: p.class,
+    pantheon: p.pantheon,
+    god: p.god,
+    name: p.name,
+    available: built.has(p.pantheon),
+    takenBy: pathTaken(world, p.id),
+  }));
+}
+
+// Free paths of a class: its pantheon has a temple and no hero holds the path.
+function freePaths(world: World, cls: string): string[] {
+  const built = builtPantheons(world);
+  return (world.data.paths ?? [])
+    .filter((p) => p.class === cls && built.has(p.pantheon) && pathTaken(world, p.id) === null)
+    .map((p) => p.id);
+}
+
+const hasPaths = (world: World, cls: string) => !!world.data.paths?.some((p) => p.class === cls);
+
+// The tier a hero holds: by party level, but a class with favor paths needs one to pass tier 1.
+function wantedTier(world: World, party: Party, unit: UnitState): number {
+  const byLevel = party.level >= 6 ? 3 : party.level >= 3 ? 2 : 1;
+  return unit.path || !hasPaths(world, unit.type) ? byLevel : 1;
+}
+
 function retier(world: World, party: Party): void {
-  const tier = party.level >= 6 ? 3 : party.level >= 3 ? 2 : 1;
   for (const id of party.members) {
     const u = world.units.find((x) => x.id === id);
-    if (u) u.tier = tier;
+    if (!u) continue;
+    const tier = wantedTier(world, party, u);
+    if (tier === u.tier) continue;
+    u.tier = tier;
+    refreshMaxHp(world, u);
+    world.events.push({ kind: 'tierUp', unit: u.id, tier, path: u.path });
   }
+}
+
+function refreshMaxHp(world: World, u: UnitState): void {
+  const cls = world.data.classes?.find((c) => c.id === u.type);
+  if (!cls) return;
+  const newMax = maxHp(effectiveAttrs(world, u, cls.attrs));
+  if (!u.ko) u.hp += newMax - u.maxHp;
+  u.maxHp = newMax;
+}
+
+function takePath(world: World, party: Party, unit: UnitState, path: string): void {
+  unit.path = path;
+  retier(world, party);
+}
+
+// Opens the next hero's path card, or gives the path straight away when only one is free.
+function nextPathOffer(world: World, party: Party): void {
+  while (!party.pathOffer && party.pathQueue.length > 0) {
+    const id = party.pathQueue.shift() as number;
+    const hero = world.units.find((u) => u.id === id);
+    if (!hero || hero.path) continue;
+    const free = freePaths(world, hero.type);
+    if (free.length === 1) takePath(world, party, hero, free[0]);
+    else if (free.length > 1) {
+      party.pathOffer = { hero: id, options: free };
+      world.events.push({ kind: 'pathOffer', party: party.id, hero: id, options: [...free] });
+    }
+  }
+}
+
+// From party level 3: every hero of a class with favor paths and none yet is queued for one
+// (taken at once when exactly one is free, else a card). Heroes with no free path stay tier 1;
+// runParties retries them when a temple goes up.
+function settleTiers(world: World, party: Party): void {
+  if (party.level >= 3) {
+    for (const id of party.members) {
+      const u = world.units.find((x) => x.id === id);
+      if (!u || u.path || !hasPaths(world, u.type)) continue;
+      if (party.pathOffer?.hero === id || party.pathQueue.includes(id)) continue;
+      party.pathQueue.push(id);
+    }
+    nextPathOffer(world, party);
+  }
+  retier(world, party);
+}
+
+export function pickPath(
+  world: World,
+  partyId: number,
+  path: string,
+): { ok: true; id: number } | { ok: false; reason: string } {
+  const party = world.parties.get(partyId);
+  if (!party) return { ok: false, reason: 'unknown party' };
+  const offer = party.pathOffer;
+  if (!offer) return { ok: false, reason: 'no path pick pending' };
+  if (!offer.options.includes(path)) return { ok: false, reason: 'not offered' };
+  const hero = world.units.find((u) => u.id === offer.hero);
+  party.pathOffer = null;
+  if (!hero) {
+    nextPathOffer(world, party);
+    return { ok: false, reason: 'unknown hero' };
+  }
+  if (!freePaths(world, hero.type).includes(path)) {
+    // Taken by another hero since the card opened: deal the hero a fresh card.
+    party.pathQueue.unshift(hero.id);
+    nextPathOffer(world, party);
+    return { ok: false, reason: 'path taken' };
+  }
+  takePath(world, party, hero, path);
+  nextPathOffer(world, party);
+  return { ok: true, id: partyId };
 }
 
 export function pickUpgrade(
@@ -129,6 +263,7 @@ export function pickUpgrade(
 ): { ok: true; id: number } | { ok: false; reason: string } {
   const party = world.parties.get(partyId);
   if (!party) return { ok: false, reason: 'unknown party' };
+  if (party.pathOffer) return { ok: false, reason: 'pick a path first' };
   if (!party.offer) return { ok: false, reason: 'no pick pending' };
   if (!party.offer.includes(upgrade)) return { ok: false, reason: 'not offered' };
   const def = world.data.upgrades?.find((u) => u.id === upgrade);
@@ -136,11 +271,8 @@ export function pickUpgrade(
   party.upgrades.push(upgrade);
   for (const id of party.members) {
     const u = world.units.find((x) => x.id === id);
-    const cls = u && world.data.classes?.find((c) => c.id === u.type);
-    if (!u || !cls) continue;
-    const newMax = maxHp(effectiveAttrs(world, u, cls.attrs));
-    if (!u.ko) u.hp += newMax - u.maxHp;
-    u.maxHp = newMax;
+    if (!u) continue;
+    refreshMaxHp(world, u);
     if (def?.effect.healPct && !u.ko) {
       u.hp = Math.min(u.maxHp, u.hp + (u.maxHp * def.effect.healPct) / 100);
     }
@@ -161,6 +293,10 @@ export function fledParty(world: World, unit: UnitState): void {
 export function runParties(world: World): void {
   if (world.tick % tune(world).mergeEveryTicks !== 0) return;
   const ids = [...world.parties.keys()].sort((a, b) => a - b);
+  for (const id of ids) {
+    const p = world.parties.get(id);
+    if (p && p.level >= 3 && !p.offer && !p.pathOffer) settleTiers(world, p);
+  }
   for (const aId of ids) {
     const a = world.parties.get(aId);
     if (!a || !mergeable(world, a)) continue;
