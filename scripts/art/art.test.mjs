@@ -7,6 +7,7 @@ import {
   checkRaw,
   collectUploads,
   detectKey,
+  fitFrame,
   keyOut,
   kindOf,
   parseId,
@@ -145,6 +146,19 @@ describe('checkRaw', () => {
     const small = { x: 462, y: 600, w: 100, h: 300 };
     const problems = checkRaw(canvas(1024, GREEN, small), 'hero_warrior_t1_front');
     expect(problems.join(' ')).toMatch(/canvas height/);
+  });
+});
+
+describe('fitFrame', () => {
+  it('re-frames an oversized, off-centre unit to the spec framing', () => {
+    // Figure 90% tall, feet at 96%, off to the right.
+    const raw = canvas(1024, GREEN, { x: 700, y: 61, w: 200, h: 922 });
+    const { image, dx, dy } = fitFrame(raw, 'hero_warrior_t1_front');
+    expect(checkRaw(image, 'hero_warrior_t1_front')).toEqual([]);
+    expect(image.width).toBeGreaterThan(1024);
+    // A raw point moves with the figure.
+    expect(dx).toBeLessThan(0);
+    expect(typeof dy).toBe('number');
   });
 });
 

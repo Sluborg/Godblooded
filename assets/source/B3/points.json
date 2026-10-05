@@ -1,0 +1,24 @@
+{
+  "hero_paladin_t1_front": {
+    "strike": "smash",
+    "weapon": [650, 125],
+    "fit": true
+  },
+  "hero_paladin_t1_back": {
+    "strike": "smash",
+    "weapon": [662, 237],
+    "fit": true
+  },
+  "hero_rogue_t1_front": {
+    "strike": "double",
+    "weapon": [400, 237],
+    "weapon2": [1062, 737],
+    "fit": true
+  },
+  "hero_rogue_t1_back": {
+    "strike": "double",
+    "weapon": [437, 225],
+    "weapon2": [1050, 725],
+    "fit": true
+  }
+}

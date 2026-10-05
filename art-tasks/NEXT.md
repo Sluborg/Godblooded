@@ -11,10 +11,10 @@ Take the first **Ready** batch of **your track** that is not in the upload log; 
 | S1    | heroes    | `S1.md` | Art direction: one warrior in five styles (priority)            | 5      | Done   |
 | R1    | heroes    | `R1.md` | Rig test: warrior body and arm, front and side (priority)       | 5      | Done   |
 | B1    | heroes    | `B1.md` | Style test: warrior front and back, draugr, town hall           | 4      | Void   |
-| B2    | heroes    | `B2.md` | Ranger and wizard t1, front and back                            | 4      | Ready  |
-| B3    | heroes    | `B3.md` | Paladin and rogue t1, front and back                            | 4      | Ready  |
+| B2    | heroes    | `B2.md` | Ranger and wizard t1, front and back                            | 4      | Done   |
+| B3    | heroes    | `B3.md` | Paladin and rogue t1, front and back                            | 4      | Done   |
 | B4    | monsters  | `B4.md` | Draugr, troll, harpy t1                                         | 6      | Ready  |
 | B5    | monsters  | `B5.md` | Minotaur, jackal-man, wyrm t1                                   | 6      | Ready  |
 | B6    | buildings | `B6.md` | Temples t1: Aesir, Greek, Egyptian                              | 3      | Ready  |
 | B7    | buildings | `B7.md` | Town hall, market, smithy, shrine, tower t1                     | 5      | Ready  |
-| B8    | heroes    | `B8.md` | Warrior t1 back (front = S4 chunky warrior)                     | 1      | Ready  |
+| B8    | heroes    | `B8.md` | Warrior t1 back (front = S4 chunky warrior)                     | 1      | Done   |

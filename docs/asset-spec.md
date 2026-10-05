@@ -133,7 +133,10 @@ Silhouette must change between tiers (not only colour), so a tier reads at phone
 `points.json` maps each unit still to `{ "strike": "chop", "weapon": [x, y] }` (plus
 `"weapon2": [x, y]` for `double`), in pixels of the raw upload. Ship converts them to the
 manifest fractions and keeps the file as `assets/source/<batch>/points.json`, so a re-ship finds
-them again. A unit still without an entry does not ship.
+them again. A unit still without an entry does not ship. `"fit": true` on an entry re-frames an
+upload ChatGPT framed too big or off-centre to the spec framing first (figure 75% of the canvas
+height, feet at 88%, centred), so every unit ships at the same scale; the kept source stays the
+untouched upload and the points stay in its pixels.
 
 Uploads may be named `<batch>--<id>.png` (Drive), `<id>.png` (`art-inbox` branch) or base64
 `<id>.png.b64[.001]` (decoded automatically).

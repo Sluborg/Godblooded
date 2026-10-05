@@ -1,0 +1,22 @@
+{
+  "hero_ranger_t1_front": {
+    "strike": "shot",
+    "weapon": [1025, 512],
+    "fit": true
+  },
+  "hero_ranger_t1_back": {
+    "strike": "shot",
+    "weapon": [1075, 450],
+    "fit": true
+  },
+  "hero_wizard_t1_front": {
+    "strike": "bolt",
+    "weapon": [1100, 262],
+    "fit": true
+  },
+  "hero_wizard_t1_back": {
+    "strike": "bolt",
+    "weapon": [1137, 250],
+    "fit": true
+  }
+}

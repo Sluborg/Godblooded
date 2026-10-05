@@ -339,6 +339,30 @@ export function processImage(raw, id, points = {}) {
   return { ...out, kind: r.k.kind, dir: r.k.dir, key: r.key, specks: r.specks };
 }
 
+// Re-frames a raw unit upload to the spec framing (figure 75% of the canvas height, feet at 88%,
+// feet centred) on a new square canvas in the key colour: the fix for uploads ChatGPT framed too
+// big or off-centre. Returns the new canvas and the shift (dx, dy) of every raw pixel.
+export function fitFrame(raw, id) {
+  const r = keyRaw(raw, id);
+  const feet = anchorPoint(r.keyed, 'feet');
+  if (!feet) throw new Error(`${id}: nothing left after key-out`);
+  const { box } = feet;
+  const n = Math.round(Math.max(box.h / 0.75, box.w / 0.95));
+  const dx = Math.round(Math.min(Math.max(n / 2 - feet.x, 2 - box.x), n - 2 - box.x - box.w));
+  const dy = Math.round(n * 0.88 - feet.y);
+  const out = blank(n, n);
+  const keyPx = raw.data.subarray(0, 4);
+  for (let y = 0; y < n; y++)
+    for (let x = 0; x < n; x++) {
+      const sx = x - dx;
+      const sy = y - dy;
+      const inside = sx >= 0 && sy >= 0 && sx < raw.width && sy < raw.height;
+      const src = inside ? (sy * raw.width + sx) * 4 : -1;
+      out.data.set(inside ? raw.data.subarray(src, src + 4) : keyPx, (y * n + x) * 4);
+    }
+  return { image: out, dx, dy };
+}
+
 // Shoulder pivot of a rig arm on its body (source pixels): the top of the band where arm
 // pixels touch the body (within 4 px). Null when the pieces do not touch.
 export function shoulderPivot(body, arm) {
