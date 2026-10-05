@@ -47,6 +47,8 @@ export interface ClassDef {
   weapon: { baseAttackS: number; range: number };
   // Gold a hero of this class carries on arrival.
   startGold: number;
+  // A healer casts a heal on a hurt party mate in range instead of attacking.
+  heals?: boolean;
 }
 
 // One of 3 cards offered when a party levels up. `effect` keys are read by Sim.
@@ -139,6 +141,11 @@ export interface CombatTuning {
   // Time between an attacker committing to a swing and the strike landing (capped at 40% of
   // the attack cycle).
   windupMs: number;
+  // Healers: how far a heal reaches, the party mate hp fraction below which they heal, and the
+  // heal amount per point of (int + wp).
+  healRange: number;
+  healBelow: number;
+  healPower: number;
 }
 
 export interface Tuning {
@@ -254,6 +261,7 @@ export type SimEvent =
   | { kind: 'built'; building: number; type: string }
   | { kind: 'spawned'; unit: number; type: string; lair: number }
   | { kind: 'windup'; attacker: number; target: number; inMs: number }
+  | { kind: 'heal'; healer: number; target: number; amount: number }
   | { kind: 'hit'; attacker: number; target: number; damage: number; dodged: boolean }
   | { kind: 'knockout'; unit: number; by: number }
   | { kind: 'died'; unit: number; type: string; by: number; bounty: number; xp: number }
