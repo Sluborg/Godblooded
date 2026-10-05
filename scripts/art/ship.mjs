@@ -131,6 +131,11 @@ manifest.assets = manifest.assets
 writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + '\n');
 if (Object.keys(points).length) {
   mkdirSync(`assets/source/${batch}`, { recursive: true });
-  writeFileSync(keptPointsPath, JSON.stringify(points, null, 2) + '\n');
+  // [x, y] on one line, as Prettier writes it.
+  const json = JSON.stringify(points, null, 2).replace(
+    /\[\s+([\d.]+),\s+([\d.]+)\s+\]/g,
+    '[$1, $2]',
+  );
+  writeFileSync(keptPointsPath, json + '\n');
 }
 console.log(`manifest: ${rows.length} rows added or replaced, ${manifest.assets.length} total`);
