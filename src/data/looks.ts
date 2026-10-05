@@ -2,7 +2,8 @@
 // The picture's own manifest row (strike, weapon points) wins; `strike` here is the fallback when
 // a picture has none or there is no art yet.
 
-export type Strike = 'chop' | 'double' | 'sweep' | 'upward' | 'thrust' | 'smash' | 'bolt' | 'shot';
+export type Strike =
+  'chop' | 'double' | 'sweep' | 'upward' | 'thrust' | 'smash' | 'stomp' | 'bolt' | 'shot';
 
 export interface UnitLook {
   // Picture height relative to a standard hero.
@@ -25,7 +26,7 @@ export const LOOKS: Record<string, Partial<UnitLook>> = {
   rogue: { color: 0xd2782a, scale: 0.92, strike: 'double' },
   // monsters
   draugr: { color: 0x7a8c8f, strike: 'chop' },
-  troll: { color: 0x6b4a2f, scale: 1.45, footprint: 0.95, strike: 'smash' },
+  troll: { color: 0x6b4a2f, scale: 1.45, footprint: 0.95, strike: 'stomp' },
   harpy: { color: 0x9c7b4f, strike: 'upward' },
   minotaur: { color: 0x7b4b2a, scale: 1.3, footprint: 0.7, strike: 'chop' },
   'jackal-man': { color: 0x3b3b3b, strike: 'sweep' },

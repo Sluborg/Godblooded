@@ -109,4 +109,18 @@ describe('motion poses', () => {
       swingStep({ ...base, t: impactTime('double', w, 1), fired: [true, false] }).fire,
     ).toEqual([1]);
   });
+
+  it('a stomp lifts the body, slams it down squashed, then settles', () => {
+    const w = windupFor('stomp', null);
+    const up = attackPose('stomp', w * 0.99, 100, w);
+    expect(up.dy).toBeLessThan(-8);
+    expect(up.sy).toBeGreaterThan(1);
+    expect(up.rot).toBeLessThan(0);
+    const slam = attackPose('stomp', w + ATTACK.stomp.strike * 0.999, 100, w);
+    expect(slam.dy).toBeGreaterThan(-1);
+    expect(slam.sx).toBeGreaterThan(1.05);
+    expect(slam.sy).toBeLessThan(0.93);
+    const end = attackPose('stomp', attackDuration('stomp', w), 100, w);
+    expect(Math.abs(end.sx - 1) + Math.abs(end.sy - 1)).toBeLessThan(0.01);
+  });
 });

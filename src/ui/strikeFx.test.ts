@@ -15,6 +15,7 @@ const base: StrikeInput = {
   backFirst: true,
   cross: false,
   reach: 60,
+  foot: 50,
   // fixed "random" so the result is repeatable: always the middle of the range
   rnd: (a, b) => (a + b) / 2,
 };
@@ -44,6 +45,15 @@ describe('strike effects', () => {
     const s = buildStrike({ ...base, strike: 'smash' });
     expect(s.smash).toEqual({ x: base.x + base.reach, y: base.y });
     expect(buildStrike(base).smash).toBeNull();
+  });
+
+  it('a stomp lands at the front foot, not where a weapon would, with a shake', () => {
+    const r = buildStrike({ ...base, strike: 'stomp' });
+    expect(r.smash).toEqual({ x: base.x + base.foot, y: base.y });
+    const ring = r.effects[0];
+    expect(ring.type === 'ring' && ring.x).toBe(base.x + base.foot);
+    // facing left puts the front foot on the left
+    expect(buildStrike({ ...base, strike: 'stomp', face: -1 }).smash?.x).toBe(base.x - base.foot);
   });
 
   it('a bolt runs from the weapon to the target and a shot flies there', () => {
