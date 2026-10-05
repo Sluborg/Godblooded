@@ -22,7 +22,7 @@ import { pickVariant, rotateHue, sizeJitter, tierStyle } from './monsterLook';
 import { partyColor, partyRole, type PartyRole } from './partyLook';
 import { isSpeechEvent, pickLine, type SpeechKind } from './speechLines';
 import { buildHeal, buildStrike, FxLayer, type Vec } from './strikeFx';
-import { ART_NOMINAL_PX, PLACEHOLDER, UNIT_HEIGHT, baseType, unitArtId } from './unitLook';
+import { ART_NOMINAL_PX, PLACEHOLDER, UNIT_HEIGHT, artCandidates, baseType } from './unitLook';
 
 // Speech bubbles: how long one stays, the most on screen at once, and the quiet time per unit.
 const BUBBLE_MS = 2200;
@@ -37,6 +37,12 @@ const MAX_DT_S = 0.05;
 const SMOOTH_S = 0.06;
 
 // Each distinct complaint is logged once, however many units hit it.
+// Sparkle colours of a tier-up: gold and pale yellow.
+const GOLD_SPARKS = [
+  [255, 215, 90],
+  [255, 245, 180],
+] as const;
+
 const warned = new Set<string>();
 function warnOnce(message: string): void {
   if (warned.has(message)) return;
@@ -124,6 +130,7 @@ export class UnitView {
   private artId = '';
   // Green heal tint, 1 right after a heal and fading to 0.
   private healGlow = 0;
+  private glowColor = 0x7dff9a;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -210,11 +217,12 @@ export class UnitView {
     const type =
       u.kind === 'monster'
         ? pickVariant(u.type, this.unitId, (t) =>
-            this.scene.textures.exists(unitArtId(u.kind, t, u.tier)),
+            artCandidates(u.kind, t, u.tier).some((c) => this.scene.textures.exists(c)),
           )
         : u.type;
-    const id = unitArtId(u.kind, type, u.tier);
-    if (!this.scene.textures.exists(id)) {
+    const id =
+      artCandidates(u.kind, type, u.tier, u.path).find((c) => this.scene.textures.exists(c)) ?? '';
+    if (id === '') {
       if (this.artId !== '') {
         this.sprite?.destroy();
         this.flash?.destroy();
@@ -335,8 +343,20 @@ export class UnitView {
   // The visual side of being healed: a brief green tint and sparkles. The sim already added hp.
   receiveHeal(fx: FxLayer): void {
     this.healGlow = 1;
+    this.glowColor = 0x7dff9a;
     const c = this.chest();
     fx.sparkle(c.x, c.y, 10);
+  }
+
+  // A tier-up (decisions 2026-10-05): a gold flash, a ring on the ground, rising gold sparks and
+  // the new identity said aloud.
+  evolve(fx: FxLayer, name: string): void {
+    this.healGlow = 1.6;
+    this.glowColor = 0xffd75a;
+    const c = this.chest();
+    fx.sparkle(c.x, c.y, 24, GOLD_SPARKS);
+    fx.add([{ type: 'ring', x: this.x, y: this.y, r: 90, age: 0, life: 0.7 }]);
+    this.say(name);
   }
 
   // The unit left the snapshot (died or was removed): fall over and fade out.
@@ -510,7 +530,9 @@ export class UnitView {
     // hurt flash: white, then red, on the picture (or the placeholder body)
     const f =
       hurtFlash(this.hit) ??
-      (this.healGlow > 0 ? { color: 0x7dff9a, alpha: 0.5 * this.healGlow } : null);
+      (this.healGlow > 0
+        ? { color: this.glowColor, alpha: Math.min(0.7, 0.5 * this.healGlow) }
+        : null);
     if (this.flash) {
       this.flash.setVisible(f !== null);
       if (f) this.flash.setTintFill(f.color).setAlpha(f.alpha);
@@ -638,6 +660,7 @@ export class UnitViews {
     dtMs: number,
     others: (id: number) => Vec2 | undefined = () => undefined,
     parties: readonly { id: number; members: readonly number[] }[] = [],
+    paths: readonly { id: string; name: string }[] = [],
   ): void {
     const dtS = Math.min(MAX_DT_S, dtMs / 1000);
     const ctx: FrameCtx = {
@@ -671,6 +694,7 @@ export class UnitViews {
       if (e.kind === 'hit') this.onHit(e, ctx);
       else if (e.kind === 'windup') this.onWindup(e);
       else if (e.kind === 'heal') this.onHeal(e, ctx);
+      else if (e.kind === 'tierUp') this.onTierUp(e, paths);
       else if (isSpeechEvent(e)) this.onSpeech(e, timeMs);
     }
     const seen = new Set<number>();
@@ -717,6 +741,14 @@ export class UnitViews {
     const attacker = this.views.get(e.attacker);
     if (attacker) attacker.landHit(e.target, e.damage, e.dodged);
     else ctx.hurt(e.target, Number.NaN, 1, e.damage, e.dodged);
+  }
+
+  private onTierUp(
+    e: Extract<SimEvent, { kind: 'tierUp' }>,
+    paths: readonly { id: string; name: string }[],
+  ): void {
+    const name = paths.find((p) => p.id === e.path)?.name;
+    this.views.get(e.unit)?.evolve(this.fx, name ?? `Tier ${e.tier}!`);
   }
 
   private onHeal(e: Extract<SimEvent, { kind: 'heal' }>, ctx: FrameCtx): void {

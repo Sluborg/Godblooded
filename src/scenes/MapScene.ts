@@ -49,7 +49,7 @@ export class MapScene extends Phaser.Scene {
   // Lines from the selected hero's party to the flags it is heading for.
   private links!: Phaser.GameObjects.Graphics;
   // Party whose level-up cards are open (the sim is frozen until it is picked), or null.
-  private offerParty: number | null = null;
+  private offerKey: string | null = null;
   private views = new Map<string, Phaser.GameObjects.GameObject>();
 
   constructor() {
@@ -72,7 +72,7 @@ export class MapScene extends Phaser.Scene {
       onTap: (w) => this.events.emit('mapTapped', this.resolveTap(w)),
       blocked: (x, y) => this.registry.get('modal') === true || (this.hud()?.blocks(x, y) ?? false),
     });
-    this.offerParty = null;
+    this.offerKey = null;
     this.registry.set('modal', false);
     this.unitViews = new UnitViews(this, () => this.cameras.main.shake(130, 0.004));
     this.links = this.add.graphics().setDepth(1_000_000);
@@ -94,15 +94,39 @@ export class MapScene extends Phaser.Scene {
     this.sync(deltaMs * Math.min(speed, 2));
   }
 
-  // Level-up cards open while any party has an offer and close when the sim accepts a pick.
+  // Level-up cards open while any party has an offer and close when the sim accepts a pick. A
+  // path offer comes first (the sim refuses the upgrade until the path is picked); a new offer
+  // for the same party (the next card, or a redealt path after 'path taken') reopens the cards.
   private syncOffer(): void {
-    const party = this.snap.parties.find((p) => p.offer !== null);
-    const id = party?.id ?? null;
-    if (id === this.offerParty) return;
-    if (this.offerParty !== null) this.scene.stop('LevelUp');
-    this.offerParty = id;
-    this.registry.set('modal', id !== null);
-    if (party?.offer) {
+    const pathParty = this.snap.parties.find((p) => p.pathOffer !== null);
+    const party = pathParty ?? this.snap.parties.find((p) => p.offer !== null);
+    const key = !party
+      ? null
+      : pathParty?.pathOffer
+        ? `path:${party.id}:${pathParty.pathOffer.hero}:${pathParty.pathOffer.options.join(',')}`
+        : `up:${party.id}:${party.level}`;
+    if (key === this.offerKey) return;
+    if (this.offerKey !== null) this.scene.stop('LevelUp');
+    this.offerKey = key;
+    this.registry.set('modal', key !== null);
+    if (!party) return;
+    const po = pathParty?.pathOffer;
+    if (po) {
+      const hero = this.snap.units.find((u) => u.id === po.hero);
+      const offer: LevelUpOffer = {
+        party: party.id,
+        level: party.level,
+        size: party.members.length,
+        upgrades: [],
+        pathHero: hero?.type ?? 'hero',
+        paths: po.options.flatMap((id) => {
+          const p = this.snap.paths.find((x) => x.id === id);
+          return p ? [{ id: p.id, god: p.god, name: p.name, pantheon: p.pantheon }] : [];
+        }),
+      };
+      this.registry.set(OFFER_KEY, offer);
+      this.scene.launch('LevelUp');
+    } else if (party.offer) {
       const offer: LevelUpOffer = {
         party: party.id,
         level: party.level,
@@ -117,6 +141,10 @@ export class MapScene extends Phaser.Scene {
   // Sim command entry for the HUD. The sim decides; the result carries the refusal reason.
   tryBuild(type: string, plot: number): CommandResult {
     return command(this.world, { kind: 'build', type, plot });
+  }
+
+  tryPickPath(party: number, path: string): CommandResult {
+    return command(this.world, { kind: 'pickPath', party, path });
   }
 
   tryPick(party: number, upgrade: string): CommandResult {
@@ -219,6 +247,7 @@ export class MapScene extends Phaser.Scene {
         return e?.pos;
       },
       this.snap.parties,
+      this.snap.paths,
     );
     this.drawLinks();
     for (const e of this.snap.events) {
