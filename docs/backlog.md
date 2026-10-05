@@ -26,6 +26,7 @@ Review (PR open), Done. A worker takes its top Open row.
 | 50    | Parties: form by traits and bonds, move and fight together, share XP; party level up offers 3 upgrades                      | Done   |
 | 60    | Bounty flags: heroes weigh bounty vs danger by trait; win (last lair) and lose (town hall) conditions                       | Done   |
 | 70    | Headless balance sim (`npm run sim`): 100 seeded runs, report run length, win rate, deaths                                  | Done   |
+| 80    | Hero cap: at most `tuning.hero.maxPerClass` (2) heroes of each class alive; temples skip full classes                       | Open   |
 
 ## Scene
 
@@ -42,6 +43,9 @@ Review (PR open), Done. A worker takes its top Open row.
 | 60    | Speech bubbles from sim events; end screen (win/lose, run summary, play again)                                                                                                                            | Done   |
 | 65    | Smoke run: `npm run smoke` (Playwright, phone viewport) builds a temple and market, runs 4x for 3 game minutes, saves screenshots and fails on console errors                                             | Done   |
 | 70    | Motion system (decisions 2026-10-05): hop walk, windup + lunge, strike effect from manifest `strike` + weapon points, hurt flash, KO fall, footprint spacing; reference `docs/reference/motion-test.html` | Done   |
+| 85    | Front picture only, mirrored; drop the `_back` lookup                                                                                                                                                     | Open   |
+| 90    | Party colours: ring under each member, banner over the leader, stable colour per party                                                                                                                    | Open   |
+| 95    | Monster tiers by colour (hue shift + size), skin variants `-v2`/`-v3` per unit id, small scale jitter                                                                                                     | Open   |
 
 ## Art
 
@@ -52,3 +56,5 @@ Review (PR open), Done. A worker takes its top Open row.
 | 30    | Style test B1: Warrior t1 front and back, draugr t1 front, town hall t1. Stefan approves before batches | Done   |
 | 40    | After approval: tier-1 batches for heroes, monsters, buildings (art requests 10-30)                     | Doing  |
 | 50    | Tier-2 and tier-3 batches                                                                               | Open   |
+| 60    | Front only (drop `_back` items); monster variants `-v2`/`-v3` as edits of the base picture              | Open   |
+| 70    | Track `ui`: U1 logo + app icon (3 options for Stefan), then U2 UI kit (panel, buttons, icons)           | Open   |
