@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { lookOf, type UnitLook } from '../data/looks';
 import type { SimEvent, UnitState, Vec2 } from '../sim/api';
 import { ASSETS_KEY, type ManifestAsset } from './assets';
 import {
@@ -19,7 +20,7 @@ import {
 import { partyColor } from './partyLook';
 import { isSpeechEvent, pickLine, type SpeechKind } from './speechLines';
 import { buildStrike, FxLayer, type Vec } from './strikeFx';
-import { ART_NOMINAL_PX, PLACEHOLDER, UNIT_HEIGHT, lookOf, type UnitLook } from './unitLook';
+import { ART_NOMINAL_PX, PLACEHOLDER, UNIT_HEIGHT } from './unitLook';
 
 // Speech bubbles: how long one stays, the most on screen at once, and the quiet time per unit.
 const BUBBLE_MS = 2200;

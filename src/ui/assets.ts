@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import type { Strike } from './motionPose';
+import type { Strike } from '../data/looks';
 
 export interface ManifestAsset {
   id: string;
