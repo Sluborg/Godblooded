@@ -48,3 +48,9 @@ Lead owns this file. One dated line per decision that changes how the game or th
 - 2026-10-04: Art direction S1-c (Stefan): Majesty-like proportions (~4.5 heads), grim, painted.
   Replaces chibi. Side-view rig (R1) dropped: the rotated arm read as a twirl and the feet did
   not move. Next: frame-based walk and attack test in style c (S2) before any production batch.
+- 2026-10-05: Animation system (Stefan, "looks ok"): frame animation dropped (S2 legs wobbled,
+  ChatGPT frames drift). One still picture per unit per tier; all motion is shared code: hop
+  walk, lean-back windup plus lunge, a strike effect per unit (overhead chop from the weapon,
+  double chop for dual wielders, side sweep, upward, thrust, bolt, smash), hurt flash, knock-out
+  fall. Each unit's data row adds: picture facing, weapon point(s), footprint radius, strike.
+  Proof: https://claude.ai/artifact/Q4fbxESdGgQsstWkVTFvFg. Next: chunky proportions test (S4).

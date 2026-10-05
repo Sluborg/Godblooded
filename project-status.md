@@ -13,11 +13,12 @@ Lead keeps this to one screen. Read it first when resuming.
   parties, hunt, flee, rest, shop (tax), level up (pick 1 of 3 cards), storm lairs; raids hit
   the town; win when the troll den falls, lose when the town hall falls; end screen with stats.
 - Balance pass 1: sim bot wins 62%, median run 15 min.
-- Art: B1 test image approved by Lead, waiting on Stefan's A+ (separate weapon) or B choice.
+- Art: animation system chosen (one still per unit, motion in code, `docs/decisions.md`).
+  S4 chunky test (5 units) queued for ChatGPT; result goes into the motion test artifact.
 - Next: Stefan judges "fun to watch?"; Scene 55 (hero interest markers on flags).
 
 ## Waiting on Stefan
 
-- NOW: ChatGPT project "Godblooded art" (instructions: `art-tasks/PROJECT-INSTRUCTIONS.md`),
-  new chat, first message `heroes start`. Then approve the B1 style test.
+- NOW: type `next` in the heroes ChatGPT chat (batch S4, chunky test). Then judge chunky vs
+  current in the motion test.
 - OPEN design items: `docs/game-design.md`, "OPEN".
