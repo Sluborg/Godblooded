@@ -4,6 +4,9 @@ import type { GameData, Tuning } from './types';
 // `GameData.tuning` in src/data/, so design numbers live in data and these are only the
 // fallback (tests and data files that set nothing keep today's behaviour).
 export const DEFAULT_TUNING: Tuning = {
+  combat: {
+    windupMs: 300,
+  },
   hero: {
     firstRecruitMs: 5_000,
     recruitMs: 15_000,
@@ -70,6 +73,7 @@ export const DEFAULT_TUNING: Tuning = {
 export function resolveTuning(data: GameData): Tuning {
   const t = data.tuning;
   return {
+    combat: { ...DEFAULT_TUNING.combat, ...t?.combat },
     hero: { ...DEFAULT_TUNING.hero, ...t?.hero },
     party: { ...DEFAULT_TUNING.party, ...t?.party },
     monster: { ...DEFAULT_TUNING.monster, ...t?.monster },

@@ -1,3 +1,4 @@
+import { swing } from './swing';
 import { attackBuilding, attackLair, nearestBuilding, pickLair, runRaids } from './town';
 import { resolveTuning } from './tuning';
 import { makeRng, type Rng } from './rng';
@@ -22,7 +23,6 @@ import {
 } from './heroes';
 import {
   aggroRange,
-  attackMs,
   damage,
   dist,
   dodgeChance,
@@ -61,6 +61,8 @@ export interface UnitRuntime {
   lair: number | null;
   // Raiders march on the town instead of wandering near their lair.
   raid?: boolean;
+  // A strike in its windup: the target and the time left before it lands.
+  swing?: { target: number; ms: number };
   cooldownMs: number;
   target: Vec2 | null;
   idleMs: number;
@@ -231,7 +233,11 @@ function runUnits(world: World): void {
   for (const unit of world.units) {
     const rt = world.unitRuntime.get(unit.id);
     const stats = statsOf(world, unit);
-    if (!rt || !stats || unit.ko) continue;
+    if (!rt || !stats) continue;
+    if (unit.ko) {
+      if (rt) rt.swing = undefined;
+      continue;
+    }
     rt.cooldownMs = Math.max(0, rt.cooldownMs - TICK_MS);
     // Raiders have no lair leash: they march on the town.
     const home = rt.raid ? undefined : world.lairs.find((l) => l.id === rt.lair);
@@ -251,6 +257,8 @@ function runUnits(world: World): void {
     } else if (home) {
       wander(world, unit, rt, stats, home.pos);
     }
+    // A swing belongs to its target: a new target, or none, cancels it.
+    if (rt.swing && unit.target !== rt.swing.target) rt.swing = undefined;
   }
   settleDeaths(world);
 }
@@ -274,22 +282,23 @@ function pickTarget(world: World, unit: UnitState, stats: Stats, home?: Vec2): U
 function fight(world: World, unit: UnitState, rt: UnitRuntime, stats: Stats, foe: UnitState): void {
   const d = dist(unit.pos, foe.pos);
   if (d > stats.weapon.range) {
+    rt.swing = undefined;
     const dir = stepToward(unit.pos, foe.pos, (speed(stats.attrs) * TICK_MS) / 1000);
     if (dir.x !== 0 || dir.y !== 0) unit.facing = dir;
     return;
   }
   if (d > 0) unit.facing = { x: (foe.pos.x - unit.pos.x) / d, y: (foe.pos.y - unit.pos.y) / d };
-  if (rt.cooldownMs > 0) return;
-  rt.cooldownMs = attackMs(stats);
-  const foeStats = statsOf(world, foe);
-  const dodged = !!foeStats && world.rng() < dodgeChance(foeStats.attrs);
-  const dmg = dodged ? 0 : damage(stats.attrs);
-  foe.hp -= dmg;
-  world.events.push({ kind: 'hit', attacker: unit.id, target: foe.id, damage: dmg, dodged });
-  if (foe.hp <= 0) {
-    foe.hp = 0;
-    world.pendingDeaths.push({ victim: foe.id, by: unit.id });
-  }
+  swing(world, unit, rt, stats, foe.id, () => {
+    const foeStats = statsOf(world, foe);
+    const dodged = !!foeStats && world.rng() < dodgeChance(foeStats.attrs);
+    const dmg = dodged ? 0 : damage(stats.attrs);
+    foe.hp -= dmg;
+    world.events.push({ kind: 'hit', attacker: unit.id, target: foe.id, damage: dmg, dodged });
+    if (foe.hp <= 0) {
+      foe.hp = 0;
+      world.pendingDeaths.push({ victim: foe.id, by: unit.id });
+    }
+  });
 }
 
 function settleDeaths(world: World): void {
