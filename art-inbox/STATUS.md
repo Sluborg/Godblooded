@@ -62,3 +62,5 @@ B8 delivery: unchanged1254x1254 PNG (1642392 bytes), https://drive.google.com/fi
 Measured review supplement B2/B3: raw height% / lowest point% using key-color difference tolerance90: ranger front83.7/88.7 back84.8/89.7; wizard front81.2/93.9 back81.0/92.5; paladin front96.2/97.0 corrected back83.1/91.5; rogue front79.4/89.9 back77.9/88.7. Corner RGB respectively242,11,241;240,11,240;16,242,14;15,242,15;16,242,15;15,242,16;244,12,241;241,11,241. Rogue back1414465 bytes. All uploads preserved unchanged.
 
 B4-test | 2026-10-05T05:32:18.892Z | monsters | started
+
+B6-test | 2026-10-05T05:33:14.367Z | buildings | started
