@@ -72,3 +72,5 @@ B6-test | 2026-10-05T05:34:54.517Z | buildings | bld_temple_aesir_t1 | uploaded
 B6 test delivery: test--bld_temple_aesir_t1.png, unchanged PNG 1254x1254, 1967290 bytes. https://drive.google.com/file/d/1SKoaS6z4f7bzQkxjDr2V-HFg0rk_C4Pp/view?usp=drivesdk . Drive metadata verified name, MIME, size and destination. Built-in image generation using art-tasks/ref/chunky-warrior.png as rendering reference. Prompt: one humble weathered dark tarred Norse stave temple, two stacked steep shingle roofs with carved dragon heads, round door-side rune stone, frost-blue/silver trim; chunky crisp pixel art, thick outline, top-left shading; 3/4 top-down from lower right, centered base, 85% canvas width, flat magenta, no ground/scenery/shadow/text. Review: requested architecture clearly present and uncropped; measured width 90% rather than nominal85%; corner near-magenta RGB239,12,238 rather than exactFF00FF. Test does not complete B6. Buildings PR#3 wake watch enabled.
 
 B4 | 2026-10-05T05:35:20.133Z | monsters | started
+
+B6 | 2026-10-05T05:35:57.067Z | buildings | started
