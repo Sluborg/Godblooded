@@ -87,3 +87,6 @@ Lead owns this file. One dated line per decision that changes how the game or th
   the sixth is the Healer), one favor path per class per pantheon. Aesir paths: Thor (warrior),
   Tyr (paladin), Heimdall (ranger), Loki (rogue), Odin (wizard), Freyja (healer). Table in
   `docs/game-design.md`, "Favor paths".
+- 2026-10-05: Healer class (Sim #67, data #70) and the six Aesir favor paths (Sim #69, data #72,
+  +1/+2 bonuses). Balance pass 3: 7 heroes per temple every 22 s, troll den 27000 hp. Sim bot,
+  200 runs: 62-65% wins, median run about 15 min.
