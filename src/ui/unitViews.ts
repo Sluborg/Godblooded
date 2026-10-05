@@ -21,7 +21,7 @@ import {
 import { partyColor } from './partyLook';
 import { isSpeechEvent, pickLine, type SpeechKind } from './speechLines';
 import { buildStrike, FxLayer, type Vec } from './strikeFx';
-import { ART_NOMINAL_PX, PLACEHOLDER, UNIT_HEIGHT, baseType } from './unitLook';
+import { ART_NOMINAL_PX, PLACEHOLDER, UNIT_HEIGHT, baseType, unitArtId } from './unitLook';
 
 // Speech bubbles: how long one stays, the most on screen at once, and the quiet time per unit.
 const BUBBLE_MS = 2200;
@@ -41,11 +41,6 @@ function warnOnce(message: string): void {
   if (warned.has(message)) return;
   warned.add(message);
   console.warn(`[godblooded] ${message}`);
-}
-
-function manifestId(u: UnitState, view: 'front' | 'back'): string {
-  const kind = u.kind === 'hero' ? 'hero' : 'mon';
-  return `${kind}_${u.type}_t${u.tier}_${view}`;
 }
 
 interface Attack {
@@ -189,8 +184,7 @@ export class UnitView {
 
   // Swaps in the picture for this unit when the manifest has it; else the placeholder stays.
   private applyArt(u: UnitState): void {
-    let id = manifestId(u, u.facing.y < 0 ? 'back' : 'front');
-    if (!this.scene.textures.exists(id)) id = manifestId(u, u.facing.y < 0 ? 'front' : 'back');
+    const id = unitArtId(u.kind, u.type, u.tier);
     if (!this.scene.textures.exists(id)) {
       if (this.artId !== '') {
         this.sprite?.destroy();
