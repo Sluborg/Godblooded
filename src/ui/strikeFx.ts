@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import type { Strike } from './motionPose';
+import type { Strike } from '../data/looks';
 
 // Strike effects and particles, ported from the reference (docs/reference/motion-test.html).
 // `buildStrike` is pure (it only decides which effects start where); `FxLayer` draws them.

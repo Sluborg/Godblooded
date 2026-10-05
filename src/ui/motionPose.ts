@@ -2,7 +2,9 @@
 // docs/reference/motion-test.html). Pure maths, no Phaser: each function turns a time into a
 // pose {rot, dx, dy, sx, sy} for a picture that faces right. Callers mirror by facing.
 
-export type Strike = 'chop' | 'double' | 'sweep' | 'upward' | 'thrust' | 'smash' | 'bolt' | 'shot';
+import type { Strike } from '../data/looks';
+
+export type { Strike };
 
 export const STRIKES: readonly Strike[] = [
   'chop',
