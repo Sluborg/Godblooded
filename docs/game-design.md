@@ -18,12 +18,20 @@ falls or your town hall burns.
    one chases flags, the proud one ignores small fry, rivals argue. Speech bubbles, not reports.
 3. **Parties, not units.** Heroes group up by bonds and traits. A party levels up together and
    you choose its upgrade (1 of 3, autobattler style).
-4. **Everything has 3 tiers.** Heroes, monsters and buildings each show tier 1, 2, 3 as a new
-   skin. Tier is the visual reward and reads threat at a glance.
+4. **Everything has 3 tiers**, and tier reads at a glance (decisions 2026-10-05):
+   - **Heroes:** tier 1 is the class (at most **two of each class** in town). At tier-up a hero
+     takes a **favor path**, the patronage of one god, with its own art; **only one hero per
+     favor path** at a time. Draft paths below.
+   - **Monsters:** tiers by **colour** (like Rage of Mages: green, yellow, red goblins) plus size,
+     done in code on one picture. Common monsters get 2-3 **variants** (same pose, a different
+     head or weapon) so a pack never looks cloned.
+   - **Buildings:** a new picture per tier.
 5. **Phone first.** Landscape, one thumb, short runs.
-6. **Art direction: classic fantasy strategy** (Stefan's pick, style S1-c): Majesty-like
-   proportions (about 4.5 heads), weathered and slightly grim, painted shading. Not chibi.
-   Readability at phone size comes from strong silhouettes, class colours and the unit scale.
+6. **Art direction: chunky and gritty** (Stefan, batch S4): pixel art after his concept sheets
+   (`docs/concept/`), about 3.5 to 4 heads tall, oversized weapons, thick outline, dark palette.
+   One still picture per unit, facing right and mirrored; all motion is code
+   (`docs/decisions.md`). **Parties wear a colour:** a ring under each member and a small banner
+   over the leader.
 
 ## Lore (from StefanCoda "Godblood Knowledge", the source of truth)
 
@@ -82,12 +90,25 @@ armor as saturating curves capped at 90%; attack time from weapon base reduced b
 knockout by default, permadeath only against bosses). Sim may simplify for the graybox and
 says so in `docs/decisions.md`.
 
+## Favor paths (draft, OPEN for Stefan)
+
+Taken at the first tier-up (party level 3); the second tier-up (level 6) is the same path's
+stronger form. Names from Stefan's concept sheets where they exist.
+
+| Class   | Aesir                   | Greek                         | Egyptian                  |
+| ------- | ----------------------- | ----------------------------- | ------------------------- |
+| Warrior | Storm Berserker (Thor)  | Witchblade (Hecate)           | Moonclaw Duelist (Bastet) |
+| Rogue   | Rune Trickster (Loki)   | (new: Hermes)                 | Night Stalker (Bastet)    |
+| Wizard  | Fate Weaver (Frigg)     | Storm Oracle (Zeus)           | Hieroglyph Sage (Thoth)   |
+| Paladin | Valkyrie Skald (Freyja) | Queen of Seasons (Persephone) | Soul Warden (Anubis)      |
+| Ranger  | (new: Skadi)            | (new: Artemis)                | Divine Artificer (Ptah)   |
+
 ## Milestones
 
 | Order | Milestone        | Done when                                                                                                                                                            |
 | ----- | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 10    | M1 Graybox       | Shapes only: town hall, 1 temple, 1 market, 2 lairs. Heroes arrive, form parties, hunt, return, shop. Bounty flag. Level-up pick. Win or lose. Stefan: fun to watch? |
-| 20    | M2 First art     | Tier 1 of 5 classes, 6 monsters and the buildings in, front and back views, mirroring.                                                                               |
+| 20    | M2 First art     | Tier 1 of 5 classes, 6 monsters and the buildings in (one front picture each, mirrored), party colours, UI kit and logo.                                             |
 | 30    | M3 Tiers and run | Tier 2 and 3 skins, lair growth, party tier-ups, 3 pantheon temples, meta unlocks.                                                                                   |
 | 40    | M4 Feel          | Speech bubbles, hit effects, sound, juice, balance pass.                                                                                                             |
 

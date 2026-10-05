@@ -72,3 +72,12 @@ Lead owns this file. One dated line per decision that changes how the game or th
 - 2026-10-05: Windup (Sim PR #51): every strike announces itself `windupMs` (300, at most 40% of
   the attack cycle) before it lands, so Scene plays the full windup. Rebalance (PR #54): first
   raid at 6:40. Sim bot: 71% wins, median run 15.5 min.
+- 2026-10-05: Stefan on art and heroes:
+  - **Front view only**, mirrored; back views are dropped (they barely differed anyway).
+  - **Heroes:** at most two of each class; at tier-up a hero takes a favor path (a god's
+    patronage) with its own art, one hero per path. Path list: draft in `docs/game-design.md`.
+  - **Party colours:** a ring under each member and a banner over the leader.
+  - **Monster tiers by colour** (Rage of Mages style) plus size, in code on one picture; common
+    monsters get 2-3 variants made as edits of the base picture (same pose, new head or weapon),
+    ids `<type>-v2`, `<type>-v3`.
+  - **UI:** a button and panel kit plus a logo and app icon (new ChatGPT track `ui`).
