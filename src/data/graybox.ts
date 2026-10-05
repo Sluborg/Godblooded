@@ -37,6 +37,14 @@ export const CLASSES: readonly ClassDef[] = [
     weapon: { baseAttackS: 1.1, range: 40 },
     startGold: 60,
   },
+  // Healer: mends the most hurt party mate below the heal threshold, otherwise casts a bolt.
+  {
+    id: 'healer',
+    attrs: { str: 2, dex: 3, sta: 4, cha: 4, per: 4, int: 6, wp: 6 },
+    weapon: { baseAttackS: 1.6, range: 200 },
+    startGold: 40,
+    heals: true,
+  },
 ];
 
 export const MONSTERS: readonly MonsterDef[] = [
@@ -59,7 +67,7 @@ export const MONSTERS: readonly MonsterDef[] = [
 // The barrow is the early fight; the troll den is the final lair (win when it falls).
 export const LAIRS: readonly LairDef[] = [
   { id: 'barrow', monster: 'draugr', spawnS: 10, maxAlive: 6, hp: 3500 },
-  { id: 'troll-den', monster: 'troll', spawnS: 25, maxAlive: 6, hp: 16000 },
+  { id: 'troll-den', monster: 'troll', spawnS: 25, maxAlive: 6, hp: 22000 },
 ];
 
 // Level-up cards; a party is offered 3 different ones. Graybox set: stats, sustain, nerve.
@@ -127,7 +135,7 @@ export const GRAYBOX: GameData = {
   // Balance pass 1 (npm run sim, 100 runs, simple bot): win rate 62%, median run 15.2 min,
   // about 17 knockouts per run. Unset keys use DEFAULT_TUNING in src/sim/tuning.ts.
   tuning: {
-    hero: { maxPerTemple: 6, recruitMs: 25_000 },
+    hero: { maxPerTemple: 7, recruitMs: 22_000 },
     town: { raidFirstMs: 400_000, raidEveryMs: 120_000, raidGrowEveryMs: 240_000 },
   },
   classes: CLASSES,
