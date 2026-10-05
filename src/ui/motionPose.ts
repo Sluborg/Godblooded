@@ -13,6 +13,7 @@ export const STRIKES: readonly Strike[] = [
   'upward',
   'thrust',
   'smash',
+  'stomp',
   'bolt',
   'shot',
 ];
@@ -43,6 +44,8 @@ export const ATTACK: Record<Strike, AttackTiming> = {
   double: { windup: 0.18, strike: 0.08, recover: 0.46, lunge: 0.1, lean: 0.2 },
   bolt: { windup: 0.3, strike: 0.06, recover: 0.3, lunge: 0, lean: 0.1 },
   smash: { windup: 0.42, strike: 0.1, recover: 0.45, lunge: 0.1, lean: 0.2 },
+  // stomp: the body lifts, then slams down on the front foot; `lunge` is the small forward shift
+  stomp: { windup: 0.4, strike: 0.1, recover: 0.45, lunge: 0.03, lean: 0.06 },
   shot: { windup: 0.2, strike: 0.06, recover: 0.24, lunge: 0, lean: 0.08 },
 };
 
@@ -78,6 +81,7 @@ export function attackDuration(strike: Strike, windup: number): number {
 export function attackPose(strike: Strike, t: number, h: number, windup: number): Pose {
   const { strike: b, recover: c, lunge, lean } = ATTACK[strike];
   const a = windup;
+  if (strike === 'stomp') return stompPose(t, h, a);
   if (t < a) {
     const p = ease(Math.max(0, t) / a);
     const low = strike === 'upward' || strike === 'thrust';
@@ -114,6 +118,28 @@ export function attackPose(strike: Strike, t: number, h: number, windup: number)
   const p = Math.min(1, (t - a - b - (strike === 'double' ? DOUBLE_GAP : 0)) / c);
   const q = 1 - ease(p);
   return { rot: 0.2 * q, dx: lunge * h * q, dy: 0, sx: 1 + 0.05 * q, sy: 1 - 0.06 * q };
+}
+
+// Stomp: the windup lifts the body (up 0.09 h, a slight lean back, stretched), the strike slams
+// it down (squash to 1.08 wide and 0.9 tall, a tiny forward shift), then it settles.
+function stompPose(t: number, h: number, a: number): Pose {
+  const { strike: b, recover: c, lunge, lean } = ATTACK.stomp;
+  if (t < a) {
+    const p = ease(Math.max(0, t) / a);
+    return { rot: -lean * p, dx: 0, dy: -0.09 * h * p, sx: 1 - 0.03 * p, sy: 1 + 0.06 * p };
+  }
+  if (t < a + b) {
+    const p = (t - a) / b;
+    return {
+      rot: -lean + (lean + 0.04) * p,
+      dx: lunge * h * p,
+      dy: -0.09 * h * (1 - p * p),
+      sx: 1 - 0.03 + 0.11 * p,
+      sy: 1 + 0.06 - 0.16 * p,
+    };
+  }
+  const q = 1 - ease(Math.min(1, (t - a - b) / c));
+  return { rot: 0.04 * q, dx: lunge * h * q, dy: 0, sx: 1 + 0.08 * q, sy: 1 - 0.1 * q };
 }
 
 // Distance walked per hop, as a fraction of the picture height. A step is tied to distance, so

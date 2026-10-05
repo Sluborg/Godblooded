@@ -344,14 +344,32 @@ export class UnitView {
     } else if (moving) {
       const before = Math.floor(this.stepT);
       this.stepT += step / (this.h * STEP_LENGTH);
-      if (Math.floor(this.stepT) !== before)
-        ctx.fx.dust(this.x - this.face * this.h * 0.08, this.y, 0.5 * this.look.scale);
+      if (Math.floor(this.stepT) !== before) this.stepDust(ctx);
       pose = walkPose(this.stepT, this.h, this.face);
     } else {
       pose = idlePose(this.phase);
     }
     this.applyPose(pose, alpha * this.fade);
     this.container.setPosition(this.x, this.y).setDepth(this.y);
+  }
+
+  // Distance from the feet anchor to either foot: it grows with the unit's footprint.
+  private footOffset(): number {
+    return UNIT_HEIGHT * this.look.footprint * 0.45;
+  }
+
+  // Walk dust comes from the foot that just landed: one or two small puffs, the side
+  // alternating with the step (the same parity as the step tilt).
+  private stepDust(ctx: FrameCtx): void {
+    const side = Math.floor(this.stepT) % 2 ? 1 : -1;
+    const k = 0.4 * this.look.scale;
+    ctx.fx.dust(this.x + side * this.footOffset(), this.y, k);
+    if (Math.random() < 0.5)
+      ctx.fx.dust(
+        this.x + side * this.footOffset() * (0.6 + Math.random() * 0.4),
+        this.y + 3,
+        k * 0.7,
+      );
   }
 
   private runAttack(ctx: FrameCtx): Pose {
@@ -399,6 +417,7 @@ export class UnitView {
       backFirst: a.backFirst,
       cross: a.cross,
       reach: UNIT_HEIGHT * (this.look.footprint + 0.25),
+      foot: this.footOffset(),
     });
     ctx.fx.add(r.effects);
     if (r.smash) {
@@ -406,7 +425,8 @@ export class UnitView {
         ctx.fx.dust(r.smash.x + (Math.random() - 0.5) * this.h * 0.4, r.smash.y, 0.9);
       ctx.shake();
     }
-    ctx.hurt(a.targetId, this.x, a.strike === 'smash' ? 2 : 1, n === 0 ? a.damage : 0, a.dodged);
+    const heavy = a.strike === 'smash' || a.strike === 'stomp';
+    ctx.hurt(a.targetId, this.x, heavy ? 2 : 1, n === 0 ? a.damage : 0, a.dodged);
   }
 
   private applyPose(p: Pose, alpha: number): void {

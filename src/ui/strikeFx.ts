@@ -59,8 +59,10 @@ export interface StrikeInput {
   n: 0 | 1;
   backFirst: boolean;
   cross: boolean;
-  // Ground distance in front of the striker where a smash lands.
+  // Ground distance in front of the striker where a smash lands, and where its front foot is
+  // (a stomp lands there).
   reach: number;
+  foot: number;
   rnd?: (a: number, b: number) => number;
 }
 
@@ -204,6 +206,13 @@ export function buildStrike(i: StrikeInput): StrikeResult {
         age: 0,
         life: Math.max(0.08, Math.min(0.3, dist / 1400)),
       });
+      break;
+    }
+    case 'stomp': {
+      // the shockwave starts at the front foot
+      const gx = x + f * i.foot;
+      effects.push({ type: 'ring', x: gx, y, r: h * 0.75, age: 0, life: 0.45 });
+      smash = { x: gx, y };
       break;
     }
     case 'smash': {
