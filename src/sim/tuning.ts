@@ -6,6 +6,9 @@ import type { GameData, Tuning } from './types';
 export const DEFAULT_TUNING: Tuning = {
   combat: {
     windupMs: 300,
+    healRange: 260,
+    healBelow: 0.7,
+    healPower: 1,
   },
   hero: {
     firstRecruitMs: 5_000,

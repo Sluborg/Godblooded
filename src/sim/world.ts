@@ -243,9 +243,13 @@ function runUnits(world: World): void {
     const home = rt.raid ? undefined : world.lairs.find((l) => l.id === rt.lair);
     // Heroes that are fleeing, resting or shopping do not pick fights.
     const busy = unit.kind === 'hero' && unit.mode !== 'explore';
-    const foe = busy ? null : pickTarget(world, unit, stats, home?.pos);
-    unit.target = foe ? foe.id : null;
-    if (foe) {
+    // A healer tends a hurt party mate before it attacks anything.
+    const ally = busy ? null : healTarget(world, unit);
+    const foe = busy || ally ? null : pickTarget(world, unit, stats, home?.pos);
+    unit.target = ally ? ally.id : foe ? foe.id : null;
+    if (ally) {
+      heal(world, unit, rt, stats, ally);
+    } else if (foe) {
       fight(world, unit, rt, stats, foe);
     } else if (unit.kind === 'hero') {
       const lair = busy ? null : pickLair(world, unit);
@@ -277,6 +281,39 @@ function pickTarget(world: World, unit: UnitState, stats: Stats, home?: Vec2): U
     bestD = d;
   }
   return best;
+}
+
+// The most hurt party mate in heal range, for a healer hero.
+function healTarget(world: World, unit: UnitState): UnitState | null {
+  if (unit.kind !== 'hero' || !world.data.classes?.find((c) => c.id === unit.type)?.heals) {
+    return null;
+  }
+  const party = world.parties.get(unit.party);
+  const t = world.tuning.combat;
+  let best: UnitState | null = null;
+  let bestFrac = t.healBelow;
+  for (const id of party?.members ?? []) {
+    const m = id === unit.id ? undefined : world.units.find((u) => u.id === id);
+    if (!m || m.ko || m.hp <= 0 || dist(unit.pos, m.pos) > t.healRange) continue;
+    const frac = m.hp / m.maxHp;
+    if (frac < bestFrac) {
+      best = m;
+      bestFrac = frac;
+    }
+  }
+  return best;
+}
+
+function heal(world: World, unit: UnitState, rt: UnitRuntime, stats: Stats, ally: UnitState): void {
+  const d = dist(unit.pos, ally.pos);
+  if (d > 0) unit.facing = { x: (ally.pos.x - unit.pos.x) / d, y: (ally.pos.y - unit.pos.y) / d };
+  swing(world, unit, rt, stats, ally.id, () => {
+    const gain = Math.round(world.tuning.combat.healPower * (stats.attrs.int + stats.attrs.wp));
+    const amount = Math.min(gain, ally.maxHp - ally.hp);
+    if (amount <= 0 || ally.ko) return;
+    ally.hp += amount;
+    world.events.push({ kind: 'heal', healer: unit.id, target: ally.id, amount });
+  });
 }
 
 function fight(world: World, unit: UnitState, rt: UnitRuntime, stats: Stats, foe: UnitState): void {
