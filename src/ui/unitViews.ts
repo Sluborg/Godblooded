@@ -18,6 +18,7 @@ import {
   type Pose,
   type Strike,
 } from './motionPose';
+import { pickVariant, rotateHue, sizeJitter, tierStyle } from './monsterLook';
 import { partyColor } from './partyLook';
 import { isSpeechEvent, pickLine, type SpeechKind } from './speechLines';
 import { buildStrike, FxLayer, type Vec } from './strikeFx';
@@ -89,6 +90,9 @@ export class UnitView {
   private bubble: Phaser.GameObjects.Container | null = null;
   readonly isHero: boolean;
   readonly look: UnitLook;
+  // Monster tier hue shift in degrees (0 for heroes and tier 1) and its stable variant roll.
+  private readonly hue: number;
+  private readonly unitId: number;
   spoken = 0;
   lastSpokeAt = -Infinity;
 
@@ -118,7 +122,17 @@ export class UnitView {
     private readonly scene: Phaser.Scene,
     u: UnitState,
   ) {
-    this.look = lookOf(baseType(u.type));
+    const look = lookOf(baseType(u.type));
+    this.unitId = u.id;
+    // Monsters: tier grows the picture 10% and 20% and shifts its hue; every unit gets a tiny
+    // stable size jitter so a pack never looks cloned. Heroes stay as they are.
+    const tier = u.kind === 'monster' ? tierStyle(u.tier) : { scale: 1, hue: 0 };
+    this.hue = tier.hue;
+    this.look = {
+      ...look,
+      color: rotateHue(look.color, tier.hue),
+      scale: look.scale * tier.scale * (u.kind === 'monster' ? sizeJitter(u.id) : 1),
+    };
     this.isHero = u.kind === 'hero';
     this.x = u.pos.x;
     this.y = u.pos.y;
@@ -184,7 +198,13 @@ export class UnitView {
 
   // Swaps in the picture for this unit when the manifest has it; else the placeholder stays.
   private applyArt(u: UnitState): void {
-    const id = unitArtId(u.kind, u.type, u.tier);
+    const type =
+      u.kind === 'monster'
+        ? pickVariant(u.type, this.unitId, (t) =>
+            this.scene.textures.exists(unitArtId(u.kind, t, u.tier)),
+          )
+        : u.type;
+    const id = unitArtId(u.kind, type, u.tier);
     if (!this.scene.textures.exists(id)) {
       if (this.artId !== '') {
         this.sprite?.destroy();
@@ -211,6 +231,9 @@ export class UnitView {
     if (!this.sprite) {
       this.sprite = this.scene.add.image(0, 0, id);
       this.flash = this.scene.add.image(0, 0, id).setVisible(false);
+      // Tier colour: a hue rotation in the sprite's own pipeline (WebGL; the canvas renderer has
+      // no preFX and keeps the base colours).
+      if (this.hue !== 0) this.sprite.preFX?.addColorMatrix().hue(this.hue);
       this.body.addAt(this.sprite, 0);
       this.body.add(this.flash);
     }
