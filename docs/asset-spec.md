@@ -5,13 +5,13 @@ concept sheets in `docs/concept/`); this is the technical contract.
 
 ## Ids
 
-| Kind     | Id                                  | Example                 |
-| -------- | ----------------------------------- | ----------------------- |
-| Hero     | `hero_<class>_t<1-3>_<front\|back>` | `hero_warrior_t2_front` |
-| Monster  | `mon_<type>_t<1-3>_<front\|back>`   | `mon_draugr_t1_back`    |
-| Building | `bld_<type>_t<1-3>`                 | `bld_temple_aesir_t3`   |
-| Terrain  | `ter_<name>`                        | `ter_grass_a`           |
-| UI       | `ui_<name>`                         | `ui_flag_bounty`        |
+| Kind     | Id                              | Example                  |
+| -------- | ------------------------------- | ------------------------ |
+| Hero     | `hero_<class>_t<1-3>_front`     | `hero_warrior_t2_front`  |
+| Monster  | `mon_<type>[-v2\|-v3]_t1_front` | `mon_draugr-v2_t1_front` |
+| Building | `bld_<type>_t<1-3>`             | `bld_temple_aesir_t3`    |
+| Terrain  | `ter_<name>`                    | `ter_grass_a`            |
+| UI       | `ui_<name>`                     | `ui_flag_bounty`         |
 
 Rig pieces (test, Lead's motion work): a unit id plus `_body` or `_arm`, and a `side` view
 (profile facing right), e.g. `hero_warrior_t1_side_arm`. See "Rig pieces" below.
@@ -22,12 +22,19 @@ Animation frames: a unit id plus `_walk1`-`_walk4`, `_attack1`-`_attack3` or `_h
 Names are lowercase letters; a name of several words joins them with a hyphen
 (`mon_jackal-man_t1_front`). The underscore only separates the parts of an id.
 
+Monster variants: the type name plus `-v2` or `-v3` (`mon_draugr-v2_t1_front`,
+`mon_jackal-man-v3_t1_front`); the plain name is variant 1. The base type is the name with a
+trailing `-v<n>` removed. A variant is an edit of the shipped base picture: same canvas, pose and
+body, only the head (helmet, hair) and the weapon change, the weapon in the same strike position.
+Each variant is a full manifest row with its own measured weapon point.
+
+`_back` ids are legacy (the five tier-1 hero backs already shipped); no new back views.
+
 ## Pose standard (Stefan, `docs/decisions.md` 2026-10-05)
 
-- **One still picture per unit and view, facing right** (front: three-quarter toward the lower
-  right). No frames: the game mirrors it for left and does all motion in code (hop, lunge,
-  strike effect, flash, fall). Whether units keep a `back` view is open (Stefan); until he
-  decides, both views stay and each follows this rule.
+- **One front picture per unit, facing right** (three-quarter toward the lower right). No back
+  view, no frames: the game mirrors it for left and does all motion in code (hop, lunge, strike
+  effect, flash, fall).
 - The **weapon's position is fixed by the unit's strike** (table in `art-tasks/STYLE.md`): overhead
   chop, double chop, side sweep, upward, thrust, smash, stomp, bolt, shot. Every batch item names
   its strike.
@@ -36,11 +43,10 @@ Names are lowercase letters; a name of several words joins them with a hyphen
 
 ## Views and mirroring
 
-- **front:** the unit faces the camera, turned 3/4 toward the lower right.
-- **back:** the unit faces away, turned 3/4 toward the upper right.
-- The game mirrors both horizontally for leftward movement: 4 directions from 2 images.
-- One static pose per view. Motion (walk bob, squash, attack lunge, hit flash, death fade) is
-  done in code by Scene. No sprite sheets.
+- **front** (the only view): the unit faces the camera, turned 3/4 toward the lower right.
+- The game mirrors it horizontally for leftward movement.
+- One static pose. Motion (walk bob, squash, attack lunge, hit flash, death fade) is done in code
+  by Scene. No sprite sheets.
 
 ## Canvas and scale
 
@@ -81,6 +87,9 @@ around that point.
 | 3    | Divine: gold trim, a glowing motif of the divine parent, bigger silhouette |
 
 Silhouette must change between tiers (not only colour), so a tier reads at phone size.
+
+Heroes and buildings get a picture per tier. **Monsters have tier-1 pictures only**: the game
+shows a tougher monster by colour (tint) in code.
 
 ## Manifest
 

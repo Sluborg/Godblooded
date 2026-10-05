@@ -13,7 +13,8 @@ proportions are **chunky** (batch S4, approved).
   Bastet: moon violet, ...). Tier 1 has no glow; glow and effects grow with the tier. Monsters
   lean darker and greener.
 - **Pose (every unit): faces RIGHT**, a three-quarter view toward the lower right; the game mirrors
-  it for left. One still picture per unit: the game does all motion in code.
+  it for left. One front picture per unit, no back view: the game does all motion in code.
+  Monsters are drawn at tier 1 only; the game colours tougher ones.
 - **Weapon position = the unit's strike** (the batch names it). The strike starts where the weapon
   is drawn:
 
