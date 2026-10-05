@@ -68,6 +68,10 @@ describe('ids', () => {
     expect(kindOf('mon_draugr_t1_front_attack2')?.kind).toBe('mon');
     expect(kindOf('hero_warrior_t1_front_hurt')?.kind).toBe('hero');
     expect(kindOf('hero_warrior_t1_front_walk5')).toBeNull();
+    expect(kindOf('mon_draugr-v2_t1_front')?.kind).toBe('mon');
+    expect(kindOf('mon_jackal-man-v3_t1_front')?.kind).toBe('mon');
+    expect(kindOf('mon_draugr-v1_t1_front')).toBeNull();
+    expect(kindOf('hero_warrior-v2_t1_front')).toBeNull();
   });
 });
 

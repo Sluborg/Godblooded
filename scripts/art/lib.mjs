@@ -31,7 +31,7 @@ export const KINDS = {
     anchor: 'feet',
   },
   mon: {
-    re: /^mon_[a-z]+(-[a-z]+)*_t[1-3]_(front|back|side)(_(body|arm|walk[1-4]|attack[1-3]|hurt))?$/,
+    re: /^mon_[a-z]+(-[a-z]+)*(-v[2-9])?_t[1-3]_(front|back|side)(_(body|arm|walk[1-4]|attack[1-3]|hurt))?$/,
     dir: 'units',
     nominal: { axis: 'height', share: 0.75, px: 256 },
     anchor: 'feet',
