@@ -120,6 +120,20 @@ describe('processImage', () => {
     expect(processImage(img, 'hero_warrior_t1_front').specks).toBeGreaterThan(0);
   });
 
+  it('maps raw weapon points onto the shipped picture', () => {
+    const r = processImage(canvas(1024, GREEN, unitRect), 'hero_warrior_t1_front', {
+      weapon: [unitRect.x, unitRect.y],
+      weapon2: [512, 901],
+    });
+    // Top-left corner of the figure: just inside the 2 px margin.
+    expect(r.weaponX).toBeGreaterThan(0);
+    expect(r.weaponX).toBeLessThan(0.06);
+    expect(r.weaponY).toBeLessThan(0.02);
+    // Bottom centre of the figure: the feet anchor.
+    expect(r.weapon2X).toBeCloseTo(r.anchorX, 2);
+    expect(r.weapon2Y).toBeCloseTo(r.anchorY, 2);
+  });
+
   it('refuses a non-key background', () => {
     expect(() => processImage(canvas(256, [80, 80, 80], unitRect), 'hero_x_t1_front')).toThrow();
   });
@@ -231,6 +245,12 @@ describe('strike fields', () => {
     expect(
       errorsFor({ strike: 'double', weaponX: 0.1, weaponY: 0.2, weapon2X: 0.9, weapon2Y: 0.6 }),
     ).toEqual([]);
+  });
+
+  it('requires strike and weapon on a unit still', () => {
+    const errors = errorsFor({}).join();
+    expect(errors).toMatch(/needs "strike"/);
+    expect(errors).toMatch(/needs weaponX/);
   });
 
   it('rejects bad strikes and half points', () => {

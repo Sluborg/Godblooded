@@ -24,8 +24,10 @@ Names are lowercase letters; a name of several words joins them with a hyphen
 
 ## Pose standard (Stefan, `docs/decisions.md` 2026-10-05)
 
-- **One still picture per unit, facing right** (three-quarter view toward the lower right). The
-  game mirrors it for left and does all motion in code (hop, lunge, strike effect, flash, fall).
+- **One still picture per unit and view, facing right** (front: three-quarter toward the lower
+  right). No frames: the game mirrors it for left and does all motion in code (hop, lunge,
+  strike effect, flash, fall). Whether units keep a `back` view is open (Stefan); until he
+  decides, both views stay and each follows this rule.
 - The **weapon's position is fixed by the unit's strike** (table in `art-tasks/STYLE.md`): overhead
   chop, double chop, side sweep, upward, thrust, smash, bolt, shot. Every batch item names its
   strike.
@@ -104,7 +106,8 @@ Silhouette must change between tiers (not only colour), so a tier reads at phone
 
 - `kind`: `hero`, `mon`, `bld`, `ter` or `ui`. `tier` and `view` are `null` when the id has none.
 - Rig pieces add `part` (`body` or `arm`); arm rows add `pivotX`, `pivotY`.
-- Units add the strike and weapon points (all fractions 0..1 of the shipped picture):
+- Unit stills (hero and mon rows without `part`) must carry the strike and weapon points (all
+  fractions 0..1 of the shipped picture):
   - `strike`: `chop`, `double`, `sweep`, `upward`, `thrust`, `smash`, `bolt` or `shot`
   - `weaponX`, `weaponY`: where the strike starts (the weapon head or tip; for `bolt` the focus,
     for `shot` the bow)
@@ -122,8 +125,14 @@ Silhouette must change between tiers (not only colour), so a tier reads at phone
 | ----- | ----------------------------------------------- | ------------------------------------------------- |
 | Check | `npm run art:check -- <folder> --sheet out.png` | canvas, flat key, framing; contact sheet + anchor |
 | Look  | open the contact sheet                          | style, consistency, readable at phone size        |
+| Point | write `<folder>/points.json`                    | per unit still: strike, weapon point(s) in raw px |
 | Ship  | `npm run art:ship -- <folder> <B#/R#> [id ...]` | raw to source, sprite to game, manifest rows      |
 | Gate  | `npm run validate:art`                          | manifest and PNGs against this spec               |
+
+`points.json` maps each unit still to `{ "strike": "chop", "weapon": [x, y] }` (plus
+`"weapon2": [x, y]` for `double`), in pixels of the raw upload. Ship converts them to the
+manifest fractions and keeps the file as `assets/source/<batch>/points.json`, so a re-ship finds
+them again. A unit still without an entry does not ship.
 
 Uploads may be named `<batch>--<id>.png` (Drive), `<id>.png` (`art-inbox` branch) or base64
 `<id>.png.b64[.001]` (decoded automatically).

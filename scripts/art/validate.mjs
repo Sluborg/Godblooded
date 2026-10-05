@@ -56,6 +56,11 @@ export function validateAssets(root = '.') {
     for (const p of ['pivot', 'weapon', 'weapon2'])
       if ((row[`${p}X`] === undefined) !== (row[`${p}Y`] === undefined))
         err(id, `${p}X and ${p}Y go together`);
+    // A unit still (hero or monster, no rig or frame part) must carry its strike and weapon.
+    if (k.dir === 'units' && part === null) {
+      if (row.strike === undefined) err(id, 'unit needs "strike"');
+      if (row.weaponX === undefined) err(id, 'unit needs weaponX/weaponY');
+    }
     if (row.strike !== undefined && !STRIKES.includes(row.strike))
       err(id, `strike must be one of ${STRIKES.join(', ')}`);
     if (row.strike === 'double' && row.weapon2X === undefined)
