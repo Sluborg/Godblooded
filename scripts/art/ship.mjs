@@ -6,12 +6,15 @@
 // Only files of that batch ship: `<batch>--<id>.png`, or unprefixed `<id>.png` (a folder holding
 // one batch). Trial images (`test--`) and other batches' files are skipped.
 // Unit stills need an entry in `<folder>/points.json` (Art writes it at review, raw canvas px):
-//   { "<id>": { "strike": "chop", "weapon": [x, y], "weapon2": [x, y] } }   (weapon2: double only)
+//   { "<id>": { "strike": "chop", "weapon": [x, y], "weapon2": [x, y], "fit": true } }
+// weapon2: double only. fit: re-frame an upload ChatGPT framed too big or off-centre to the spec
+// framing before keying (lib fitFrame); the points stay in pixels of the original upload.
 // It is kept as assets/source/<batch>/points.json, so a re-ship finds the points again.
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
   collectUploads,
+  fitFrame,
   kindOf,
   parseId,
   processFrames,
@@ -117,8 +120,16 @@ for (const { id, path } of uploads) {
   const p = points[id];
   if (!p?.strike || !p.weapon)
     throw new Error(`${id}: needs strike and weapon in ${dir}/points.json (see ship.mjs header)`);
-  const at = { weapon: p.weapon, ...(p.weapon2 ? { weapon2: p.weapon2 } : {}) };
-  ship(id, path, processImage(readPng(path), id, at), p.strike);
+  let raw = readPng(path);
+  let move = ([x, y]) => [x, y];
+  if (p.fit) {
+    const f = fitFrame(raw, id);
+    raw = f.image;
+    move = ([x, y]) => [x + f.dx, y + f.dy];
+    console.log(`fitted ${id}: canvas ${raw.width} px, moved ${f.dx},${f.dy}`);
+  }
+  const at = { weapon: move(p.weapon), ...(p.weapon2 ? { weapon2: move(p.weapon2) } : {}) };
+  ship(id, path, processImage(raw, id, at), p.strike);
 }
 for (const u of uploads)
   if (parseId(u.id).part === 'arm' && !byId.has(u.id.replace(/_arm$/, '_body')))
