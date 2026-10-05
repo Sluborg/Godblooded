@@ -18,6 +18,25 @@ export const CLASSES: readonly ClassDef[] = [
     weapon: { baseAttackS: 1.4, range: 220 },
     startGold: 50,
   },
+  // Wizard: str stands for spell power until magic has its own stat.
+  {
+    id: 'wizard',
+    attrs: { str: 5, dex: 4, sta: 3, cha: 3, per: 5, int: 7, wp: 5 },
+    weapon: { baseAttackS: 1.9, range: 200 },
+    startGold: 45,
+  },
+  {
+    id: 'paladin',
+    attrs: { str: 5, dex: 2, sta: 8, cha: 4, per: 3, int: 3, wp: 7 },
+    weapon: { baseAttackS: 1.9, range: 40 },
+    startGold: 40,
+  },
+  {
+    id: 'rogue',
+    attrs: { str: 4, dex: 8, sta: 4, cha: 3, per: 5, int: 3, wp: 3 },
+    weapon: { baseAttackS: 1.1, range: 40 },
+    startGold: 60,
+  },
 ];
 
 export const MONSTERS: readonly MonsterDef[] = [
