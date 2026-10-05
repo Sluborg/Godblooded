@@ -1,26 +1,41 @@
 # Godblooded house style (every image, every chat)
 
 Apply to every image on top of the batch text, so all chats make art that fits together.
-Stefan's pick: classic fantasy strategy (batch S1, style c). **Reference image:**
-`art-tasks/ref/hero_warrior_t1_front.png` (fetch it raw and match its look).
+Stefan's own concept sheets are the look reference: `docs/concept/` (README there). The
+proportions are **chunky** (batch S4, approved).
 
-- **Look:** classic fantasy strategy, like the units of the old PC game Majesty. Realistic but
-  compact proportions, **about 4.5 heads tall**. Weathered, slightly grim, grounded: worn gear,
-  dirt, scratches, serious faces. **Not chibi, not cute, no big heads.**
-- **World:** an alternate medieval world where the old gods never left. Norse (Aesir), Greek
-  and Egyptian flavours mix. Mythic monsters.
-- **Lines:** thin dark-brown outline around the figure, lighter inside. No thick cartoon lines.
-- **Shading:** painted, soft form shading with a clear light side and shadow side, light from
-  the top left. No cast shadows, no drop shadows, no glow outside the object.
-- **Palette:** muted, earthy base (leather browns, iron greys, worn cloth). **Each hero class has
-  one bold class colour** on a big area (cloak, tabard, hood or sash) so it reads at a glance.
-  Pantheon accents: Aesir frost blue and silver, Greek white, laurel gold and bronze, Egyptian
-  lapis blue and gold. Monsters lean darker and greener.
-- **Phone readability:** the game shows units about 60-80 px tall. A strong, clear silhouette and
-  the class colour carry the read; the face may be small. Weapons and shields big enough to see.
-  No texture noise that turns to mud when small.
-- **Weapons:** held the way a real fighter holds them (axe and hammer gripped at the lower end of
-  the handle, head forward; sword by the hilt; bow by the middle).
-- **Camera:** the same 3/4 top-down game camera for every unit and building.
-- No text, no logos, no watermark, no frame, no background scenery: only the object on the flat
+- **Look:** detailed **pixel-art** rendering after the concept sheets: crisp pixels, no blur, no
+  painterly soft edges. **Chunky** proportions: about **3.5 to 4 heads tall**, a big head with a
+  readable face, big hands and feet, an **oversized weapon** (and shield where the unit has one),
+  a wide planted stance, a **thick dark outline**. Grim, not cute.
+- **Palette:** gritty and dark: black, deep navy and bronze-gold, worn leather, scars, scratched
+  metal. Each Godblood keeps one signature accent from its divine parent (Thor: storm blue-white,
+  Bastet: moon violet, ...). Tier 1 has no glow; glow and effects grow with the tier. Monsters
+  lean darker and greener.
+- **Pose (every unit): faces RIGHT**, a three-quarter view toward the lower right; the game mirrors
+  it for left. One still picture per unit: the game does all motion in code.
+- **Weapon position = the unit's strike** (the batch names it). The strike starts where the weapon
+  is drawn:
+
+  | Strike        | Weapons                      | Draw the weapon                                     |
+  | ------------- | ---------------------------- | --------------------------------------------------- |
+  | overhead chop | axe, sword, mace             | raised high behind the back shoulder                |
+  | double chop   | two weapons                  | one high behind the back shoulder, one low in front |
+  | side sweep    | greatsword, polearm, scythe  | held level behind the hip                           |
+  | upward        | claws, fists, low blades     | low in front of the body                            |
+  | thrust        | spear, dagger, rapier, bite  | level at chest height, tip pointing forward         |
+  | smash         | giants, hammers, clubs       | raised over the head                                |
+  | bolt          | staffs, wands, casting hands | the focus raised in front at shoulder height        |
+  | shot          | bows, slings                 | the bow held in front at chest height               |
+
+  Grip like a real fighter (axe and hammer at the lower end of the handle). The whole weapon is
+  inside the picture, never cut off.
+
+- **Shading:** pixel shading, light from the top left. No cast shadow, no shadow ellipse under the
+  feet, no glow outside the object unless the batch asks for a tier-3 aura.
+- **Phone readability:** units show about 60-80 px tall; the silhouette, the weapon and the accent
+  colour carry the read.
+- **Background:** flat magenta #FF00FF unless the batch says green (the palette has little
+  magenta).
+- No text, no logos, no watermark, no frame, no ground, no scenery: only the object on the flat
   key colour.

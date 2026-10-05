@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { mkdtempSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
@@ -13,6 +13,7 @@ import {
   processImage,
   processFrames,
   processPair,
+  writePng,
 } from './lib.mjs';
 import { validateAssets } from './validate.mjs';
 
@@ -199,6 +200,44 @@ describe('collectUploads', () => {
       ['mon_b_t1_front', null, false],
       ['hero_a_t1_back', null, true],
     ]);
+  });
+});
+
+describe('strike fields', () => {
+  // A temp repo with one shipped unit and the given extra manifest fields.
+  function errorsFor(extra) {
+    const root = mkdtempSync(join(tmpdir(), 'art-'));
+    mkdirSync(join(root, 'public/assets/units'), { recursive: true });
+    const r = processImage(canvas(1024, GREEN, unitRect), 'hero_warrior_t1_front');
+    writePng(join(root, 'public/assets/units/hero_warrior_t1_front.png'), r.image);
+    const row = {
+      id: 'hero_warrior_t1_front',
+      kind: 'hero',
+      tier: 1,
+      view: 'front',
+      file: 'units/hero_warrior_t1_front.png',
+      anchorX: r.anchorX,
+      anchorY: r.anchorY,
+      license: 'own',
+      source: 'T1',
+      ...extra,
+    };
+    writeFileSync(join(root, 'public/assets/manifest.json'), JSON.stringify({ assets: [row] }));
+    return validateAssets(root).errors;
+  }
+
+  it('accepts a strike with its weapon point', () => {
+    expect(errorsFor({ strike: 'chop', weaponX: 0.1, weaponY: 0.2 })).toEqual([]);
+    expect(
+      errorsFor({ strike: 'double', weaponX: 0.1, weaponY: 0.2, weapon2X: 0.9, weapon2Y: 0.6 }),
+    ).toEqual([]);
+  });
+
+  it('rejects bad strikes and half points', () => {
+    expect(errorsFor({ strike: 'kick' }).join()).toMatch(/strike must be/);
+    expect(errorsFor({ strike: 'chop', weaponX: 0.1 }).join()).toMatch(/go together/);
+    expect(errorsFor({ strike: 'double', weaponX: 0.1, weaponY: 0.2 }).join()).toMatch(/needs/);
+    expect(errorsFor({ weaponX: 1.5, weaponY: 0.2 }).join()).toMatch(/0\.\.1/);
   });
 });
 
