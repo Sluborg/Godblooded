@@ -9,7 +9,7 @@ import {
   attackPose,
   hurtFlash,
   idlePose,
-  impactTime,
+  swingStep,
   koPose,
   walkPose,
   windupFor,
@@ -45,6 +45,10 @@ interface Attack {
   targetId: number;
   damage: number;
   dodged: boolean;
+  // Started by a sim `windup` event: waits for the matching `hit` (which carries the damage) and
+  // is cancelled if none comes within the lead time plus CANCEL_GRACE_S.
+  awaitingHit: boolean;
+  leadS: number;
   backFirst: boolean;
   cross: boolean;
   fired: [boolean, boolean];
@@ -218,8 +222,33 @@ export class UnitView {
 
   // ---------- events from the sim ----------
 
-  // A `hit` at impact: play the swing. The windup is squeezed to what fits before the impact.
-  startAttack(targetId: number, damage: number, dodged: boolean, leadS: number | null): void {
+  // A sim `windup`: the attacker committed to a swing that lands `leadS` from now. The full
+  // windup plays; the strike fires when the matching `hit` arrives.
+  beginWindup(targetId: number, leadS: number): void {
+    this.startAttack(targetId, 0, false, leadS, true);
+  }
+
+  // A `hit` from the sim. With a windup under way for this target it supplies the damage;
+  // otherwise (older sim, no windup event) the swing is played now with the windup squeezed to
+  // what fits before the impact.
+  landHit(targetId: number, damage: number, dodged: boolean): void {
+    const a = this.attack;
+    if (a?.awaitingHit && a.targetId === targetId) {
+      a.awaitingHit = false;
+      a.damage = damage;
+      a.dodged = dodged;
+      return;
+    }
+    this.startAttack(targetId, damage, dodged, null, false);
+  }
+
+  private startAttack(
+    targetId: number,
+    damage: number,
+    dodged: boolean,
+    leadS: number | null,
+    awaitingHit: boolean,
+  ): void {
     if (this.koK > 0 || this.dying) return;
     const strike = this.strikeKind();
     this.attack = {
@@ -229,6 +258,8 @@ export class UnitView {
       targetId,
       damage,
       dodged,
+      awaitingHit,
+      leadS: leadS ?? DEFAULT_LEAD_S,
       backFirst: Math.random() < 0.5,
       cross: Math.random() < 0.4,
       fired: [false, false],
@@ -327,12 +358,16 @@ export class UnitView {
     a.t += ctx.dtS;
     const target = ctx.chestOf(a.targetId);
     if (target && Math.abs(target.x - this.x) > 2) this.face = target.x < this.x ? -1 : 1;
-    for (const n of [0, 1] as const) {
-      if (n === 1 && a.strike !== 'double') continue;
-      if (!a.fired[n] && a.t >= impactTime(a.strike, a.windup, n)) {
-        a.fired[n] = true;
-        this.fire(a, n, target ?? null, ctx);
-      }
+    const step = swingStep(a);
+    // Cancelled in the sim (target died or moved, attacker knocked out): no hit is coming, so
+    // drop the swing and let the pose recover.
+    if (step.cancel) {
+      this.attack = null;
+      return idlePose(this.phase);
+    }
+    for (const n of step.fire) {
+      a.fired[n] = true;
+      this.fire(a, n, target ?? null, ctx);
     }
     if (a.t > attackDuration(a.strike, a.windup)) {
       this.attack = null;
@@ -522,6 +557,7 @@ export class UnitViews {
     // has its view, so its last words can be said before the fall.
     for (const e of events) {
       if (e.kind === 'hit') this.onHit(e, ctx);
+      else if (e.kind === 'windup') this.onWindup(e);
       else if (isSpeechEvent(e)) this.onSpeech(e, timeMs);
     }
     const seen = new Set<number>();
@@ -566,8 +602,12 @@ export class UnitViews {
 
   private onHit(e: Extract<SimEvent, { kind: 'hit' }>, ctx: FrameCtx): void {
     const attacker = this.views.get(e.attacker);
-    if (attacker) attacker.startAttack(e.target, e.damage, e.dodged, null);
+    if (attacker) attacker.landHit(e.target, e.damage, e.dodged);
     else ctx.hurt(e.target, Number.NaN, 1, e.damage, e.dodged);
+  }
+
+  private onWindup(e: Extract<SimEvent, { kind: 'windup' }>): void {
+    this.views.get(e.attacker)?.beginWindup(e.target, e.inMs / 1000);
   }
 
   private floatText(x: number, y: number, text: string): void {
