@@ -5,6 +5,7 @@ Take the first **Ready** batch of **your track** that is not in the upload log; 
 
 | Batch | Track     | File    | What                                                            | Images | Status |
 | ----- | --------- | ------- | --------------------------------------------------------------- | ------ | ------ |
+| V1    | monsters  | `V1.md` | Monster variants: draugr, harpy, jackal-man, minotaur -v2, -v3  | 8      | Ready  |
 | A1    | heroes    | `A1.md` | Healer t1 and the six Aesir tier-2 favor paths                  | 7      | Ready  |
 | U1    | ui        | `U1.md` | Logo and app icon: three options                                | 6      | Ready  |
 | S4    | heroes    | `S4.md` | Chunky test: warrior, duelist, oracle, draugr, troll (priority) | 5      | Done   |
