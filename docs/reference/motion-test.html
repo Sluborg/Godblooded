@@ -1,0 +1,1086 @@
+<!-- Lead reference: the approved motion test (Option 1, chunky). __ART__ is replaced by base64 pictures when published; the live page is https://claude.ai/artifact/Q4fbxESdGgQsstWkVTFvFg -->
+<title>Godblooded Motion Test</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Alegreya+SC:wght@700&family=Alegreya+Sans:wght@400;500;700&display=swap"
+/>
+<style>
+  /* Layout: one column, a live field on top, the source stills below; phone first.
+   Single dark look on purpose: the game's own palette (night wood, bronze-gold, blood). */
+  :root {
+    color-scheme: dark;
+    --bg: #15110d;
+    --panel: #221a14;
+    --line: #3a2d22;
+    --fg: #efe4cf;
+    --muted: #b3a48b;
+    --gold: #d9a441;
+    --font-display: 'Alegreya SC', Georgia, 'Times New Roman', serif;
+    --font-body: 'Alegreya Sans', 'Segoe UI', Roboto, Arial, sans-serif;
+  }
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.5;
+  }
+  .wrap {
+    max-width: 860px;
+    margin: 0 auto;
+    padding-inline: 16px;
+    padding-block: 20px 40px;
+    display: grid;
+    gap: 16px;
+  }
+  h1 {
+    font-family: var(--font-display);
+    font-size: clamp(26px, 6vw, 36px);
+    line-height: 1.1;
+    margin: 0;
+    color: var(--gold);
+    letter-spacing: 0.02em;
+    text-wrap: balance;
+  }
+  .lede,
+  .note {
+    margin: 0;
+    color: var(--muted);
+    max-width: 64ch;
+  }
+  canvas {
+    width: 100%;
+    max-width: 100%;
+    aspect-ratio: 16 / 9;
+    display: block;
+    border-radius: 6px;
+    border: 2px solid var(--line);
+    background: #3d5a2e;
+    touch-action: manipulation;
+  }
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+  .row span {
+    color: var(--muted);
+    font-size: 14px;
+    margin-right: 4px;
+  }
+  button {
+    font-family: var(--font-body);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--fg);
+    background: var(--panel);
+    border: 2px solid var(--line);
+    border-radius: 5px;
+    padding: 10px 14px;
+    min-height: 44px;
+    cursor: pointer;
+  }
+  button:hover {
+    border-color: var(--gold);
+  }
+  button:focus-visible {
+    outline: 3px solid var(--gold);
+    outline-offset: 2px;
+  }
+  button[aria-pressed='true'] {
+    background: var(--gold);
+    color: var(--bg);
+    border-color: var(--gold);
+  }
+  .strip {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .strip figure {
+    margin: 0;
+    flex: 0 0 auto;
+    display: grid;
+    gap: 2px;
+    justify-items: center;
+  }
+  .strip img {
+    height: 110px;
+    width: auto;
+    background: #4a6b36;
+    border-radius: 4px;
+    padding: 4px;
+  }
+  .strip figcaption {
+    font-size: 12px;
+    color: var(--muted);
+    text-align: center;
+  }
+  .verdict {
+    background: var(--panel);
+    border: 2px solid var(--line);
+    border-radius: 6px;
+    padding: 14px 16px;
+    display: grid;
+    gap: 6px;
+  }
+  .verdict p {
+    margin: 0;
+  }
+  .verdict b {
+    color: var(--gold);
+  }
+  [hidden] {
+    display: none !important;
+  }
+</style>
+
+<div class="wrap">
+  <h1>Godblooded Motion Test</h1>
+  <p class="lede">
+    Every unit is one still picture; Chunky is the new ChatGPT batch, Current the earlier pictures.
+    All motion is the same code for every unit: hop walk, lunge plus a strike effect, hurt flash,
+    knock-out fall. No frames, so nothing drifts.
+  </p>
+
+  <div class="row" role="group" aria-label="View">
+    <span>Look</span>
+    <button type="button" data-look="chunky" aria-pressed="true">Chunky</button>
+    <button type="button" data-look="current">Current</button>
+    <span style="margin-left: 8px">Mode</span>
+    <button type="button" data-mode="battle" aria-pressed="true">Battle</button>
+    <button type="button" data-mode="lineup">Line-up</button>
+    <span style="margin-left: 8px">Size</span>
+    <button type="button" data-size="70" aria-pressed="true">Game</button>
+    <button type="button" data-size="110">Big</button>
+    <button type="button" data-size="170">Close-up</button>
+    <span style="margin-left: 8px">Speed</span>
+    <button type="button" data-speed="1" aria-pressed="true">1x</button>
+    <button type="button" data-speed="0.4">Slow</button>
+  </div>
+
+  <canvas
+    id="cv"
+    width="1280"
+    height="720"
+    aria-label="Heroes and monsters fighting on grass"
+  ></canvas>
+  <div class="row" id="lineupCtl" hidden>
+    <button type="button" id="walk">Walk</button>
+    <button type="button" id="attack">Attack</button>
+    <button type="button" id="hit">Take a hit</button>
+    <button type="button" id="ko">Knock out</button>
+  </div>
+  <div class="row" role="group" aria-label="Strike effect" id="fxCtl" hidden>
+    <span>Strike</span>
+    <button type="button" data-fx="" aria-pressed="true">Own</button>
+    <button type="button" data-fx="chop">Overhead</button>
+    <button type="button" data-fx="twin">Double chop</button>
+    <button type="button" data-fx="sweep">Side sweep</button>
+    <button type="button" data-fx="rising">Upward</button>
+    <button type="button" data-fx="thrust">Thrust</button>
+  </div>
+  <p class="note" id="battleNote">
+    Battle: heroes on the left, monsters on the right, fighting on their own. Tap the field to send
+    the heroes somewhere.
+  </p>
+
+  <p class="note">
+    The only art each unit needs, one picture (chunky first, then the current ones):
+  </p>
+  <div class="strip" id="strip"></div>
+
+  <div class="verdict">
+    <p>
+      <b>What to judge:</b> at Game size, do walking and fighting read clearly and feel right? Each
+      unit has its own strike: warrior overhead chop from the axe, duelist double chop (one per
+      blade), oracle lightning, draugr thrust, troll smash. In Line-up, the Strike row lets you try
+      every strike on every melee unit.
+    </p>
+    <p>
+      <b>Compare:</b> switch Look between Chunky and Current at Game size. The current concept units
+      are rough cut-outs from your sheets; the chunky ones are clean ChatGPT stills.
+    </p>
+  </div>
+</div>
+
+<script>
+  __ART__;
+  // Per-unit data: the only thing that differs between units. fx is the strike effect.
+  const CURRENT = {
+    // faces: which way the picture looks (1 right, -1 left). weapon: where the weapon sits in the picture.
+    // base: footprint radius (fraction of hero height), keeps big units from hiding others.
+    warrior: {
+      art: 'warrior',
+      name: 'Warrior (style C)',
+      h: 1.0,
+      fx: 'chop',
+      faces: 1,
+      weapon: [0.1, 0.15],
+      base: 0.4,
+      range: 0.55,
+      cd: 1.3,
+      hp: 7,
+      side: 0,
+    },
+    duelist: {
+      art: 'duelist',
+      name: 'Moonclaw Duelist',
+      h: 1.05,
+      fx: 'twin',
+      faces: -1,
+      weapon: [0.05, 0.55],
+      weapon2: [0.95, 0.6],
+      base: 0.4,
+      range: 0.55,
+      cd: 1.1,
+      hp: 5,
+      side: 0,
+    },
+    oracle: {
+      art: 'oracle',
+      name: 'Storm Oracle',
+      h: 1.08,
+      fx: 'bolt',
+      faces: -1,
+      weapon: [0.1, 0.06],
+      base: 0.4,
+      range: 3.2,
+      cd: 1.8,
+      hp: 4,
+      side: 0,
+    },
+    draugr: {
+      art: 'draugr',
+      name: 'Draugr',
+      h: 1.0,
+      fx: 'thrust',
+      faces: -1,
+      weapon: [0.3, 0.55],
+      base: 0.4,
+      range: 0.7,
+      cd: 1.5,
+      hp: 9,
+      side: 1,
+    },
+    troll: {
+      art: 'troll',
+      name: 'Troll',
+      h: 1.45,
+      fx: 'smash',
+      faces: -1,
+      weapon: [0.15, 0.8],
+      base: 0.95,
+      range: 0.4,
+      cd: 2.4,
+      hp: 20,
+      side: 1,
+    },
+  };
+  // Chunky test (ChatGPT batch S4): same rules, new pictures; ax = feet midpoint across the picture.
+  const CHUNKY = {
+    warrior: {
+      ...CURRENT.warrior,
+      art: 'c_warrior',
+      name: 'Warrior',
+      faces: 1,
+      ax: 0.559,
+      weapon: [0.09, 0.19],
+    },
+    duelist: {
+      ...CURRENT.duelist,
+      art: 'c_duelist',
+      name: 'Moonclaw Duelist',
+      faces: 1,
+      ax: 0.47,
+      weapon: [0.86, 0.55],
+      weapon2: [0.12, 0.18],
+    },
+    oracle: {
+      ...CURRENT.oracle,
+      art: 'c_oracle',
+      name: 'Storm Oracle',
+      faces: -1,
+      ax: 0.485,
+      weapon: [0.18, 0.1],
+    },
+    draugr: {
+      ...CURRENT.draugr,
+      art: 'c_draugr',
+      name: 'Draugr',
+      faces: -1,
+      ax: 0.593,
+      weapon: [0.28, 0.62],
+    },
+    troll: {
+      ...CURRENT.troll,
+      art: 'c_troll',
+      name: 'Troll',
+      faces: 1,
+      ax: 0.518,
+      weapon: [0.78, 0.82],
+    },
+  };
+  let KINDS = CHUNKY;
+  const IMG = {},
+    TINT = {};
+  const cv = document.getElementById('cv');
+  const ctx = cv.getContext('2d');
+  const W = cv.width,
+    H = cv.height;
+  const st = { size: 70, speed: 1, mode: 'battle', shake: 0 };
+  let units = [],
+    fx = [],
+    parts = [];
+
+  const px = () => st.size * (W / 900) * 1.12; // hero height in canvas px
+  function makeUnit(kind, x, y) {
+    const k = KINDS[kind];
+    return {
+      kind,
+      k,
+      x,
+      y,
+      tx: x,
+      ty: y,
+      face: k.side ? -1 : 1,
+      hp: k.hp,
+      cd: Math.random() * k.cd,
+      stepT: Math.random(),
+      moving: false,
+      atk: -1,
+      hit: 0,
+      kb: 0,
+      ko: 0,
+      phase: Math.random() * 9,
+      target: null,
+      order: 0,
+      idle: 0,
+      slot: (Math.random() - 0.5) * 0.9,
+    };
+  }
+  function setup() {
+    fx = [];
+    parts = [];
+    if (st.mode === 'battle') {
+      units = [
+        makeUnit('warrior', W * 0.2, H * 0.5),
+        makeUnit('duelist', W * 0.16, H * 0.72),
+        makeUnit('oracle', W * 0.08, H * 0.6),
+        makeUnit('draugr', W * 0.82, H * 0.55),
+        makeUnit('troll', W * 0.88, H * 0.75),
+      ];
+    } else {
+      const order = ['warrior', 'duelist', 'oracle', 'draugr', 'troll'];
+      units = order.map((n, i) => {
+        const u = makeUnit(n, W * (0.08 + i * 0.16), H * 0.72);
+        u.face = 1;
+        u.home = u.x;
+        return u;
+      });
+    }
+  }
+
+  // ---------- motion: identical code for every unit ----------
+  const ATK = {
+    // windup, strike, recover (seconds); lunge and lean-back as fractions
+    chop: [0.26, 0.09, 0.3, 0.12, 0.24],
+    sweep: [0.2, 0.1, 0.28, 0.12, 0.14],
+    rising: [0.18, 0.08, 0.3, 0.1, 0.06],
+    thrust: [0.22, 0.07, 0.3, 0.24, 0.04],
+    twin: [0.18, 0.08, 0.46, 0.1, 0.2],
+    bolt: [0.3, 0.06, 0.3, 0.0, 0.1],
+    smash: [0.42, 0.1, 0.45, 0.1, 0.2],
+  };
+  const fxOf = (u) =>
+    st.fxOverride && !['bolt', 'smash'].includes(u.k.fx) ? st.fxOverride : u.k.fx;
+  // weapon point in world space, for the current facing
+  // start angle of an arc that must begin at the weapon: a weapon low behind the body starts the
+  // arc below-back (angle beyond -PI), so the swing visibly leaves the weapon and goes over the head
+  function fromWeapon(cx, cy, p, f, cap) {
+    let a = Math.atan2(p.y - cy, (p.x - cx) * f);
+    if (a > 0.6) a -= Math.PI * 2;
+    return Math.min(a, cap);
+  }
+  function weaponAt(u, pt = u.k.weapon) {
+    const im = IMG[u.k.art],
+      h = px() * u.k.h,
+      w = h * (im.width / im.height);
+    return {
+      x: u.x + (pt[0] - (u.k.ax ?? 0.5)) * w * u.k.faces * u.face,
+      y: u.y - h * (1 - pt[1]),
+    };
+  }
+  // each swing rolls its own small variation, so repeated strikes never look identical
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  function startAttack(u) {
+    u.atk = 0;
+    u.backFirst = Math.random() < 0.5;
+    u.cross = Math.random() < 0.4;
+  }
+  function atkPose(u) {
+    // returns {rot, dx, dy, sx, sy} for the current attack time
+    const fx = fxOf(u),
+      [a, b, c, lunge, lean] = ATK[fx],
+      t = u.atk,
+      h = px() * u.k.h;
+    const ease = (x) => 1 - (1 - x) * (1 - x);
+    if (t < a) {
+      const p = ease(t / a);
+      const low = fx === 'rising' || fx === 'thrust';
+      return {
+        rot: -lean * p,
+        dx: -(fx === 'thrust' ? 0.12 : 0.05) * h * p,
+        dy: fx === 'smash' || fx === 'chop' ? -0.05 * h * p : 0,
+        sx: 1 + (low ? 0.04 : -0.03) * p,
+        sy: 1 + (low ? -0.07 : 0.04) * p,
+      };
+    }
+    if (t < a + b) {
+      const p = (t - a) / b;
+      return {
+        rot: -lean + (lean + 0.2) * p,
+        dx: (-0.05 + (lunge + 0.05) * p) * h,
+        dy: 0,
+        sx: 1 + 0.05 * p,
+        sy: 1 - 0.06 * p,
+      };
+    }
+    if (fx === 'twin' && t < a + b + 0.25) {
+      // second blade: quick lean back, then chop again
+      const k = (t - a - b) / 0.25,
+        s2 = k < 0.6 ? -Math.sin(((k / 0.6) * Math.PI) / 2) : -1 + ((k - 0.6) / 0.4) * 2;
+      return {
+        rot: 0.2 * s2 * (s2 < 0 ? 0.8 : 1),
+        dx: lunge * h * (0.6 + 0.4 * Math.max(0, s2)),
+        dy: 0,
+        sx: 1,
+        sy: 1 - 0.04 * Math.max(0, s2),
+      };
+    }
+    const p = Math.min(1, (t - a - b - (fx === 'twin' ? 0.25 : 0)) / c),
+      q = 1 - ease(p);
+    return { rot: 0.2 * q, dx: lunge * h * q, dy: 0, sx: 1 + 0.05 * q, sy: 1 - 0.06 * q };
+  }
+  function chest(u) {
+    const h = px() * u.k.h;
+    return { x: u.x, y: u.y - h * 0.55 };
+  }
+
+  function update(u, dt) {
+    const s = dt / 1000;
+    u.phase += s;
+    if (u.hit > 0) u.hit = Math.max(0, u.hit - s * 3);
+    u.kb *= Math.pow(0.0005, s);
+    if (u.ko > 0) {
+      u.ko += s;
+      if (u.ko > 2.6) {
+        // get back up (battle: re-enter from own edge)
+        u.ko = 0;
+        u.hp = u.k.hp;
+        if (st.mode === 'battle') {
+          u.x = u.k.side ? W + 60 : -60;
+          u.y = H * (0.45 + Math.random() * 0.35);
+          u.tx = u.x;
+          u.ty = u.y;
+        }
+      }
+      return;
+    }
+    if (u.atk >= 0) {
+      const [a, b, c] = ATK[fxOf(u)];
+      const before = u.atk;
+      u.atk += s;
+      if (before < a + b * 0.5 && u.atk >= a + b * 0.5) strike(u, 0);
+      if (fxOf(u) === 'twin' && before < a + b + 0.17 && u.atk >= a + b + 0.17) strike(u, 1);
+      if (u.atk > a + b + c) u.atk = -1;
+      u.moving = false;
+      return;
+    }
+    // battle brain (demo only, not the sim): close in on the nearest enemy, strike on cooldown
+    if (st.mode === 'battle') {
+      u.cd -= s;
+      const foes = units.filter((o) => o.k.side !== u.k.side && o.ko === 0);
+      if (u.order > 0) {
+        u.order -= s;
+      } else if (foes.length) {
+        foes.sort((p, q) => Math.hypot(p.x - u.x, p.y - u.y) - Math.hypot(q.x - u.x, q.y - u.y));
+        const f = foes[0];
+        u.target = f;
+        const reach = u.k.range * px() + (u.k.base + f.k.base) * px();
+        const d = Math.hypot(f.x - u.x, (f.y - u.y) * 1.6);
+        if (d > reach) {
+          const side = u.x < f.x ? -1 : 1;
+          u.tx = f.x + side * reach * 0.85;
+          u.ty = f.y + u.slot * px();
+        } else {
+          u.tx = u.x;
+          u.ty = u.y;
+          u.face = f.x < u.x ? -1 : 1;
+          if (u.cd <= 0) {
+            u.cd = u.k.cd * (0.85 + Math.random() * 0.3);
+            startAttack(u);
+            return;
+          }
+        }
+      } else {
+        u.target = null;
+      }
+    }
+    const dx = u.tx - u.x,
+      dy = u.ty - u.y,
+      d = Math.hypot(dx, dy);
+    const sp = px() * 1.5;
+    if (d > 3) {
+      const step = Math.min(d, sp * s);
+      u.x += (dx / d) * step;
+      u.y += (dy / d) * step;
+      if (Math.abs(dx) > 2) u.face = dx < 0 ? -1 : 1;
+      const before = u.stepT;
+      u.stepT += step / (px() * u.k.h * 0.32);
+      if (Math.floor(before) !== Math.floor(u.stepT))
+        dust(u.x - u.face * px() * 0.08, u.y, 0.5 * u.k.h);
+      u.moving = true;
+    } else u.moving = false;
+  }
+
+  // keep bodies from stacking: push overlapping units apart (feet ellipse)
+  function separate() {
+    for (let i = 0; i < units.length; i++)
+      for (let j = i + 1; j < units.length; j++) {
+        const a = units[i],
+          b = units[j];
+        if (a.ko || b.ko) continue;
+        const dx = b.x - a.x,
+          dy = (b.y - a.y) * 2.2,
+          d = Math.hypot(dx, dy) || 0.01;
+        const min = px() * (a.k.base + b.k.base);
+        if (d < min) {
+          const push = (min - d) * 0.5,
+            nx = dx / d,
+            ny = dy / d / 2.2;
+          const wa = a.atk >= 0 ? 0.6 : 1,
+            wb = b.atk >= 0 ? 0.6 : 1;
+          a.x -= nx * push * wa;
+          a.y -= ny * push * wa;
+          b.x += nx * push * wb;
+          b.y += ny * push * wb;
+        }
+      }
+    units.forEach((u) => {
+      u.y = Math.max(H * 0.25, Math.min(H * 0.95, u.y));
+    });
+  }
+  function strike(u, n) {
+    const t = u.target,
+      f = u.face,
+      h = px() * u.k.h;
+    const kind = fxOf(u),
+      wp = weaponAt(u),
+      gold = [255, 236, 190];
+    if (kind === 'chop') {
+      // big overhead arc that starts at the weapon behind and ends low in front
+      const cx = u.x + f * h * 0.08,
+        cy = u.y - h * 0.5;
+      const r = Math.max(h * 0.62, Math.hypot(wp.x - cx, wp.y - cy) * 1.05) * rnd(0.9, 1.1);
+      fx.push({
+        type: 'arc',
+        x: cx,
+        y: cy,
+        r,
+        f,
+        a0: fromWeapon(cx, cy, wp, f, -1.7),
+        a1: rnd(0.3, 0.8),
+        tilt: rnd(-0.3, 0.15),
+        age: 0,
+        life: 0.24,
+        col: gold,
+      });
+    }
+    if (kind === 'sweep')
+      fx.push({
+        type: 'arc',
+        x: u.x + f * h * 0.1,
+        y: u.y - h * 0.45,
+        r: h * 0.6,
+        f,
+        a0: -Math.PI * 0.95,
+        a1: 0.35,
+        flat: 0.38,
+        age: 0,
+        life: 0.24,
+        col: gold,
+      });
+    if (kind === 'rising')
+      fx.push({
+        type: 'arc',
+        x: u.x + f * h * 0.2,
+        y: u.y - h * 0.5,
+        r: h * 0.48,
+        f,
+        a0: 1.1,
+        a1: -1.7,
+        age: 0,
+        life: 0.22,
+        col: gold,
+      });
+    if (kind === 'twin') {
+      // double chop: one blade each, random order; sometimes the front blade cuts upward (an X)
+      const back = (n === 0) === u.backFirst && u.k.weapon2;
+      const bp = back ? weaponAt(u, u.k.weapon2) : wp,
+        col = [235, 200, 255];
+      if (!back && u.cross) {
+        fx.push({
+          type: 'arc',
+          x: u.x + f * h * 0.2,
+          y: u.y - h * 0.5,
+          r: h * rnd(0.42, 0.52),
+          f,
+          a0: 1.1,
+          a1: -1.6,
+          tilt: rnd(-0.2, 0.2),
+          age: 0,
+          life: 0.2,
+          col,
+        });
+      } else {
+        const cx = u.x + f * h * (back ? 0 : 0.18),
+          cy = u.y - h * (back ? 0.55 : 0.45);
+        const r =
+          Math.max(h * (back ? 0.6 : 0.5), Math.hypot(bp.x - cx, bp.y - cy) * 1.05) *
+          rnd(0.92, 1.08);
+        fx.push({
+          type: 'arc',
+          x: cx,
+          y: cy,
+          r,
+          f,
+          a0: fromWeapon(cx, cy, bp, f, back ? -1.9 : -1.4),
+          a1: rnd(0.4, 0.75),
+          tilt: rnd(-0.25, 0.15),
+          age: 0,
+          life: back ? 0.26 : 0.2,
+          col,
+        });
+      }
+    }
+    if (kind === 'thrust')
+      fx.push({
+        type: 'thrust',
+        x: wp.x,
+        y: u.y - h * 0.5,
+        len: h * 1.0,
+        f,
+        age: 0,
+        life: 0.2,
+        col: [200, 225, 255],
+      });
+    if (kind === 'bolt') {
+      const to = t ? chest(t) : { x: u.x + f * h * 2.4, y: u.y - h * 0.5 };
+      fx.push({ type: 'bolt', x: wp.x, y: wp.y, tx: to.x, ty: to.y, age: 0, life: 0.2 });
+    }
+    if (kind === 'smash') {
+      const gx = u.x + f * px() * (u.k.base + 0.25);
+      fx.push({ type: 'ring', x: gx, y: u.y, r: h * 0.75, age: 0, life: 0.45 });
+      for (let i = 0; i < 6; i++) dust(gx + (Math.random() - 0.5) * h * 0.4, u.y, 0.9);
+      st.shake = 0.25;
+    }
+    if (t && t.ko === 0) hurt(t, u, kind === 'smash' ? 2 : 1);
+    else if (!t && st.mode === 'lineup')
+      sparks(u.x + f * h * 0.6, u.y - h * 0.5, [255, 230, 170], 6);
+  }
+  function hurt(t, from, dmg) {
+    t.hit = 1;
+    t.kb = (t.x < from.x ? -1 : 1) * px() * 0.12 * dmg;
+    const c = chest(t);
+    sparks(c.x, c.y, [255, 225, 160], 7);
+    blood(c.x, c.y, t.x < from.x ? -1 : 1);
+    if (st.mode === 'battle') {
+      t.hp -= dmg;
+      if (t.hp <= 0) knockOut(t, from);
+    }
+  }
+  function knockOut(t, from) {
+    t.ko = 0.0001;
+    t.atk = -1;
+    t.koDir = from ? (t.x < from.x ? -1 : 1) : -t.face;
+    dust(t.x, t.y, 1);
+  }
+
+  // ---------- particles ----------
+  function dust(x, y, k) {
+    for (let i = 0; i < 3; i++)
+      parts.push({
+        x: x + (Math.random() - 0.5) * 10,
+        y: y - 2,
+        vx: (Math.random() - 0.5) * 40,
+        vy: -10 - Math.random() * 15,
+        r: ((5 + Math.random() * 5) * k * px()) / 80,
+        g: 0,
+        age: 0,
+        life: 0.5,
+        col: [150, 130, 100],
+        grow: 1.8,
+        a: 0.4,
+      });
+  }
+  function sparks(x, y, col, n) {
+    for (let i = 0; i < n; i++) {
+      const a = Math.random() * Math.PI * 2,
+        v = 120 + Math.random() * 200;
+      parts.push({
+        x,
+        y,
+        vx: Math.cos(a) * v,
+        vy: Math.sin(a) * v - 60,
+        r: 2 + Math.random() * 2,
+        g: 600,
+        age: 0,
+        life: 0.25 + Math.random() * 0.15,
+        col,
+        grow: 0,
+        a: 1,
+        spark: true,
+      });
+    }
+  }
+  function blood(x, y, dir) {
+    for (let i = 0; i < 5; i++)
+      parts.push({
+        x,
+        y,
+        vx: dir * (60 + Math.random() * 120),
+        vy: -80 - Math.random() * 80,
+        r: 1.6 + Math.random() * 2,
+        g: 700,
+        age: 0,
+        life: 0.45,
+        col: [110, 14, 10],
+        grow: 0,
+        a: 0.9,
+      });
+  }
+
+  // ---------- drawing ----------
+  function tinted(name, col) {
+    const key = name + col;
+    if (TINT[key]) return TINT[key];
+    const im = IMG[name],
+      c = document.createElement('canvas');
+    c.width = im.width;
+    c.height = im.height;
+    const g = c.getContext('2d');
+    g.drawImage(im, 0, 0);
+    g.globalCompositeOperation = 'source-atop';
+    g.fillStyle = col;
+    g.fillRect(0, 0, c.width, c.height);
+    return (TINT[key] = c);
+  }
+  function drawUnit(u) {
+    const im = IMG[u.k.art],
+      h = px() * u.k.h,
+      w = h * (im.width / im.height);
+    let rot = 0,
+      dx = u.kb,
+      dy = 0,
+      sx = 1,
+      sy = 1;
+    if (u.ko > 0) {
+      const t = u.ko,
+        fall = Math.min(1, t / 0.28),
+        rise = t > 2.2 ? Math.min(1, (t - 2.2) / 0.4) : 0;
+      const k = (1 - Math.pow(1 - fall, 3)) * (1 - rise);
+      rot = k * 1.5 * u.koDir;
+      dy = 0;
+      sy = 1;
+    } else if (u.atk >= 0) {
+      const p = atkPose(u);
+      rot = p.rot * u.face;
+      dx += p.dx * u.face;
+      dy = p.dy;
+      sx = p.sx;
+      sy = p.sy;
+    } else if (u.moving) {
+      const ph = u.stepT % 1,
+        hop = Math.sin(ph * Math.PI);
+      dy = -hop * h * 0.07;
+      rot = (Math.floor(u.stepT) % 2 ? 1 : -1) * 0.07 * hop + 0.05 * u.face;
+      const land = ph < 0.15 ? 1 - ph / 0.15 : 0;
+      sx = 1 + land * 0.05;
+      sy = 1 - land * 0.06;
+    } else {
+      sy = 1 + Math.sin(u.phase * 2.4) * 0.012;
+      rot = Math.sin(u.phase * 1.3) * 0.012;
+    }
+    if (u.hit > 0) dx += Math.sin(u.hit * 50) * 3 * u.hit;
+    // shadow
+    const lift = Math.max(0, -dy) / h;
+    ctx.fillStyle = `rgba(0,0,0,${0.32 - lift})`;
+    ctx.beginPath();
+    ctx.ellipse(
+      u.x + (u.ko > 0 ? u.koDir * h * 0.3 * Math.min(1, u.ko / 0.28) : 0),
+      u.y,
+      px() * u.k.base * 0.85 * (1 - lift),
+      px() * u.k.base * 0.24,
+      0,
+      0,
+      Math.PI * 2,
+    );
+    ctx.fill();
+    ctx.save();
+    ctx.translate(u.x + dx, u.y + dy);
+    ctx.rotate(rot);
+    ctx.scale(sx * u.face * u.k.faces, sy);
+    if (u.ko > 0)
+      ctx.globalAlpha =
+        1 - 0.3 * Math.min(1, u.ko / 0.28) * (u.ko > 2.2 ? 1 - (u.ko - 2.2) / 0.4 : 1);
+    const ax = u.k.ax ?? 0.5;
+    ctx.drawImage(im, -w * ax, -h, w, h);
+    if (u.hit > 0.2) {
+      ctx.globalAlpha = (u.hit - 0.2) * (u.hit > 0.8 ? 1 : 0.7);
+      ctx.drawImage(tinted(u.k.art, u.hit > 0.8 ? '#fff' : '#c0201a'), -w * ax, -h, w, h);
+    }
+    ctx.restore();
+  }
+  function drawFx(e) {
+    const p = e.age / e.life;
+    if (e.type === 'arc') {
+      // a crescent swept from a0 to a1 (facing space), thick in the middle, fading
+      const a0 = e.a0,
+        a1 = e.a1,
+        head = Math.min(1, p * 2.2),
+        N = 26;
+      ctx.save();
+      ctx.translate(e.x, e.y);
+      ctx.scale(e.f, e.flat || 1);
+      ctx.rotate(e.tilt || 0);
+      ctx.lineCap = 'round';
+      for (let i = 0; i < N; i++) {
+        const k = i / N;
+        if (k > head) break;
+        const a = a0 + (a1 - a0) * k,
+          b = a0 + ((a1 - a0) * (i + 1)) / N;
+        const fade = (1 - p) * (0.25 + 0.75 * (k / Math.max(head, 0.01)));
+        ctx.strokeStyle = `rgba(${e.col[0]},${e.col[1]},${e.col[2]},${fade})`;
+        ctx.lineWidth = e.r * 0.2 * Math.sin(Math.PI * Math.min(1, k + 0.05)) + 1;
+        ctx.beginPath();
+        ctx.arc(0, 0, e.r, a, b, b < a);
+        ctx.stroke();
+      }
+      ctx.restore();
+    } else if (e.type === 'thrust') {
+      // a straight stab: a tapered streak shooting forward, bright at the tip
+      const out = Math.min(1, p * 3),
+        tip = e.x + e.f * e.len * out,
+        a = 1 - p;
+      ctx.save();
+      const g = ctx.createLinearGradient(e.x, 0, tip, 0);
+      g.addColorStop(0, `rgba(${e.col[0]},${e.col[1]},${e.col[2]},0)`);
+      g.addColorStop(1, `rgba(255,255,255,${a})`);
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.moveTo(e.x, e.y - e.len * 0.05);
+      ctx.lineTo(tip, e.y);
+      ctx.lineTo(e.x, e.y + e.len * 0.05);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = `rgba(255,255,255,${a})`;
+      ctx.beginPath();
+      ctx.arc(tip, e.y, 4 * a + 1, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    } else if (e.type === 'bolt') {
+      ctx.save();
+      ctx.shadowColor = '#9fc3ff';
+      ctx.shadowBlur = 14;
+      ctx.lineJoin = 'round';
+      for (const [lw, col] of [
+        [5, 'rgba(140,180,255,' + (1 - p) + ')'],
+        [2, 'rgba(240,248,255,' + (1 - p) + ')'],
+      ]) {
+        ctx.strokeStyle = col;
+        ctx.lineWidth = lw;
+        ctx.beginPath();
+        ctx.moveTo(e.x, e.y);
+        const n = 9;
+        for (let i = 1; i < n; i++) {
+          const k = i / n;
+          ctx.lineTo(
+            e.x + (e.tx - e.x) * k + (Math.random() - 0.5) * 22,
+            e.y + (e.ty - e.y) * k + (Math.random() - 0.5) * 22,
+          );
+        }
+        ctx.lineTo(e.tx, e.ty);
+        ctx.stroke();
+      }
+      ctx.fillStyle = `rgba(200,225,255,${0.7 * (1 - p)})`;
+      ctx.beginPath();
+      ctx.arc(e.x, e.y, 9 * (1 - p) + 3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    } else if (e.type === 'ring') {
+      ctx.save();
+      ctx.strokeStyle = `rgba(230,210,170,${0.8 * (1 - p)})`;
+      ctx.lineWidth = 6 * (1 - p) + 1;
+      ctx.beginPath();
+      ctx.ellipse(e.x, e.y, e.r * (0.2 + p), e.r * (0.2 + p) * 0.32, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+  function drawParts() {
+    for (const q of parts) {
+      const p = q.age / q.life;
+      ctx.fillStyle = `rgba(${q.col[0]},${q.col[1]},${q.col[2]},${q.a * (1 - p)})`;
+      ctx.beginPath();
+      ctx.arc(q.x, q.y, q.r * (1 + q.grow * p), 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  function ground() {
+    ctx.fillStyle = '#4a6b36';
+    ctx.fillRect(-20, -20, W + 40, H + 40);
+    for (let i = 0; i < 260; i++) {
+      const x = (i * 197) % W,
+        y = (i * 113 + (i % 7) * 31) % H;
+      ctx.fillStyle = i % 3 ? 'rgba(30,50,20,0.25)' : 'rgba(140,170,90,0.18)';
+      ctx.fillRect(x, y, 6, 3);
+    }
+  }
+
+  // ---------- loop ----------
+  let last = performance.now(),
+    lineupT = -1;
+  function loop(now) {
+    const real = Math.min(50, now - last);
+    last = now;
+    const dt = real * st.speed,
+      s = dt / 1000;
+    if (st.mode === 'lineup' && lineupT >= 0) {
+      // walk out and back
+      lineupT += s;
+      units.forEach((u) => {
+        u.tx = lineupT < 1.6 ? u.home + W * 0.1 : u.home;
+      });
+      if (lineupT > 3.4) {
+        lineupT = -1;
+        units.forEach((u) => (u.face = 1));
+      }
+    }
+    units.forEach((u) => update(u, dt));
+    if (st.mode === 'battle') separate();
+    fx.forEach((e) => (e.age += s));
+    fx = fx.filter((e) => e.age < e.life);
+    parts.forEach((q) => {
+      q.age += s;
+      q.x += q.vx * s;
+      q.y += q.vy * s;
+      q.vy += q.g * s;
+      q.vx *= 0.97;
+    });
+    parts = parts.filter((q) => q.age < q.life);
+    st.shake = Math.max(0, st.shake - s);
+    ctx.save();
+    if (st.shake > 0)
+      ctx.translate(
+        (Math.random() - 0.5) * 10 * st.shake * 4,
+        (Math.random() - 0.5) * 6 * st.shake * 4,
+      );
+    ground();
+    [...units].sort((a, b) => a.y - b.y).forEach(drawUnit);
+    fx.forEach(drawFx);
+    drawParts();
+    ctx.restore();
+    requestAnimationFrame(loop);
+  }
+
+  // ---------- controls ----------
+  cv.addEventListener('pointerdown', (e) => {
+    if (st.mode !== 'battle') return;
+    const r = cv.getBoundingClientRect();
+    const x = ((e.clientX - r.left) / r.width) * W,
+      y = ((e.clientY - r.top) / r.height) * H;
+    units
+      .filter((u) => u.k.side === 0 && u.ko === 0)
+      .forEach((u, i) => {
+        u.atk = -1;
+        u.order = 2.5;
+        u.tx = x + (i - 1) * px() * 0.7;
+        u.ty = y + (i % 2) * px() * 0.35;
+      });
+  });
+  function group(attr, fn) {
+    document.querySelectorAll(`[data-${attr}]`).forEach((b) =>
+      b.addEventListener('click', () => {
+        document
+          .querySelectorAll(`[data-${attr}]`)
+          .forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+        fn(b.dataset[attr]);
+      }),
+    );
+  }
+  group('size', (v) => (st.size = Number(v)));
+  group('speed', (v) => (st.speed = Number(v)));
+  group('look', (v) => {
+    KINDS = v === 'chunky' ? CHUNKY : CURRENT;
+    units.forEach((u) => (u.k = KINDS[u.kind]));
+  });
+  group('fx', (v) => (st.fxOverride = v));
+  group('mode', (v) => {
+    st.mode = v;
+    document.getElementById('lineupCtl').hidden = v !== 'lineup';
+    document.getElementById('fxCtl').hidden = v !== 'lineup';
+    document.getElementById('battleNote').hidden = v !== 'battle';
+    setup();
+  });
+  document.getElementById('walk').onclick = () => {
+    lineupT = 0;
+  };
+  document.getElementById('attack').onclick = () =>
+    units.forEach((u, i) => {
+      if (!u.ko) {
+        u.target = null;
+        u.face = 1;
+        setTimeout(() => startAttack(u), i * 120);
+      }
+    });
+  document.getElementById('hit').onclick = () =>
+    units.forEach((u) => {
+      if (!u.ko) hurt(u, { x: u.x + 50 }, 1);
+    });
+  document.getElementById('ko').onclick = () =>
+    units.forEach((u) => {
+      if (!u.ko) knockOut(u, { x: u.x + 50 });
+    });
+
+  const strip = document.getElementById('strip');
+  let loaded = 0;
+  const names = Object.keys(ART);
+  names.forEach((n) => {
+    const im = new Image();
+    im.onload = () => {
+      if (++loaded === names.length) {
+        setup();
+        requestAnimationFrame(loop);
+      }
+    };
+    im.src = ART[n];
+    IMG[n] = im;
+    const k = [...Object.values(CHUNKY), ...Object.values(CURRENT)].find((x) => x.art === n);
+    const f = document.createElement('figure');
+    const c = document.createElement('img');
+    c.src = ART[n];
+    c.alt = k.name;
+    const cap = document.createElement('figcaption');
+    cap.textContent = (n.startsWith('c_') ? 'Chunky: ' : 'Current: ') + k.name;
+    f.append(c, cap);
+    strip.append(f);
+  });
+</script>

@@ -29,18 +29,19 @@ Review (PR open), Done. A worker takes its top Open row.
 
 ## Scene
 
-| Order | Item                                                                                                                                                          | Status |
-| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| 10    | MapScene graybox: ground, camera drag and pinch zoom, render a snapshot as shapes (stub sim until Sim 10)                                                     | Done   |
-| 20    | Build menu: tap a plot, pick a building, see cost; HUD with gold and run clock; 1x/2x/4x speed                                                                | Done   |
-| 30    | Bounty flag: tap the map or a monster, set gold, flag shows; heroes' interest shown as markers                                                                | Done   |
-| 35    | Plots from the snapshot (after Sim 35); delete `src/scenes/plots.ts` and the occupied check in MapScene                                                       | Done   |
-| 40    | Level-up pick: a party levels, the game pauses, 3 upgrade cards, tap one                                                                                      | Done   |
-| 45    | Party panel: tap a hero or party to see members, trait, level, XP bar, gold; small party badges over heroes                                                   | Done   |
-| 50    | Unit view: manifest sprite or placeholder, mirror by direction, bob/squash/lunge/hit-flash tweens                                                             | Done   |
-| 55    | Hero interest markers on bounty flags (after Sim 40/60)                                                                                                       | Done   |
-| 60    | Speech bubbles from sim events; end screen (win/lose, run summary, play again)                                                                                | Done   |
-| 65    | Smoke run: `npm run smoke` (Playwright, phone viewport) builds a temple and market, runs 4x for 3 game minutes, saves screenshots and fails on console errors | Done   |
+| Order | Item                                                                                                                                                                                                      | Status |
+| ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| 10    | MapScene graybox: ground, camera drag and pinch zoom, render a snapshot as shapes (stub sim until Sim 10)                                                                                                 | Done   |
+| 20    | Build menu: tap a plot, pick a building, see cost; HUD with gold and run clock; 1x/2x/4x speed                                                                                                            | Done   |
+| 30    | Bounty flag: tap the map or a monster, set gold, flag shows; heroes' interest shown as markers                                                                                                            | Done   |
+| 35    | Plots from the snapshot (after Sim 35); delete `src/scenes/plots.ts` and the occupied check in MapScene                                                                                                   | Done   |
+| 40    | Level-up pick: a party levels, the game pauses, 3 upgrade cards, tap one                                                                                                                                  | Done   |
+| 45    | Party panel: tap a hero or party to see members, trait, level, XP bar, gold; small party badges over heroes                                                                                               | Done   |
+| 50    | Unit view: manifest sprite or placeholder, mirror by direction, bob/squash/lunge/hit-flash tweens                                                                                                         | Done   |
+| 55    | Hero interest markers on bounty flags (after Sim 40/60)                                                                                                                                                   | Done   |
+| 60    | Speech bubbles from sim events; end screen (win/lose, run summary, play again)                                                                                                                            | Done   |
+| 65    | Smoke run: `npm run smoke` (Playwright, phone viewport) builds a temple and market, runs 4x for 3 game minutes, saves screenshots and fails on console errors                                             | Done   |
+| 70    | Motion system (decisions 2026-10-05): hop walk, windup + lunge, strike effect from manifest `strike` + weapon points, hurt flash, KO fall, footprint spacing; reference `docs/reference/motion-test.html` | Open   |
 
 ## Art
 
@@ -48,6 +49,6 @@ Review (PR open), Done. A worker takes its top Open row.
 | ----- | ------------------------------------------------------------------------------------------------------- | ------ |
 | 10    | Pipeline: `scripts/art/` key-out (green and magenta), trim, downscale, `validate:art`, manifest tooling | Done   |
 | 20    | Art-wake draft PR (`art-wake` branch, `art-wake/TRACKS.md`); check `art-tasks/README.md` end to end     | Done   |
-| 30    | Style test B1: Warrior t1 front and back, draugr t1 front, town hall t1. Stefan approves before batches | Doing  |
+| 30    | Style test B1: Warrior t1 front and back, draugr t1 front, town hall t1. Stefan approves before batches | Done   |
 | 40    | After approval: tier-1 batches for heroes, monsters, buildings (art requests 10-30)                     | Doing  |
 | 50    | Tier-2 and tier-3 batches                                                                               | Open   |
