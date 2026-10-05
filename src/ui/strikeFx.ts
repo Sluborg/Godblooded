@@ -8,6 +8,10 @@ type Rgb = readonly [number, number, number];
 const GOLD: Rgb = [255, 236, 190];
 const VIOLET: Rgb = [235, 200, 255];
 const STEEL: Rgb = [200, 225, 255];
+const HEAL_SPARKS: readonly Rgb[] = [
+  [150, 255, 160],
+  [255, 240, 150],
+];
 
 export interface Vec {
   x: number;
@@ -307,7 +311,7 @@ export class FxLayer {
   }
 
   // Gold-green sparkles rising off a healed unit.
-  sparkle(x: number, y: number, n: number): void {
+  sparkle(x: number, y: number, n: number, palette: readonly Rgb[] = HEAL_SPARKS): void {
     for (let i = 0; i < n; i++)
       this.parts.push({
         x: x + (Math.random() - 0.5) * 46,
@@ -318,7 +322,7 @@ export class FxLayer {
         g: -40,
         age: 0,
         life: 0.55 + Math.random() * 0.3,
-        col: Math.random() < 0.5 ? [150, 255, 160] : [255, 240, 150],
+        col: palette[Math.floor(Math.random() * palette.length)],
         grow: 0,
         a: 1,
       });

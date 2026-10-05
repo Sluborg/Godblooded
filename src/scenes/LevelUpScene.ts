@@ -9,6 +9,9 @@ export interface LevelUpOffer {
   level: number;
   size: number;
   upgrades: string[];
+  // A favor path offer instead of upgrades: the hero's class and the paths it can take.
+  pathHero?: string;
+  paths?: { id: string; god: string; name: string; pantheon: string }[];
 }
 
 export const OFFER_KEY = 'offer';
@@ -31,6 +34,10 @@ export class LevelUpScene extends Phaser.Scene {
     const offer = this.registry.get(OFFER_KEY) as LevelUpOffer | undefined;
     if (!offer) return;
     const cx = GAME_WIDTH / 2;
+    if (offer.paths) {
+      this.pathCards(offer, offer.paths);
+      return;
+    }
     // Full-screen dim, interactive so nothing underneath receives taps.
     this.add
       .rectangle(cx, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.7)
@@ -59,8 +66,12 @@ export class LevelUpScene extends Phaser.Scene {
     offer.upgrades.forEach((id, i) =>
       this.makeCard(id, cx - total / 2 + CARD_W / 2 + i * (CARD_W + GAP), 400, offer),
     );
+    this.makeToast();
+  }
+
+  private makeToast(): void {
     this.toast = this.add
-      .text(cx, 650, '', {
+      .text(GAME_WIDTH / 2, 650, '', {
         fontFamily: FONT,
         fontSize: '28px',
         color: COLORS.text,
@@ -69,6 +80,88 @@ export class LevelUpScene extends Phaser.Scene {
       })
       .setOrigin(0.5)
       .setAlpha(0);
+  }
+
+  // The favor path pick: one card per free path of the hero's class, god and path name with a
+  // small portrait when the art exists. The sim refuses upgrades until one is picked.
+  private pathCards(offer: LevelUpOffer, paths: NonNullable<LevelUpOffer['paths']>): void {
+    const cx = GAME_WIDTH / 2;
+    this.add
+      .rectangle(cx, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.7)
+      .setInteractive();
+    this.add
+      .text(cx, 70, 'A god answers', { fontFamily: FONT, fontSize: '56px', color: '#f2c14e' })
+      .setOrigin(0.5);
+    this.add
+      .text(cx, 128, `A ${offer.pathHero ?? 'hero'} is called. Choose a patron.`, {
+        fontFamily: FONT,
+        fontSize: '26px',
+        color: COLORS.text,
+      })
+      .setOrigin(0.5);
+    const n = paths.length;
+    const w = Math.min(CARD_W, (GAME_WIDTH - 80 - (n - 1) * GAP) / Math.max(1, n));
+    const total = n * w + (n - 1) * GAP;
+    paths.forEach((p, i) =>
+      this.makePathCard(p, cx - total / 2 + w / 2 + i * (w + GAP), 400, w, offer),
+    );
+    this.makeToast();
+  }
+
+  private makePathCard(
+    p: { id: string; god: string; name: string; pantheon: string },
+    x: number,
+    y: number,
+    w: number,
+    offer: LevelUpOffer,
+  ): void {
+    const bg = this.add
+      .rectangle(x, y, w, CARD_H, 0x2b1d14)
+      .setStrokeStyle(4, COLORS.gold, 0.9)
+      .setInteractive({ useHandCursor: true });
+    this.add
+      .text(x, y - CARD_H / 2 + 36, p.god.charAt(0).toUpperCase() + p.god.slice(1), {
+        fontFamily: FONT,
+        fontSize: '36px',
+        color: '#f2c14e',
+        align: 'center',
+        wordWrap: { width: w - 40 },
+      })
+      .setOrigin(0.5);
+    this.add
+      .text(x, y - CARD_H / 2 + 80, p.name, {
+        fontFamily: FONT,
+        fontSize: '26px',
+        color: COLORS.text,
+        align: 'center',
+        wordWrap: { width: w - 40 },
+      })
+      .setOrigin(0.5);
+    // Portrait of the tier 2 picture when it exists (the card still works without art).
+    const art = `hero_${p.id}_t2_front`;
+    if (this.textures.exists(art)) {
+      const frame = this.textures.get(art).getSourceImage();
+      const k = Math.min(210 / frame.height, (w - 40) / frame.width);
+      this.add
+        .image(x, y + 30, art)
+        .setOrigin(0.5, 0.5)
+        .setScale(k);
+    }
+    this.add
+      .text(x, y + CARD_H / 2 - 40, 'Tap to choose', {
+        fontFamily: FONT,
+        fontSize: '22px',
+        color: COLORS.textMuted,
+      })
+      .setOrigin(0.5);
+    bg.on('pointerover', () => bg.setFillStyle(0x4a3322)).on('pointerout', () =>
+      bg.setFillStyle(0x2b1d14),
+    );
+    bg.on('pointerup', (pt: Phaser.Input.Pointer) => {
+      if (pt.getDistance() > 10) return;
+      const res = (this.scene.get('Map') as MapScene).tryPickPath(offer.party, p.id);
+      if (!res.ok) this.showToast(res.reason);
+    });
   }
 
   private makeCard(id: string, x: number, y: number, offer: LevelUpOffer): void {
