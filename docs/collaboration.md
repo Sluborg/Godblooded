@@ -59,11 +59,12 @@ self-echo and **do not wake anyone**. `send_message` is the bell (above).
 - **Fallback ring:** if `send_message` fails, `create_trigger` with `persistent_session_id` = the
   target's id, `run_once_at` = now + 1 minute (UTC, RFC3339), `initiation: "own_followup"`,
   `name: "wake <role>"`, and the message as `prompt`.
-- **Safety net:** on first start every session creates its own recurring Routine (self-bind,
-  every 2 hours, `CRON_TZ=Europe/Stockholm`), prompt: `safety-net <role>: pull main, read
-docs/inbox/<role>.md and docs/backlog.md, act on anything open for you; if nothing, end
-silently.` A missed message then costs at most 2 hours. Lead records its trigger id in
-  `docs/sessions.md`.
+- **Safety net (decision 2026-10-08):** no recurring Routines. Stefan talks to Lead; Lead wakes
+  the session that has work. After any activity Lead arms one-shot `send_later` check-ins at
+  1 h, then 2 h, then 4 h (each armed by the previous one, reset by any new activity), then
+  stops until Stefan or a session writes. A worker that is woken and needs a later look arms its
+  own one-shot `send_later`; workers never create recurring Routines. The old 2-hour Routines
+  are disabled (ids in `docs/sessions.md`).
 - **ChatGPT:** Art rings the GPT chats by pushing a commit to the draft PR "Godblooded art wake"
   (branch `art-wake`, file `art-wake/TRACKS.md` lists tracks with work). The GPT chats watch
   that PR; it is never merged.

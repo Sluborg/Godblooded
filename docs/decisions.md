@@ -90,3 +90,10 @@ Lead owns this file. One dated line per decision that changes how the game or th
 - 2026-10-05: Healer class (Sim #67, data #70) and the six Aesir favor paths (Sim #69, data #72,
   +1/+2 bonuses). Balance pass 3: 7 heroes per temple every 22 s, troll den 27000 hp. Sim bot,
   200 runs: 62-65% wins, median run about 15 min.
+
+## 2026-10-08 | Safety net: backoff instead of 2-hour Routines
+
+- Stefan: the 2-hourly checks run too long. All four Godblooded safety-net Routines (Lead, Sim,
+  Scene, Art) are disabled, not deleted.
+- Lead checks after activity at 1 h, 2 h, 4 h with one-shot `send_later`, then stops.
+- Stefan talks to Lead; Lead wakes Art (or another session) when there is work.

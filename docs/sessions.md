@@ -1,10 +1,10 @@
 # Sessions
 
 Each session fills in its own row on first start (`get_session` with no arguments gives the id)
-and records the trigger id of its 2-hour safety-net Routine. Ring a session with a one-shot
+and records its old safety-net Routine id (all disabled 2026-10-08, see `docs/collaboration.md`). Ring a session with a one-shot
 `create_trigger` into its id (`docs/collaboration.md`, "Waking each other").
 
-| Role  | Session id                       | Model      | Safety-net trigger            | Started    |
+| Role  | Session id                       | Model      | Old safety-net (disabled)     | Started    |
 | ----- | -------------------------------- | ---------- | ----------------------------- | ---------- |
 | Lead  | session_01QJ7Eau77boWNn7Xu4LueGq | Opus 5.5   | trig_01Lh3btH7Ase83C5cLexvKYH | 2026-10-04 |
 | Sim   | session_01PnzfK6QeRX8oN5s2jT3phh | Sonnet 5.5 | trig_01GNDL57954FgLpV7cABZyqu | 2026-10-04 |
