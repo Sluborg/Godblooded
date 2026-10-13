@@ -5,6 +5,7 @@ import { buttonState, type ButtonState } from './buttonStyle';
 import { UI_STYLE, WOOD_BUTTON } from './uiStyle';
 import { drawWoodSlab } from './woodFrame';
 import { addIcon } from './icons';
+import { getSfx } from './sfxPlayer';
 import { nineSliceArgs } from './nineSlice';
 
 export interface Button {
@@ -140,7 +141,10 @@ export function makeButton(
     .on('pointerup', (p: Phaser.Input.Pointer) => {
       const wasPressed = pressed;
       press(false);
-      if (enabled && wasPressed && p.getDistance() < 10) onTap();
+      const tapped = p.getDistance() < 10;
+      if (tapped && (wasPressed || !enabled))
+        getSfx(scene).play({ id: enabled ? 'sfx_ui_tap' : 'sfx_ui_off' });
+      if (enabled && wasPressed && tapped) onTap();
     });
   refresh();
 
