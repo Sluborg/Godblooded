@@ -66,6 +66,14 @@ export interface PassiveKeys {
   belowHp?: { below: number; stat: BuffStat; amount: number };
   // Healing received multiplier.
   healTakenMult?: number;
+  // Extra potions a hero may carry.
+  potionSlots?: number;
+  // Multiplies skill cooldowns (0.8: 20% shorter).
+  cooldownMult?: number;
+  // Multiplies the radius and range of skills (1.25: 25% more).
+  rangeMult?: number;
+  // Basic strikes carry this rider.
+  rider?: RiderId;
 }
 
 // One effect of a passive: a set of keys and who gets them. `scope` 'self' is the owner only,
@@ -239,7 +247,13 @@ export interface UpgradeDef {
   id: string;
   name: string;
   text: string;
-  effect: { attr?: Partial<Attributes>; healPct?: number; flee?: number };
+  effect: {
+    attr?: Partial<Attributes>;
+    healPct?: number;
+    flee?: number;
+    // Party-wide keys, the same ones a god passive sets (PassiveKeys), summed over the cards taken.
+    keys?: PassiveKeys;
+  };
   // Offer rules (docs/systems/progression.md section 2). A card with none of these behaves as
   // before: common, no needs, offered however often.
   family?: CardFamily;
