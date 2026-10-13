@@ -899,6 +899,8 @@ export class UnitViews {
   private queued: { e: Extract<SimEvent, { kind: SpeechKind }>; until: number } | null = null;
 
   private onSpeech(e: Extract<SimEvent, { kind: SpeechKind }>): void {
+    // A high bark is waiting for the gap: it is first in line, so nothing else may cut in.
+    if (this.queued) return;
     if (!this.trySpeak(e) && BARK_META[e.kind].priority === 'high' && !this.queued)
       this.queued = { e, until: this.scene.time.now + HIGH_WAIT_MS };
   }
@@ -907,18 +909,18 @@ export class UnitViews {
   private flushQueued(): void {
     const q = this.queued;
     if (!q) return;
-    if (this.scene.time.now > q.until || this.trySpeak(q.e)) this.queued = null;
+    if (this.scene.time.now > q.until || this.trySpeak(q.e, true)) this.queued = null;
   }
 
-  private trySpeak(e: Extract<SimEvent, { kind: SpeechKind }>): boolean {
+  // `retry`: the queued high bark trying again (its chance was rolled the first time).
+  private trySpeak(e: Extract<SimEvent, { kind: SpeechKind }>, retry = false): boolean {
     const view = this.views.get(e.unit);
     if (!view || !view.isHero) return true; // nothing to wait for
     const meta = BARK_META[e.kind];
     // Only heroes on screen speak; small events speak only some of the time.
     const cam = this.scene.cameras.main.worldView;
     if (!cam.contains(view.container.x, view.container.y)) return true;
-    if (!this.queued && meta.chance < 1 && barkRoll(e.unit, view.barkTries++) >= meta.chance)
-      return true;
+    if (!retry && meta.chance < 1 && barkRoll(e.unit, view.barkTries++) >= meta.chance) return true;
     let live = 0;
     for (const v of this.views.values())
       if (v.hasBubble && cam.contains(v.container.x, v.container.y)) live++;
