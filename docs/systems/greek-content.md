@@ -14,9 +14,10 @@ numbers. Rules come from `combat.md` and `paths-and-skills.md`; the format follo
   runs, Apollo heals and shoots light, Poseidon shoves and soaks the field in frost.
 - **Ready to paste when the temple ships:** gods, paths and damage types (section 2; most rows
   exist in `src/data/graybox.ts`), 4 passives and 5 of 8 skills in today's shapes.
-- **Needs 4 small Sim shapes:** `knockback` (Trident, Tidecaller, Poseidon's passive),
-  `lifesteal` (Bloodrager), `noFlee` (Warlord tier 3), `cleanse` plus heal over time (Paean
-  tier 3). Section 4 marks each; the skill works without them, minus that part.
+- **Needs small Sim shapes:** `knockback` (Trident, Tidecaller, Poseidon's passive),
+  `lifesteal` and `refreshOnKill` (Bloodrager), `noFlee` (Warlord tier 3), `cleanse` and `hot`
+  (Paean tier 3), `volley` (Sunarcher tier 3), an effect-level shape (War Cry), and a
+  `regen` passive key (Apollo's favour card); full list in section 4. Section 4 marks each; the skill works without them, minus that part.
 - **Budget:** each tier 2 skill adds 15-25% to its hero's fight output, as for the Aesir
   (section 5).
 
@@ -158,7 +159,7 @@ export const GREEK_SKILLS: readonly SkillDef[] = [
     shape: { kind: 'circle', radius: 200 },
     effects: [
       { kind: 'buff', stat: 'damage', amount: 0.25, s: 6, to: 'allies' },
-      { kind: 'stagger' },
+      { kind: 'stagger' }, // spec r 150; effect-level shape (NEW) until then r 200
     ],
     visual: ['burst'],
     t3: {
@@ -180,10 +181,10 @@ export const GREEK_SKILLS: readonly SkillDef[] = [
     effects: [{ kind: 'damage', mult: 2.0, type: 'holy', rider: 'sear', sure: true }],
     visual: ['bolt', 'pillar'],
     t3: {
-      shape: { kind: 'circle', radius: 80 },
       effects: [
         { kind: 'damage', mult: 2.0, type: 'holy', rider: 'sear', sure: true },
-        { kind: 'damage', mult: 1.2, type: 'holy' },
+        // NEW SHAPE: { kind: 'volley', count: 3, radius: 80, mult: 1.2, type: 'holy' }
+        //   then 3 arrows on random foes within 80 of the target
       ],
     },
   },
@@ -254,16 +255,21 @@ export const GREEK_SKILLS: readonly SkillDef[] = [
   with crowds of 2-4 it rarely matters, so no new field.
 - **Aegis's chill at tier 3** uses a 0-damage strike that carries only the rider, as Seidr Ward
   does.
+- **Aegis's trigger** is 2 foes within 150 of the caster (the spec said "near a party mate");
+  a tank in front reads the same and needs no new trigger.
 
 ### New Sim shapes (one row, section 7)
 
-| Shape            | Fields                  | Used by                             |
-| ---------------- | ----------------------- | ----------------------------------- |
-| `knockback`      | `dist`                  | Riptide, Crashing Wave, Earthshaker |
-| `lifesteal`      | `pct`, `s`              | Frenzy                              |
-| `refreshOnKill`  | SkillDef flag           | Frenzy tier 3                       |
-| `noFlee`         | (none; lasts the fight) | War Cry tier 3                      |
-| `cleanse`, `hot` | `hot`: `pct`, `s`       | Hymn of Healing tier 3              |
+| Shape                 | Fields                            | Used by                             |
+| --------------------- | --------------------------------- | ----------------------------------- |
+| `knockback`           | `dist`                            | Riptide, Crashing Wave, Earthshaker |
+| `lifesteal`           | `pct`, `s`                        | Frenzy                              |
+| `refreshOnKill`       | SkillDef flag                     | Frenzy tier 3                       |
+| `noFlee`              | (none; lasts the fight)           | War Cry tier 3                      |
+| `cleanse`, `hot`      | `hot`: `pct`, `s`                 | Hymn of Healing tier 3              |
+| `volley`              | `count`, `radius`, `mult`, `type` | Sun Arrow tier 3                    |
+| effect `shape`        | per-effect shape                  | War Cry stagger (r 150)             |
+| `regen` (passive key) | `pct` per second in fights        | Apollo's favour card                |
 
 ## 5. Budget check (for the Sim bot)
 
@@ -282,11 +288,11 @@ export const GREEK_SKILLS: readonly SkillDef[] = [
 
 ### Pantheon cards (need a Greek hero in the party)
 
-| Id      | Name    | Rarity | Effect                                                |
-| ------- | ------- | ------ | ----------------------------------------------------- |
-| phalanx | Phalanx | common | +3 armour while 3 members stand within 100            |
-| kleos   | Kleos   | rare   | +50% gold from flags and lairs; a kill shout per kill |
-| metis   | Metis   | epic   | +10% crit; crits stagger                              |
+| Id      | Name    | Rarity | Effect                                                                                    |
+| ------- | ------- | ------ | ----------------------------------------------------------------------------------------- |
+| phalanx | Phalanx | common | +3 armour while 3 members stand within 100                                                |
+| kleos   | Kleos   | rare   | +50% gold from flags and lairs; a kill shout per kill, within the bark tempo (`barks.md`) |
+| metis   | Metis   | epic   | +10% crit; crits stagger                                                                  |
 
 ### Favour cards (level 7, one per god in the party, epic)
 
