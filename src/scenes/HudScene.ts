@@ -4,6 +4,8 @@ import { GRAYBOX, UPGRADES } from '../data/graybox';
 import { DEFAULT_TUNING, type BuildingState, type CommandResult } from '../sim/api';
 import { buildingEffect, buildingName, nextTierEffect } from '../ui/buildingInfo';
 import { formatClock } from '../ui/endReport';
+import { modeLabel, partyColor } from '../ui/partyLook';
+import { buildRoster, paginate } from '../ui/roster';
 import { makePanel } from '../ui/panel';
 import { pickToast } from '../ui/levelUpLook';
 import { heroLabel } from '../ui/partyLook';
@@ -14,6 +16,8 @@ import type { SimEvent, Vec2 } from '../sim/api';
 import { describeEvent, EventFeed, type FeedWorld } from '../ui/eventFeed';
 import type { MapScene, MapTap } from './MapScene';
 
+const ROSTER_PER_PAGE = 5;
+const ROSTER_W = 470;
 const SPEEDS = [1, 2, 4];
 const BOUNTY_AMOUNTS = [25, 50, 100, 200];
 
@@ -37,6 +41,14 @@ export class HudScene extends Phaser.Scene {
   private ended = false;
   private speedButtons: Button[] = [];
   private watchBtn: Button | null = null;
+  private rosterBtn: Button | null = null;
+  // Hero roster: a list on the right (5 rows a page), rebuilt when what it shows changes.
+  private rosterOpen = false;
+  private rosterPage = 0;
+  private rosterKey = '';
+  private rosterObjects: Phaser.GameObjects.GameObject[] = [];
+  private rosterRect: Phaser.Geom.Rectangle | null = null;
+  private rosterNextAt = 0;
   private menu: Phaser.GameObjects.GameObject[] = [];
   private menuButtons: { button: Button; cost: number }[] = [];
   private menuRect: Phaser.Geom.Rectangle | null = null;
@@ -60,6 +72,12 @@ export class HudScene extends Phaser.Scene {
     this.menu = [];
     this.menuButtons = [];
     this.menuRect = null;
+    this.rosterOpen = false;
+    this.rosterPage = 0;
+    this.rosterKey = '';
+    this.rosterObjects = [];
+    this.rosterRect = null;
+    this.rosterNextAt = 0;
     this.feed = new EventFeed();
     this.feedKey = '';
     this.feedObjects = [];
@@ -92,6 +110,14 @@ export class HudScene extends Phaser.Scene {
     makeButton(this, 890, 40, 110, MIN_TOUCH, 'Menu', () => this.openPause(), {
       icon: 'ui_icon_menu',
     });
+    // In the gap between the gold and the run clock (the clock sits at x 640).
+    this.rosterBtn = makeButton(this, 430, 40, 120, MIN_TOUCH, 'Heroes', () => {
+      this.rosterOpen = !this.rosterOpen;
+      this.rosterKey = '';
+      this.rosterNextAt = 0;
+      if (this.rosterOpen) this.closeMenu();
+      else this.clearRoster();
+    });
     this.watchBtn = makeButton(this, 770, 40, 110, MIN_TOUCH, 'Watch', () => {
       const m = map.registry.get('camMode');
       map.setWatch(m !== 'watch');
@@ -104,7 +130,8 @@ export class HudScene extends Phaser.Scene {
         padding: { x: 14, y: 8 },
       })
       .setOrigin(0.5)
-      .setAlpha(0);
+      .setAlpha(0)
+      .setDepth(50);
     this.banner = this.add
       .text(GAME_WIDTH / 2, 112, '', {
         ...TEXT,
@@ -113,7 +140,8 @@ export class HudScene extends Phaser.Scene {
         padding: { x: 20, y: 8 },
       })
       .setOrigin(0.5)
-      .setAlpha(0);
+      .setAlpha(0)
+      .setDepth(50);
 
     const onTap = (tap: MapTap) => this.onMapTap(map, tap);
     const onEvents = (events: readonly SimEvent[]) => this.onSimEvents(map, events);
@@ -127,6 +155,8 @@ export class HudScene extends Phaser.Scene {
 
   update(_time: number, deltaMs: number): void {
     this.watchBtn?.setActive(this.registry.get('camMode') === 'watch');
+    this.rosterBtn?.setActive(this.rosterOpen);
+    this.drawRoster(this.scene.get('Map') as MapScene);
     const snap = (this.scene.get('Map') as MapScene).snapshot;
     for (const l of snap.lairs) this.places.set(l.id, l.pos);
     for (const b of snap.buildings) this.places.set(b.id, b.pos);
@@ -146,6 +176,7 @@ export class HudScene extends Phaser.Scene {
   blocks(x: number, y: number): boolean {
     if (y < 72 || this.ended) return true;
     if (this.panel.isOpen && this.panel.rect.contains(x, y)) return true;
+    if (this.rosterRect?.contains(x, y)) return true;
     if (this.feedRects.some((r) => r.contains(x, y))) return true;
     return this.menuRect?.contains(x, y) ?? false;
   }
@@ -231,9 +262,163 @@ export class HudScene extends Phaser.Scene {
   // The sim reports 'won' or 'lost' and has stopped: the End scene shows the report.
   private showEnd(): void {
     this.closeMenu();
+    this.closeRoster();
     this.ended = true;
     this.registry.set('modal', true);
     this.scene.launch('End');
+  }
+
+  // Shut the roster (a menu is about to take its place).
+  private closeRoster(): void {
+    this.rosterOpen = false;
+    this.rosterKey = '';
+    this.clearRoster();
+  }
+
+  private clearRoster(): void {
+    this.rosterObjects.forEach((o) => o.destroy());
+    this.rosterObjects = [];
+    this.rosterRect = null;
+  }
+
+  // The hero list: party colour stripe, label and tier, state, hp bar and gold. Tapping a row
+  // follows that hero and opens its party panel.
+  private drawRoster(map: MapScene): void {
+    if (!this.rosterOpen || this.ended) return;
+    if (this.time.now < this.rosterNextAt) return;
+    const all = buildRoster(map.snapshot);
+    const pg = paginate(all, this.rosterPage, ROSTER_PER_PAGE);
+    this.rosterPage = pg.page;
+    const selected = (this.registry.get('selectedUnit') as number) ?? 0;
+    const key = `${pg.page}/${pg.pages}|${selected}|${pg.rows.map((r) => `${r.unit}:${r.label}:${r.party}:${r.partyLevel}:${r.hp}:${r.maxHp}:${r.mode}:${r.gold}:${r.tier}:${r.ko}`).join(',')}`;
+    if (key === this.rosterKey) return;
+    this.rosterNextAt = this.time.now + 300;
+    this.rosterKey = key;
+    this.clearRoster();
+    // Left of the party panel (which owns the right edge), so both can be open.
+    const X = GAME_WIDTH - 340 - 12 - ROSTER_W;
+    const Y = 84;
+    const rowH = MIN_TOUCH;
+    const pitch = rowH + 4; // a gap so neighbouring outlines never overdraw
+    // As tall as its rows (and the pager when there is one), so it never blocks empty map.
+    const H = 40 + Math.max(pg.rows.length, 1.5) * pitch + (pg.pages > 1 ? 90 : 14);
+    this.rosterRect = new Phaser.Geom.Rectangle(X, Y, ROSTER_W, H);
+    const add = <T extends Phaser.GameObjects.GameObject>(o: T): T => {
+      this.rosterObjects.push(o);
+      return o;
+    };
+    add(makePanel(this, X + ROSTER_W / 2, Y + H / 2, ROSTER_W, H, 0.95));
+    add(
+      this.add
+        .text(X + 18, Y + 22, `Heroes (${all.length})`, {
+          ...TEXT,
+          fontSize: '24px',
+          color: '#f2c14e',
+        })
+        .setOrigin(0, 0.5),
+    );
+    if (pg.rows.length === 0)
+      add(
+        this.add
+          .text(X + 18, Y + 80, 'No heroes yet.\nBuild a temple.', {
+            ...TEXT,
+            fontSize: '22px',
+            color: COLORS.textMuted,
+          })
+          .setOrigin(0, 0),
+      );
+    pg.rows.forEach((r, i) => {
+      const y = Y + 40 + i * pitch;
+      const bg = add(
+        this.add
+          .rectangle(
+            X + ROSTER_W / 2,
+            y + rowH / 2,
+            ROSTER_W - 20,
+            rowH,
+            r.unit === selected ? 0x4a3322 : 0x241a12,
+            0.95,
+          )
+          .setStrokeStyle(2, COLORS.gold, r.unit === selected ? 0.9 : 0.3)
+          .setInteractive({ useHandCursor: true }),
+      );
+      bg.on('pointerup', (p: Phaser.Input.Pointer) => {
+        if (p.getDistance() >= 10) return;
+        map.followUnit(r.unit);
+        this.panel.show(r.unit);
+        this.rosterKey = '';
+        this.rosterNextAt = 0;
+      });
+      if (r.party > 0)
+        add(this.add.rectangle(X + 16, y + rowH / 2, 8, rowH - 14, partyColor(r.party), 1));
+      const sub = r.party > 0 ? `  ·  party ${r.party} lv ${r.partyLevel}` : '';
+      add(
+        this.add
+          .text(X + 28, y + 16, `${r.label}  T${r.tier}${sub}`, {
+            ...TEXT,
+            fontSize: '20px',
+            color: r.ko ? COLORS.textMuted : COLORS.text,
+          })
+          .setOrigin(0, 0.5),
+      );
+      add(
+        this.add
+          .text(X + ROSTER_W - 22, y + 16, modeLabel(r.mode), {
+            ...TEXT,
+            fontSize: '16px',
+            color: COLORS.textMuted,
+          })
+          .setOrigin(1, 0.5),
+      );
+      const bw = 190;
+      const f = r.maxHp > 0 ? Math.max(0, Math.min(1, r.hp / r.maxHp)) : 0;
+      add(this.add.rectangle(X + 28 + bw / 2, y + 50, bw, 12, 0x000000, 0.7));
+      add(
+        this.add.rectangle(
+          X + 28 + (bw * f) / 2,
+          y + 50,
+          Math.max(1, bw * f),
+          12,
+          r.ko ? 0x777777 : f < 0.3 ? 0xd9534f : 0x6fcf6f,
+        ),
+      );
+      add(
+        this.add
+          .text(X + ROSTER_W - 22, y + 50, `${r.hp}/${r.maxHp}   ${r.gold}g`, {
+            ...TEXT,
+            fontSize: '18px',
+            color: '#f2c14e',
+          })
+          .setOrigin(1, 0.5),
+      );
+    });
+    // Paging.
+    const py = Y + H - 44;
+    if (pg.pages > 1) {
+      const prev = makeButton(this, X + 70, py, 100, MIN_TOUCH, 'Prev', () => this.pageRoster(-1));
+      const next = makeButton(this, X + ROSTER_W - 70, py, 100, MIN_TOUCH, 'Next', () =>
+        this.pageRoster(1),
+      );
+      prev.setEnabled(pg.page > 0);
+      next.setEnabled(pg.page < pg.pages - 1);
+      add(prev.container);
+      add(next.container);
+      add(
+        this.add
+          .text(X + ROSTER_W / 2, py, `${pg.page + 1} / ${pg.pages}`, {
+            ...TEXT,
+            fontSize: '20px',
+            color: COLORS.textMuted,
+          })
+          .setOrigin(0.5),
+      );
+    }
+  }
+
+  private pageRoster(delta: number): void {
+    this.rosterPage += delta;
+    this.rosterKey = '';
+    this.rosterNextAt = 0;
   }
 
   // Freeze the map and open the pause menu over it.
@@ -291,6 +476,7 @@ export class HudScene extends Phaser.Scene {
 
   private openMenu(title: string, options: MenuOption[]): void {
     this.closeMenu();
+    this.closeRoster();
     // Every menu ends in a Close button: the only other way out used to be a tap on the map,
     // which opened a bounty menu on the bare ground instead.
     options = [...options, { label: 'Close', cost: 0, pick: () => this.closeMenu() }];
@@ -321,6 +507,7 @@ export class HudScene extends Phaser.Scene {
   // an Upgrade button with its cost (the sim refuses when it cannot, and says why).
   private openBuildingPanel(map: MapScene, b: BuildingState): void {
     this.closeMenu();
+    this.closeRoster();
     const cx = GAME_WIDTH / 2;
     const w = 860;
     const h = 330;
