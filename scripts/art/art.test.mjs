@@ -74,6 +74,10 @@ describe('ids', () => {
     expect(kindOf('mon_draugr-v2_t1_front')?.kind).toBe('mon');
     expect(kindOf('mon_jackal-man-v3_t1_front')?.kind).toBe('mon');
     expect(kindOf('mon_draugr-v1_t1_front')).toBeNull();
+    expect(kindOf('sum_falcon_t1_front')?.kind).toBe('sum');
+    expect(kindOf('sum_falcon_t1_front')?.dir).toBe('units');
+    expect(kindOf('sum_falcon_t1_back')).toBeNull();
+    expect(kindOf('sum_falcon')).toBeNull();
     expect(kindOf('hero_warrior-v2_t1_front')).toBeNull();
     expect(kindOf('bld_ruin')?.kind).toBe('bld');
     expect(parseId('bld_scaffold').tier).toBeNull();
