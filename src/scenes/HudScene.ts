@@ -154,6 +154,11 @@ export class HudScene extends Phaser.Scene {
   }
 
   update(_time: number, deltaMs: number): void {
+    const notice = this.registry.get('notice') as string | undefined;
+    if (notice) {
+      this.registry.set('notice', undefined);
+      this.showToast(notice);
+    }
     this.watchBtn?.setActive(this.registry.get('camMode') === 'watch');
     this.rosterBtn?.setActive(this.rosterOpen);
     this.drawRoster(this.scene.get('Map') as MapScene);

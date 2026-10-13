@@ -67,8 +67,6 @@ export class MapScene extends Phaser.Scene {
   // The ring on the ground around the party that levelled, while its cards are up.
   private offerRing: Phaser.GameObjects.Ellipse | null = null;
   private resumeWatch = false;
-  // A newer game's save is in storage: this run never writes over it.
-  private keepSave = false;
   // Camera mode: by hand, watching the best fight, or following one hero (until it is gone).
   private cam: 'off' | 'watch' | 'unit' = 'off';
   private followId = 0;
@@ -84,16 +82,15 @@ export class MapScene extends Phaser.Scene {
   private startWorld(): World {
     const wantSave = this.registry.get('startMode') === 'continue';
     this.registry.set('startMode', 'new');
-    this.keepSave = false;
     if (wantSave) {
       try {
         return loadWorld(readSave(), GRAYBOX);
       } catch (e) {
         if (!(e instanceof SaveError)) throw e;
         if (isNewerSave(e)) {
-          // A newer game wrote it: play a fresh run here without touching the stored one (no
-          // clear, no autosave over it) so the newer client can still continue it.
-          this.keepSave = true;
+          // A newer game wrote it: play a fresh run here. The storage layer never clears or
+          // overwrites that save (storedIsNewer), so the newer client can still continue it.
+          this.registry.set('notice', 'This save is from a newer version. Reload to update.');
           return createWorld(newSeed(), GRAYBOX);
         }
         clearSave();
@@ -107,7 +104,7 @@ export class MapScene extends Phaser.Scene {
 
   // Writes the run to storage (autosave, and when the player quits to the title).
   saveNow(): void {
-    if (this.snap.status === 'running' && !this.keepSave) writeSave(saveWorld(this.world));
+    if (this.snap.status === 'running') writeSave(saveWorld(this.world));
   }
 
   create(): void {
