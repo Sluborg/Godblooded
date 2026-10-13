@@ -21,6 +21,7 @@ import { heroLabel, partyColor } from '../ui/partyLook';
 import { artCandidates } from '../ui/unitLook';
 import { UnitViews } from '../ui/unitViews';
 import { iconScale } from '../ui/icons';
+import { releaseSets } from '../ui/parts/bake';
 import { effectiveSpeed } from '../ui/pathSpeed';
 import { STYLE } from '../ui/style';
 import { lairDecal, lairPlate, townPatch } from '../ui/groundDecal';
@@ -135,6 +136,8 @@ export class MapScene extends Phaser.Scene {
     this.director.reset();
     this.registry.set('camMode', 'off');
     this.registry.set('modal', false);
+    // A finished or restarted run gives its baked looks back.
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => releaseSets(this));
     this.unitViews = new UnitViews(this, () => {
       if (STYLE.screenShake && !getSettings().reducedMotion) this.cameras.main.shake(130, 0.004);
     });

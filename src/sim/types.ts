@@ -203,8 +203,17 @@ export interface ItemEffects {
   kits?: Partial<Record<Kit, { armour: number; wp: number }>>;
   // Potion: share of max hp healed.
   healPct?: number;
-  // Charm effects arrive with Sim 310.
-  [key: string]: unknown;
+  // Charm (generic, items-and-shops.md section 2): added to crit and dodge chance.
+  crit?: number;
+  dodge?: number;
+  // Charm: a share cut off hits of these damage types (fire 0.25 = fire hits 25% softer).
+  softer?: Partial<Record<string, number>>;
+  // Charm: the wither rider does not take hold on the wearer.
+  noWither?: boolean;
+  // Charm: heals this share of max hp per kill.
+  healOnKill?: number;
+  // Charm: the first landed hit of each fight is multiplied by this (0.5: halved).
+  firstHitMult?: number;
 }
 
 export interface ItemDef {
@@ -318,6 +327,8 @@ export interface HeroTuning {
   proudSpend: number;
   // Potions a hero may carry, by market tier.
   potionMax: number[];
+  // A hero holding a charm swaps it only for one priced at least this much (and dearer).
+  charmSwapPrice: number;
   // A hero drinks below its flee threshold plus this (points as a share of max hp), a coward
   // plus cowardDrinkAdd; one that never flees drinks at neverFleeDrink. A drink takes drinkMs.
   potionDrinkAdd: number;
@@ -1043,6 +1054,8 @@ export type SimEvent =
   | { kind: 'shopped'; unit: number; spent: number; tax: number; item?: string }
   // The seal on a boss lair broke: it can be attacked now.
   | { kind: 'bossLairUnsealed'; lair: number; by: 'time' | 'lairs' }
+  // A party leader got a charm from a lair that fell.
+  | { kind: 'relic'; unit: number; item: string; lair: number }
   | { kind: 'bountyPlaced'; bounty: number; gold: number };
 
 export type Command =

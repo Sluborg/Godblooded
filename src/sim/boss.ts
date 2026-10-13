@@ -72,6 +72,10 @@ export function lairSealed(world: World, lairId: number): boolean {
   return !!lair && !!bossOf(world, lair);
 }
 
+// Is a sealed boss lair within `radius` of a point? (Bounties there wait.)
+export const nearSealedLair = (world: World, pos: { x: number; y: number }, radius: number) =>
+  world.lairs.some((l) => lairSealed(world, l.id) && dist(l.pos, pos) <= radius);
+
 // Is any boss lair still sealed? (For the snapshot.)
 export const bossSealed = (world: World): boolean =>
   !world.bossUnsealed && world.lairs.some((l) => !!bossOf(world, l));
@@ -79,6 +83,11 @@ export const bossSealed = (world: World): boolean =>
 // Every tick: the seal breaks at sealUntilMs or after sealLairs lairs have fallen.
 export function runBossSeal(world: World): void {
   if (world.bossUnsealed) return;
+  // An old save with the boss already out never reseals.
+  if ([...world.lairRuntime.values()].some((r) => r.bossSpawned)) {
+    world.bossUnsealed = true;
+    return;
+  }
   const t = world.tuning.boss;
   const by =
     world.timeMs >= t.sealUntilMs

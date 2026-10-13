@@ -98,3 +98,26 @@ describe('sealed boss lair', () => {
     expect(nest(w).hp).toBeLessThan(nest(w).maxHp);
   });
 });
+
+describe('sealed lair details', () => {
+  it('a flag next to a sealed boss lair is not taken until it opens', () => {
+    const w = createWorld(1, mk({ sealUntilMs: 5_000 }));
+    const id = spawnHero(w, 'knight', { x: 600, y: 500 });
+    const h = w.units.find((u) => u.id === id)!;
+    h.mode = 'explore';
+    w.bounties.push({ id: w.nextId++, pos: { x: 520, y: 500 }, gold: 500 } as never);
+    run(w, 3_000);
+    expect(w.heroRuntime.get(id)?.bounty).toBeUndefined();
+    run(w, 3_000);
+    expect(snapshot(w).map.sealed).toBe(false);
+  });
+
+  it('a save with the boss already out never reseals', () => {
+    const w = createWorld(1, mk());
+    const lrt = w.lairRuntime.get(nest(w).id)!;
+    lrt.bossSpawned = true;
+    const ev = run(w, 200);
+    expect(snapshot(w).map.sealed).toBe(false);
+    expect(ev.some((e) => e.kind === 'bossLairUnsealed')).toBe(false);
+  });
+});
