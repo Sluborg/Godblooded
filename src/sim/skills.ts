@@ -81,7 +81,8 @@ export function runSkill(
   sr.casts++;
   sr.cast = { target: at.unit?.id ?? null, point: at.point, ms: t.castWindupMs };
   rt.swing = undefined;
-  face(hero, at.point);
+  // A skill sitting on the caster still points at the foe: cones and lines aim along facing.
+  face(hero, at.unit?.pos ?? found.foe?.pos ?? at.point);
   world.events.push({
     kind: 'cast',
     skill: def.id,
@@ -162,6 +163,8 @@ function evalTrigger(
   }
   switch (trig.kind) {
     case 'ready': {
+      // A ready skill is for a hero in a fight (it has a foe), not one passing by or hitting a lair.
+      if (!foe) return undefined;
       const near = foesOf(world).filter((f) => dist(hero.pos, f.pos) <= (trig.range ?? 300));
       const pick = pickFoe(hero, hero.pos, near);
       return pick && { foe: pick, point: { ...pick.pos } };
@@ -175,16 +178,19 @@ function evalTrigger(
       return pick && { foe: pick, point: { ...pick.pos } };
     }
     case 'crowd': {
-      // Counted around the skill's centre: the caster, or the foe it fights.
+      // Counted around the skill's centre: the caster, or the foe it fights. A cone opens from
+      // the caster toward the foe (the nearest one when the skill sits on the caster).
+      const all = foesOf(world);
+      const toward = foe ?? (self ? pickNearest(all, hero.pos, trig.radius) : undefined);
       const centre = self ? hero : foe;
-      if (!centre) return undefined;
-      const inside = foesOf(world).filter((f) =>
+      if (!centre || !toward) return undefined;
+      const inside = all.filter((f) =>
         trig.angle === undefined
           ? dist(centre.pos, f.pos) <= trig.radius
-          : inCone(hero.pos, centre.pos, trig.radius, trig.angle, f.pos),
+          : inCone(hero.pos, toward.pos, trig.radius, trig.angle, f.pos),
       );
       if (inside.length < trig.n) return undefined;
-      const at = self ? pickFoe(hero, hero.pos, inside) : foe;
+      const at = self || hero.trait === 'proud' ? pickFoe(hero, hero.pos, inside) : foe;
       return { foe: at ?? undefined, point: { ...centre.pos } };
     }
     case 'allyHurt': {
@@ -212,6 +218,13 @@ function evalTrigger(
       return near ? { point: { ...near.pos } } : undefined;
     }
   }
+}
+
+// Where a cone or line points: the cast point, or along the caster's facing when it sits on him.
+function aimAt(hero: UnitState, point: Vec2): Vec2 {
+  return dist(hero.pos, point) > 0
+    ? point
+    : { x: hero.pos.x + hero.facing.x * 100, y: hero.pos.y + hero.facing.y * 100 };
 }
 
 function norm(from: Vec2, to: Vec2): Vec2 {
@@ -266,16 +279,20 @@ export function foesInShape(
         .map((unit) => ({ unit, mult: 1 }));
     case 'cone':
       return foes
-        .filter((f) => inCone(hero.pos, point, shape.radius, shape.angle, f.pos))
+        .filter((f) => inCone(hero.pos, aimAt(hero, point), shape.radius, shape.angle, f.pos))
         .map((unit) => ({ unit, mult: 1 }));
     case 'line':
       return foes
-        .filter((f) => inLine(hero.pos, point, shape.length, shape.width ?? 40, f.pos))
+        .filter((f) => inLine(hero.pos, aimAt(hero, point), shape.length, shape.width ?? 40, f.pos))
         .sort((a, b) => dist(hero.pos, a.pos) - dist(hero.pos, b.pos))
         .map((unit) => ({ unit, mult: 1 }));
     case 'chain': {
+      // Anchored to the cast point like `single`: a target that left it is not followed.
+      const reach = world.tuning.skill.pointReach;
       let cur =
-        target && target.hp > 0 && !target.ko ? target : pickNearest(foes, point, shape.radius);
+        target && target.hp > 0 && !target.ko && dist(point, target.pos) <= reach
+          ? target
+          : pickNearest(foes, point, reach);
       const out: { unit: UnitState; mult: number }[] = [];
       let mult = 1;
       for (let i = 0; cur && i <= shape.jumps; i++) {

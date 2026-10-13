@@ -1,0 +1,64 @@
+{
+  "hero_odin_t1_front": {
+    "strike": "bolt",
+    "weapon": [351, 75],
+    "fit": true
+  },
+  "hero_thor_t1_front": {
+    "strike": "chop",
+    "weapon": [489, 113],
+    "fit": true
+  },
+  "hero_loki_t1_front": {
+    "strike": "double",
+    "weapon": [300, 276],
+    "weapon2": [1053, 815],
+    "fit": true
+  },
+  "hero_freyja_t1_front": {
+    "strike": "bolt",
+    "weapon": [389, 288],
+    "fit": true
+  },
+  "hero_odin-seer_t2_front": {
+    "strike": "bolt",
+    "weapon": [376, 78],
+    "fit": true
+  },
+  "hero_odin-wanderer_t2_front": {
+    "strike": "thrust",
+    "weapon": [1129, 460],
+    "fit": true
+  },
+  "hero_thor-hammerborn_t2_front": {
+    "strike": "smash",
+    "weapon": [643, 110],
+    "fit": true
+  },
+  "hero_thor-stormcaller_t2_front": {
+    "strike": "bolt",
+    "weapon": [392, 235],
+    "fit": true
+  },
+  "hero_loki-trickster_t2_front": {
+    "strike": "double",
+    "weapon": [282, 251],
+    "weapon2": [1113, 878],
+    "fit": true
+  },
+  "hero_loki-flamebinder_t2_front": {
+    "strike": "bolt",
+    "weapon": [298, 110],
+    "fit": true
+  },
+  "hero_freyja-valkyrie_t2_front": {
+    "strike": "chop",
+    "weapon": [502, 125],
+    "fit": true
+  },
+  "hero_freyja-seidkona_t2_front": {
+    "strike": "bolt",
+    "weapon": [329, 376],
+    "fit": true
+  }
+}
