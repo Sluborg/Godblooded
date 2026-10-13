@@ -30,6 +30,7 @@ export type {
   MonsterTuning,
   PartyState,
   PassiveDef,
+  PassiveEffect,
   PassiveKeys,
   PathDef,
   PathState,

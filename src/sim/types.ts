@@ -32,10 +32,8 @@ export interface GodDef {
   passive?: PassiveDef;
 }
 
-// A god's passive (docs/systems/paths-and-skills.md section 5): a set of keys, each implemented
-// once. `scope` 'self' applies to its owner; 'party' to the owner and its living party mates
-// within `range` (default: anywhere). A party passive does not stack with itself (two Odin
-// children give +3 Per, not +6).
+// The keys a passive effect can set (docs/systems/paths-and-skills.md section 5), each
+// implemented once in the rule it belongs to (see PassiveEffect for who gets them).
 export interface PassiveKeys {
   // Flat attributes.
   attr?: Partial<Attributes>;
@@ -70,12 +68,21 @@ export interface PassiveKeys {
   healTakenMult?: number;
 }
 
+// One effect of a passive: a set of keys and who gets them. `scope` 'self' is the owner only,
+// 'mates' the owner's living party mates within `range` (not the owner), 'party' both. A party
+// effect does not stack with itself (two Odin children give +3 Per, not +6).
+export interface PassiveEffect {
+  scope: 'self' | 'mates' | 'party';
+  range?: number;
+  keys: PassiveKeys;
+}
+
+// A god's passive: one or more effects, each with its own scope (Anubis: +25% vs undead for
+// himself, a lower boss death chance for the party).
 export interface PassiveDef {
   id: string;
   name: string;
-  scope: 'self' | 'party';
-  range?: number;
-  keys: PassiveKeys;
+  effects: readonly PassiveEffect[];
 }
 
 // A path of a god: the tier 2 and 3 identity a child of `god` takes at party level 3. A hero
