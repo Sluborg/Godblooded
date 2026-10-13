@@ -66,17 +66,30 @@ Review (PR open), Done. A worker takes its top Open row.
 | 170   | Building panel (after Sim 130): tap a building for info, tier, upgrade button and cost                                                                                                                    | Open   |
 | 180   | End screen v2 (after Sim 140): MVP hero, per-hero stats, gold-over-time sparkline                                                                                                                         | Open   |
 | 190   | Continue after reload (after Sim 160): title Continue loads the autosave; tower shot effect (Sim 130 hit events from buildings)                                                                           | Open   |
+| 200   | Splash and menu look: splash scene (key art, logo reveal, loading bar), menu buttons and panels from the UI kit (9-slice, pressed state) with the current code-drawn style as fallback                    | Open   |
 
 ## Art
 
-| Order | Item                                                                                                     | Status |
-| ----- | -------------------------------------------------------------------------------------------------------- | ------ |
-| 10    | Pipeline: `scripts/art/` key-out (green and magenta), trim, downscale, `validate:art`, manifest tooling  | Done   |
-| 20    | Art-wake draft PR (`art-wake` branch, `art-wake/TRACKS.md`); check `art-tasks/README.md` end to end      | Done   |
-| 30    | Style test B1: Warrior t1 front and back, draugr t1 front, town hall t1. Stefan approves before batches  | Done   |
-| 40    | After approval: tier-1 batches for heroes, monsters, buildings (art requests 10-30)                      | Doing  |
-| 50    | Tier-2 and tier-3 batches                                                                                | Open   |
-| 60    | Front only (drop `_back` items); monster variants `-v2`/`-v3` as edits of the base picture               | Open   |
-| 70    | Track `ui`: U1 logo + app icon (3 options for Stefan), then U2 UI kit (panel, buttons, icons)            | Open   |
-| 80    | Heroes by god: rewrite A1 to 4 Aesir god tier-1 + 8 Aesir path tier-2; ids and asset-spec per 2026-10-13 | Done   |
-| 90    | Queue buildings tier 2 batch (all 8) and Greek + Egyptian temple tier 1, for Sim 130 and M3              | Done   |
+| Order | Item                                                                                                                                                                                                                   | Status |
+| ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| 10    | Pipeline: `scripts/art/` key-out (green and magenta), trim, downscale, `validate:art`, manifest tooling                                                                                                                | Done   |
+| 20    | Art-wake draft PR (`art-wake` branch, `art-wake/TRACKS.md`); check `art-tasks/README.md` end to end                                                                                                                    | Done   |
+| 30    | Style test B1: Warrior t1 front and back, draugr t1 front, town hall t1. Stefan approves before batches                                                                                                                | Done   |
+| 40    | After approval: tier-1 batches for heroes, monsters, buildings (art requests 10-30)                                                                                                                                    | Doing  |
+| 50    | Tier-2 and tier-3 batches                                                                                                                                                                                              | Open   |
+| 60    | Front only (drop `_back` items); monster variants `-v2`/`-v3` as edits of the base picture                                                                                                                             | Open   |
+| 70    | Track `ui`: U1 logo + app icon (3 options for Stefan), then U2 UI kit (panel, buttons, icons)                                                                                                                          | Open   |
+| 80    | Heroes by god: rewrite A1 to 4 Aesir god tier-1 + 8 Aesir path tier-2; ids and asset-spec per 2026-10-13                                                                                                               | Done   |
+| 90    | Queue buildings tier 2 batch (all 8) and Greek + Egyptian temple tier 1, for Sim 130 and M3                                                                                                                            | Done   |
+| 100   | Track `ui`: U2 UI kit now, not waiting on the logo pick: 9-slice panel, buttons (normal, pressed, disabled), icon set (gold, speed, menu, bounty, upgrade, pause), in a bronze-and-iron look that fits any logo option | Open   |
+| 110   | Track `ui`: U3 splash key art: a wide 16:9 painting of Godbloods of three pantheons facing a monster horde at dusk, no text (the logo goes on top in code)                                                             | Open   |
+
+## Design
+
+| Order | Item                                                                                                         | Status |
+| ----- | ------------------------------------------------------------------------------------------------------------ | ------ |
+| 10    | `docs/systems/combat.md`: damage, armour, dodge, crits, damage types, KO and death, boss rules               | Open   |
+| 20    | `docs/systems/paths-and-skills.md`: a signature skill per path (24) with a tier 3 upgrade, a passive per god | Open   |
+| 30    | `docs/systems/items-and-shops.md`: weapons, armour, potions, charms, item tiers by building tier             | Open   |
+| 40    | `docs/systems/progression.md`: hero and party levels, upgrade card pool, lair and monster tiers, run curve   | Open   |
+| 50    | `docs/systems/meta.md`: what persists between runs, options A/B/C with a recommendation                      | Open   |
