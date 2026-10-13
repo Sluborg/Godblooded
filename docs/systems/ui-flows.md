@@ -75,8 +75,10 @@ hero stands on its building's spot, and the hero is the more specific target.
 | 70    | bare ground                      | bounty menu on the spot (today)                             |
 
 - **Build menu: tap for info, tap again to build** (Stefan, 2026-10-14). The first tap on an
-  item selects it and shows its info strip above the menu: name, cost, and its one-line "what it
-  does" (`buildings.md` section 4). A second tap on the same item builds it. A tap on another item
+  item selects it and shows its info strip above the menu: name and cost; its role in one line
+  (`text`, `buildings.md` section 4); what it sells or trains and its numbers now
+  (`buildingEffect` in `src/ui/buildingInfo.ts`); and what its next tier unlocks
+  (`nextTierEffect`). A building row without `text` shows the effect line in its place. A second tap on the same item builds it. A tap on another item
   switches the selection; a tap outside the menu cancels. An item the town can't afford still
   shows its info, with the cost in red; the second tap shows "Need 40 more gold" and builds
   nothing.
