@@ -1,3 +1,4 @@
+import { avenge, revengeTarget, rivalPairs, vowRevenge } from './rivalry';
 import { runAutosave } from './save';
 import { generateMap } from './mapgen';
 import { resolveStrike } from './strike';
@@ -105,6 +106,8 @@ export interface World {
   heroRuntime: Map<number, HeroRuntime>;
   templeNextMs: Map<number, number>;
   towerNextMs: Map<number, number>;
+  // When a pair of rivals may argue again, by pair key.
+  argueNextMs: Map<string, number>;
   // Run time of the next autosave event (0: not set yet).
   nextAutosaveMs: number;
   tuning: Tuning;
@@ -143,6 +146,7 @@ export function createWorld(seed: number, data: GameData): World {
     heroRuntime: new Map(),
     templeNextMs: new Map(),
     towerNextMs: new Map(),
+    argueNextMs: new Map(),
     nextAutosaveMs: 0,
     tuning: resolveTuning(data),
     parties: new Map(),
@@ -336,7 +340,8 @@ function runUnits(world: World): void {
     } else if (foe) {
       fight(world, unit, rt, stats, foe);
     } else if (unit.kind === 'hero') {
-      const lair = busy ? null : pickLair(world, unit);
+      // A hero under oath goes for its monster, not for a lair on the way.
+      const lair = busy || revengeTarget(world, unit) ? null : pickLair(world, unit);
       if (lair) attackLair(world, unit, rt, stats, lair);
       else heroMove(world, unit);
     } else if (rt.raid) {
@@ -354,6 +359,9 @@ function runUnits(world: World): void {
 // Nearest living enemy inside aggro range (and the leash, for monsters).
 function pickTarget(world: World, unit: UnitState, stats: Stats, home?: Vec2): UnitState | null {
   const reach = aggroRange(stats.attrs);
+  // A hero with a sworn enemy in sight goes for it first.
+  const sworn = unit.kind === 'hero' ? revengeTarget(world, unit) : undefined;
+  if (sworn && !sworn.ko && dist(unit.pos, sworn.pos) <= reach) return sworn;
   let best: UnitState | null = null;
   let bestD = Infinity;
   for (const other of world.units) {
@@ -447,6 +455,7 @@ function settleDeaths(world: World): void {
       world.stats.knockouts++;
       tally(world, unit.id, 'knockouts');
       world.events.push({ kind: 'knockout', unit: unit.id, by });
+      vowRevenge(world, unit, by);
     } else {
       const mon = world.data.monsters?.find((m) => m.id === unit.type);
       const reward = tierValue(world.tuning.lair.rewardMult, unit.tier, 1);
@@ -454,6 +463,7 @@ function settleDeaths(world: World): void {
       const xp = Math.round((mon?.xp ?? 0) * reward);
       world.events.push({ kind: 'died', unit: unit.id, type: unit.type, by, bounty, xp });
       world.stats.monstersKilled++;
+      avenge(world, unit.id);
       tally(world, by, 'kills');
       payBounty(world, by, bounty);
       shareXp(world, by, xp);
@@ -578,6 +588,7 @@ export function snapshot(world: World): Snapshot {
     lairs: world.lairs.map((l) => ({ ...l, pos: { ...l.pos } })),
     units: world.units.map((u) => ({ ...u, pos: { ...u.pos }, facing: { ...u.facing } })),
     bounties: world.bounties.map((b) => ({ ...b, pos: { ...b.pos } })),
+    rivals: rivalPairs(world),
     map: { lean: [...world.mapLean], boss: world.bossLair },
     report: buildReport(world),
     events,
