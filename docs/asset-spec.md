@@ -86,13 +86,20 @@ feet as anchor for both, and on the arm row `pivotX`/`pivotY` (0..1 of the image
 shoulder, found as the top of the band where the arm touches the body. Rotate the arm sprite
 around that point.
 
-## Key art
+## Opaque pictures: key art and ground tiles
 
-`art_<name>` (the splash, `art_splash`) is the one kind that is a **full painting**: no key
-colour, opaque edge to edge, framed for a 16:9 screen (the batch says how to frame it on a
-square or 3:2 canvas). It ships 1280 px wide to `public/assets/art/`, the crop to 16:9 done by
-Scene (cover-fit, centred). Pipeline and validator support for opaque art lands with the first
-upload (U3).
+Two kinds are **full pictures** with no key colour, opaque edge to edge; the pipeline ships the
+whole canvas (nothing keyed or trimmed), scaled to the nominal width, and the validator rejects
+any transparent pixel:
+
+- **Key art** `art_<name>` (the splash, `art_splash`): framed for a 16:9 screen (the batch says
+  how on a square or 3:2 canvas). Ships 1280 px wide to `public/assets/art/`; Scene crops it to
+  16:9 (cover-fit, centred).
+- **Ground tiles** `ter_ground_<name>` (`ter_ground_grass_a`): a square, seamless, top-down
+  texture. Ships 256 x 256 to `public/assets/terrain/`; Scene repeats it as a tile sprite.
+
+Other `ter_` pictures (props such as `ter_rock_a`, `ter_tree_pine_a`) are keyed objects like
+any unit or building.
 
 ## 9-slice (panels and buttons)
 
@@ -144,7 +151,7 @@ shows a tougher monster by colour (tint) in code.
 }
 ```
 
-- `kind`: `hero`, `mon`, `bld`, `ter` or `ui`. `tier` and `view` are `null` when the id has none.
+- `kind`: `hero`, `mon`, `bld`, `ter`, `ui` or `art`. `tier` and `view` are `null` when the id has none.
 - Rig pieces add `part` (`body` or `arm`); arm rows add `pivotX`, `pivotY`.
 - 9-slice UI rows add `sliceLeft`, `sliceRight`, `sliceTop`, `sliceBottom` (pixels, see 9-slice).
 - Unit stills (hero and mon rows without `part`) must carry the strike and weapon points (all

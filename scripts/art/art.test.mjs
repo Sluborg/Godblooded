@@ -8,6 +8,7 @@ import {
   collectUploads,
   detectKey,
   fitFrame,
+  isOpaque,
   keyOut,
   kindOf,
   parseId,
@@ -326,6 +327,67 @@ describe('9-slice fields', () => {
     expect(errorsFor({ sliceLeft: 30 }).join()).toMatch(/go together/);
     expect(errorsFor({ ...four, sliceTop: 2.5 }).join()).toMatch(/whole pixels/);
     expect(errorsFor({ ...four, sliceLeft: 200, sliceRight: 200 }).join()).toMatch(/no middle/);
+  });
+});
+
+describe('opaque pictures (key art, ground tiles)', () => {
+  // A full painting: no key colour anywhere.
+  function painting(w, h) {
+    const img = blank(w, h);
+    for (let i = 0; i < w * h; i++) img.data.set([90, 60, 40, 255], i * 4);
+    return img;
+  }
+
+  it('knows which ids are opaque', () => {
+    expect(isOpaque('art_splash')).toBe(true);
+    expect(isOpaque('ter_ground_grass_a')).toBe(true);
+    expect(isOpaque('ter_rock_a')).toBe(false);
+    expect(kindOf('art_splash')?.dir).toBe('art');
+  });
+
+  it('ships the whole canvas at the nominal width, fully opaque', () => {
+    const art = processImage(painting(1536, 1024), 'art_splash');
+    expect([art.image.width, art.image.height]).toEqual([1280, 853]);
+    const tile = processImage(painting(1024, 1024), 'ter_ground_grass_a');
+    expect([tile.image.width, tile.image.height]).toEqual([256, 256]);
+    expect(tile.image.data.every((v, i) => i % 4 !== 3 || v === 255)).toBe(true);
+  });
+
+  it('checks the raw canvas shape', () => {
+    expect(checkRaw(painting(1536, 1024), 'art_splash')).toEqual([]);
+    expect(checkRaw(painting(1024, 1536), 'art_splash').join()).toMatch(/portrait/);
+    expect(checkRaw(painting(1536, 1024), 'ter_ground_dirt').join()).toMatch(/not square/);
+  });
+
+  it('validates an opaque row and rejects transparency', () => {
+    const root = mkdtempSync(join(tmpdir(), 'art-'));
+    mkdirSync(join(root, 'public/assets/art'), { recursive: true });
+    const r = processImage(painting(1536, 1024), 'art_splash');
+    const write = () =>
+      writePng(join(root, 'public/assets/art/art_splash.png'), r.image) ||
+      writeFileSync(
+        join(root, 'public/assets/manifest.json'),
+        JSON.stringify({
+          assets: [
+            {
+              id: 'art_splash',
+              kind: 'art',
+              tier: null,
+              view: null,
+              file: 'art/art_splash.png',
+              anchorX: 0.5,
+              anchorY: 0.5,
+              license: 'own',
+              source: 'T1',
+            },
+          ],
+        }),
+      );
+    write();
+    expect(validateAssets(root).errors).toEqual([]);
+    r.image.data[3] = 0;
+    write();
+    expect(validateAssets(root).errors.join()).toMatch(/transparent pixels/);
   });
 });
 

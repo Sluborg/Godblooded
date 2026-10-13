@@ -3,7 +3,7 @@
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { alphaReport, kindOf, parseId, readPng } from './lib.mjs';
+import { alphaReport, isOpaque, kindOf, parseId, readPng } from './lib.mjs';
 
 const FIELDS = ['id', 'kind', 'file', 'license', 'source'];
 // Strike types (docs/asset-spec.md, pose standard).
@@ -19,7 +19,13 @@ export const STRIKES = [
   'stomp',
 ];
 // Upper bounds on shipped size (px), a little above nominal so tier-3 silhouettes fit.
-const MAX = { units: [400, 420], buildings: [640, 720], terrain: [512, 512], ui: [512, 512] };
+const MAX = {
+  units: [400, 420],
+  buildings: [640, 720],
+  terrain: [512, 512],
+  ui: [512, 512],
+  art: [1280, 1280],
+};
 
 function pngsUnder(dir) {
   if (!existsSync(dir)) return [];
@@ -99,6 +105,13 @@ export function validateAssets(root = '.') {
     const [maxW, maxH] = MAX[k.dir];
     if (img.width > maxW || img.height > maxH)
       err(id, `${img.width}x${img.height} is larger than ${maxW}x${maxH}`);
+    if (isOpaque(id)) {
+      // Key art and ground tiles: whole picture, no transparency anywhere.
+      let clear = 0;
+      for (let i = 3; i < img.data.length; i += 4) if (img.data[i] < 255) clear++;
+      if (clear > 0) err(id, `${clear} transparent pixels in an opaque picture`);
+      continue;
+    }
     const r = alphaReport(img);
     if (r.visible < 100) err(id, 'image is (almost) empty');
     if (r.border > 0) err(id, `${r.border} visible pixels on the image border (cut off?)`);
