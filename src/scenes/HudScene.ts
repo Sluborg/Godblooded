@@ -86,10 +86,13 @@ export class HudScene extends Phaser.Scene {
       this.speedButtons.push(b);
     });
     makeButton(this, 890, 40, 110, MIN_TOUCH, 'Menu', () => this.openPause());
-    this.rosterBtn = makeButton(this, 650, 40, 120, MIN_TOUCH, 'Heroes', () => {
+    // In the gap between the gold and the run clock (the clock sits at x 640).
+    this.rosterBtn = makeButton(this, 430, 40, 120, MIN_TOUCH, 'Heroes', () => {
       this.rosterOpen = !this.rosterOpen;
       this.rosterKey = '';
-      if (!this.rosterOpen) this.clearRoster();
+      this.rosterNextAt = 0;
+      if (this.rosterOpen) this.closeMenu();
+      else this.clearRoster();
     });
     this.watchBtn = makeButton(this, 770, 40, 110, MIN_TOUCH, 'Watch', () => {
       const m = map.registry.get('camMode');
@@ -173,9 +176,17 @@ export class HudScene extends Phaser.Scene {
   // The sim reports 'won' or 'lost' and has stopped: the End scene shows the report.
   private showEnd(): void {
     this.closeMenu();
+    this.closeRoster();
     this.ended = true;
     this.registry.set('modal', true);
     this.scene.launch('End');
+  }
+
+  // Shut the roster (a menu is about to take its place).
+  private closeRoster(): void {
+    this.rosterOpen = false;
+    this.rosterKey = '';
+    this.clearRoster();
   }
 
   private clearRoster(): void {
@@ -187,7 +198,7 @@ export class HudScene extends Phaser.Scene {
   // The hero list: party colour stripe, label and tier, state, hp bar and gold. Tapping a row
   // follows that hero and opens its party panel.
   private drawRoster(map: MapScene): void {
-    if (!this.rosterOpen) return;
+    if (!this.rosterOpen || this.ended) return;
     if (this.time.now < this.rosterNextAt) return;
     const all = buildRoster(map.snapshot);
     const pg = paginate(all, this.rosterPage, ROSTER_PER_PAGE);
@@ -202,7 +213,8 @@ export class HudScene extends Phaser.Scene {
     const X = GAME_WIDTH - 340 - 12 - ROSTER_W;
     const Y = 84;
     const rowH = MIN_TOUCH;
-    const H = 40 + ROSTER_PER_PAGE * rowH + 90;
+    // As tall as its rows (and the pager when there is one), so it never blocks empty map.
+    const H = 40 + Math.max(pg.rows.length, 1.5) * rowH + (pg.pages > 1 ? 90 : 14);
     this.rosterRect = new Phaser.Geom.Rectangle(X, Y, ROSTER_W, H);
     const add = <T extends Phaser.GameObjects.GameObject>(o: T): T => {
       this.rosterObjects.push(o);
@@ -248,6 +260,7 @@ export class HudScene extends Phaser.Scene {
         map.followUnit(r.unit);
         this.panel.show(r.unit);
         this.rosterKey = '';
+        this.rosterNextAt = 0;
       });
       if (r.party > 0)
         add(this.add.rectangle(X + 16, y + rowH / 2, 8, rowH - 14, partyColor(r.party), 1));
@@ -376,6 +389,7 @@ export class HudScene extends Phaser.Scene {
 
   private openMenu(title: string, options: MenuOption[]): void {
     this.closeMenu();
+    this.closeRoster();
     // Every menu ends in a Close button: the only other way out used to be a tap on the map,
     // which opened a bounty menu on the bare ground instead.
     options = [...options, { label: 'Close', cost: 0, pick: () => this.closeMenu() }];
@@ -406,6 +420,7 @@ export class HudScene extends Phaser.Scene {
   // an Upgrade button with its cost (the sim refuses when it cannot, and says why).
   private openBuildingPanel(map: MapScene, b: BuildingState): void {
     this.closeMenu();
+    this.closeRoster();
     const cx = GAME_WIDTH / 2;
     const w = 860;
     const h = 330;

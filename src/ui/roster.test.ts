@@ -29,7 +29,6 @@ describe('buildRoster', () => {
   it('groups by party, solo heroes last, monsters left out', () => {
     const rows = buildRoster(snap);
     expect(rows.map((r) => r.unit)).toEqual([1, 2, 3, 5]);
-    expect(rows.map((r) => r.firstOfParty)).toEqual([true, false, true, true]);
     expect(rows[0].partyLevel).toBe(3);
   });
   it('labels by god and rounds hp up', () => {

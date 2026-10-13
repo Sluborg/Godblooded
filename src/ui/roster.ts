@@ -16,8 +16,6 @@ export interface RosterRow {
   gold: number;
   mode: UnitMode;
   ko: boolean;
-  // First row of its party (the HUD draws a party header above it).
-  firstOfParty: boolean;
 }
 
 export function buildRoster(snap: Pick<Snapshot, 'units' | 'parties'>): RosterRow[] {
@@ -29,7 +27,7 @@ export function buildRoster(snap: Pick<Snapshot, 'units' | 'parties'>): RosterRo
     const [pb, ib] = order(b);
     return pa === pb ? ia - ib : pa < pb ? -1 : 1;
   });
-  return sorted.map((u, i) => ({
+  return sorted.map((u) => ({
     unit: u.id,
     label: heroLabel(u),
     tier: u.tier,
@@ -40,7 +38,6 @@ export function buildRoster(snap: Pick<Snapshot, 'units' | 'parties'>): RosterRo
     gold: u.gold,
     mode: u.mode,
     ko: u.ko,
-    firstOfParty: i === 0 || sorted[i - 1].party !== u.party,
   }));
 }
 
