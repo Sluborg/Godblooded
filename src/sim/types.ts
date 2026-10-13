@@ -138,6 +138,57 @@ export interface MonsterDef {
   boss?: Partial<BossTuning>;
   // Boss only: its own hit points instead of Sta * 8 + Str * 4 (scaled by lair tier).
   hp?: number;
+  // How it behaves (docs/systems/monsters-and-bosses.md section 1); missing is a brute.
+  role?: MonsterRole;
+  // One always-on trick (docs/systems/monsters-and-bosses.md, Monster quirks).
+  quirk?: MonsterQuirk;
+}
+
+export interface MonsterQuirk {
+  // Regrowth: heals pctS of max hp per second; a hit of type `stopOnType` stops it for stopS.
+  regen?: { pctS: number; stopOnType?: DamageType; stopS?: number };
+  // Snatch: a landed strike steals this much gold from a hero; the hero that kills it gets it.
+  stealGold?: number;
+  // Grave-cold: a hero it knocks out wakes this many times slower (1.5: 50% slower).
+  koMult?: number;
+  // Scavenger: it and its pack mates within packRadius of the fallen heal this share of max hp
+  // when it knocks a hero out.
+  healOnKo?: number;
+  // Bull rush: its charge cannot be dodged.
+  chargeSure?: boolean;
+}
+
+export type MonsterRole = 'brute' | 'harrier' | 'charger' | 'pack' | 'swarm';
+
+// Monster roles. Raiders of a harrier or swarm role walk raidSpeedMult faster.
+export interface RoleTuning {
+  // Harrier: flees to its lair below this share of max hp, heals healPctS of max hp per second
+  // there, and comes back at returnHp.
+  harrierFleeHp: number;
+  harrierHealPctS: number;
+  harrierReturnHp: number;
+  // Charger: charges a hero chargeMin to chargeMax away at chargeSpeedMult x its speed; the
+  // first strike is chargeMult x with a knockback of chargeKnockback; it charges again after
+  // chargeCooldownMs. A charging raider's buildings hits are buildingMult x.
+  chargeMin: number;
+  chargeMax: number;
+  chargeSpeedMult: number;
+  chargeMult: number;
+  chargeKnockback: number;
+  chargeCooldownMs: number;
+  buildingMult: number;
+  // Pack: +packBonus damage per other pack mate within packRadius, at most packMax.
+  packBonus: number;
+  packRadius: number;
+  packMax: number;
+  // Swarm: its lair keeps swarmAliveMult x as many alive; a raid has swarmRaidMult x as many
+  // with swarmRaidHpMult of the hp; at 0 hp it splits once into two halves of swarmSplitShare
+  // of the hp and damage, worth swarmSplitShare of the reward each.
+  swarmAliveMult: number;
+  swarmRaidMult: number;
+  swarmRaidHpMult: number;
+  swarmSplitShare: number;
+  raidSpeedMult: number;
 }
 
 // Boss numbers. Defaults in tuning.boss; a MonsterDef.boss row can override any of them.
@@ -757,6 +808,14 @@ export interface TownTuning {
   // defendRange of the town hall.
   defendHp: number;
   defendRange: number;
+  // A raid is announced this long before it arrives (event raidWarning), and a tower of tier 2
+  // or more in town gives the warning towerWarnAddMs earlier still.
+  raidWarnMs: number;
+  towerWarnAddMs: number;
+  // A lair that tiers up sends one raid of its own (announced raidWarnMs ahead).
+  raidOnTierUp: boolean;
+  // Gold the town gets when every raider of a raid is dead ("the town cheers").
+  raidBeatenGold: number;
 }
 
 // How a hero chooses (docs/systems/hero-ai.md section 3): flag, lair and explore all get a score;
@@ -847,6 +906,7 @@ export interface Tuning {
   save: SaveTuning;
   stats: StatsTuning;
   ai: AiTuning;
+  role: RoleTuning;
   favour: FavourTuning;
   town: TownTuning;
   bounty: BountyTuning;
@@ -886,6 +946,7 @@ export interface GameData {
     save?: Partial<SaveTuning>;
     stats?: Partial<StatsTuning>;
     ai?: Partial<AiTuning>;
+    role?: Partial<RoleTuning>;
     favour?: Partial<FavourTuning>;
     town?: Partial<TownTuning>;
     bounty?: Partial<BountyTuning>;
@@ -1099,7 +1160,28 @@ export type SimEvent =
     }
   | { kind: 'tierUp'; unit: number; tier: number; path: string | null }
   | { kind: 'pathOffer'; party: number; hero: number; options: string[] }
-  | { kind: 'raid'; lair: number; size: number }
+  // A charger starts its charge toward `to`.
+  | { kind: 'charge'; unit: number; to: Vec2 }
+  // A swarm splits into two halves.
+  | { kind: 'split'; unit: number; into: number[] }
+  // A monster snatched gold from a hero.
+  | { kind: 'stolen'; thief: number; victim: number; gold: number }
+  // A raid is coming from `from` (the lair) in `inMs`; `early` is the tower's longer warning.
+  | {
+      kind: 'raidWarning';
+      raid: number;
+      lair: number;
+      size: number;
+      inMs: number;
+      from: Vec2;
+      dir: Vec2;
+      early?: boolean;
+    }
+  | { kind: 'raid'; lair: number; size: number; raid?: number }
+  // Every raider of the raid is dead: the town cheers and gets `gold`.
+  | { kind: 'raidBeaten'; raid: number; gold: number }
+  // The lair fell before its announced raid left: no raid comes.
+  | { kind: 'raidCancelled'; raid: number; lair: number }
   // A rider took hold on `target` (burn, chill, wither; arc and sear show in the hit itself).
   | { kind: 'rider'; target: number; rider: RiderId; by: number }
   // A hero starts casting a skill; it lands `inMs` later. `say`: Scene shows the skill name.

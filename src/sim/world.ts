@@ -7,6 +7,17 @@ import { armourBonus, charmEffects, weaponPower } from './items';
 import { passiveRider } from './passives';
 import { everyNthOf, passiveAggroMult, passiveArmour } from './passives';
 import { noteFight } from './engage';
+import { runQuirks, scavenge, stolenBy } from './quirks';
+import {
+  aliveMult,
+  halfAttrs,
+  packMult,
+  prefersWeakest,
+  raidSpeedMult,
+  rewardShare,
+  roleTurn,
+  splitSwarm,
+} from './roles';
 import { runFavour } from './favour';
 import { removeSummon, runSummon, runSummonUpkeep, summonStats } from './summons';
 import { runStatuses, slowOf, healMult, type UnitStatus } from './riders';
@@ -30,6 +41,7 @@ import {
   attackLair,
   nearestBuilding,
   pickLair,
+  planTierRaid,
   runRaids,
   runTowers,
   upgradeBuilding,
@@ -110,6 +122,19 @@ export interface UnitRuntime {
   lair: number | null;
   // Raiders march on the town instead of wandering near their lair.
   raid?: boolean;
+  // Monster roles: a harrier on its way back to its lair to heal, a charger mid-charge (the way it
+  // runs and the time left) and when it may charge again, a swarm half (cannot split again).
+  retreat?: boolean;
+  healAcc?: number;
+  charge?: { dir: Vec2; ms: number };
+  chargeCdMs?: number;
+  half?: boolean;
+  // Quirks: regrowth paused until this time (ms), hp not yet whole, gold snatched so far.
+  regenStopMs?: number;
+  regenAcc?: number;
+  stolen?: number;
+  // The raid it belongs to (a raid is beaten when none of its raiders is left).
+  raidId?: number;
   // A strike in its windup: the target and the time left before it lands.
   swing?: { target: number; ms: number; area?: Area };
   cooldownMs: number;
@@ -181,6 +206,10 @@ export interface World {
     end?: { radius: number; effects: readonly SkillEffect[] };
   }[];
   nextRaidMs: number;
+  // Raids announced and still to arrive, the timed raid already planned for, and raids on the way.
+  raidPlans: { id: number; atMs: number; lair: number; size: number; early: boolean }[];
+  raidPlannedFor: number;
+  raidActive: number[];
   stats: RunStats;
   bounties: BountyState[];
   // Generated map: the boss lair that wins the run and the pantheons the map leans on.
@@ -226,6 +255,9 @@ export function createWorld(seed: number, data: GameData): World {
     recentKills: [],
     respawns: [],
     nextRaidMs: 0,
+    raidPlans: [],
+    raidPlannedFor: -1,
+    raidActive: [],
     stats: {
       monstersKilled: 0,
       lairsDestroyed: 0,
@@ -339,6 +371,7 @@ function runTick(world: World): void {
   runHeroes(world);
   runSummonUpkeep(world);
   runBounties(world);
+  runQuirks(world);
   runFavour(world);
   runParties(world);
   runUnits(world);
@@ -373,6 +406,7 @@ function tierUpLair(
     tier: lair.tier,
     ...(pressure ? { pressure: true } : {}),
   });
+  planTierRaid(world, lair, pressure);
 }
 
 function runLairs(world: World): void {
@@ -396,10 +430,11 @@ function runLairs(world: World): void {
       const r = world.unitRuntime.get(u.id);
       return r?.lair === lair.id && !r.raid;
     }).length;
-    if (alive >= def.maxAlive + tierValue(lt.maxAliveAdd, lair.tier, 0)) continue;
     // A lair whose monster is a boss spawns nothing regular unless it has an escort.
     const mon = world.data.monsters?.find((m) => m.id === (def.escort ?? def.monster));
     if (!mon || isBoss(mon)) continue;
+    const cap = (def.maxAlive + tierValue(lt.maxAliveAdd, lair.tier, 0)) * aliveMult(world, mon);
+    if (alive >= cap) continue;
     // The guards of a boss lair stand until the boss comes out; only the enrage call adds more.
     if (rt.bossSpawned) continue;
     spawnMonster(world, lair, mon);
@@ -439,11 +474,14 @@ function unitStats(world: World, unit: UnitState): Stats | undefined {
   }
   const mon = world.data.monsters?.find((m) => m.id === unit.type);
   const mult = tierValue(world.tuning.lair.statMult, unit.tier, 1);
-  const bossRt = world.unitRuntime.get(unit.id)?.boss;
+  const mrt = world.unitRuntime.get(unit.id);
+  const bossRt = mrt?.boss;
+  const raidSpeed = mrt ? raidSpeedMult(world, unit, mrt) : undefined;
   return (
     mon && {
       weapon: mon.weapon,
-      attrs: scaleAttrs(mon.attrs, mult),
+      attrs: mrt ? halfAttrs(world, mrt, scaleAttrs(mon.attrs, mult)) : scaleAttrs(mon.attrs, mult),
+      ...(raidSpeed ? { speedMult: raidSpeed } : {}),
       armour: Math.round((mon.armour ?? 0) * mult),
       tags: isBoss(mon) ? [...(mon.tags ?? []), 'boss'] : mon.tags,
       types: mon.types,
@@ -525,6 +563,8 @@ function runUnits(world: World): void {
     const ally = busy ? null : healTarget(world, unit);
     const foe = busy || ally ? null : pickTarget(world, unit, stats, home?.pos);
     unit.target = ally ? ally.id : foe ? foe.id : null;
+    // A monster's role may take its turn (a harrier running home, a charger charging).
+    if (unit.kind === 'monster' && roleTurn(world, unit, rt, stats, foe)) continue;
     // A hero with a skill ready casts instead of its next strike or step.
     let casting = false;
     if (unit.kind === 'hero') {
@@ -583,6 +623,7 @@ function pickTarget(world: World, unit: UnitState, stats: Stats, home?: Vec2): U
   if (sworn && !sworn.ko && dist(unit.pos, sworn.pos) <= reach) return sworn;
   let best: UnitState | null = null;
   let bestD = Infinity;
+  const weakest = unit.kind === 'monster' && prefersWeakest(world, unit);
   for (const other of world.units) {
     // Monsters fight heroes and summons; heroes and summons fight monsters.
     if ((other.kind === 'monster') === (unit.kind === 'monster') || other.ko || other.hp <= 0) {
@@ -591,10 +632,13 @@ function pickTarget(world: World, unit: UnitState, stats: Stats, home?: Vec2): U
     // Nothing on foot can reach a flier.
     if (other.kind === 'summon' && stats.weapon.range <= 60 && flies(world, other)) continue;
     const d = dist(unit.pos, other.pos);
-    if (d > reach || d >= bestD) continue;
+    if (d > reach) continue;
+    // A harrier picks the weakest hero in reach, anything else the nearest.
+    const score = weakest && other.kind === 'hero' ? other.hp : d;
+    if (score >= bestD) continue;
     if (home && dist(home, other.pos) > world.tuning.monster.leash) continue;
     best = other;
-    bestD = d;
+    bestD = score;
   }
   return best;
 }
@@ -660,7 +704,12 @@ function fight(world: World, unit: UnitState, rt: UnitRuntime, stats: Stats, foe
       else {
         const input = attackStrike(stats, targetOf(world, foe));
         const rider = unit.kind === 'hero' ? passiveRider(world, unit) : undefined;
-        landStrike(world, unit, foe, rider ? { ...input, rider } : input);
+        const pack = unit.kind === 'monster' ? packMult(world, unit) : 1;
+        landStrike(world, unit, foe, {
+          ...input,
+          ...(rider ? { rider } : {}),
+          ...(pack !== 1 ? { skillMult: (input.skillMult ?? 1) * pack } : {}),
+        });
       }
       // A passive that adds effects to every nth strike.
       const nth = everyNthOf(world, unit);
@@ -712,7 +761,7 @@ function settleDeaths(world: World): void {
         slainIds.add(unit.id);
       } else {
         unit.ko = true;
-        heroKnockedOut(world, unit);
+        heroKnockedOut(world, unit, by);
         world.events.push({
           kind: 'knockout',
           unit: unit.id,
@@ -725,10 +774,13 @@ function settleDeaths(world: World): void {
       const lrt =
         lairId === null || lairId === undefined ? undefined : world.lairRuntime.get(lairId);
       if (lrt) lrt.kos = (lrt.kos ?? 0) + 1;
+      scavenge(world, by);
       vowRevenge(world, unit, by);
     } else {
       const mon = world.data.monsters?.find((m) => m.id === unit.type);
-      const reward = tierValue(world.tuning.lair.rewardMult, unit.tier, 1);
+      const mrt = world.unitRuntime.get(unit.id);
+      const reward =
+        tierValue(world.tuning.lair.rewardMult, unit.tier, 1) * rewardShare(world, mrt);
       const bounty = Math.round((mon?.bounty ?? 0) * reward);
       const xp = Math.round((mon?.xp ?? 0) * reward);
       world.events.push({ kind: 'died', unit: unit.id, type: unit.type, by, bounty, xp });
@@ -750,8 +802,9 @@ function settleDeaths(world: World): void {
       const krt = world.unitRuntime.get(by);
       if (krt?.fight) krt.fight.kills++;
       healOnKill(world, by);
-      payBounty(world, by, bounty);
+      payBounty(world, by, bounty + stolenBy(world, unit.id));
       shareXp(world, by, xp);
+      splitSwarm(world, unit, mrt);
     }
   }
   world.pendingDeaths = [];
