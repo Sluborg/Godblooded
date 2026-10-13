@@ -142,6 +142,15 @@ export interface PartyTuning {
   offerSize: number;
   bondCap: number;
   baseFlee: number;
+  // Rivalries: heroes whose bond is at or below this are rivals (bonds run from -3 up).
+  rivalBelow: number;
+  // Rivals this close argue, at most once per argueEveryMs per pair.
+  argueRange: number;
+  argueEveryMs: number;
+  // A vengeful hero whose bond with a knocked-out hero is at least this swears revenge on the
+  // monster that did it, and hunts it for up to revengeMs.
+  friendBond: number;
+  revengeMs: number;
 }
 
 export interface MonsterTuning {
@@ -416,6 +425,9 @@ export type SimEvent =
   | { kind: 'tierUp'; unit: number; tier: number; path: string | null }
   | { kind: 'pathOffer'; party: number; hero: number; options: string[] }
   | { kind: 'raid'; lair: number; size: number }
+  | { kind: 'argue'; a: number; b: number }
+  | { kind: 'revenge'; hero: number; target: number; victim: number }
+  | { kind: 'avenged'; hero: number; target: number }
   | { kind: 'autosave' }
   | { kind: 'lairTierUp'; lair: number; tier: number }
   | { kind: 'lairDestroyed'; lair: number; type: string; by: number; bounty: number }
@@ -490,6 +502,8 @@ export interface Snapshot {
   readonly parties: readonly Readonly<PartyState>[];
   readonly paths: readonly Readonly<PathState>[];
   readonly bounties: readonly Readonly<BountyState>[];
+  // Pairs of living heroes who are rivals right now (lower id first).
+  readonly rivals: readonly (readonly [number, number])[];
   // This run's map: the pantheons it leans on and the boss lair (null on a fixed map).
   readonly map: Readonly<{ lean: string[]; boss: number | null }>;
   // The end screen numbers once the run is won or lost; null while it is running. Totals for
