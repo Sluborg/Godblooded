@@ -217,3 +217,11 @@ Stefan could not switch off the automatic Codex reviews, so every PR may spend h
 quota. Workers stop opening PRs: they push branches (CI runs on branch pushes) and message
 Review and Integrator. Integrator lands reviewed, green branches in one batch PR at a time,
 a few a day. Design may commit its docs straight to `main`. Rules in `CLAUDE.md` "Git".
+
+## 2026-10-14 Nodes answers (`docs/systems/nodes.md`)
+
+Stefan: first Ambrosia purchases are **Temple upgrade** (pay Ambrosia instead of gold for a
+temple tier), **Offering** and **Recall the Fallen**. Leftover Ambrosia is **lost** at run end.
+Freed nodes **can be re-corrupted** (raids or a new lair). The meta currency is **Essence**.
+The other nodes OPENs take Design's recommendation: gatherers from the town hall, guards from
+towers, Recall once per hero, escort paid on return, far nodes hold more.
