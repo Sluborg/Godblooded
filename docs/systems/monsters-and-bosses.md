@@ -145,18 +145,17 @@ does about 30-40 damage per second, so a boss fight lasts 60-90 s.
 
 ### How lairs look per tier
 
-A lair keeps its shape on every tier; each tier adds one thing on top, and tier 3 carries the
-skull plate (heroes can die there, `combat.md` section 6).
+Lairs follow the monster rule (`docs/asset-spec.md`): **one tier-1 picture per lair** (Art batch
+B17), and Scene shows the lair tier in code, with no new art.
 
-| Lair        | Tier 1                                            | Tier 2 adds                         | Tier 3 adds                                    |
-| ----------- | ------------------------------------------------- | ----------------------------------- | ---------------------------------------------- |
-| barrow      | a grassy mound with a stone-lined door            | rune stones around it, a cold mist  | a broken longship prow on top, the skull plate |
-| troll-den   | a cave mouth in a rock pile                       | gnawed bones outside, a crude totem | a huge boulder gate, the skull plate           |
-| harpy-roost | a crag with stick nests                           | stolen trinkets in the nests        | a lightning-split peak, the skull plate        |
-| labyrinth   | a stone gateway into a hedge of walls             | bronze bull horns over the gate     | a cracked bull statue, the skull plate         |
-| jackal-camp | tents of hide around a fire                       | a jackal standard                   | a black obelisk, the skull plate               |
-| scarab-pit  | a sand pit with a broken pot                      | beetle mounds around it             | a half-buried gold scarab, the skull plate     |
-| boss lairs  | one look, no tiers (they grow nothing but guards) |                                     |                                                |
+| Lair tier | What Scene draws                                                                                |
+| --------- | ----------------------------------------------------------------------------------------------- |
+| 1         | the B17 picture on the corrupted ground; the skull name plate (`lairPlate`) as today            |
+| 2         | the corrupted ground grows (radius x1.15); the plate takes the tier 2 colour (yellow)           |
+| 3         | ground x1.3; the plate turns red and pulses slowly: heroes can die here (`combat.md` section 6) |
+
+- **Boss lairs** have one look for every tier _visually_; the sim still tiers them (guards and
+  boss hp scale with the lair tier).
 
 ## 5. What the player sees
 
@@ -171,32 +170,35 @@ skull plate (heroes can die there, `combat.md` section 6).
 
 ### How monsters look (tier 1, 2, 3)
 
-Same rule as the heroes (`paths-and-skills.md` section 6, cartoon units from parts): a monster
-keeps its face, body and palette on every tier; each tier adds **one silhouette change** and
-grows a little (size x1.0, x1.1, x1.2). The **tier colour** (green, yellow, red,
-`docs/game-design.md`) shows on the eyes and the ground ring, never on the whole body, so the
-monster's own palette stays readable.
+Monsters have **one tier-1 picture each** (`docs/asset-spec.md`, `docs/game-design.md`); the
+game shows a tougher monster in code:
 
-| Monster      | Tier 1 (keeps on every tier)                             | Tier 2 adds                              | Tier 3 adds                                                |
-| ------------ | -------------------------------------------------------- | ---------------------------------------- | ---------------------------------------------------------- |
-| draugr       | grey-green skin, rusted mail, dented helm, notched sword | a cracked round shield, a tattered cape  | a horned helm, frost on the blade, a cold mist at the feet |
-| troll        | mossy grey skin, huge arms, a tree-branch club           | a stone in the club, a bone necklace     | moss and a small tree on the back, a boulder club          |
-| harpy        | feathered wings, bird legs with talons, wild hair        | longer wing tips, a stolen gold necklace | a feather crest, storm-dark wings with a bright edge       |
-| minotaur     | bull head with horns, bare chest, a big axe              | a bronze nose ring, a leather harness    | gilded horns, a double-headed axe                          |
-| jackal-man   | jackal head, black fur, linen kilt, a short spear        | a bronze collar, a small round shield    | a gold headdress, a khopesh                                |
-| scarab swarm | a knot of black beetles with gold backs                  | a bigger knot, a few flying beetles      | one large gold scarab at the centre                        |
+| Tier | In code                            |
+| ---- | ---------------------------------- |
+| 1    | the picture; a green ring under it |
+| 2    | size x1.1; a yellow ring           |
+| 3    | size x1.2; a red ring              |
 
-- **Elites** (from lair tier 2, `progression.md`): the same picture with a **gold outline edge**
-  and a bigger health bar; an elite with a skill (lair tier 3) shows the skill's colour in the
-  eyes.
-- **Readable at 0.7x on a phone:** each tier must change the outline (a shield, horns, a
-  crest), not only the colour.
-- **Variants** (`docs/game-design.md`): common monsters get 2-3 swaps of one part (head or
-  weapon) per tier, so a pack never looks cloned.
+- **The ring carries the tier colour**, not a whole-sprite tint, so it never clashes with the
+  rider and heal tints Scene puts on the sprite.
+- **Elites:** a gold outline drawn in code around the sprite, and a bigger health bar; an elite
+  with a skill (lair tier 3) also shows the skill's colour on its ring.
+- **Variants** (tier 1 only, `mon_<type>[-vN]_t1_front`): 2-3 per common monster so a pack never
+  looks cloned. Same pose and palette, one part swapped:
+
+| Monster      | Tier 1 picture                                           | Variant swaps (v2, v3)                    |
+| ------------ | -------------------------------------------------------- | ----------------------------------------- |
+| draugr       | grey-green skin, rusted mail, dented helm, notched sword | horned helm; an axe instead of the sword  |
+| troll        | mossy grey skin, huge arms, a tree-branch club           | a bone necklace; a stone club             |
+| harpy        | feathered wings, bird legs with talons, wild hair        | a feather crest; a stolen gold necklace   |
+| minotaur     | bull head with horns, bare chest, a big axe              | a bronze nose ring; a double-headed axe   |
+| jackal-man   | jackal head, black fur, linen kilt, a short spear        | a khopesh; a bronze collar and shield     |
+| scarab swarm | a knot of black beetles with gold backs                  | (none: one picture, the swarm repeats it) |
 
 ### How bosses look
 
-Bosses are about 2.5x a hero's height (Fafnir's art sets the size) and never change tier. The
+Bosses are about 2.5x a hero's height (Fafnir's art sets the size) and have one look; the sim
+still scales their hp with the lair tier (visual only). The
 **telegraph** is the boss's one moving tell; `Signature moves` above gives its timing.
 
 | Boss        | Silhouette                                                  | Palette                   | Telegraph look                                                 | Enraged look                        |
