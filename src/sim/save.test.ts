@@ -199,7 +199,7 @@ describe('autosave and damaged saves', () => {
     const god = manual.gods?.[0]?.id;
     if (!god) throw new Error('no god in the data');
     const hero = spawnHero(a, god, { ...manual.townHall });
-    shareXp(a, hero, 30);
+    shareXp(a, hero, a.tuning.party.xpPerLevel);
     const save = JSON.parse(JSON.stringify(saveWorld(a))) as SaveGame;
     const open = [...a.parties.values()].find((p) => p.offer || p.pathOffer);
     expect(open).toBeDefined();

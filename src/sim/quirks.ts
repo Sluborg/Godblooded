@@ -51,15 +51,16 @@ export function koTimeMult(world: World, killerId: number): number {
   return (killer && quirkOf(world, killer)?.koMult) || 1;
 }
 
-// Scavenger: the killer and the monsters with the quirk near it heal.
+// Scavenger: when a monster with the quirk knocks a hero out, it and its pack mates (same kind,
+// within packRadius of it) heal. Another monster's kill heals nobody.
 export function scavenge(world: World, killerId: number): void {
   const killer = world.units.find((u) => u.id === killerId);
-  if (!killer || killer.kind !== 'monster') return;
+  if (!killer || killer.kind !== 'monster' || !quirkOf(world, killer)?.healOnKo) return;
   const radius = world.tuning.role.packRadius;
   for (const m of world.units) {
-    if (m.kind !== 'monster' || m.hp <= 0) continue;
+    if (m.kind !== 'monster' || m.hp <= 0 || m.type !== killer.type) continue;
+    if (m.id !== killer.id && dist(m.pos, killer.pos) > radius) continue;
     const share = quirkOf(world, m)?.healOnKo;
-    if (!share || (m.id !== killer.id && dist(m.pos, killer.pos) > radius)) continue;
-    m.hp = Math.min(m.maxHp, m.hp + Math.round(share * m.maxHp));
+    if (share) m.hp = Math.min(m.maxHp, m.hp + Math.round(share * m.maxHp));
   }
 }
