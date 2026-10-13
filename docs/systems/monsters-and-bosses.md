@@ -113,8 +113,8 @@ does about 30-40 damage per second, so a boss fight lasts 60-90 s.
 
 ### Which boss
 
-- **Pantheon:** the run's first lean pantheon (Sim 150 picks the lean); with no lean, a seeded
-  draw of a pantheon whose temple is unlocked (`meta.md`).
+- **Pantheon:** the lean the player chose at the Altar (`meta-ui.md`, decision 2026-10-14);
+  Sim 150's map draws its lairs leaning on it.
 - **Boss:** a seeded draw of the two bosses of that pantheon, skipping the boss of the
   previous run when the other one is available (the meta save keeps `lastBoss`).
 - **Only bosses with art and rows are drawn:** until the others land, Fafnir (the existing

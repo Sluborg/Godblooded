@@ -108,6 +108,9 @@ interface FrameCtx {
   dtS: number;
   // Run time of the snapshot in ms (statuses end at a run time).
   timeMs: number;
+  // Hero names show for this party (the selected hero's), or for this one hero when solo.
+  namesParty: number;
+  namesHero: number;
   fx: FxLayer;
   shake: () => void;
   // Chest of a unit, building or lair by sim id, if it is on the map.
@@ -146,6 +149,8 @@ export class UnitView {
   private readonly pennant: Phaser.GameObjects.Graphics;
   private readonly label: Phaser.GameObjects.Text;
   private ringKey = '';
+  // A hero's name, party number and pennant show only when asked (heroNames or a tap).
+  private showNames = true;
   // The tier last seen in the snapshot (a tier 3 monster is a boss-sized threat: its hits shake).
   tierNow = 1;
   private bubble: Phaser.GameObjects.Container | null = null;
@@ -301,7 +306,7 @@ export class UnitView {
     if (!look) return this.leaveParts();
     const id = look.id;
     if (id === this.partsId) return true;
-    const set = ensureHeroSet(this.scene, id, look.def);
+    const set = ensureHeroSet(this.scene, id, look.def, u.tier);
     const first = set.frames.idle[0];
     this.partsSet = set;
     this.partsId = id;
@@ -710,6 +715,11 @@ export class UnitView {
     this.drawRider(ctx.dtS);
     this.drawStatus(ctx.timeMs);
     this.drawGear(u, ctx.timeMs);
+    this.showNames =
+      u.kind !== 'hero' ||
+      getSettings().heroNames ||
+      u.id === ctx.namesHero ||
+      (u.party > 0 && u.party === ctx.namesParty);
     this.drawParty(u, role);
     this.drawPennant(u, role);
   }
@@ -920,7 +930,7 @@ export class UnitView {
   // when selected).
   private drawParty(u: UnitState, role: PartyRole): void {
     const selected = this.scene.registry.get('selectedUnit') === u.id;
-    const key = `${role}:${u.party}:${selected}:${getSettings().palette}:${u.kind}:${u.tier}:${this.boss}`;
+    const key = `${role}:${u.party}:${selected}:${getSettings().palette}:${u.kind}:${u.tier}:${this.boss}:${this.showNames}`;
     if (key === this.ringKey) return;
     this.ringKey = key;
     this.ring.clear();
@@ -948,7 +958,8 @@ export class UnitView {
       return;
     }
     const inParty = role !== 'solo';
-    this.badge.setVisible(inParty);
+    this.label.setVisible(this.showNames);
+    this.badge.setVisible(inParty && this.showNames);
     if (inParty) {
       const c = partyColor(u.party);
       this.badge.setText(`${u.party}`).setBackgroundColor(`#${c.toString(16).padStart(6, '0')}`);
@@ -963,7 +974,7 @@ export class UnitView {
 
   private drawPennant(u: UnitState, role: PartyRole): void {
     this.pennant.clear();
-    if (role !== 'leader') return;
+    if (role !== 'leader' || !this.showNames) return;
     const c = partyColor(u.party);
     const x = this.label.width / 2 + 12;
     const base = this.label.y;
@@ -1048,13 +1059,15 @@ export class UnitView {
 const GODS = new Map((GRAYBOX.gods ?? []).map((d) => [d.id, d]));
 const PATHS = new Map((GRAYBOX.paths ?? []).map((d) => [d.id, d]));
 const ITEMS = new Map((GRAYBOX.items ?? []).map((d) => [d.id, d]));
-// The type a hero strikes with: its path's (tier 2 and up), else its god's, else physical.
+const CLASSES = new Map((GRAYBOX.classes ?? []).map((d) => [d.id, d]));
+// The type a hero strikes with. Sim gives a type only to casters (its class has a spellMult):
+// their path's (tier 2 and up) or else their god's; weapon heroes strike physical. Mirrors
+// sim/world.ts; Scene has no snapshot field for it yet.
 function heroDamageType(u: UnitState): string {
-  return (
-    (u.path ? PATHS.get(u.path)?.damageType : undefined) ??
-    (u.god ? GODS.get(u.god)?.damageType : undefined) ??
-    'physical'
-  );
+  const path = u.path ? PATHS.get(u.path) : undefined;
+  const template = path?.template ?? (u.god ? GODS.get(u.god)?.template : undefined);
+  if (!template || CLASSES.get(template)?.spellMult === undefined) return 'physical';
+  return path?.damageType ?? (u.god ? GODS.get(u.god)?.damageType : undefined) ?? 'physical';
 }
 const SKILLS = new Map((GRAYBOX.skills ?? []).map((d) => [d.id, d]));
 const skillDef = (id: string) => SKILLS.get(id);
@@ -1087,9 +1100,13 @@ export class UnitViews {
     paths: readonly { id: string; name: string }[] = [],
   ): void {
     const dtS = Math.min(MAX_DT_S, dtMs / 1000);
+    // Names are off unless the player taps a hero: then every hero of its party shows one.
+    const sel = units.find((u) => u.id === this.scene.registry.get('selectedUnit'));
     const ctx: FrameCtx = {
       dtS,
       timeMs,
+      namesParty: sel && sel.party > 0 ? sel.party : 0,
+      namesHero: sel?.id ?? 0,
       fx: this.fx,
       shake: this.shake,
       chestOf: (id) => {
@@ -1329,13 +1346,22 @@ export class UnitViews {
     this.views.get(e.unit)?.evolve(this.fx, name ?? `Tier ${e.tier}!`);
   }
 
-  // A hero spent gold at the market: the town's tax pops out in gold with a few sparkles.
   // A hero drank a potion: a green swirl and the healed number.
   private onDrank(e: Extract<SimEvent, { kind: 'drank' }>, ctx: FrameCtx): void {
     ctx.healed(e.unit, e.amount);
     const v = this.views.get(e.unit);
     if (v)
-      this.fx.add([{ type: 'ring', x: v.container.x, y: v.container.y, r: 50, age: 0, life: 0.5 }]);
+      this.fx.add([
+        {
+          type: 'ring',
+          x: v.container.x,
+          y: v.container.y,
+          r: 50,
+          age: 0,
+          life: 0.5,
+          color: 0x7fe08a,
+        },
+      ]);
   }
 
   // The item a purchase bought rises over the hero as a small icon.
@@ -1354,6 +1380,7 @@ export class UnitViews {
     });
   }
 
+  // A hero spent gold at the market: the town's tax pops out in gold with a few sparkles.
   private onShopped(e: Extract<SimEvent, { kind: 'shopped' }>): void {
     const v = this.views.get(e.unit);
     if (v && e.item) this.riseGlyph(v, e.item);

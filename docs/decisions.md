@@ -168,3 +168,45 @@ sees the updated brief before any art is ordered.
 Refinements (Stefan, 2026-10-14): colours only slightly muted, keeping most of their saturation.
 Effects grow with the game: subtle early, stronger at tier 2, clearly effectful at tier 3 and
 for bosses and late-run moments (still no screen shake).
+
+## 2026-10-14 Altar: lean is chosen, buys are hold-to-buy
+
+Stefan on the meta-ui OPEN (`docs/systems/meta-ui.md`): the player **chooses** the run's
+pantheon lean at the Altar (not only shown as the Portent). Altar buys with Ichor use
+**press and hold** (about 0.6 s), no popup. Meta stays M3.
+
+## 2026-10-14 Meta currency is Ambrosia
+
+Stefan: the meta currency is renamed from Ichor to **Ambrosia** (food of the gods). Earlier
+entries that say Ichor mean Ambrosia. No code uses the name yet.
+
+## 2026-10-14 UI panels keep dark parchment centres (Lead)
+
+Scene's wood-and-parchment UI (#233) uses dark parchment panel centres so the existing light
+text stays readable. Light parchment with dark ink is a later pass, revisited with Art's UI kit
+(U8) and shown to Stefan.
+
+## 2026-10-14 Look sheet answers (`docs/systems/look-sheet.md`)
+
+Stefan: Fafnir is built from **code parts** (no art order). Hero name labels are **off** by
+default; tapping a hero shows the names of everyone in that hero's party. Lair plates show the
+**lair's name** (e.g. "Wolf Den").
+
+## 2026-10-14 Build menu: tap for info, tap again to build
+
+Stefan: in the build menu, the first tap on a building shows what it does (role, what it
+sells or trains, cost, what its next tier unlocks); a second tap on the same building confirms
+and builds. Tapping another building or outside the menu cancels. Nothing is built on a single
+tap.
+
+## 2026-10-14 Celestial nodes and gatherers (M3)
+
+Stefan: every lair sits on a **celestial node**. Clearing the lair frees the node. The player
+sends **gatherers** (town workers, not heroes) to collect **Ambrosia** from freed nodes.
+Gatherers can be attacked on the way. The player can send weak **guards** with them, or post an
+**escort bounty** (gold on the route, like a bounty flag) that a party may take; the player
+never commands a party. Ambrosia from nodes is an **in-run** currency only (spent during the
+run). Lands in **M3**, with the meta.
+
+Follow-on (Lead, Stefan to veto): since Ambrosia is now in-run, the meta currency for the Altar
+between runs is renamed **Essence** (Stefan's other suggestion).

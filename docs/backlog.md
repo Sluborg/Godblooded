@@ -78,7 +78,7 @@ Review (PR open), Done. A worker takes its top Open row.
 | 450   | Run stats: gear levels, items bought, tax by shop; curve beats (first party, first tier 2, first lair fall, first tier 3)                                          | Open    |
 | 460   | Bosses by pantheon: `bossesByPantheon` (2 each), seeded pick, no repeat via meta `lastBoss`; moves for the 5 new bosses                                            | Open    |
 | 470   | Late recruits: parties below level 3 take new heroes; `hallJoinBelowLevel` with the Hearth Hall                                                                    | Open    |
-| 480   | Meta: Ichor per run and the Altar upgrades (`meta.md`), meta save                                                                                                  | Open    |
+| 480   | Meta: Essence per run and the Altar upgrades (`meta.md`), meta save                                                                                                | Open    |
 | 490   | Hero AI (M2, `docs/systems/hero-ai.md` Sim rows 10-60): intent event, score-and-commit choices with distance, trait behaviours, party retreat, discovery state     | Open    |
 
 ## Scene
