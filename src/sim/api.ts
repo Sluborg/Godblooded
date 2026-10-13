@@ -18,6 +18,7 @@ export type {
   LairDef,
   LairSite,
   LairState,
+  LairTuning,
   MonsterDef,
   MonsterTuning,
   PartyState,

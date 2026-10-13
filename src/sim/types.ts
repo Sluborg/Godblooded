@@ -133,6 +133,24 @@ export interface MonsterTuning {
   lairAggro: number;
 }
 
+// Lair growth: every tierUpEveryMs a lair goes up one tier (to maxTier). The arrays are indexed
+// by tier - 1 (the last entry holds for higher tiers).
+export interface LairTuning {
+  // 0 turns growth off.
+  tierUpEveryMs: number;
+  maxTier: number;
+  // Multiplies the lair's spawn interval.
+  spawnMult: number[];
+  // Added to the lair's maxAlive.
+  maxAliveAdd: number[];
+  // Multiplies every attribute of the monsters the lair spawns (they keep the tier they spawned at).
+  statMult: number[];
+  // Multiplies the lair's own hp (a tier up adds the difference to its current hp).
+  hpMult: number[];
+  // Multiplies the bounty and xp of the monsters of that tier.
+  rewardMult: number[];
+}
+
 export interface TownTuning {
   townHallHp: number;
   buildingHp: number;
@@ -179,6 +197,7 @@ export interface Tuning {
   hero: HeroTuning;
   party: PartyTuning;
   monster: MonsterTuning;
+  lair: LairTuning;
   town: TownTuning;
   bounty: BountyTuning;
 }
@@ -201,6 +220,7 @@ export interface GameData {
     hero?: Partial<HeroTuning>;
     party?: Partial<PartyTuning>;
     monster?: Partial<MonsterTuning>;
+    lair?: Partial<LairTuning>;
     town?: Partial<TownTuning>;
     bounty?: Partial<BountyTuning>;
   };
@@ -325,6 +345,7 @@ export type SimEvent =
   | { kind: 'tierUp'; unit: number; tier: number; path: string | null }
   | { kind: 'pathOffer'; party: number; hero: number; options: string[] }
   | { kind: 'raid'; lair: number; size: number }
+  | { kind: 'lairTierUp'; lair: number; tier: number }
   | { kind: 'lairDestroyed'; lair: number; type: string; by: number; bounty: number }
   | { kind: 'buildingDestroyed'; building: number; type: string }
   | { kind: 'bountyClaimed'; bounty: number; unit: number; gold: number }

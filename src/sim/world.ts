@@ -29,8 +29,10 @@ import {
   dist,
   dodgeChance,
   monsterHp,
+  scaleAttrs,
   speed,
   stepToward,
+  tierValue,
   TICK_MS,
   type Stats,
 } from './units';
@@ -40,6 +42,7 @@ import type {
   Command,
   CommandResult,
   GameData,
+  LairDef,
   LairState,
   RunStats,
   SimEvent,
@@ -57,6 +60,8 @@ const MAX_TICKS_PER_STEP = 400;
 // Server-side bookkeeping per lair and unit, not part of the snapshot.
 interface LairRuntime {
   nextSpawnMs: number;
+  // When the lair next goes up a tier (Infinity once at the top or with growth off).
+  nextTierMs: number;
 }
 export interface UnitRuntime {
   // The lair a monster belongs to; null for heroes.
@@ -151,7 +156,11 @@ export function createWorld(seed: number, data: GameData): World {
       hp: def.hp,
       maxHp: def.hp,
     });
-    world.lairRuntime.set(id, { nextSpawnMs: def.spawnS * 1000 });
+    const every = world.tuning.lair.tierUpEveryMs;
+    world.lairRuntime.set(id, {
+      nextSpawnMs: def.spawnS * 1000,
+      nextTierMs: every > 0 && world.tuning.lair.maxTier > 1 ? every : Infinity,
+    });
   }
   return world;
 }
@@ -186,21 +195,38 @@ function runTick(world: World): void {
   // Combat, heroes and the economy hook in here (Sim backlog 30 and up).
 }
 
+// A lair goes up a tier: tougher hp, and its next spawns are bigger, faster and stronger.
+function tierUpLair(world: World, lair: LairState, rt: LairRuntime, def: LairDef): void {
+  const t = world.tuning.lair;
+  lair.tier++;
+  const maxHp = Math.round(def.hp * tierValue(t.hpMult, lair.tier, 1));
+  lair.hp += maxHp - lair.maxHp;
+  lair.maxHp = maxHp;
+  rt.nextTierMs = lair.tier < t.maxTier ? rt.nextTierMs + t.tierUpEveryMs : Infinity;
+  world.events.push({ kind: 'lairTierUp', lair: lair.id, tier: lair.tier });
+}
+
 function runLairs(world: World): void {
+  const lt = world.tuning.lair;
   for (const lair of world.lairs) {
     const rt = world.lairRuntime.get(lair.id);
     const def = world.data.lairs?.find((l) => l.id === lair.type);
-    if (!rt || !def || world.timeMs < rt.nextSpawnMs) continue;
-    rt.nextSpawnMs = world.timeMs + def.spawnS * 1000;
+    if (!rt || !def) continue;
+    if (world.timeMs >= rt.nextTierMs && lair.tier < lt.maxTier) tierUpLair(world, lair, rt, def);
+    if (world.timeMs < rt.nextSpawnMs) continue;
+    rt.nextSpawnMs = world.timeMs + def.spawnS * 1000 * tierValue(lt.spawnMult, lair.tier, 1);
     const alive = world.units.filter((u) => {
       const r = world.unitRuntime.get(u.id);
       return r?.lair === lair.id && !r.raid;
     }).length;
-    if (alive >= def.maxAlive) continue;
+    if (alive >= def.maxAlive + tierValue(lt.maxAliveAdd, lair.tier, 0)) continue;
     const mon = world.data.monsters?.find((m) => m.id === def.monster);
     if (!mon) continue;
     const id = world.nextId++;
-    const hp = monsterHp(mon);
+    const hp = monsterHp({
+      ...mon,
+      attrs: scaleAttrs(mon.attrs, tierValue(lt.statMult, lair.tier, 1)),
+    });
     world.units.push({
       id,
       kind: 'monster',
@@ -230,7 +256,13 @@ function statsOf(world: World, unit: UnitState): Stats | undefined {
     const cls = world.data.classes?.find((c) => c.id === unit.type);
     return cls && { weapon: cls.weapon, attrs: effectiveAttrs(world, unit, cls.attrs) };
   }
-  return world.data.monsters?.find((m) => m.id === unit.type);
+  const mon = world.data.monsters?.find((m) => m.id === unit.type);
+  return (
+    mon && {
+      weapon: mon.weapon,
+      attrs: scaleAttrs(mon.attrs, tierValue(world.tuning.lair.statMult, unit.tier, 1)),
+    }
+  );
 }
 
 function runUnits(world: World): void {
@@ -356,17 +388,13 @@ function settleDeaths(world: World): void {
       world.events.push({ kind: 'knockout', unit: unit.id, by });
     } else {
       const mon = world.data.monsters?.find((m) => m.id === unit.type);
-      world.events.push({
-        kind: 'died',
-        unit: unit.id,
-        type: unit.type,
-        by,
-        bounty: mon?.bounty ?? 0,
-        xp: mon?.xp ?? 0,
-      });
+      const reward = tierValue(world.tuning.lair.rewardMult, unit.tier, 1);
+      const bounty = Math.round((mon?.bounty ?? 0) * reward);
+      const xp = Math.round((mon?.xp ?? 0) * reward);
+      world.events.push({ kind: 'died', unit: unit.id, type: unit.type, by, bounty, xp });
       world.stats.monstersKilled++;
-      payBounty(world, by, mon?.bounty ?? 0);
-      shareXp(world, by, mon?.xp ?? 0);
+      payBounty(world, by, bounty);
+      shareXp(world, by, xp);
     }
   }
   world.pendingDeaths = [];
