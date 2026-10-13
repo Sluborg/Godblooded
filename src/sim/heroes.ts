@@ -306,10 +306,15 @@ export function heroMove(world: World, unit: UnitState): void {
   }
 }
 
-// The party leader (first member) when it is someone else and out exploring.
+// The party leader: the first member out exploring (the same one syncIntent shows), when it is
+// someone else.
 function leaderOf(world: World, unit: UnitState): UnitState | undefined {
-  const lead = world.units.find((u) => u.id === world.parties.get(unit.party)?.members[0]);
-  return lead && lead.id !== unit.id && lead.mode === 'explore' && !lead.ko ? lead : undefined;
+  const party = world.parties.get(unit.party);
+  for (const id of party?.members ?? []) {
+    const m = world.units.find((u) => u.id === id);
+    if (m && !m.ko && m.mode === 'explore') return m.id === unit.id ? undefined : m;
+  }
+  return undefined;
 }
 
 // Mostly toward a lair (that is where the monsters are), sometimes anywhere.
@@ -464,14 +469,16 @@ function chooseGoals(world: World): void {
         ai.exploreValue - (rt.dest ? dist(unit.pos, rt.dest) * ai.exploreDistanceCost : 0),
       );
     }
-    // A hero fighting its lair goal keeps it above exploring, whatever the lair now scores; an
+    // A lair goal stays while the party is at that lair (within lairAggro of it, or walking to
+    // it), whatever the guards now do to its score and whoever it is fighting at the moment; an
     // explore goal holds nothing and any better option pre-empts it; every other goal holds for
     // commitMs.
     const exploring = cur?.kind === 'explore';
+    const goalLair = cur?.kind === 'lair' ? world.lairs.find((l) => l.id === cur.id) : undefined;
     if (
-      cur?.kind === 'lair' &&
-      unit.target === cur.id &&
-      world.lairs.some((l) => l.id === cur.id)
+      goalLair &&
+      (dist(unit.pos, goalLair.pos) <= world.tuning.monster.lairAggro ||
+        (rt.dest !== null && dist(rt.dest, goalLair.pos) <= 1))
     ) {
       curScore = Math.max(curScore ?? 0, ai.exploreValue + ai.switchMin);
     }

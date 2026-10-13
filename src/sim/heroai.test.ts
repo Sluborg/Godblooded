@@ -160,6 +160,25 @@ describe('review regressions', () => {
   });
 });
 
+describe('lair goal near guards', () => {
+  it('stays while the party is at the lair, even fighting a guard', () => {
+    const w = createWorld(3, {
+      ...base,
+      lairs: [{ id: 'barrow', monster: 'draugr', spawnS: 1, maxAlive: 6, hp: 1e9 }],
+      lairSites: [{ lair: 'barrow', pos: { x: 800, y: 500 } }],
+    });
+    const h = hero(w, 600, 500);
+    h.maxHp = 1e9;
+    h.hp = 1e9;
+    const ev = run(w, 40_000);
+    const kinds = ev
+      .filter((e): e is Extract<SimEvent, { kind: 'intent' }> => e.kind === 'intent')
+      .map((e) => e.intent.kind);
+    expect(kinds.join(',')).not.toMatch(/lair,explore,lair/);
+    expect(w.heroRuntime.get(h.id)?.goal?.kind).toBe('lair');
+  });
+});
+
 describe('intent', () => {
   it('announces a party intent when it changes and carries it in the snapshot', () => {
     const w = createWorld(1, { ...base, startGold: 1000 });
