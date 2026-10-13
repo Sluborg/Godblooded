@@ -4,6 +4,8 @@ import type { SimEvent, UnitState } from '../sim/api';
 import { SkillFx } from '../ui/skillFx';
 import { SKILL_VISUALS, shapeBox, type SkillVisual } from '../ui/skillLook';
 import { UnitViews } from '../ui/unitViews';
+import { drawGlyph } from '../ui/itemGlyph';
+import type { Glyph } from '../ui/gearLook';
 
 const TINTS = [0xfff06a, 0xff9a4d, 0x9fe0ff, 0xb98cff, 0xfff6c2];
 const CELL_W = 256;
@@ -38,6 +40,7 @@ export class SkillGalleryScene extends Phaser.Scene {
       this.time.addEvent({ delay: 1500, loop: true, callback: play });
     });
     this.statusRow();
+    this.gearRow();
   }
 
   private play(fx: SkillFx, v: SkillVisual, cx: number, cy: number, i: number): void {
@@ -110,5 +113,58 @@ export class SkillGalleryScene extends Phaser.Scene {
         })
         .setOrigin(0.5),
     );
+  }
+
+  // Heroes with gear (weapon, armour, potions) and the four purchase glyphs.
+  private gearRow(): void {
+    const views = new UnitViews(this);
+    const gear = [
+      { weapon: 0, armour: 0, potions: 0 },
+      { weapon: 2, armour: 1, potions: 1 },
+      { weapon: 3, armour: 2, potions: 3 },
+      { weapon: 3, armour: 3, potions: 5 },
+    ];
+    const units: UnitState[] = gear.map((items, i) => ({
+      id: 200 + i,
+      kind: 'hero',
+      type: 'warrior',
+      tier: 1,
+      god: 'thor',
+      path: null,
+      pos: { x: 160 + i * 190, y: 440 },
+      facing: { x: 1, y: 0 },
+      hp: 80,
+      maxHp: 100,
+      items: { ...items, charm: null },
+      target: null,
+      ko: false,
+      mode: 'wander',
+      party: 1,
+      trait: null,
+      gold: 0,
+      bounty: null,
+    }));
+    let t = 0;
+    this.time.addEvent({
+      delay: 33,
+      loop: true,
+      callback: () => {
+        t += 33;
+        views.sync(units, [], t, 33);
+      },
+    });
+    gear.forEach((g, i) =>
+      this.add
+        .text(160 + i * 190, 500, `w${g.weapon} a${g.armour} p${g.potions}`, {
+          fontFamily: 'monospace',
+          fontSize: '16px',
+          color: '#f4ead5',
+        })
+        .setOrigin(0.5),
+    );
+    (['sword', 'shield', 'flask', 'charm'] as Glyph[]).forEach((glyph, i) => {
+      const g = this.add.graphics({ x: 960 + (i % 2) * 70, y: 400 + Math.floor(i / 2) * 70 });
+      drawGlyph(g, glyph);
+    });
   }
 }

@@ -20,7 +20,7 @@ describe('frame choice', () => {
   });
   it('idle breathes through its frames', () => {
     const seen = new Set<number>();
-    for (let t = 0; t < 3; t += 0.05) seen.add(idleFrame(t));
+    for (let t = 0; t < 9; t += 0.05) seen.add(idleFrame(t));
     expect(seen.size).toBe(FRAME_COUNT.idle);
   });
   it('attack runs from the first to the last frame and clamps', () => {

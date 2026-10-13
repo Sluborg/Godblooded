@@ -73,6 +73,10 @@ export const DEFAULT_TUNING: Tuning = {
     bondCap: 10,
     // Hp fraction a hero flees at before upgrades and personality.
     baseFlee: 0.3,
+    retreatShare: 0.5,
+    retreatMargin: 0.15,
+    retreatMinFighting: 3,
+    proudRetreatAt: 0.2,
     rivalBelow: -2,
     argueRange: 200,
     argueEveryMs: 20_000,
@@ -148,6 +152,15 @@ export const DEFAULT_TUNING: Tuning = {
   },
   save: { autosaveMs: 30_000 },
   stats: { goldSampleMs: 15_000 },
+  ai: {
+    distanceCost: 0.05,
+    exploreDistanceCost: 0.02,
+    commitMs: 6_000,
+    switchMargin: 0.25,
+    switchMin: 10,
+    exploreValue: 20,
+    lairXpWeight: 0.5,
+  },
   favour: {
     perTempleTierS: 4,
     tierUpGain: 10,
@@ -165,6 +178,7 @@ export const DEFAULT_TUNING: Tuning = {
     raidLairs: 1,
     raidGrowEveryMs: 300_000,
     defendHp: 0.5,
+    defendRange: 300,
   },
   bounty: {
     dangerRadius: 250,
@@ -176,6 +190,7 @@ export const DEFAULT_TUNING: Tuning = {
     braveFearMult: 0.5,
     cowardFearMult: 2,
     proudMinGold: 40,
+    cancelRefund: 0.5,
   },
 };
 
@@ -193,6 +208,7 @@ export function resolveTuning(data: GameData): Tuning {
     skill: { ...DEFAULT_TUNING.skill, ...t?.skill },
     save: { ...DEFAULT_TUNING.save, ...t?.save },
     stats: { ...DEFAULT_TUNING.stats, ...t?.stats },
+    ai: { ...DEFAULT_TUNING.ai, ...t?.ai },
     favour: { ...DEFAULT_TUNING.favour, ...t?.favour },
     town: { ...DEFAULT_TUNING.town, ...t?.town },
     bounty: { ...DEFAULT_TUNING.bounty, ...t?.bounty },

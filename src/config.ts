@@ -7,7 +7,6 @@ export const MIN_TOUCH = 80;
 
 export const COLORS = {
   background: 0x1a1410,
-  ground: 0x3d5a2e,
   blood: 0x8a1c2b,
   gold: 0xf2c14e,
   text: '#f4ead5',
