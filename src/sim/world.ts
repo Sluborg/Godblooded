@@ -52,6 +52,7 @@ import {
   runBounties,
   syncFlagView,
   syncIntent,
+  adoptLair,
   committedToFlag,
   runHeroes,
   runTemples,
@@ -508,8 +509,10 @@ function runUnits(world: World): void {
         busy || revengeTarget(world, unit) || committedToFlag(world, unit)
           ? null
           : pickLair(world, unit);
-      if (lair) attackLair(world, unit, rt, stats, lair);
-      else heroMove(world, unit);
+      if (lair) {
+        adoptLair(world, unit, lair);
+        attackLair(world, unit, rt, stats, lair);
+      } else heroMove(world, unit);
     } else if (rt.raid) {
       const b = nearestBuilding(world, unit.pos);
       if (b) attackBuilding(world, unit, rt, stats, b);
