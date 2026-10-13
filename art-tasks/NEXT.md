@@ -9,9 +9,12 @@ log; never a **Draft** (Art is still waiting on Stefan). Art sets a batch to Don
 | S5    | heroes    | `S5.md`  | Style test: cartoon units from parts, temple, barrow (first)        | 8      | Draft  |
 | V1    | monsters  | `V1.md`  | Monster variants: draugr, harpy, jackal-man, minotaur -v2, -v3      | 8      | Done   |
 | A1    | heroes    | `A1.md`  | Aesir gods t1 (Odin, Thor, Loki, Freyja) and their 8 paths t2       | 12     | Done   |
-| A2    | heroes    | `A2.md`  | Aesir paths tier 3: the eight paths made divine (M2)                | 8      | Draft  |
+| H1    | heroes    | `H1.md`  | Aesir god children tier 1 as parts sheets (taste-test look)         | 4      | Draft  |
+| H2    | heroes    | `H2.md`  | Aesir paths tier 2 as parts sheets (after H1)                       | 8      | Draft  |
+| A2    | heroes    | `A2.md`  | Aesir paths tier 3 as parts sheets (after H2)                       | 8      | Draft  |
 | U1    | ui        | `U1.md`  | Logo and app icon: three options                                    | 6      | Done   |
 | U1B   | ui        | `U1B.md` | Logo option B revised: fixed khopesh, Greek spear, calmer sun, drop | 4      | Draft  |
+| U8    | ui        | `U8.md`  | UI kit in wood and parchment: panel, 3 buttons, 9 icons             | 13     | Draft  |
 | U2    | ui        | `U2.md`  | UI kit: 9-slice panel, buttons (3 states), 9 icons, after U1        | 13     | Done   |
 | U3    | ui        | `U3.md`  | Splash key art: Godbloods facing a monster horde at dusk            | 1      | Done   |
 | U4    | ui        | `U4.md`  | Item icons: sword, focus, armour, 2 potions, 6 charms (after U2)    | 11     | Done   |
@@ -34,9 +37,9 @@ log; never a **Draft** (Art is still waiting on Stefan). Art sets a batch to Don
 | B9    | buildings | `B9.md`  | Buildings tier 2: all eight, the three temples included             | 8      | Done   |
 | B10   | buildings | `B10.md` | Monster lairs tier 1: all six types (wyrm nest is the boss)         | 6      | Done   |
 | B11   | buildings | `B11.md` | Ground tiles (5, seamless) and map props (7)                        | 12     | Draft  |
-| B15   | buildings | `B15.md` | Buildings tier 1 in the new look: all eight (redraw)                | 8      | Draft  |
+| B15   | buildings | `B15.md` | Buildings tier 1 in the new look: all nine, Hearth Hall added       | 9      | Draft  |
 | B17   | buildings | `B17.md` | Lairs tier 1 in the new look (redraw)                               | 6      | Draft  |
 | B13   | buildings | `B13.md` | Map markers: build plot and bounty flag (M2)                        | 2      | Draft  |
-| B16   | buildings | `B16.md` | Buildings tier 2 in the new look: all eight (after B15)             | 8      | Draft  |
-| B14   | buildings | `B14.md` | Buildings tier 3: all eight (after B16)                             | 8      | Draft  |
+| B16   | buildings | `B16.md` | Buildings tier 2 in the new look: all nine (after B15)              | 9      | Draft  |
+| B14   | buildings | `B14.md` | Buildings tier 3: all nine, per Design table (after B16)            | 9      | Draft  |
 | B12   | buildings | `B12.md` | Merchant caravan, ruin, scaffold, 3 grave markers                   | 6      | Draft  |

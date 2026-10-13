@@ -174,8 +174,11 @@ same face, hair, palette and silhouette as `hero_<god>_t1_front`, adding gear an
 A **summon** (`sum_`, a unit a path skill calls up, such as Horus's falcon) is drawn and shipped
 like a monster still: one front picture facing right, with its strike and weapon point.
 
-Heroes and buildings get a picture per tier. **Monsters have tier-1 pictures only**: the game
-shows a tougher monster by colour (tint) in code.
+Heroes and buildings get a picture per tier. **Monsters change visibly per tier** (Lead
+2026-10-13, `docs/systems/monsters-and-bosses.md` "How monsters look"): the same face, body and
+palette, one new silhouette piece per tier (a shield, horns, a crest), and the tier colour on the
+eyes and the ground ring (drawn by the game, not in the picture). Lairs have one tier-1 picture;
+the game shows the lair tier.
 
 ## Manifest
 
