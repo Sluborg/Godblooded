@@ -193,7 +193,7 @@ height, feet at 88%, centred), so every unit ships at the same scale; the kept s
 untouched upload and the points stay in its pixels.
 
 Shipped PNGs are palette PNGs (up to 256 colours with alpha, no dithering), written by ship and
-`art:compress`. The PWA precaches every shipped PNG, so the validator caps their total at 8 MB
+`art:compress`. The PWA precaches every shipped PNG, so the validator caps their total at 12 MB (Lead 2026-10-13)
 and warns on any PNG still in plain RGBA. The raw uploads in `assets/source/` stay untouched.
 
 Uploads may be named `<batch>--<id>.png` (Drive), `<id>.png` (`art-inbox` branch) or base64

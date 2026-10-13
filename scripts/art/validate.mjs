@@ -27,8 +27,8 @@ const MAX = {
   art: [1280, 1280],
 };
 
-// Total bytes of shipped PNGs (offline cache budget, Lead 2026-10-13).
-export const ART_BUDGET = 8e6;
+// Total bytes of shipped PNGs (offline cache budget, Lead 2026-10-13: 12 MB; lazy-load if M3 passes it).
+export const ART_BUDGET = 12e6;
 
 function pngsUnder(dir) {
   if (!existsSync(dir)) return [];
