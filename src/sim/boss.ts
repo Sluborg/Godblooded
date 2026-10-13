@@ -3,7 +3,7 @@ import { dist, maxHp, scaleAttrs, tierValue, type Stats } from './units';
 import { targetOf } from './world';
 import type { Area } from './swing';
 import type { World } from './world';
-import type { BossTuning, LairState, MonsterDef, UnitState } from './types';
+import type { BossMove, BossTuning, ConeArea, LairState, MonsterDef, UnitState } from './types';
 
 // Bosses (Sim 220, docs/systems/combat.md section 7). A boss is a monster row with `boss`. It
 // waits inside its lair until the lair is below tuning.boss.emergeBelow of its hp, then comes
@@ -155,6 +155,36 @@ export function cleaveStrike(
       ...attackStrike(stats, targetOf(world, u)),
       canDodge: false,
       skillMult: n.cleaveShare,
+    });
+  }
+}
+
+// The breath: every living hero inside the cone takes mult x the boss's strike as fire (or the
+// move's type), undodgeable, with the move's rider (burn).
+export function breathStrike(
+  world: World,
+  boss: UnitState,
+  stats: Stats,
+  cone: ConeArea,
+  move: NonNullable<NonNullable<BossMove['breath']>>,
+): void {
+  const half = ((move.angleDeg / 2) * Math.PI) / 180;
+  for (const u of world.units) {
+    // Heroes and their summons burn alike; the dead and knocked out are skipped.
+    if ((u.kind !== 'hero' && u.kind !== 'summon') || u.ko || u.hp <= 0) continue;
+    const d = dist(cone.from, u.pos);
+    if (d > cone.range) continue;
+    // Straight at the boss counts as inside; otherwise the angle to the axis must fit.
+    if (d > 0) {
+      const cos = ((u.pos.x - cone.from.x) * cone.dir.x + (u.pos.y - cone.from.y) * cone.dir.y) / d;
+      if (Math.acos(Math.max(-1, Math.min(1, cos))) > half) continue;
+    }
+    landStrike(world, boss, u, {
+      ...attackStrike(stats, targetOf(world, u)),
+      type: move.type,
+      skillMult: move.mult,
+      canDodge: false,
+      ...(move.rider ? { rider: move.rider } : {}),
     });
   }
 }

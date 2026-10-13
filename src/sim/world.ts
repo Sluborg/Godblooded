@@ -28,6 +28,7 @@ import { swing, type Area } from './swing';
 import {
   bossNumbers,
   bossSealed,
+  breathStrike,
   cleaveStrike,
   isBoss,
   runBosses,
@@ -85,6 +86,7 @@ import {
 } from './units';
 import type {
   BountyState,
+  ConeArea,
   SkillEffect,
   GraveState,
   BuildingCore,
@@ -136,7 +138,7 @@ export interface UnitRuntime {
   // The raid it belongs to (a raid is beaten when none of its raiders is left).
   raidId?: number;
   // A strike in its windup: the target and the time left before it lands.
-  swing?: { target: number; ms: number; area?: Area };
+  swing?: { target: number; ms: number; area?: Area; cone?: ConeArea };
   cooldownMs: number;
   target: Vec2 | null;
   idleMs: number;
@@ -691,16 +693,37 @@ function fight(world: World, unit: UnitState, rt: UnitRuntime, stats: Stats, foe
   const mon = rt.boss ? world.data.monsters?.find((m) => m.id === unit.type) : undefined;
   const boss = mon && rt.boss ? { n: bossNumbers(world, mon), rt: rt.boss } : undefined;
   // Every cleaveEvery-th strike of a boss is a cleave: long windup, a marked ground area.
-  const cleave = boss && (boss.rt.strikes + 1) % boss.n.cleaveEvery === 0;
+  const breath = mon?.move?.breath;
+  const cleave = boss && !breath && (boss.rt.strikes + 1) % boss.n.cleaveEvery === 0;
+  // A boss with a Fire Breath breathes every everyN-th strike (enragedEveryN once enraged).
+  const breathing =
+    boss &&
+    breath &&
+    (boss.rt.strikes + 1) % Math.max(1, boss.rt.enraged ? breath.enragedEveryN : breath.everyN) ===
+      0;
+  const cone: ConeArea | undefined =
+    breathing && breath
+      ? {
+          from: { x: unit.pos.x, y: unit.pos.y },
+          // On top of the target there is no direction to aim: use the way the boss faces.
+          dir:
+            d > 0
+              ? { x: (foe.pos.x - unit.pos.x) / d, y: (foe.pos.y - unit.pos.y) / d }
+              : { ...unit.facing },
+          range: breath.range,
+          angleDeg: breath.angleDeg,
+        }
+      : undefined;
   swing(
     world,
     unit,
     rt,
     stats,
     foe.id,
-    (area) => {
+    (area, hitCone) => {
       if (boss) boss.rt.strikes++;
-      if (cleave && area) cleaveStrike(world, unit, foe, stats, area);
+      if (hitCone && breath) breathStrike(world, unit, stats, hitCone, breath);
+      else if (cleave && area) cleaveStrike(world, unit, foe, stats, area);
       else {
         const input = attackStrike(stats, targetOf(world, foe));
         const rider = unit.kind === 'hero' ? passiveRider(world, unit) : undefined;
@@ -720,12 +743,14 @@ function fight(world: World, unit: UnitState, rt: UnitRuntime, stats: Stats, foe
         }
       }
     },
-    cleave && boss
-      ? {
-          windupMs: boss.n.cleaveWindupMs,
-          area: { x: foe.pos.x, y: foe.pos.y, r: boss.n.cleaveRadius },
-        }
-      : undefined,
+    cone && breath
+      ? { windupMs: breath.windupMs, cone }
+      : cleave && boss
+        ? {
+            windupMs: boss.n.cleaveWindupMs,
+            area: { x: foe.pos.x, y: foe.pos.y, r: boss.n.cleaveRadius },
+          }
+        : undefined,
   );
 }
 
