@@ -175,6 +175,12 @@ export interface BuildingTuning {
   towerCooldownMs: number[];
 }
 
+export interface SaveTuning {
+  // The sim emits an `autosave` event every this many ms of run time (0 = never); Scene answers
+  // it with saveWorld(). Not emitted while the world waits for a card pick.
+  autosaveMs: number;
+}
+
 export interface TownTuning {
   townHallHp: number;
   buildingHp: number;
@@ -223,6 +229,7 @@ export interface Tuning {
   monster: MonsterTuning;
   lair: LairTuning;
   building: BuildingTuning;
+  save: SaveTuning;
   town: TownTuning;
   bounty: BountyTuning;
 }
@@ -247,6 +254,7 @@ export interface GameData {
     monster?: Partial<MonsterTuning>;
     lair?: Partial<LairTuning>;
     building?: Partial<BuildingTuning>;
+    save?: Partial<SaveTuning>;
     town?: Partial<TownTuning>;
     bounty?: Partial<BountyTuning>;
   };
@@ -377,6 +385,7 @@ export type SimEvent =
   | { kind: 'tierUp'; unit: number; tier: number; path: string | null }
   | { kind: 'pathOffer'; party: number; hero: number; options: string[] }
   | { kind: 'raid'; lair: number; size: number }
+  | { kind: 'autosave' }
   | { kind: 'lairTierUp'; lair: number; tier: number }
   | { kind: 'lairDestroyed'; lair: number; type: string; by: number; bounty: number }
   | { kind: 'buildingDestroyed'; building: number; type: string }

@@ -1,3 +1,4 @@
+import { runAutosave } from './save';
 import { swing } from './swing';
 import {
   attackBuilding,
@@ -86,6 +87,7 @@ export interface UnitRuntime {
 
 export interface World {
   readonly data: GameData;
+  readonly seed: number;
   readonly rng: Rng;
   timeMs: number;
   tick: number;
@@ -114,6 +116,7 @@ export interface World {
 export function createWorld(seed: number, data: GameData): World {
   const world: World = {
     data,
+    seed,
     rng: makeRng(seed),
     timeMs: 0,
     tick: 0,
@@ -198,6 +201,7 @@ export function step(world: World, dtMs: number): void {
 function runTick(world: World): void {
   world.tick++;
   world.timeMs += TICK_MS;
+  runAutosave(world);
   runTemples(world);
   runTowers(world);
   // Tower victims leave now, before the lairs count their monsters or the units act.
