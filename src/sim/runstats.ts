@@ -64,6 +64,21 @@ export function buildReport(world: World): RunReport | null {
       mvp: false,
     });
   }
+  // Heroes slain for good still count in the report.
+  for (const g of world.graves) {
+    const rec = world.heroRecords.get(g.id);
+    if (!rec) continue;
+    heroes.push({
+      unit: g.id,
+      type: g.type,
+      god: g.god,
+      path: g.path,
+      tier: g.tier,
+      ...rec,
+      slain: true,
+      mvp: false,
+    });
+  }
   heroes.sort(
     (a, b) =>
       score(b) - score(a) || b.damage - a.damage || b.goldEarned - a.goldEarned || a.unit - b.unit,

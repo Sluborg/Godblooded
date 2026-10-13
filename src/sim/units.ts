@@ -18,6 +18,8 @@ export interface Stats {
   haste?: number;
   // Added to the strike's power by the wielded weapon (hero gear).
   weaponPower?: number;
+  // Bound: cannot move (speed 0).
+  rooted?: boolean;
   // Multiplies the attack time (an enraged boss: 0.7).
   attackMult?: number;
   // The type of the basic attack (casters: their god's or path's); missing: physical or, for a
@@ -78,6 +80,7 @@ export function attackMs(s: Stats, k: number = DEFAULT_COMBAT.attackK): number {
 
 // World units per second of a unit, chill included.
 export function speedOf(s: Stats): number {
+  if (s.rooted) return 0;
   return speed(s.attrs) * (1 - (s.slow ?? 0));
 }
 

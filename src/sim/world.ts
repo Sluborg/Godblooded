@@ -1,11 +1,13 @@
 import { avenge, revengeTarget, rivalPairs, vowRevenge } from './rivalry';
 import { runAutosave } from './save';
 import { generateMap } from './mapgen';
-import { buffOf, tauntOf, type UnitFx } from './effects';
+import { deathChance, koBonds, koGoldLost, slayHero } from './deaths';
+import { buffOf, isBound, runHots, tauntOf, type UnitFx } from './effects';
 import { armourBonus, charmEffects, weaponPower } from './items';
 import { passiveRider } from './passives';
 import { everyNthOf, passiveAggroMult, passiveArmour } from './passives';
 import { noteFight } from './engage';
+import { removeSummon, runSummon, runSummonUpkeep, summonStats } from './summons';
 import { runStatuses, slowOf, healMult, type UnitStatus } from './riders';
 import { attackStrike, landStrike } from './strike';
 import { cancelDrink, runDrink } from './potions';
@@ -65,6 +67,8 @@ import {
 } from './units';
 import type {
   BountyState,
+  SkillEffect,
+  GraveState,
   BuildingCore,
   Command,
   CommandResult,
@@ -115,10 +119,18 @@ export interface UnitRuntime {
   skill?: SkillRuntime;
   // Shield, mark, taunt and buffs from skills (see effects.ts).
   fx?: UnitFx;
+  // Summons: effects that run on the foes around it when it ends or dies.
+  summonEnd?: { radius: number; effects: readonly SkillEffect[] };
   // A potion being drunk: time left (see potions.ts).
   drink?: { ms: number };
   // The fight this unit is in: kills so far, whether its first-hit miss is spent, strikes landed.
-  fight?: { kills: number; missUsed: boolean; strikes: number; ringUsed?: boolean };
+  fight?: {
+    kills: number;
+    missUsed: boolean;
+    strikes: number;
+    revived?: boolean;
+    ringUsed?: boolean;
+  };
 }
 
 export interface World {
@@ -147,8 +159,18 @@ export interface World {
   parties: Map<number, Party>;
   bonds: Map<string, number>;
   pendingDeaths: { victim: number; by: number }[];
+  // Where heroes were slain.
+  graves: GraveState[];
   // Monsters that died lately, for `kill` skill triggers.
-  recentKills: { pos: Vec2; timeMs: number; by: number }[];
+  recentKills: { pos: Vec2; timeMs: number; by: number; type: string; tier: number }[];
+  // Summons waiting to be called again (a falcon that died).
+  respawns: {
+    atMs: number;
+    owner: number;
+    summon: string;
+    src: string;
+    end?: { radius: number; effects: readonly SkillEffect[] };
+  }[];
   nextRaidMs: number;
   stats: RunStats;
   bounties: BountyState[];
@@ -187,7 +209,9 @@ export function createWorld(seed: number, data: GameData): World {
     parties: new Map(),
     bonds: new Map(),
     pendingDeaths: [],
+    graves: [],
     recentKills: [],
+    respawns: [],
     nextRaidMs: 0,
     stats: {
       monstersKilled: 0,
@@ -285,12 +309,20 @@ function runTick(world: World): void {
   // Tower victims leave now, before the lairs count their monsters or the units act.
   settleDeaths(world);
   runStatuses(world);
+  runHots(world, (by, unit, amount) => {
+    const gain = Math.min(Math.round(amount * healMult(world, unit.id)), unit.maxHp - unit.hp);
+    if (gain <= 0) return;
+    unit.hp += gain;
+    tally(world, by, 'healing', gain);
+    world.events.push({ kind: 'heal', healer: by, target: unit.id, amount: gain });
+  });
   // Burn victims leave now, before heroes flee or units act on a dead unit's turn.
   settleDeaths(world);
   runBosses(world);
   runLairs(world);
   runRaids(world);
   runHeroes(world);
+  runSummonUpkeep(world);
   runBounties(world);
   runParties(world);
   runUnits(world);
@@ -358,6 +390,16 @@ function runLairs(world: World): void {
 }
 
 export function statsOf(world: World, unit: UnitState): Stats | undefined {
+  const base = unitStats(world, unit);
+  // Bound: cannot move, attacks take twice as long.
+  if (base && isBound(world, unit.id)) {
+    return { ...base, rooted: true, attackMult: (base.attackMult ?? 1) * 2 };
+  }
+  return base;
+}
+
+function unitStats(world: World, unit: UnitState): Stats | undefined {
+  if (unit.kind === 'summon') return summonStats(world, unit);
   if (unit.kind === 'hero') {
     const cls = world.data.classes?.find((c) => c.id === unit.type);
     return (
@@ -454,6 +496,10 @@ function runUnits(world: World): void {
     }
     rt.cooldownMs = Math.max(0, rt.cooldownMs - TICK_MS);
     tickSkill(rt);
+    if (unit.kind === 'summon') {
+      runSummon(world, unit, rt, stats);
+      continue;
+    }
     // Raiders have no lair leash: they march on the town.
     const home = rt.raid ? undefined : world.lairs.find((l) => l.id === rt.lair);
     // Heroes that are fleeing, resting or shopping do not pick fights.
@@ -515,7 +561,12 @@ function pickTarget(world: World, unit: UnitState, stats: Stats, home?: Vec2): U
   let best: UnitState | null = null;
   let bestD = Infinity;
   for (const other of world.units) {
-    if (other.kind === unit.kind || other.ko || other.hp <= 0) continue;
+    // Monsters fight heroes and summons; heroes and summons fight monsters.
+    if ((other.kind === 'monster') === (unit.kind === 'monster') || other.ko || other.hp <= 0) {
+      continue;
+    }
+    // Nothing on foot can reach a flier.
+    if (other.kind === 'summon' && stats.weapon.range <= 60 && flies(world, other)) continue;
     const d = dist(unit.pos, other.pos);
     if (d > reach || d >= bestD) continue;
     if (home && dist(home, other.pos) > world.tuning.monster.leash) continue;
@@ -608,17 +659,44 @@ function fight(world: World, unit: UnitState, rt: UnitRuntime, stats: Stats, foe
 
 function settleDeaths(world: World): void {
   const settled = new Set<number>();
+  const slainIds = new Set<number>();
   for (const { victim, by } of world.pendingDeaths) {
     const unit = world.units.find((u) => u.id === victim);
     if (!unit || unit.ko || settled.has(victim)) continue;
     settled.add(victim);
-    if (unit.kind === 'hero') {
-      unit.ko = true;
+    if (unit.kind === 'summon') {
+      removeSummon(world, unit, 'died');
+    } else if (unit.kind === 'hero') {
       unit.target = null;
-      heroKnockedOut(world, unit);
       world.stats.knockouts++;
       tally(world, unit.id, 'knockouts');
-      world.events.push({ kind: 'knockout', unit: unit.id, by });
+      const goldLost = koGoldLost(world, unit);
+      koBonds(world, unit);
+      // A boss, or a tier 3 lair monster, may kill for good (no roll for anyone else).
+      const chance = deathChance(world, unit, by);
+      const slain = chance !== undefined && world.rng() < chance;
+      if (slain) {
+        world.events.push({
+          kind: 'slain',
+          unit: unit.id,
+          by,
+          type: unit.type,
+          god: unit.god,
+          pos: { ...unit.pos },
+          ...(goldLost > 0 ? { goldLost } : {}),
+        });
+        slayHero(world, unit);
+        slainIds.add(unit.id);
+      } else {
+        unit.ko = true;
+        heroKnockedOut(world, unit);
+        world.events.push({
+          kind: 'knockout',
+          unit: unit.id,
+          by,
+          ...(goldLost > 0 ? { goldLost } : {}),
+        });
+      }
       // A lair's monsters count the heroes they put down (pressure growth).
       const lairId = world.unitRuntime.get(by)?.lair;
       const lrt =
@@ -635,7 +713,13 @@ function settleDeaths(world: World): void {
       if (world.data.skills?.length) {
         const from = world.timeMs - world.tuning.skill.killWindowMs;
         world.recentKills = world.recentKills.filter((k) => k.timeMs >= from);
-        world.recentKills.push({ pos: { ...unit.pos }, timeMs: world.timeMs, by });
+        world.recentKills.push({
+          pos: { ...unit.pos },
+          timeMs: world.timeMs,
+          by,
+          type: unit.type,
+          tier: unit.tier,
+        });
       }
       world.stats.monstersKilled++;
       avenge(world, unit.id);
@@ -649,10 +733,14 @@ function settleDeaths(world: World): void {
   }
   world.pendingDeaths = [];
   world.units = world.units.filter((u) => {
-    const gone = u.kind === 'monster' && u.hp <= 0;
+    const gone = (u.kind !== 'hero' && u.hp <= 0) || slainIds.has(u.id);
     if (gone) world.unitRuntime.delete(u.id);
     return !gone;
   });
+}
+
+function flies(world: World, unit: UnitState): boolean {
+  return !!unit.summon && !!world.data.summons?.find((s) => s.id === unit.summon?.def)?.flies;
 }
 
 function wander(world: World, unit: UnitState, rt: UnitRuntime, stats: Stats, home: Vec2): void {
@@ -769,8 +857,10 @@ export function snapshot(world: World): Snapshot {
       pos: { ...u.pos },
       facing: { ...u.facing },
       ...(u.items ? { items: { ...u.items } } : {}),
+      ...(u.summon ? { summon: { ...u.summon } } : {}),
     })),
     bounties: world.bounties.map((b) => ({ ...b, pos: { ...b.pos } })),
+    graves: world.graves.map((g) => ({ ...g, pos: { ...g.pos } })),
     rivals: rivalPairs(world),
     map: { lean: [...world.mapLean], boss: world.bossLair },
     report: buildReport(world),

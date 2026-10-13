@@ -38,6 +38,12 @@ Map + Hud ──Menu──> Pause ──Resume / Restart / Settings / Quit to ti
 
 ## 2. HUD layout (1280x720)
 
+**Look (taste test, decision 2026-10-14):** every panel, card, menu and button sits in a
+**wood-and-parchment frame** (dark wood border, parchment fill, iron studs). Damage numbers are
+big and coloured by type; **hit effects grow with progression** (subtle at tier 1, stronger at tier
+2, clearly effectful at tier 3, for bosses and late in a run) and **there is no screen shake**. Heroes carry
+their party ring and a small name label; a level-up is a pillar of light with a banner.
+
 | Zone              | Where (px)               | Holds                                                                                 |
 | ----------------- | ------------------------ | ------------------------------------------------------------------------------------- |
 | Top bar           | y 0-72, full width       | gold (left, today), clock (centre, today), watch, menu, speed 1x/2x/4x (right, today) |

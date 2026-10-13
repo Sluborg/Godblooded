@@ -542,8 +542,85 @@ export interface DashEffect extends EffectBase {
   kind: 'dash';
 }
 
+// A unit a skill calls (docs/systems/paths-and-skills.md section 7). `hp` is flat, `hpShare` a share of
+// the caster's max hp; `fromDead` makes a thrall of a monster that just died (stats x share).
+export interface SummonDef {
+  id: string;
+  hp?: number;
+  hpShare?: number;
+  // Strikes every `everyS` for `mult` x the caster's power (the monster's own strike for a thrall).
+  strike?: { mult: number; everyS: number; sure?: boolean };
+  // Foes within `radius` of it go for it (a decoy).
+  taunt?: { radius: number };
+  // Cannot be targeted by melee attackers.
+  flies?: boolean;
+  // Called again this long after it dies (not after it ends), while the caster stands.
+  respawnS?: number;
+  fromDead?: { share: number };
+}
+
+// Calls `count` units of a summon row for `s` seconds (omitted: until killed). At the cast point,
+// or on the recent kill for a thrall. `end` runs when it ends or dies: effects on the foes within
+// `radius` of it, as the caster (Mirror Double's burst).
+export interface SummonEffect extends EffectBase {
+  kind: 'summon';
+  summon: string;
+  count?: number;
+  s?: number;
+  end?: { radius: number; effects: readonly SkillEffect[] };
+}
+
+// Pushes the targets `dist` away from the caster (bosses cannot be knocked back).
+export interface KnockbackEffect extends EffectBase {
+  kind: 'knockback';
+  dist: number;
+}
+
+// Targets cannot move and attack 50% slower for `s` seconds (a boss: half the time).
+export interface BindEffect extends EffectBase {
+  kind: 'bind';
+  s: number;
+}
+
+// Stands a knocked out party mate in the shape up at `pct` of max hp, once per fight.
+export interface ReviveEffect extends EffectBase {
+  kind: 'revive';
+  pct: number;
+}
+
+// Foes in the shape below `below` of max hp die (not bosses).
+export interface ExecuteEffect extends EffectBase {
+  kind: 'execute';
+  below: number;
+}
+
+// Removes the riders (burn, chill, wither) from the targets.
+export interface CleanseEffect extends EffectBase {
+  kind: 'cleanse';
+}
+
+// Heals the targets `pct` of max hp per second for `s` seconds.
+export interface HotEffect extends EffectBase {
+  kind: 'hot';
+  pct: number;
+  s: number;
+}
+
+// Restarts the timer of the buffs, shield and heal over time this skill put on the caster.
+export interface RefreshEffect extends EffectBase {
+  kind: 'refresh';
+}
+
 export type SkillEffect =
+  | SummonEffect
   | DamageEffect
+  | KnockbackEffect
+  | BindEffect
+  | ReviveEffect
+  | ExecuteEffect
+  | CleanseEffect
+  | HotEffect
+  | RefreshEffect
   | HealEffect
   | ShieldEffect
   | BuffEffect
@@ -662,6 +739,19 @@ export interface CombatTuning {
   firstStrikeDelay: number;
   // Fire deals this much more to buildings.
   buildingFireMult: number;
+  // A knockout costs a hero this share of the gold it carries.
+  koGoldLoss: number;
+  // A hero knocked out by a boss, or by a monster of a tier 3 lair, dies with this chance, less
+  // deathShrineStep per shrine tier in town and deathHealerStep with a healer alive in its
+  // party, never below deathFloor.
+  bossDeathChance: number;
+  deathShrineStep: number;
+  deathHealerStep: number;
+  deathFloor: number;
+  // A tier 3 lair's monster slays with this chance when the knockout is within lairDeathRange of the
+  // lair; every cut to the boss chance cuts it by half as many points, never below 0.
+  lairDeathChance: number;
+  lairDeathRange: number;
 }
 
 export interface Tuning {
@@ -696,6 +786,8 @@ export interface GameData {
   items?: readonly ItemDef[];
   // Path skills, one per path (tier 2, upgraded at tier 3).
   skills?: readonly SkillDef[];
+  // Rows for the units skills summon.
+  summons?: readonly SummonDef[];
   // Any subset of the tunable numbers; the rest use DEFAULT_TUNING (src/sim/tuning.ts).
   tuning?: {
     combat?: Partial<CombatTuning>;
@@ -760,7 +852,8 @@ export interface LairState {
 
 export interface UnitState {
   id: number;
-  kind: 'hero' | 'monster';
+  // 'summon': a unit a hero's skill called; it fights for the party and monsters can target it.
+  kind: 'hero' | 'monster' | 'summon';
   // Monsters: the monster id. Heroes: the id of the template in use (ClassDef): the god's at
   // tier 1, the path's from tier 2. Look and strike fall back on it.
   type: string;
@@ -777,6 +870,9 @@ export interface UnitState {
   maxHp: number;
   // Heroes: gear carried (absent: nothing). Monsters never have any.
   items?: HeroItems;
+  // Summons: who called it, from which row, and when it ends (null: until it dies).
+  // `monster` is the dead monster a thrall rose from (its stats); `type` stays the row id for art.
+  summon?: { owner: number; def: string; until: number | null; src: string; monster?: string };
   // Unit being attacked, if any (Scene lunges toward it).
   target: number | null;
   // Knocked out (heroes only, monsters are removed). Out of the fight until revived.
@@ -824,6 +920,17 @@ export interface PathState {
   takenBy: number | null;
 }
 
+export interface GraveState {
+  // The slain hero's unit id.
+  id: number;
+  type: string;
+  god: string | null;
+  path: string | null;
+  tier: number;
+  pos: Vec2;
+  timeMs: number;
+}
+
 export interface BountyState {
   id: number;
   pos: Vec2;
@@ -863,7 +970,19 @@ export type SimEvent =
       weak?: boolean;
       resist?: boolean;
     }
-  | { kind: 'knockout'; unit: number; by: number }
+  // `goldLost`: the gold it dropped (absent when none).
+  | { kind: 'knockout'; unit: number; by: number; goldLost?: number }
+  // A hero was killed for good (a boss or tier 3 lair knockout that rolled death). It leaves a
+  // grave at `pos`; `goldLost` as for a knockout.
+  | {
+      kind: 'slain';
+      unit: number;
+      by: number;
+      type: string;
+      god: string | null;
+      pos: Vec2;
+      goldLost?: number;
+    }
   | { kind: 'died'; unit: number; type: string; by: number; bounty: number; xp: number }
   | { kind: 'partyFormed'; party: number; members: number[] }
   | { kind: 'levelUp'; party: number; level: number; offer: string[] }
@@ -897,7 +1016,12 @@ export type SimEvent =
   // stood when it dashed (the dash is instant; Scene animates it from `from` to the caster).
   | { kind: 'skill'; skill: string; caster: number; hits: number[]; point: Vec2; from?: Vec2 }
   // A shield, mark, buff or taunt took hold on `unit` until run time `until`.
-  | { kind: 'status'; unit: number; status: 'shield' | 'mark' | 'buff' | 'taunt'; until: number }
+  | {
+      kind: 'status';
+      unit: number;
+      status: 'shield' | 'mark' | 'buff' | 'taunt' | 'bind' | 'hot';
+      until: number;
+    }
   | { kind: 'argue'; a: number; b: number }
   | { kind: 'revenge'; hero: number; target: number; victim: number }
   | { kind: 'avenged'; hero: number; target: number }
@@ -912,6 +1036,14 @@ export type SimEvent =
   | { kind: 'arrived'; unit: number; type: string; god: string | null }
   | { kind: 'fled'; unit: number }
   | { kind: 'revived'; unit: number }
+  // A skill called a unit; it ended (`expired`), died (`died`) or its caster fell (`orphaned`).
+  | { kind: 'summoned'; unit: number; owner: number; summon: string; skill: string; pos: Vec2 }
+  | {
+      kind: 'unsummoned';
+      unit: number;
+      owner: number;
+      reason: 'expired' | 'died' | 'orphaned' | 'replaced';
+    }
   // `item`: the item id of one purchase (absent for the plain market spend without item rows).
   // A hero drank a potion (`left` still carried) and healed `amount`.
   | { kind: 'drank'; unit: number; amount: number; left: number }
@@ -943,6 +1075,8 @@ export interface RunStats {
 // lair destroyed, damage as tie-breaker); heroes come sorted best first.
 export interface HeroReport {
   unit: number;
+  // Killed for good (see `slain`).
+  slain?: boolean;
   type: string;
   god: string | null;
   path: string | null;
@@ -981,6 +1115,8 @@ export interface Snapshot {
   readonly parties: readonly Readonly<PartyState>[];
   readonly paths: readonly Readonly<PathState>[];
   readonly bounties: readonly Readonly<BountyState>[];
+  // Where heroes were slain; the markers stay for the run.
+  readonly graves: readonly Readonly<GraveState>[];
   // Pairs of living heroes who are rivals right now (lower id first).
   readonly rivals: readonly (readonly [number, number])[];
   // This run's map: the pantheons it leans on and the boss lair (null on a fixed map).

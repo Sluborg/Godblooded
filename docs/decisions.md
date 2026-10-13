@@ -147,3 +147,24 @@ light, texture), crisp at device resolution. Paths are a natural evolution of th
 child: same face, hair, palette and silhouette, plus gear and effects; tier 3 is more of the
 same. Scene renders units from code parts (baked to an atlas); ChatGPT pictures in the same
 style replace them when they exist.
+
+## 2026-10-13 No art orders before Stefan's taste test
+
+Stefan: no ChatGPT art is ordered until he has said what he wants and likes. Every batch stays
+Draft until the A/B taste test results are written into `art-tasks/STYLE.md` and Stefan has seen
+the updated brief.
+
+## 2026-10-14 Stefan's taste test (art direction)
+
+Answers from `docs/reference` taste test (G1-G14): big-head cartoon proportions; thin
+colour-matched outlines (not thick black ink); painterly shading; warm earthy, muted palette;
+small units (a hall is about 5 heroes wide); plain grass ground with tufts; top-down 3/4 view;
+smooth, weighty motion; big coloured damage numbers; subtle hit effects (no screen shake);
+grim, scary monsters; wood-and-parchment UI frames; party ring and name label on heroes;
+level-up as a pillar of light with a banner. This replaces earlier style notes where they
+differ. Art writes it into `art-tasks/STYLE.md`; Scene into the parts renderer and UI; Stefan
+sees the updated brief before any art is ordered.
+
+Refinements (Stefan, 2026-10-14): colours only slightly muted, keeping most of their saturation.
+Effects grow with the game: subtle early, stronger at tier 2, clearly effectful at tier 3 and
+for bosses and late-run moments (still no screen shake).
