@@ -1,6 +1,72 @@
 {
   "assets": [
     {
+      "id": "bld_lair_barrow_t1",
+      "kind": "bld",
+      "tier": 1,
+      "view": null,
+      "file": "buildings/bld_lair_barrow_t1.png",
+      "anchorX": 0.51,
+      "anchorY": 0.996,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "B10"
+    },
+    {
+      "id": "bld_lair_harpy-roost_t1",
+      "kind": "bld",
+      "tier": 1,
+      "view": null,
+      "file": "buildings/bld_lair_harpy-roost_t1.png",
+      "anchorX": 0.482,
+      "anchorY": 0.996,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "B10"
+    },
+    {
+      "id": "bld_lair_jackal-camp_t1",
+      "kind": "bld",
+      "tier": 1,
+      "view": null,
+      "file": "buildings/bld_lair_jackal-camp_t1.png",
+      "anchorX": 0.587,
+      "anchorY": 0.996,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "B10"
+    },
+    {
+      "id": "bld_lair_labyrinth_t1",
+      "kind": "bld",
+      "tier": 1,
+      "view": null,
+      "file": "buildings/bld_lair_labyrinth_t1.png",
+      "anchorX": 0.623,
+      "anchorY": 0.996,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "B10"
+    },
+    {
+      "id": "bld_lair_troll-den_t1",
+      "kind": "bld",
+      "tier": 1,
+      "view": null,
+      "file": "buildings/bld_lair_troll-den_t1.png",
+      "anchorX": 0.54,
+      "anchorY": 0.996,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "B10"
+    },
+    {
+      "id": "bld_lair_wyrm-nest_t1",
+      "kind": "bld",
+      "tier": 1,
+      "view": null,
+      "file": "buildings/bld_lair_wyrm-nest_t1.png",
+      "anchorX": 0.522,
+      "anchorY": 0.996,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "B10"
+    },
+    {
       "id": "bld_market_t1",
       "kind": "bld",
       "tier": 1,
@@ -10,6 +76,17 @@
       "anchorY": 0.995,
       "license": "own (ChatGPT, Stefan's account)",
       "source": "B7"
+    },
+    {
+      "id": "bld_market_t2",
+      "kind": "bld",
+      "tier": 2,
+      "view": null,
+      "file": "buildings/bld_market_t2.png",
+      "anchorX": 0.55,
+      "anchorY": 0.996,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "B9"
     },
     {
       "id": "bld_shrine_t1",
@@ -23,6 +100,17 @@
       "source": "B7"
     },
     {
+      "id": "bld_shrine_t2",
+      "kind": "bld",
+      "tier": 2,
+      "view": null,
+      "file": "buildings/bld_shrine_t2.png",
+      "anchorX": 0.512,
+      "anchorY": 0.997,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "B9"
+    },
+    {
       "id": "bld_smithy_t1",
       "kind": "bld",
       "tier": 1,
@@ -32,6 +120,17 @@
       "anchorY": 0.996,
       "license": "own (ChatGPT, Stefan's account)",
       "source": "B7"
+    },
+    {
+      "id": "bld_smithy_t2",
+      "kind": "bld",
+      "tier": 2,
+      "view": null,
+      "file": "buildings/bld_smithy_t2.png",
+      "anchorX": 0.552,
+      "anchorY": 0.997,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "B9"
     },
     {
       "id": "bld_temple_aesir_t1",
@@ -45,6 +144,17 @@
       "source": "B6"
     },
     {
+      "id": "bld_temple_aesir_t2",
+      "kind": "bld",
+      "tier": 2,
+      "view": null,
+      "file": "buildings/bld_temple_aesir_t2.png",
+      "anchorX": 0.711,
+      "anchorY": 0.997,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "B9"
+    },
+    {
       "id": "bld_temple_egyptian_t1",
       "kind": "bld",
       "tier": 1,
@@ -54,6 +164,17 @@
       "anchorY": 0.996,
       "license": "own (ChatGPT, Stefan's account)",
       "source": "B6"
+    },
+    {
+      "id": "bld_temple_egyptian_t2",
+      "kind": "bld",
+      "tier": 2,
+      "view": null,
+      "file": "buildings/bld_temple_egyptian_t2.png",
+      "anchorX": 0.695,
+      "anchorY": 0.997,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "B9"
     },
     {
       "id": "bld_temple_greek_t1",
@@ -67,6 +188,17 @@
       "source": "B6"
     },
     {
+      "id": "bld_temple_greek_t2",
+      "kind": "bld",
+      "tier": 2,
+      "view": null,
+      "file": "buildings/bld_temple_greek_t2.png",
+      "anchorX": 0.536,
+      "anchorY": 0.997,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "B9"
+    },
+    {
       "id": "bld_tower_t1",
       "kind": "bld",
       "tier": 1,
@@ -78,6 +210,17 @@
       "source": "B7"
     },
     {
+      "id": "bld_tower_t2",
+      "kind": "bld",
+      "tier": 2,
+      "view": null,
+      "file": "buildings/bld_tower_t2.png",
+      "anchorX": 0.587,
+      "anchorY": 0.997,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "B9"
+    },
+    {
       "id": "bld_townhall_t1",
       "kind": "bld",
       "tier": 1,
@@ -87,6 +230,17 @@
       "anchorY": 0.996,
       "license": "own (ChatGPT, Stefan's account)",
       "source": "B7"
+    },
+    {
+      "id": "bld_townhall_t2",
+      "kind": "bld",
+      "tier": 2,
+      "view": null,
+      "file": "buildings/bld_townhall_t2.png",
+      "anchorX": 0.567,
+      "anchorY": 0.997,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "B9"
     },
     {
       "id": "hero_paladin_t1_back",
