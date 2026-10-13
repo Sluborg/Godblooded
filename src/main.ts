@@ -10,6 +10,7 @@ import { SettingsScene } from './scenes/SettingsScene';
 import { TitleScene } from './scenes/TitleScene';
 import { LevelUpScene } from './scenes/LevelUpScene';
 import { MapScene } from './scenes/MapScene';
+import { PartsGalleryScene } from './scenes/PartsGalleryScene';
 
 // Auto-update: a new deploy is picked up and the page reloads with it.
 registerSW({
@@ -49,6 +50,7 @@ const game = new Phaser.Game({
     EndScene,
     PauseScene,
     SettingsScene,
+    PartsGalleryScene,
   ],
 });
 
@@ -56,4 +58,12 @@ const game = new Phaser.Game({
 // the headless test runner. Never used by game code.
 if (new URLSearchParams(location.search).has('debug')) {
   (window as unknown as { __game: Phaser.Game }).__game = game;
+}
+
+// Review page for the part-based heroes: ?gallery=thor (see PartsGalleryScene).
+if (new URLSearchParams(location.search).has('gallery')) {
+  game.events.once(Phaser.Core.Events.READY, () => {
+    game.scene.stop('Boot');
+    game.scene.start('PartsGallery');
+  });
 }
