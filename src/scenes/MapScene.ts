@@ -308,6 +308,7 @@ export class MapScene extends Phaser.Scene {
     );
     this.drawLinks();
     for (const e of this.snap.events) {
+      if (e.kind === 'lairTierUp') this.lairGrows(e.lair, e.tier);
       if (e.kind !== 'hit') continue;
       const view = this.views.get(`b${e.target}`) ?? this.views.get(`l${e.target}`);
       if (view && !e.dodged)
@@ -338,6 +339,51 @@ export class MapScene extends Phaser.Scene {
   }
 
   // While a hero is selected, its party's pick is drawn as lines to the flags they head for.
+  // A lair reaching a new tier: it swells, a red ring spreads and a label rises.
+  private lairGrows(id: number, tier: number): void {
+    const lair = this.snap.lairs.find((l) => l.id === id);
+    if (!lair) return;
+    const view = this.views.get(`l${id}`);
+    if (view && !getSettings().reducedMotion)
+      this.tweens.add({
+        targets: view,
+        scale: 1.25,
+        duration: 220,
+        yoyo: true,
+        ease: 'Sine.easeOut',
+      });
+    const { x, y } = lair.pos;
+    const ring = this.add
+      .circle(x, y, 30, 0x000000, 0)
+      .setStrokeStyle(6, 0xd9534f, 0.9)
+      .setDepth(1_000_000);
+    this.tweens.add({
+      targets: ring,
+      scale: getSettings().reducedMotion ? 3 : 7,
+      alpha: 0,
+      duration: 700,
+      onComplete: () => ring.destroy(),
+    });
+    const label = this.add
+      .text(x, y - 90, `${lair.type} lair grows (tier ${tier})`, {
+        fontFamily: 'Georgia, serif',
+        fontSize: '28px',
+        color: '#ff9a8a',
+        stroke: '#000000',
+        strokeThickness: 5,
+      })
+      .setOrigin(0.5)
+      .setDepth(1_000_000);
+    this.tweens.add({
+      targets: label,
+      y: label.y - 50,
+      alpha: 0,
+      delay: 600,
+      duration: 900,
+      onComplete: () => label.destroy(),
+    });
+  }
+
   private drawLinks(): void {
     this.links.clear();
     const selected = this.snap.units.find((u) => u.id === this.registry.get('selectedUnit'));
