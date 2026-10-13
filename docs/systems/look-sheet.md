@@ -113,21 +113,24 @@ building carries **none** of them:
 
 ### Effects by tier (no screen shake, ever)
 
-| Level               | Hits                           | Skills and auras                                    | Glows                            |
-| ------------------- | ------------------------------ | --------------------------------------------------- | -------------------------------- |
-| Tier 1              | a small spark, a short flash   | none (tier 1 has no skill)                          | none                             |
-| Tier 2              | a spark and a short trail      | the skill shape, clear but small                    | a faint glow on the weapon       |
-| Tier 3              | a bright spark, a longer trail | the skill shape bigger, a clear aura while it lasts | a steady glow, close to the body |
-| Bosses and late run | heavy impacts, dust, embers    | telegraphs on the ground, big and readable          | strong, but never full-screen    |
+| Level  | Hits                           | Skills and auras                                    | Glows                            |
+| ------ | ------------------------------ | --------------------------------------------------- | -------------------------------- |
+| Tier 1 | a small spark, a short flash   | none (tier 1 has no skill)                          | none                             |
+| Tier 2 | a spark and a short trail      | the skill shape, clear but small                    | a faint glow round the hero      |
+| Tier 3 | a bright spark, a longer trail | the skill shape bigger, a clear aura while it lasts | a steady glow, close to the body |
+
+- **Weapon glows follow the weapon's level, not the hero's tier** (`items-and-shops.md` section
+  5, #240): level 2 a steel shimmer, level 3 a glow in the hero's damage-type colour.
+  | Bosses and late run | heavy impacts, dust, embers | telegraphs on the ground, big and readable | strong, but never full-screen |
 
 ## 7. UI
 
-| Item     | Reads as            | Spec                                                                      | Owner               |
-| -------- | ------------------- | ------------------------------------------------------------------------- | ------------------- |
-| Frames   | wood and parchment  | dark wood border, parchment fill, iron studs at the corners; 9-slice      | Art (UI kit), Scene |
-| Buttons  | something to press  | wood with a parchment face; pressed and disabled states; at least 80 x 80 | Art, Scene          |
-| Text     | readable on a phone | dark brown on parchment, at least 18 px; numbers at least 28 px           | Scene               |
-| HUD bars | gold, clock, favour | parchment strips with wood ends, top of the screen                        | Art, Scene          |
+| Item     | Reads as                        | Spec                                                                                                                                                   | Owner               |
+| -------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------- |
+| Frames   | wood and parchment              | dark wood border, dark parchment centre (light parchment later, U8), iron studs at the corners; 9-slice                                                | Art (UI kit), Scene |
+| Buttons  | something to press              | wood with a parchment face; pressed and disabled states; at least 80 x 80                                                                              | Art, Scene          |
+| Text     | readable on a phone             | light text on the dark parchment centres (#233, decision 2026-10-14), at least 18 px; numbers at least 28 px; dark ink on light parchment waits for U8 | Scene               |
+| HUD bars | gold, clock (favour bars in M3) | parchment strips with wood ends, top of the screen                                                                                                     | Art, Scene          |
 
 ## 8. Proposed rows
 
