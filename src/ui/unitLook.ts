@@ -42,6 +42,13 @@ export function buildingArtCandidates(type: string, tier: number): string[] {
   return out;
 }
 
+// Pictures to try for a lair (Art ships `bld_lair_<id>_t1`; higher tiers fall back to tier 1).
+export function lairArtCandidates(type: string, tier: number): string[] {
+  const out = [`bld_lair_${type}_t${tier}`];
+  if (tier > 1) out.push(`bld_lair_${type}_t1`);
+  return out;
+}
+
 // A building picture is scaled to fit a footprint this wide and this tall, in world units (a plot
 // is about 220 apart), so a tall tower and a wide hall both sit on their plot.
 export const BUILDING_FIT = { w: 190, h: 280 };
