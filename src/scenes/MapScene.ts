@@ -1,3 +1,4 @@
+import { makeGround, releaseGround } from '../ui/ground';
 import Phaser from 'phaser';
 import { COLORS, GAME_HEIGHT, GAME_WIDTH } from '../config';
 import { GRAYBOX } from '../data/graybox';
@@ -120,8 +121,7 @@ export class MapScene extends Phaser.Scene {
     cam.setBounds(0, 0, width, height).setZoom(Math.max(minZoom, 0.8));
     cam.centerOn(GRAYBOX.townHall.x, GRAYBOX.townHall.y);
     cam.setBackgroundColor(COLORS.background);
-    this.add.rectangle(width / 2, height / 2, width, height, COLORS.ground);
-    this.drawGrid(width, height);
+    makeGround(this, width, height);
     attachCameraControls(this, {
       minZoom,
       onTap: (w) => this.events.emit('mapTapped', this.resolveTap(w)),
@@ -137,7 +137,10 @@ export class MapScene extends Phaser.Scene {
     this.registry.set('camMode', 'off');
     this.registry.set('modal', false);
     // A finished or restarted run gives its baked looks back.
-    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => releaseSets(this));
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      releaseSets(this);
+      releaseGround(this);
+    });
     this.unitViews = new UnitViews(this, () => {
       if (STYLE.screenShake && !getSettings().reducedMotion) this.cameras.main.shake(130, 0.004);
     });
@@ -408,12 +411,6 @@ export class MapScene extends Phaser.Scene {
       }
     }
     return best;
-  }
-
-  private drawGrid(width: number, height: number): void {
-    const g = this.add.graphics().lineStyle(2, 0x000000, 0.12);
-    for (let x = 0; x <= width; x += 200) g.lineBetween(x, 0, x, height);
-    for (let y = 0; y <= height; y += 200) g.lineBetween(0, y, width, y);
   }
 
   // Creates, moves and removes one view per snapshot entity, keyed by kind and sim id.
