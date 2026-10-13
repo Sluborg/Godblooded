@@ -10,9 +10,9 @@ import {
 } from './units';
 import { shareXp } from './parties';
 import { earn, tally } from './runstats';
-import { resolveStrike } from './strike';
+import { attackStrike, hitEvent, resolveStrike } from './strike';
 import { swing } from './swing';
-import type { UnitRuntime, World } from './world';
+import { targetOf, type UnitRuntime, type World } from './world';
 import type { BuildingCore, CommandResult, LairState, UnitState, Vec2 } from './types';
 
 // The town side of a run, simplified and logged in docs/decisions.md: heroes can destroy
@@ -59,17 +59,10 @@ export function attackBuilding(
     return;
   }
   swing(world, unit, rt, stats, b.id, () => {
-    const hit = resolveStrike(world, { attrs: stats.attrs, canDodge: false });
+    const hit = resolveStrike(world, { ...attackStrike(stats), vsBuilding: true });
     const dmg = hit.damage;
     b.hp -= dmg;
-    world.events.push({
-      kind: 'hit',
-      attacker: unit.id,
-      target: b.id,
-      damage: dmg,
-      dodged: false,
-      ...(hit.crit ? { crit: true } : {}),
-    });
+    world.events.push(hitEvent(unit.id, b.id, hit));
     if (b.hp > 0) return;
     world.buildings = world.buildings.filter((x) => x.id !== b.id);
     world.stats.buildingsLost++;
@@ -110,18 +103,11 @@ export function attackLair(
     return;
   }
   swing(world, unit, rt, stats, lair.id, () => {
-    const hit = resolveStrike(world, { attrs: stats.attrs, canDodge: false });
+    const hit = resolveStrike(world, attackStrike(stats));
     const dmg = hit.damage;
     lair.hp -= dmg;
     tally(world, unit.id, 'damage', dmg);
-    world.events.push({
-      kind: 'hit',
-      attacker: unit.id,
-      target: lair.id,
-      damage: dmg,
-      dodged: false,
-      ...(hit.crit ? { crit: true } : {}),
-    });
+    world.events.push(hitEvent(unit.id, lair.id, hit));
     if (lair.hp > 0) return;
     const tm = world.tuning.monster;
     world.lairs = world.lairs.filter((l) => l.id !== lair.id);
@@ -252,14 +238,16 @@ export function runTowers(world: World): void {
     if (!foe) continue;
     world.towerNextMs.set(b.id, world.timeMs + tierValue(t.towerCooldownMs, b.tier, 2000));
     // Towers' one sure thing: the tier's flat damage, no dodge, no crit.
-    const dmg = resolveStrike(world, {
+    const hit = resolveStrike(world, {
       attrs: TOWER_ATTRS,
       power: tierValue(t.towerDamage, b.tier, 0),
       canDodge: false,
       canCrit: false,
-    }).damage;
+      target: targetOf(world, foe),
+    });
+    const dmg = hit.damage;
     foe.hp -= dmg;
-    world.events.push({ kind: 'hit', attacker: b.id, target: foe.id, damage: dmg, dodged: false });
+    world.events.push(hitEvent(b.id, foe.id, hit));
     if (foe.hp <= 0) {
       foe.hp = 0;
       world.pendingDeaths.push({ victim: foe.id, by: b.id });

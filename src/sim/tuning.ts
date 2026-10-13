@@ -15,6 +15,7 @@ export const DEFAULT_TUNING: Tuning = {
     armourK: 20,
     resistK: 30,
     critMult: 1.5,
+    buildingFireMult: 1.5,
   },
   hero: {
     firstRecruitMs: 5_000,
