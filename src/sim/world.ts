@@ -782,9 +782,9 @@ export function snapshot(world: World): Snapshot {
       ...(u.items ? { items: { ...u.items } } : {}),
     })),
     bounties: world.bounties.map((b) => ({ ...b, pos: { ...b.pos } })),
-    favour: Object.entries(world.favour).map(([pantheon, value]) => ({
-      pantheon,
-      value,
+    favour: (world.data.miracles ?? []).map((m) => ({
+      pantheon: m.pantheon,
+      value: world.favour[m.pantheon] ?? 0,
       max: world.tuning.favour.max,
     })),
     graves: world.graves.map((g) => ({ ...g, pos: { ...g.pos } })),

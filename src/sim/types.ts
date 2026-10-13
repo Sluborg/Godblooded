@@ -905,7 +905,8 @@ export type SimEvent =
     }
   | { kind: 'bossEmerged'; unit: number; lair: number }
   | { kind: 'enraged'; unit: number }
-  | { kind: 'heal'; healer: number; target: number; amount: number }
+  // `source: 'miracle'`: a god's doing; `healer` is 0 (no unit swings or casts).
+  | { kind: 'heal'; healer: number; target: number; amount: number; source?: 'miracle' }
   | {
       kind: 'hit';
       attacker: number;
@@ -920,6 +921,8 @@ export type SimEvent =
       absorbed?: number;
       // A burn tick rather than a strike.
       tick?: boolean;
+      // `source: 'miracle'`: a god's doing; `attacker` is 0 (no unit swings or casts).
+      source?: 'miracle';
       // The target's type row made it x1.5 or more (weak) or less than x1 (resist).
       weak?: boolean;
       resist?: boolean;

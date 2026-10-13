@@ -137,7 +137,11 @@ describe('favour bars', () => {
     run(w, 8000);
     expect(w.favour.aesir).toBeCloseTo(4, 1);
     expect(w.favour.greek).toBeUndefined();
-    expect(snapshot(w).favour).toEqual([{ pantheon: 'aesir', value: w.favour.aesir, max: 100 }]);
+    expect(snapshot(w).favour).toEqual([
+      { pantheon: 'aesir', value: w.favour.aesir, max: 100 },
+      { pantheon: 'greek', value: 0, max: 100 },
+      { pantheon: 'egyptian', value: 0, max: 100 },
+    ]);
   });
 
   it('nothing fills without miracle rows; a bar never passes max', () => {
@@ -171,9 +175,9 @@ describe('the gods act', () => {
     expect(spot && Math.round(spot.x)).toBeGreaterThanOrEqual(1800);
   });
 
-  it("Thor's storm strikes six random monsters over 3 s, credited to a hero", () => {
+  it("Thor's storm strikes six random monsters over 3 s, marked as the god's own", () => {
     const w = createWorld(1, data);
-    const h = hero(w, 'thor', 500, 0.3);
+    hero(w, 'thor', 500, 0.3);
     const rats = [200, 220, 240, 260, 280, 300].map((d) => monster(w, 'rat', 500 + d, 100_000));
     addFavour(w, 'aesir', 100);
     const ev = run(w, 6000);
@@ -181,7 +185,8 @@ describe('the gods act', () => {
     expect(m).toMatchObject({ id: 'storm', pantheon: 'aesir', tellMs: 1500 });
     expect(w.favour.aesir).toBeLessThan(5);
     const hits = ev.filter(
-      (e) => e.kind === 'hit' && e.attacker === h.id && e.type === 'lightning',
+      (e) =>
+        e.kind === 'hit' && e.attacker === 0 && e.source === 'miracle' && e.type === 'lightning',
     );
     expect(hits).toHaveLength(6);
     expect(rats.some((r) => r.hp < r.maxHp)).toBe(true);
@@ -210,7 +215,10 @@ describe('the gods act', () => {
     const mummy = monster(w, 'mummy', 600);
     const rat = monster(w, 'rat', 620);
     addFavour(w, 'egyptian', 100);
-    run(w, 3000);
+    const ev = run(w, 3000);
+    expect(ev.some((e) => e.kind === 'heal' && e.healer === 0 && e.source === 'miracle')).toBe(
+      true,
+    );
     expect(h.hp).toBeGreaterThan(before);
     expect(mummy.hp).toBeLessThan(mummy.maxHp);
     expect(rat.hp).toBe(rat.maxHp);

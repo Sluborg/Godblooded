@@ -4,7 +4,7 @@ import { applyRider, healMult } from './riders';
 import { hitEvent, resolveStrike } from './strike';
 import { dist, TICK_MS } from './units';
 import { targetOf, type World } from './world';
-import type { MiracleDef, MiracleEffect, UnitState, Vec2 } from './types';
+import type { MiracleDef, MiracleEffect, SimEvent, UnitState, Vec2 } from './types';
 
 // God favours (Sim 400, docs/systems/events.md section 3). Temples fill a bar per pantheon; a
 // full bar makes the god cast its miracle by itself where its children are in the most danger.
@@ -206,7 +206,7 @@ function applyEffect(
         const amount = Math.min(gain, unit.maxHp - unit.hp);
         if (amount <= 0) break;
         unit.hp += amount;
-        world.events.push({ kind: 'heal', healer: by.id, target: unit.id, amount });
+        world.events.push({ kind: 'heal', healer: 0, target: unit.id, amount, source: 'miracle' });
         break;
       }
       case 'shield':
@@ -232,9 +232,11 @@ function hurt(world: World, effect: MiracleEffect, foe: UnitState, by: UnitState
   });
   const taken = takeDamage(world, foe, out.damage);
   foe.hp -= taken.hp;
-  world.events.push(
-    hitEvent(by.id, foe.id, { ...out, damage: taken.dealt }, taken.dealt - taken.hp),
-  );
+  // The god's doing, not the hero's: no attacker unit, so Scene plays no swing.
+  world.events.push({
+    ...hitEvent(0, foe.id, { ...out, damage: taken.dealt }, taken.dealt - taken.hp),
+    source: 'miracle',
+  } as SimEvent);
   if (effect.rider) applyRider(world, effect.rider, by.id, foe, out);
   if (foe.hp <= 0) {
     foe.hp = 0;
