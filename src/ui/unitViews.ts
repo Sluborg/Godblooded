@@ -279,7 +279,7 @@ export class UnitView {
     if (!look) return this.leaveParts();
     const id = look.id;
     if (id === this.partsId) return true;
-    const set = ensureHeroSet(this.scene, id, look.def);
+    const set = ensureHeroSet(this.scene, id, look.def, u.tier);
     const first = set.frames.idle[0];
     this.partsSet = set;
     this.partsId = id;

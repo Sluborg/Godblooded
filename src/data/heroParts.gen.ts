@@ -18,7 +18,7 @@ export const HERO_DEFS = {
     fx: 'spark',
     hp: 60,
     speed: 62,
-    atk: { style: 'swing', type: 'physical', dmg: [7, 10], cd: 1.25, range: 22, dur: 0.62 },
+    atk: { style: 'swing', type: 'physical', dmg: [7, 10], cd: 1.35, range: 22, dur: 0.88 },
     paths: [
       {
         name: 'Hammerborn',
@@ -50,7 +50,7 @@ export const HERO_DEFS = {
             dmg: [8, 11],
             cd: 1.5,
             range: 150,
-            dur: 0.6,
+            dur: 0.78,
             shot: 'zap',
           },
         },
@@ -82,7 +82,7 @@ export const HERO_DEFS = {
       dmg: [6, 8],
       cd: 1.6,
       range: 160,
-      dur: 0.6,
+      dur: 0.78,
       shot: 'orb',
     },
     paths: [
@@ -96,7 +96,7 @@ export const HERO_DEFS = {
         t2: {
           weapon: 'spear',
           pack: true,
-          atk: { style: 'thrust', type: 'physical', dmg: [7, 9], cd: 1.2, range: 26, dur: 0.5 },
+          atk: { style: 'thrust', type: 'physical', dmg: [7, 9], cd: 1.25, range: 26, dur: 0.66 },
         },
         t3: {
           gold: true,
@@ -123,7 +123,7 @@ export const HERO_DEFS = {
     fx: 'greenflame',
     hp: 26,
     speed: 74,
-    atk: { style: 'stab', type: 'physical', dmg: [4, 6], cd: 0.85, range: 20, dur: 0.5 },
+    atk: { style: 'stab', type: 'physical', dmg: [4, 6], cd: 0.95, range: 20, dur: 0.66 },
     paths: [
       {
         name: 'Trickster',
@@ -153,7 +153,7 @@ export const HERO_DEFS = {
             dmg: [7, 9],
             cd: 1.4,
             range: 140,
-            dur: 0.55,
+            dur: 0.74,
             shot: 'fireball',
           },
         },
@@ -183,7 +183,7 @@ export const HERO_DEFS = {
       dmg: [5, 7],
       cd: 1.5,
       range: 150,
-      dur: 0.6,
+      dur: 0.78,
       shot: 'star',
     },
     paths: [
@@ -195,7 +195,7 @@ export const HERO_DEFS = {
           off: 'shield',
           shield: ['#3d6fa8', '#efe3c8'],
           plate: '#bcc5cc',
-          atk: { style: 'thrust', type: 'physical', dmg: [7, 9], cd: 1.2, range: 26, dur: 0.5 },
+          atk: { style: 'thrust', type: 'physical', dmg: [7, 9], cd: 1.25, range: 26, dur: 0.66 },
         },
         t3: { gold: true, capeLen: 1.35, aura: '#ffd34d', spirit: true, wscale: 1.15 },
       },
@@ -211,7 +211,7 @@ export const HERO_DEFS = {
             dmg: [6, 8],
             cd: 1.5,
             range: 150,
-            dur: 0.6,
+            dur: 0.78,
             shot: 'shard',
           },
         },
