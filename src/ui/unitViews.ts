@@ -2,6 +2,9 @@ import Phaser from 'phaser';
 import { GRAYBOX } from '../data/graybox';
 import { lookOf, type UnitLook } from '../data/looks';
 import { bossState } from './bossLook';
+import { heroPartsId, heroPartsRow } from '../data/heroParts';
+import { ensureHeroSet, type BakedSet } from './parts/bake';
+import { attackFrame, idleFrame, koFrame, walkFrame, type PoseName } from './parts/frames';
 import type { RiderId, SimEvent, UnitState, Vec2 } from '../sim/api';
 import { ASSETS_KEY, type ManifestAsset } from './assets';
 import {
@@ -31,6 +34,13 @@ import { buildHeal, buildStrike, FxLayer, type Vec } from './strikeFx';
 import { ART_NOMINAL_PX, PLACEHOLDER, UNIT_HEIGHT, artCandidates, baseType } from './unitLook';
 
 // Speech bubbles: how long one stays, the most on screen at once, and the quiet time per unit.
+// Heroes drawn from parts (src/ui/parts/) instead of a picture; `?noparts` in the URL turns it off.
+const USE_PARTS =
+  typeof location === 'undefined' || !new URLSearchParams(location.search).has('noparts');
+// A standard hero is about this tall in the parts drawing units (head to feet).
+const PARTS_HERO_H = 44;
+const NO_POSE: Pose = { rot: 0, dx: 0, dy: 0, sx: 1, sy: 1 };
+
 const BUBBLE_MS = 2200;
 const HIGH_BUBBLE_MS = 3000;
 const HIGH_WAIT_MS = 1500;
@@ -148,6 +158,10 @@ export class UnitView {
   private ay = 1;
   private row: ManifestAsset | undefined;
   private artId = '';
+  // The baked parts look this hero is drawn with (null: a picture or the placeholder).
+  private partsSet: BakedSet | null = null;
+  private partsId = '';
+  private attackProgress = -1;
   // Green heal tint, 1 right after a heal and fading to 0.
   private healGlow = 0;
   private glowColor = 0x7dff9a;
@@ -239,6 +253,48 @@ export class UnitView {
   }
 
   // ---------- art ----------
+
+  // A hero with a parts row is drawn from baked parts frames; false when it has none.
+  private applyParts(u: UnitState): boolean {
+    if (!USE_PARTS || u.kind !== 'hero' || !u.god) return this.leaveParts();
+    const row = heroPartsRow(u.god, u.path, u.tier);
+    if (!row) return this.leaveParts();
+    const id = heroPartsId(u.god, u.path, u.tier);
+    if (id === this.partsId) return true;
+    const set = ensureHeroSet(this.scene, id, row);
+    const first = set.keys.idle[0];
+    this.partsSet = set;
+    this.partsId = id;
+    this.artId = '';
+    if (!this.sprite) {
+      this.sprite = this.scene.add.image(0, 0, first);
+      this.flash = this.scene.add.image(0, 0, first).setVisible(false);
+      this.body.addAt(this.sprite, 0);
+      this.body.add(this.flash);
+    }
+    // World units per baked pixel: the hero's height over its drawing height, over the bake scale.
+    const scale = (UNIT_HEIGHT * this.look.scale) / PARTS_HERO_H / set.pxPerUnit;
+    for (const img of [this.sprite, this.flash]) {
+      img?.setTexture(first).setOrigin(set.originX, set.originY).setScale(scale).clearTint();
+    }
+    this.ax = set.originX;
+    this.ay = set.originY;
+    this.row = undefined;
+    this.w = (UNIT_HEIGHT * this.look.scale * 22) / PARTS_HERO_H;
+    this.h = UNIT_HEIGHT * this.look.scale;
+    this.capsule.setVisible(false);
+    this.nose.setVisible(false);
+    return true;
+  }
+
+  private leaveParts(): boolean {
+    if (this.partsSet) {
+      this.partsSet = null;
+      this.partsId = '';
+      this.artId = ''; // applyArt sets the picture (or the placeholder) back
+    }
+    return false;
+  }
 
   // Swaps in the picture for this unit when the manifest has it; else the placeholder stays.
   private applyArt(u: UnitState): void {
@@ -481,7 +537,7 @@ export class UnitView {
 
   update(u: UnitState, ctx: FrameCtx, role: PartyRole = 'solo'): void {
     this.tierNow = u.tier;
-    this.applyArt(u);
+    if (!this.applyParts(u)) this.applyArt(u);
     if (u.kind === 'hero') {
       this.label.setText(heroLabel(u));
       // The path name can be wider than "<God>-born": keep the party badge beside the label.
@@ -530,20 +586,38 @@ export class UnitView {
 
     let pose: Pose;
     let alpha = 1;
+    let frame: { pose: PoseName; i: number } = { pose: 'idle', i: idleFrame(this.phase) };
+    this.attackProgress = -1;
     if (this.koK > 0) {
       const ko = koPose(this.koK, this.koDir);
       pose = ko.pose;
       alpha = ko.alpha;
+      frame = { pose: 'ko', i: koFrame(this.koK) };
       this.attack = null;
     } else if (this.attack) {
       pose = this.runAttack(ctx);
+      if (this.attack) {
+        const a = this.attack;
+        this.attackProgress = a.t / attackDuration(a.strike, a.windup);
+        frame = { pose: 'attack', i: attackFrame(this.attackProgress) };
+      }
     } else if (moving) {
       const before = Math.floor(this.stepT);
       this.stepT += step / (this.h * STEP_LENGTH);
       if (Math.floor(this.stepT) !== before) this.stepDust(ctx);
       pose = walkPose(this.stepT, this.h, this.face);
+      frame = { pose: 'walk', i: walkFrame(this.stepT) };
     } else {
       pose = idlePose(this.phase);
+    }
+    if (this.partsSet) {
+      // The baked frame carries the pose (stride, swing, fall): the body stays upright.
+      const key = this.partsSet.keys[frame.pose][frame.i];
+      if (key && this.sprite?.texture.key !== key) {
+        this.sprite?.setTexture(key);
+        this.flash?.setTexture(key);
+      }
+      pose = NO_POSE;
     }
     this.applyPose(pose, alpha * this.fade);
     this.container.setPosition(this.x, this.y).setDepth(this.y);
