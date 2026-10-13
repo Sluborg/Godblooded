@@ -35,8 +35,9 @@ export function earn(world: World, hero: UnitState, gold: number): void {
   tally(world, hero.id, 'goldEarned', gold);
 }
 
-// What makes a hero the MVP: kills, five per lair destroyed, then damage as a tie-breaker.
-const score = (r: HeroRecord) => r.kills + 5 * r.lairKills + r.damage / 1000;
+// What makes a hero the MVP: kills plus five per lair destroyed. Ties go to damage, then gold
+// earned, then the lower unit id.
+const score = (r: HeroRecord) => r.kills + 5 * r.lairKills;
 
 // Town gold sampled every tuning.stats.goldSampleMs.
 export function sampleGold(world: World): void {
@@ -63,7 +64,10 @@ export function buildReport(world: World): RunReport | null {
       mvp: false,
     });
   }
-  heroes.sort((a, b) => score(b) - score(a) || b.goldEarned - a.goldEarned || a.unit - b.unit);
+  heroes.sort(
+    (a, b) =>
+      score(b) - score(a) || b.damage - a.damage || b.goldEarned - a.goldEarned || a.unit - b.unit,
+  );
   if (heroes.length > 0 && score(heroes[0]) > 0) heroes[0].mvp = true;
   return {
     outcome: world.status,
@@ -71,9 +75,16 @@ export function buildReport(world: World): RunReport | null {
     mvp: heroes.find((h) => h.mvp)?.unit ?? null,
     heroes,
     lairsCleared: world.lairLog.map((l) => ({ ...l })),
-    goldHistory: [
-      ...world.goldLog.map((g) => ({ ...g })),
-      { timeMs: world.timeMs, gold: world.gold },
-    ],
+    goldHistory: goldHistory(world),
   };
+}
+
+// The sampled curve plus the final value; a sample taken at the very last instant is replaced
+// by it, so timestamps only go up.
+function goldHistory(world: World): { timeMs: number; gold: number }[] {
+  const out = world.goldLog.map((g) => ({ ...g }));
+  const last = out[out.length - 1];
+  if (last && last.timeMs === world.timeMs) last.gold = world.gold;
+  else out.push({ timeMs: world.timeMs, gold: world.gold });
+  return out;
 }

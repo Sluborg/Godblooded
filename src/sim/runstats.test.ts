@@ -103,6 +103,43 @@ describe('run report', () => {
     expect(report?.mvp).toBe(b);
   });
 
+  it('damage only breaks ties: one more kill beats any amount of damage', () => {
+    const w = createWorld(1, data);
+    const a = spawnHero(w, 'warrior', { x: 100, y: 100 });
+    const b = spawnHero(w, 'warrior', { x: 100, y: 100 });
+    const ra = w.heroRecords.get(a);
+    const rb = w.heroRecords.get(b);
+    if (!ra || !rb) throw new Error('records');
+    ra.kills = 3;
+    ra.damage = 10;
+    rb.kills = 2;
+    rb.damage = 100_000;
+    w.status = 'lost';
+    expect(snapshot(w).report?.heroes.map((h) => h.unit)).toEqual([a, b]);
+    // equal score: damage decides, then gold
+    rb.kills = 3;
+    expect(snapshot(w).report?.heroes.map((h) => h.unit)).toEqual([b, a]);
+    ra.damage = rb.damage;
+    ra.goldEarned = 5;
+    expect(snapshot(w).report?.heroes.map((h) => h.unit)).toEqual([a, b]);
+  });
+
+  it('a run ending on a sampling instant keeps one point for that time', () => {
+    const w = createWorld(1, {
+      ...data,
+      tuning: { ...data.tuning, stats: { goldSampleMs: 1_000 } },
+    });
+    stepOnce(w, 1_000);
+    expect(w.timeMs).toBe(1_000);
+    w.gold = 777;
+    w.status = 'lost';
+    const hist = snapshot(w).report?.goldHistory ?? [];
+    expect(hist.filter((p) => p.timeMs === 1_000)).toEqual([{ timeMs: 1_000, gold: 777 }]);
+    for (let i = 1; i < hist.length; i++) {
+      expect(hist[i].timeMs).toBeGreaterThan(hist[i - 1].timeMs);
+    }
+  });
+
   it('nobody is MVP when nobody did anything', () => {
     const w = createWorld(1, data);
     spawnHero(w, 'warrior', { x: 100, y: 100 });
