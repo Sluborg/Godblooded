@@ -15,6 +15,7 @@ export type {
   ClassDef,
   CombatTuning,
   CommandResult,
+  DamageType,
   GameData,
   HeroReport,
   GodDef,

@@ -8,6 +8,16 @@ export const TICK_MS = 50;
 export interface Stats {
   attrs: Attributes;
   weapon: { baseAttackS: number; range: number };
+  // Flat armour against physical strikes (0 when missing).
+  armour?: number;
+  // A caster's strike is a spell of Int times this (see ClassDef.spellMult).
+  spellMult?: number;
+  // The type of the basic attack (casters: their god's or path's); missing: physical or, for a
+  // caster, an untyped spell.
+  damageType?: string;
+  // As a target: tags and the damage type to multiplier row (monsters).
+  tags?: readonly string[];
+  types?: Partial<Record<string, number>>;
 }
 
 // Graybox derivations from the Coda combat reference (Lead's numbers stay attributes only).
