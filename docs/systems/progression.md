@@ -100,7 +100,7 @@ tiers) and on `combat.md`, `paths-and-skills.md` and `items-and-shops.md`.
 | kleos          | Kleos            | pantheon | rare   | Greek    | +50% gold from flags and lairs; a kill shout per kill      |
 | metis          | Metis            | pantheon | epic   | Greek    | +10% crit; crits stagger                                   |
 | scarab         | Scarab           | pantheon | common | Egyptian | heal 3% max hp per kill                                    |
-| book-of-dead   | Book of the Dead | pantheon | rare   | Egyptian | boss death chance -10 points; +25% damage to undead        |
+| book-of-dead   | Book of the Dead | pantheon | rare   | Egyptian | death chances -10 points (boss), -5 (lair); +25% vs undead |
 | eye-of-ra      | Eye of Ra        | pantheon | epic   | Egyptian | every 4th strike is holy and carries sear                  |
 
 Favour cards (level 7, one per god, epic): a stronger form of the god's passive for the

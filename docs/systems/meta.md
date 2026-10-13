@@ -110,14 +110,16 @@ in-run omens of `events.md`). Each trial won with is marked on the hall.
 | 10    | Blood Moon    | first raid 2 minutes earlier |
 | 20    | Restless Dead | lairs start at tier 2        |
 | 30    | Thin Faith    | temples recruit 25% slower   |
-| 40    | Hungry Gods   | boss death chance doubled    |
+| 40    | Hungry Gods   | death chances doubled        |
 | 50    | Lean Years    | start with half the gold     |
 
 ## 4. Save
 
 - One localStorage key, `godblooded.meta`, JSON: `{ version: 1, runs, wins, ichor, altar:
-Record<string, number>, unlocks: string[], trialsWon: string[], saga: SagaEntry[], lastBoss?:
-string }` (`lastBoss` keeps the boss pick from repeating, `monsters-and-bosses.md`).
+Record<string, number>, unlocks: string[], trialsWon: string[], saga: SagaEntry[], hintsSeen:
+string[], hintsOn: boolean, lastBoss?:
+string }` (`hintsSeen` and `hintsOn` from `onboarding.md`; `lastBoss` keeps the boss pick from
+  repeating, `monsters-and-bosses.md`).
 - Versioned per `CLAUDE.md`: a shape change bumps `version` and adds a migration. A missing or
   broken save starts fresh (it never blocks play).
 - A dev flag (settings) unlocks everything, for testing and for Stefan.

@@ -97,15 +97,14 @@ does about 30-40 damage per second, so a boss fight lasts 60-90 s.
 
 ### Signature moves
 
-| Boss   | Move        | Rule                                                                                                                                                                                           | Telegraph (Scene)                                      |
-| ------ | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
-| Fafnir | Fire Breath | every third strike: a 160, 70-degree cone, 120% fire with burn; cannot be dodged                                                                                                               | 1.2 s: head rears back, red cone on the ground         |
-| Hydra  | Three Heads | every strike hits up to 3 heroes in reach; at 66% and 33% hp a head is cut and regrows in 8 s (one fewer target meanwhile) unless a fire hit lands on it within those 8 s (then it stays cut)  | heads shown as 3 pips over the boss; a cut head smokes |
-| Apep   | Swallow     | every 15 s: the hero with the most hp in reach is swallowed for 4 s (off the map, 8% of its max hp per second as death damage); 25% of Apep's max hp in damage within those 4 s frees it early | 1.0 s: coils tighten, a dark ring under the target     |
-
-| Jormungandr | Venom | every 12 s: spits on the hero with the most hp in reach; it and every hero within 60 of it are poisoned, 3% max hp per second as death for 8 s; any heal on a hero ends its poison | 1.0 s: the head lifts, green drops fall on the target |
-| Cerberus | Howl | every 15 s: heroes within 200 below 50% hp break and flee for 3 s (brave and proud heroes and Berserker parties ignore it); the howl also calls 1 guard from the lair | 0.8 s: three heads lift, a red shock ring spreads |
-| Sphinx | Riddle | every 18 s: asks the hero in reach with the lowest Int; Int 8 or more answers (that hero +30% damage for 6 s, gold "!"), less is turned to stone for 3 s (no actions, takes half damage) | 1.2 s: a "?" over the hero, then "!" or a grey stone tint |
+| Boss        | Move        | Rule                                                                                                                                                                                           | Telegraph (Scene)                                         |
+| ----------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| Fafnir      | Fire Breath | every third strike: a 160, 70-degree cone, 120% fire with burn; cannot be dodged                                                                                                               | 1.2 s: head rears back, red cone on the ground            |
+| Hydra       | Three Heads | every strike hits up to 3 heroes in reach; at 66% and 33% hp a head is cut and regrows in 8 s (one fewer target meanwhile) unless a fire hit lands on it within those 8 s (then it stays cut)  | heads shown as 3 pips over the boss; a cut head smokes    |
+| Apep        | Swallow     | every 15 s: the hero with the most hp in reach is swallowed for 4 s (off the map, 8% of its max hp per second as death damage); 25% of Apep's max hp in damage within those 4 s frees it early | 1.0 s: coils tighten, a dark ring under the target        |
+| Jormungandr | Venom       | every 12 s: spits on the hero with the most hp in reach; it and every hero within 60 of it are poisoned, 3% max hp per second as death for 8 s; any heal on a hero ends its poison             | 1.0 s: the head lifts, green drops fall on the target     |
+| Cerberus    | Howl        | every 15 s: heroes within 200 below 50% hp break and flee for 3 s (brave and proud heroes and Berserker parties ignore it); the howl also calls 1 guard from the lair                          | 0.8 s: three heads lift, a red shock ring spreads         |
+| Sphinx      | Riddle      | every 18 s: asks the hero in reach with the lowest Int; Int 8 or more answers (that hero +30% damage for 6 s, gold "!"), less is turned to stone for 3 s (no actions, takes half damage)       | 1.2 s: a "?" over the hero, then "!" or a grey stone tint |
 
 - **Enrage** adds to the move: Fafnir breathes every second strike, the Hydra regrows in 5 s,
   Apep swallows every 10 s, Jormungandr spits every 8 s, Cerberus howls every 10 s, the

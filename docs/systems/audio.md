@@ -155,4 +155,4 @@ source }`.
 1. **Music:** Stefan makes it himself with an AI music tool, from the prompts in
    `music-prompts.md`; logged in the manifest with license and source.
 2. **Sound effects made in code.**
-3. **Vibration:** an Android option, off by default (section 3).
+3. **Vibration:** an Android option, off by default (section 4).

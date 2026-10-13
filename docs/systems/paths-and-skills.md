@@ -209,7 +209,7 @@ from this list; Sim implements each key once:
 | restMult           | resting speed multiplier                            | Apollo       |
 | everyNth           | effects on every nth strike (`n`, `effects`)        | Poseidon     |
 | aggroMult          | aggro range multiplier                              | Horus        |
-| bossDeathAdd       | added to the boss death chance                      | Anubis       |
+| bossDeathAdd       | added to the boss death chance (half to the lair's) | Anubis       |
 | belowHp            | a buff while below a share of max hp                | Sekhmet      |
 | healTakenMult      | healing received multiplier                         | Isis         |
 

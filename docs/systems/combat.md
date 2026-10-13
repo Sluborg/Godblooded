@@ -171,8 +171,10 @@ Tags drive holy's sear and later skills: `undead`, `beast`, `giant`, `demon`, `f
 - **Permadeath, bosses and tier 3 lairs:** a hero knocked out by a boss strike rolls
   `bossDeathChance` (20%); a hero knocked out by a monster of a tier 3 lair, within
   `lairDeathRange` (400) of that lair, rolls `lairDeathChance` (10%). Each shrine tier in town
-  takes 5 points off; a healer alive in the same party takes 5 more (floor 5% for bosses, 0%
-  for lairs). A slain hero leaves a grave marker, frees its god slot, and the party mourns
+  takes 5 points off the boss chance; a healer alive in the same party takes 5 more (floor
+  5%). **Every cut to the boss chance** (shrine, healer, Anubis, Book of the Dead) **cuts the
+  lair chance by half as many points** (floor 0), so only a tier 3 shrine plus a healer makes
+  tier 3 lairs safe. A slain hero leaves a grave marker, frees its god slot, and the party mourns
   (event for a speech bubble).
 - **Everything else can never kill a hero:** not raids at the town, not lairs below tier 3.
 - **The danger shows:** a tier 3 lair has a skull on its plate, so the player can see where

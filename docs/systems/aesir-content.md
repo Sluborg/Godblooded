@@ -82,9 +82,8 @@ armour: 1, spellMult: 0.5,
 ```
 
 - Casters' path bonus gives `str` today because the wizard used Str as spell power before
-  `spellMult` existed. With spell power from Int, Lead may move the Seer, Stormcaller and
-  Flamebinder bonus to `{ int: 2 }` / `{ int: 4 }` in the balance pass; this sheet keeps the
-  shipped numbers so nothing moves twice.
+  `spellMult` existed. With spell power from Int, the Seer, Stormcaller and Flamebinder bonus
+  moves to `{ int: 2 }` / `{ int: 4 }` (decided 2026-10-13) in the balance pass.
 
 ## 3. Passives (paste when Sim ships PassiveDef)
 
