@@ -3,8 +3,9 @@ import { gradeRgb } from './parts/partsStyle';
 
 // Plain grass ground (Stefan's taste test, docs/decisions.md 2026-10-14): one flat green with
 // small tufts and a few flowers, from the style prototype (docs/reference/style-test.html,
-// buildGround). A small tile is painted once and repeated over the map, so the ground costs
-// about 1 MB however big the map is.
+// buildGround). A small tile is painted once (512 px, about 1 MB) and shown by a grid of plain
+// images that share it, so the ground costs the same however big the map is. (A map-size
+// TileSprite would allocate a map-size canvas in Phaser 3.90: about 15 MB.)
 
 export const GROUND = {
   // Base grass and tuft colours (the prototype's), before the slight warm grade.
@@ -95,13 +96,13 @@ function drawTuft(c: CanvasRenderingContext2D, t: Tuft, ox: number, oy: number, 
   c.stroke();
 }
 
-// Paints the tile once and returns a tiling sprite that covers the map (depth 0). The tile
+// Paints the tile once and lays a grid of images sharing it over the map (depth -1). The tile
 // wraps at its edges, so there are no seams. Release it with `releaseGround` on shutdown.
 export function makeGround(
   scene: Phaser.Scene,
   width: number,
   height: number,
-): Phaser.GameObjects.TileSprite {
+): Phaser.GameObjects.Image[] {
   const size = GROUND.tileSize;
   if (scene.textures.exists(TILE_KEY)) scene.textures.remove(TILE_KEY);
   const tex = scene.textures.createCanvas(TILE_KEY, size, size);
@@ -121,19 +122,28 @@ export function makeGround(
           if (x < -6 || x > size + 6 || y < -6 || y > size + 6) continue;
           drawTuft(c, t, ox, oy, t.light ? light : dark);
         }
-    for (const f of flowers) {
-      c.fillStyle = gradedHex(f.color);
-      c.beginPath();
-      c.arc(f.x, f.y, 1.7, 0, Math.PI * 2);
-      c.fill();
-      c.fillStyle = 'rgba(255,255,255,0.6)';
-      c.beginPath();
-      c.arc(f.x - 0.5, f.y - 0.5, 0.6, 0, Math.PI * 2);
-      c.fill();
-    }
+    for (const f of flowers)
+      for (const ox of wraps)
+        for (const oy of wraps) {
+          const x = f.x + ox;
+          const y = f.y + oy;
+          if (x < -3 || x > size + 3 || y < -3 || y > size + 3) continue;
+          c.fillStyle = gradedHex(f.color);
+          c.beginPath();
+          c.arc(x, y, 1.7, 0, Math.PI * 2);
+          c.fill();
+          c.fillStyle = 'rgba(255,255,255,0.6)';
+          c.beginPath();
+          c.arc(x - 0.5, y - 0.5, 0.6, 0, Math.PI * 2);
+          c.fill();
+        }
     tex.refresh();
   }
-  return scene.add.tileSprite(width / 2, height / 2, width, height, TILE_KEY).setDepth(-1);
+  const images: Phaser.GameObjects.Image[] = [];
+  for (let y = 0; y < height; y += size)
+    for (let x = 0; x < width; x += size)
+      images.push(scene.add.image(x, y, TILE_KEY).setOrigin(0, 0).setDepth(-1));
+  return images;
 }
 
 export function releaseGround(scene: Phaser.Scene): void {

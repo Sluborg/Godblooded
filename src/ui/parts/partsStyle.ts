@@ -8,7 +8,26 @@ export const PARTS_STYLE = {
   warmth: 0.035,
 } as const;
 
-// Grades one colour (0..255 channels), clamped.
+// Grades RGBA pixels in place. Transparent pixels are left alone.
+export function gradePixels(
+  data: Uint8ClampedArray,
+  saturation: number = PARTS_STYLE.saturation,
+  warmth: number = PARTS_STYLE.warmth,
+): void {
+  for (let i = 0; i < data.length; i += 4) {
+    if (data[i + 3] === 0) continue;
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
+    const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+    data[i] = (lum + (r - lum) * saturation) * (1 + warmth);
+    data[i + 1] = lum + (g - lum) * saturation;
+    data[i + 2] = (lum + (b - lum) * saturation) * (1 - warmth);
+  }
+}
+
+// Grades one colour (0..255 channels), clamped. For a few colours at a time (the ground); the
+// pixel loop above is the fast path for whole atlases.
 export function gradeRgb(
   r: number,
   g: number,
@@ -23,19 +42,4 @@ export function gradeRgb(
     clamp(lum + (g - lum) * saturation),
     clamp((lum + (b - lum) * saturation) * (1 - warmth)),
   ];
-}
-
-// Grades RGBA pixels in place. Transparent pixels are left alone.
-export function gradePixels(
-  data: Uint8ClampedArray,
-  saturation: number = PARTS_STYLE.saturation,
-  warmth: number = PARTS_STYLE.warmth,
-): void {
-  for (let i = 0; i < data.length; i += 4) {
-    if (data[i + 3] === 0) continue;
-    const [r, g, b] = gradeRgb(data[i], data[i + 1], data[i + 2], saturation, warmth);
-    data[i] = r;
-    data[i + 1] = g;
-    data[i + 2] = b;
-  }
 }

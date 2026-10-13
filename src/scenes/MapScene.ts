@@ -1,4 +1,5 @@
 import { makeGround, releaseGround } from '../ui/ground';
+import { getMusic } from '../ui/musicPlayer';
 import Phaser from 'phaser';
 import { COLORS, GAME_HEIGHT, GAME_WIDTH } from '../config';
 import { GRAYBOX } from '../data/graybox';
@@ -114,6 +115,8 @@ export class MapScene extends Phaser.Scene {
 
   create(): void {
     const { width, height } = GRAYBOX.map;
+    // The title theme plays on Boot, Title and the hall only; there is no run music yet.
+    getMusic(this).stop(800);
     this.world = this.startWorld();
     this.registry.set('speed', getSettings().speed);
     const cam = this.cameras.main;

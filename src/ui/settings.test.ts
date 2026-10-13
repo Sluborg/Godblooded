@@ -13,10 +13,25 @@ describe('parseSettings', () => {
       speed: 4,
       reducedMotion: true,
       palette: 'colourblind',
+      musicVolume: DEFAULT_SETTINGS.musicVolume,
+      musicMuted: false,
+      heroNames: false,
     });
     expect(parseSettings({ speed: 3, reducedMotion: 'yes', palette: 'neon' })).toEqual(
       DEFAULT_SETTINGS,
     );
+  });
+});
+
+describe('music settings', () => {
+  it('defaults to 60% and snaps to 5% steps', () => {
+    expect(DEFAULT_SETTINGS.musicVolume).toBe(0.6);
+    expect(parseSettings({ musicVolume: 0.73 }).musicVolume).toBe(0.75);
+    expect(parseSettings({ musicVolume: 7 }).musicVolume).toBe(1);
+    expect(parseSettings({ musicVolume: 'loud' }).musicVolume).toBe(0.6);
+    expect(parseSettings({ musicMuted: true }).musicMuted).toBe(true);
+    expect(DEFAULT_SETTINGS.heroNames).toBe(false);
+    expect(parseSettings({ heroNames: true }).heroNames).toBe(true);
   });
 });
 
