@@ -20,7 +20,7 @@ import {
 } from './motionPose';
 import { pickVariant, rotateHue, sizeJitter, tierStyle } from './monsterLook';
 import { getSettings } from './settings';
-import { partyColor, partyRole, type PartyRole } from './partyLook';
+import { heroLabel, partyColor, partyRole, type PartyRole } from './partyLook';
 import { isSpeechEvent, pickLine, type SpeechKind } from './speechLines';
 import { buildHeal, buildStrike, FxLayer, type Vec } from './strikeFx';
 import { ART_NOMINAL_PX, PLACEHOLDER, UNIT_HEIGHT, artCandidates, baseType } from './unitLook';
@@ -162,7 +162,7 @@ export class UnitView {
       .setStrokeStyle(3, 0x000000, 0.6);
     this.nose = scene.add.triangle(w * 0.3, -h * 0.62, 0, -9, 0, 9, 16, 0, 0xffffff, 0.9);
     this.label = scene.add
-      .text(0, -UNIT_HEIGHT * this.look.scale - 6, u.type, {
+      .text(0, -UNIT_HEIGHT * this.look.scale - 6, u.kind === 'hero' ? heroLabel(u) : u.type, {
         fontFamily: 'Georgia, serif',
         fontSize: '16px',
         color: '#f4ead5',
@@ -222,7 +222,9 @@ export class UnitView {
           )
         : u.type;
     const id =
-      artCandidates(u.kind, type, u.tier, u.path).find((c) => this.scene.textures.exists(c)) ?? '';
+      artCandidates(u.kind, type, u.tier, u.path, u.god).find((c) =>
+        this.scene.textures.exists(c),
+      ) ?? '';
     if (id === '') {
       if (this.artId !== '') {
         this.sprite?.destroy();
@@ -374,6 +376,7 @@ export class UnitView {
 
   update(u: UnitState, ctx: FrameCtx, role: PartyRole = 'solo'): void {
     this.applyArt(u);
+    if (u.kind === 'hero') this.label.setText(heroLabel(u));
     this.tick(u.pos, u.facing.x, u.ko, ctx);
     this.drawBar(u);
     this.drawParty(u, role);
