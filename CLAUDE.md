@@ -53,16 +53,16 @@ docs/         design, collaboration, inboxes, requests, sessions
 
 - Work on a branch, open a **draft** PR to `main`. CI (lint, format, test, build) runs on drafts
   and must be green.
-- **Never open a non-draft PR and never mark a PR ready for review.** Both start a Codex review
-  automatically, which spends Stefan's ChatGPT quota (Stefan, 2026-10-13). This holds for every
-  session, Lead included.
+- **Never open a non-draft PR.** Opening one or marking a draft ready starts a Codex review
+  automatically, which spends Stefan's ChatGPT quota (Stefan, 2026-10-13). Only Integrator marks
+  a draft ready, and only in the moment it lands it (below).
 - **Codex: manual only.** Lead decides which PRs get `@codex review` and comments it; the author
   fixes the findings.
 - Self-review the diff before the PR (`code-review` skill).
 - **Integrator lands PRs** (delegated by Lead). Workers never merge their own. Never land red CI.
   A draft is marked ready only right before it is merged, once CI is green and Review is clear.
 - Stacked work: base every PR on `main`; if a branch builds on another, say "stacked on #N" in
-  the title and Lead lands them in order.
+  the title and Integrator lands them in order.
 - `main` deploys to https://sluborg.github.io/Godblooded/ automatically.
 - Small PRs, one topic each, conventional commit messages.
 
