@@ -1,6 +1,7 @@
 import { avenge, revengeTarget, rivalPairs, vowRevenge } from './rivalry';
 import { runAutosave } from './save';
 import { generateMap } from './mapgen';
+import { deathChance, koBonds, koGoldLost, slayHero } from './deaths';
 import { buffOf, tauntOf, type UnitFx } from './effects';
 import { armourBonus, weaponPower } from './items';
 import { everyNthOf, passiveAggroMult, passiveArmour } from './passives';
@@ -63,6 +64,7 @@ import {
 } from './units';
 import type {
   BountyState,
+  GraveState,
   BuildingCore,
   Command,
   CommandResult,
@@ -143,6 +145,8 @@ export interface World {
   parties: Map<number, Party>;
   bonds: Map<string, number>;
   pendingDeaths: { victim: number; by: number }[];
+  // Where heroes were slain.
+  graves: GraveState[];
   // Monsters that died lately, for `kill` skill triggers.
   recentKills: { pos: Vec2; timeMs: number; by: number }[];
   nextRaidMs: number;
@@ -183,6 +187,7 @@ export function createWorld(seed: number, data: GameData): World {
     parties: new Map(),
     bonds: new Map(),
     pendingDeaths: [],
+    graves: [],
     recentKills: [],
     nextRaidMs: 0,
     stats: {
@@ -561,17 +566,42 @@ function fight(world: World, unit: UnitState, rt: UnitRuntime, stats: Stats, foe
 
 function settleDeaths(world: World): void {
   const settled = new Set<number>();
+  const slainIds = new Set<number>();
   for (const { victim, by } of world.pendingDeaths) {
     const unit = world.units.find((u) => u.id === victim);
     if (!unit || unit.ko || settled.has(victim)) continue;
     settled.add(victim);
     if (unit.kind === 'hero') {
-      unit.ko = true;
       unit.target = null;
-      heroKnockedOut(world, unit);
       world.stats.knockouts++;
       tally(world, unit.id, 'knockouts');
-      world.events.push({ kind: 'knockout', unit: unit.id, by });
+      const goldLost = koGoldLost(world, unit);
+      koBonds(world, unit);
+      // A boss, or a tier 3 lair monster, may kill for good (no roll for anyone else).
+      const chance = deathChance(world, unit, by);
+      const slain = chance !== undefined && world.rng() < chance;
+      if (slain) {
+        world.events.push({
+          kind: 'slain',
+          unit: unit.id,
+          by,
+          type: unit.type,
+          god: unit.god,
+          pos: { ...unit.pos },
+          ...(goldLost > 0 ? { goldLost } : {}),
+        });
+        slayHero(world, unit);
+        slainIds.add(unit.id);
+      } else {
+        unit.ko = true;
+        heroKnockedOut(world, unit);
+        world.events.push({
+          kind: 'knockout',
+          unit: unit.id,
+          by,
+          ...(goldLost > 0 ? { goldLost } : {}),
+        });
+      }
       // A lair's monsters count the heroes they put down (pressure growth).
       const lairId = world.unitRuntime.get(by)?.lair;
       const lrt =
@@ -601,7 +631,7 @@ function settleDeaths(world: World): void {
   }
   world.pendingDeaths = [];
   world.units = world.units.filter((u) => {
-    const gone = u.kind === 'monster' && u.hp <= 0;
+    const gone = (u.kind === 'monster' && u.hp <= 0) || slainIds.has(u.id);
     if (gone) world.unitRuntime.delete(u.id);
     return !gone;
   });
@@ -723,6 +753,7 @@ export function snapshot(world: World): Snapshot {
       ...(u.items ? { items: { ...u.items } } : {}),
     })),
     bounties: world.bounties.map((b) => ({ ...b, pos: { ...b.pos } })),
+    graves: world.graves.map((g) => ({ ...g, pos: { ...g.pos } })),
     rivals: rivalPairs(world),
     map: { lean: [...world.mapLean], boss: world.bossLair },
     report: buildReport(world),

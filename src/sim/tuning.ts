@@ -18,6 +18,11 @@ export const DEFAULT_TUNING: Tuning = {
     fightGapMs: 5_000,
     firstStrikeDelay: 0.5,
     buildingFireMult: 1.5,
+    koGoldLoss: 0.25,
+    bossDeathChance: 0.2,
+    deathShrineStep: 0.05,
+    deathHealerStep: 0.05,
+    deathFloor: 0.05,
   },
   hero: {
     firstRecruitMs: 5_000,
