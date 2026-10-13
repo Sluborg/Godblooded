@@ -222,6 +222,8 @@ export interface TownTuning {
   raidFirstMs: number;
   raidEveryMs: number;
   raidSize: number;
+  // How many standing lairs send a raid each time (picked at random; the boss lair never does).
+  raidLairs: number;
   // Raids get one monster bigger per lair every this many ms.
   raidGrowEveryMs: number;
   // A resting hero at or above this hp fraction rejoins the fight when raiders come near.
