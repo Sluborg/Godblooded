@@ -70,7 +70,7 @@ falls or your town hall burns.
    raids hit the town. Clearing a lair stops it.
 8. **End:** win when the final lair (a boss) falls; lose when the town hall is destroyed.
 
-**Between runs (meta):** every run earns Ichor; the Altar spends it on 10 permanent upgrades
+**Between runs (meta):** every run earns Ambrosia; the Altar spends it on 10 permanent upgrades
 (capped near +15% power), and goals unlock new temples, gods, buildings and cards
 (`docs/systems/meta.md`). **Gods act on their own:** temples fill a favour bar and the god
 intervenes in the fight where its children are most hurt; the player never casts.
@@ -133,7 +133,7 @@ instead of new art.
 | ----- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 10    | M1 Graybox       | Shapes only: town hall, 1 temple, 1 market, 2 lairs. Heroes arrive, form parties, hunt, return, shop. Bounty flag. Level-ups. Win or lose. Stefan: fun to watch? |
 | 20    | M2 First art     | Tier 1 of the 4 Aesir gods, 6 monsters and the buildings in (one front picture each, mirrored), party colours, UI kit and logo.                                  |
-| 30    | M3 Tiers and run | Tier 2 and 3 skins, lair growth, party tier-ups, 3 pantheon temples, Ichor and the Altar.                                                                        |
+| 30    | M3 Tiers and run | Tier 2 and 3 skins, lair growth, party tier-ups, 3 pantheon temples, Ambrosia and the Altar.                                                                     |
 | 40    | M4 Feel          | Speech bubbles, hit effects, sound, juice, balance pass.                                                                                                         |
 
 Art for M2 starts in parallel with M1 once the style test (Art backlog) is approved by Stefan.

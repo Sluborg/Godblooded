@@ -174,3 +174,14 @@ for bosses and late-run moments (still no screen shake).
 Stefan on the meta-ui OPEN (`docs/systems/meta-ui.md`): the player **chooses** the run's
 pantheon lean at the Altar (not only shown as the Portent). Altar buys with Ichor use
 **press and hold** (about 0.6 s), no popup. Meta stays M3.
+
+## 2026-10-14 Meta currency is Ambrosia
+
+Stefan: the meta currency is renamed from Ichor to **Ambrosia** (food of the gods). Earlier
+entries that say Ichor mean Ambrosia. No code uses the name yet.
+
+## 2026-10-14 UI panels keep dark parchment centres (Lead)
+
+Scene's wood-and-parchment UI (#233) uses dark parchment panel centres so the existing light
+text stays readable. Light parchment with dark ink is a later pass, revisited with Art's UI kit
+(U8) and shown to Stefan.
