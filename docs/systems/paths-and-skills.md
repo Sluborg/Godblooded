@@ -12,9 +12,9 @@ in `docs/game-design.md` (decision 2026-10-13).
   tier 3. Tier 1 heroes have no skill: the first tier-up is when a hero becomes someone.
 - **Heroes cast on their own.** Each skill is a data row: a trigger (when), a cooldown, a shape
   (where), effects (what) and a visual (what Scene draws). The player never presses a button.
-- **One engine, many rows.** 6 triggers, 13 effects and 10 visuals cover all 24 skills. Sim
+- **One engine, many rows.** 6 triggers, 16 effects, 5 hooks and 10 visuals cover all 24 skills. Sim
   builds the engine once; every skill after that is a row.
-- **Aesir first** (M2): the 8 Aesir skills need 8 of the 13 effects, the chain shape and the decoy summon.
+- **Aesir first** (M2): the 8 Aesir skills need 8 of the 16 effects and the expire hook, the chain shape and the decoy summon.
 
 ## 1. How a skill works
 
@@ -33,21 +33,22 @@ in `docs/game-design.md` (decision 2026-10-13).
    brave hero's 15 points later; a proud hero aims target-picking skills at the foe with the
    most max hp. One rule, all skills.
 7. **Speech:** one cast in four shows the skill name as a speech bubble (pillar 2).
-8. **Bosses:** ignore taunt, take bind and chill at half duration, cannot be knocked back.
+8. **Bosses:** ignore taunt, take bind at half duration and chill at half strength (`combat.md`),
+   cannot be knocked back.
 
 A skill should add about 15-25% to a hero's fight output at tier 2. Fights last 15-45 s, so
 cooldowns of 9-18 s give 1-3 casts per fight.
 
 ## 2. Triggers
 
-| Id       | Fires when                                                                |
-| -------- | ------------------------------------------------------------------------- |
-| ready    | the cooldown is up and a foe is in the skill's range                      |
-| crowd    | at least `n` foes within `radius` of the caster (or of its target)        |
-| allyHurt | a party mate within `radius` is below `below` of max hp (most hurt first) |
-| selfHurt | the caster is below `below` of max hp, or `n` foes target it              |
-| engage   | a foe is between `min` and `max` range (opens a fight from a distance)    |
-| kill     | a foe died within `radius` in the last 3 s                                |
+| Id       | Fires when                                                                                                     |
+| -------- | -------------------------------------------------------------------------------------------------------------- |
+| ready    | the cooldown is up and a foe is in the skill's range                                                           |
+| crowd    | at least `n` foes in an `area` (circle `radius`, or cone `radius` and `angle`) around the caster or its target |
+| allyHurt | at least `n` (default 1) party mates within `radius` are below `below` of max hp (most hurt first)             |
+| selfHurt | the caster is below `below` of max hp, or `n` foes target it                                                   |
+| engage   | a foe is between `min` and `max` range (opens a fight from a distance)                                         |
+| kill     | a foe died within `radius` in the last 3 s                                                                     |
 
 ## 3. Effects
 
@@ -66,6 +67,25 @@ cooldowns of 9-18 s give 1-3 casts per fight.
 | summon    | spawns a friendly unit row (`summonId`) for `s`, or until killed                                                                        |
 | revive    | stands a knocked out party mate in the shape up at `pct` of max hp (once per fight)                                                     |
 | execute   | foes in the shape below `below` of max hp die (not bosses)                                                                              |
+| cleanse   | removes riders from the targets                                                                                                         |
+| hot       | heals the targets `pct` of max hp per second for `s`                                                                                    |
+| refresh   | restarts the timer of this skill's own status on the caster                                                                             |
+
+**Hooks.** An effect runs at the cast unless it names a hook (`on`). Hooks run while the skill's
+status or summon lasts:
+
+| Hook   | Runs when                               | Used by                       |
+| ------ | --------------------------------------- | ----------------------------- |
+| cast   | the skill resolves (default)            | all                           |
+| hit    | the caster lands a strike               | Frenzy heal                   |
+| kill   | the caster (or its summon) kills a foe  | Frenzy t3 refresh, Lioness t3 |
+| expire | the status or summon ends or dies       | Mirror Double t3 burst        |
+| death  | a foe carrying this skill's status dies | Plague Breath t3 burst        |
+
+A summon row may carry `respawnS` (Falcon t3: resummoned 10 s after it dies).
+
+**Combining triggers:** `trigger` may be `{ any: [triggerA, triggerB] }`; it fires when either
+holds (Frenzy, Sun Disk, Trickster).
 
 `chain` is a shape, not an effect: it hits the target, then jumps `jumps` times to the nearest
 foe not yet hit within `radius`, each jump at `falloff` of the last.
@@ -173,9 +193,25 @@ cooldown in seconds. Radius and range in world units (melee reach is about 40, a
 
 ### PassiveDef (on GodDef)
 
-`passive: { id, name, scope: 'self' | 'party', range?, effects }`, using the same effect ids
-as skills plus three passive-only keys: `vsTag` (damage against a tag), `onKillStack`,
-`belowHp` (condition).
+`passive: { id, name, scope: 'self' | 'party', range?, keys }`. Every passive is a set of keys
+from this list; Sim implements each key once:
+
+| Key                | Meaning                                             | Passives     |
+| ------------------ | --------------------------------------------------- | ------------ |
+| attr               | flat attributes                                     | Odin (Per)   |
+| firstStrike        | wins the first-strike check (`combat.md`)           | Odin         |
+| vsTag              | damage multiplier against a tag                     | Thor, Anubis |
+| firstHitMisses     | the first strike against the unit each fight misses | Loki         |
+| dodge, crit        | flat chance added after the curve                   | Loki, Horus  |
+| koGoldLoss, koMult | knockout gold loss and timer multipliers            | Freyja       |
+| armour             | flat armour                                         | Athena       |
+| onKillStack        | a buff per kill this fight, with a cap              | Ares         |
+| restMult           | resting speed multiplier                            | Apollo       |
+| everyNth           | effects on every nth strike (`n`, `effects`)        | Poseidon     |
+| aggroMult          | aggro range multiplier                              | Horus        |
+| bossDeathAdd       | added to the boss death chance                      | Anubis       |
+| belowHp            | a buff while below a share of max hp                | Sekhmet      |
+| healTakenMult      | healing received multiplier                         | Isis         |
 
 ### SummonDef (new rows, small)
 
@@ -204,13 +240,13 @@ as skills plus three passive-only keys: `vsTag` (damage against a tag), `onKillS
 
 ### Sim
 
-| Order | Row                                                                                                       |
-| ----- | --------------------------------------------------------------------------------------------------------- |
-| 10    | Skill engine: SkillDef, cooldowns, triggers (6), shapes (5), `cast` and `skill` events, personality nudge |
-| 20    | Effects part 1: damage, heal, shield, buff, stagger, mark, dash, taunt (all Aesir needs, with summon)     |
-| 30    | Summons: decoy, falcon, thrall; `summoned` events; summons in the snapshot                                |
-| 40    | Effects part 2: knockback, bind, revive, execute; boss immunities                                         |
-| 50    | God passives (12) as data on GodDef                                                                       |
+| Order | Row                                                                                                                         |
+| ----- | --------------------------------------------------------------------------------------------------------------------------- |
+| 10    | Skill engine: SkillDef, cooldowns, triggers (6, `any`), shapes (5), hooks (5), `cast` and `skill` events, personality nudge |
+| 20    | Effects part 1: damage, heal, shield, buff, stagger, mark, dash, taunt (all Aesir needs, with summon)                       |
+| 30    | Summons: decoy, falcon, thrall; `summoned` events; summons in the snapshot                                                  |
+| 40    | Effects part 2: knockback, bind, revive, execute; boss immunities                                                           |
+| 50    | God passives: the 16 keys, 12 rows on GodDef                                                                                |
 
 ### Lead (data)
 
