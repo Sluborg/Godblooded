@@ -103,6 +103,8 @@ export class EventFeed {
     this.now += dtMs;
     for (const t of this.toasts) t.ttlMs -= dtMs;
     this.toasts = this.toasts.filter((t) => t.ttlMs > 0);
+    // The dedupe memory only needs the last DEDUPE_MS.
+    for (const [text, at] of this.recent) if (this.now - at >= DEDUPE_MS) this.recent.delete(text);
   }
 
   dismiss(id: number): void {

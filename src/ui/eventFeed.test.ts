@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import type { UnitState } from '../sim/api';
-import { describeEvent, EventFeed, MAX_TOASTS, TOAST_MS, type FeedWorld } from './eventFeed';
+import {
+  DEDUPE_MS,
+  describeEvent,
+  EventFeed,
+  MAX_TOASTS,
+  TOAST_MS,
+  type FeedWorld,
+} from './eventFeed';
 
 const hero = {
   id: 1,
@@ -56,6 +63,12 @@ describe('EventFeed', () => {
     expect(f.push(spec('a'))).toBeNull();
     f.update(2500);
     expect(f.push(spec('a'))).not.toBeNull();
+  });
+  it('forgets old dedupe entries', () => {
+    const f = new EventFeed();
+    f.push(spec('a'));
+    f.update(DEDUPE_MS + 1);
+    expect((f as unknown as { recent: Map<string, number> }).recent.size).toBe(0);
   });
   it('keeps at most MAX_TOASTS, newest last', () => {
     const f = new EventFeed();

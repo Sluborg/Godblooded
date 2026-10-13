@@ -119,7 +119,8 @@ export class HudScene extends Phaser.Scene {
     const snap = (this.scene.get('Map') as MapScene).snapshot;
     for (const l of snap.lairs) this.places.set(l.id, l.pos);
     for (const b of snap.buildings) this.places.set(b.id, b.pos);
-    this.feed.update(deltaMs);
+    // Toasts wait while the pause menu is up and are not redrawn over the end screen.
+    if (!this.scene.isPaused('Map')) this.feed.update(deltaMs);
     this.drawFeed(this.scene.get('Map') as MapScene);
     this.goldText.setText(`Gold ${this.registry.get('gold') ?? 0}`);
     this.clockText.setText(formatClock((this.registry.get('timeMs') as number) ?? 0));
@@ -169,15 +170,15 @@ export class HudScene extends Phaser.Scene {
   // Redraws the toast stack when it changed: pills on the left under the top bar, each 80 tall
   // (a touch target); tapping one dismisses it and sends the camera there.
   private drawFeed(map: MapScene): void {
-    const key = this.feed.toasts.map((t) => t.id).join(',');
+    const key = this.ended ? '' : this.feed.toasts.map((t) => t.id).join(',');
     if (key === this.feedKey) return;
     this.feedKey = key;
     this.feedObjects.forEach((o) => o.destroy());
     this.feedObjects = [];
     this.feedRects = [];
     const W = 430;
-    const H = 76;
-    this.feed.toasts.forEach((t, i) => {
+    const H = MIN_TOUCH;
+    (this.ended ? [] : this.feed.toasts).forEach((t, i) => {
       const x = 16;
       const y = 84 + i * (H + 8);
       const bg = this.add
@@ -200,7 +201,7 @@ export class HudScene extends Phaser.Scene {
         this.feed.dismiss(t.id);
       });
       this.feedObjects.push(bg, label);
-      this.feedRects.push(new Phaser.Geom.Rectangle(x, y, W, Math.max(H, MIN_TOUCH)));
+      this.feedRects.push(new Phaser.Geom.Rectangle(x, y, W, H));
     });
   }
 
