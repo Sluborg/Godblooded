@@ -191,3 +191,29 @@ text stays readable. Light parchment with dark ink is a later pass, revisited wi
 Stefan: Fafnir is built from **code parts** (no art order). Hero name labels are **off** by
 default; tapping a hero shows the names of everyone in that hero's party. Lair plates show the
 **lair's name** (e.g. "Wolf Den").
+
+## 2026-10-14 Build menu: tap for info, tap again to build
+
+Stefan: in the build menu, the first tap on a building shows what it does (role, what it
+sells or trains, cost, what its next tier unlocks); a second tap on the same building confirms
+and builds. Tapping another building or outside the menu cancels. Nothing is built on a single
+tap.
+
+## 2026-10-14 Celestial nodes and gatherers (M3)
+
+Stefan: every lair sits on a **celestial node**. Clearing the lair frees the node. The player
+sends **gatherers** (town workers, not heroes) to collect **Ambrosia** from freed nodes.
+Gatherers can be attacked on the way. The player can send weak **guards** with them, or post an
+**escort bounty** (gold on the route, like a bounty flag) that a party may take; the player
+never commands a party. Ambrosia from nodes is an **in-run** currency only (spent during the
+run). Lands in **M3**, with the meta.
+
+Follow-on (Lead, Stefan to veto): since Ambrosia is now in-run, the meta currency for the Altar
+between runs is renamed **Essence** (Stefan's other suggestion).
+
+## 2026-10-14 PRs are scarce: branches plus batch PRs
+
+Stefan could not switch off the automatic Codex reviews, so every PR may spend his ChatGPT
+quota. Workers stop opening PRs: they push branches (CI runs on branch pushes) and message
+Review and Integrator. Integrator lands reviewed, green branches in one batch PR at a time,
+a few a day. Design may commit its docs straight to `main`. Rules in `CLAUDE.md` "Git".

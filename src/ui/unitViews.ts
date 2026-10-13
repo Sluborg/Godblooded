@@ -3,6 +3,17 @@ import { GRAYBOX } from '../data/graybox';
 import { lookOf, type UnitLook } from '../data/looks';
 import { bossState } from './bossLook';
 import { heroPartsLook } from '../data/heroParts';
+import {
+  STATUS_LOOK,
+  isStatusKind,
+  liveStatuses,
+  newestRing,
+  shapeBox,
+  skillTint,
+  skillVisuals,
+  type StatusKind,
+} from './skillLook';
+import { SkillFx } from './skillFx';
 import { ensureHeroSet, sweepSets, type BakedSet } from './parts/bake';
 import { attackFrame, idleFrame, koFrame, walkFrame, type PoseName } from './parts/frames';
 import type { RiderId, SimEvent, UnitState, Vec2 } from '../sim/api';
@@ -93,6 +104,8 @@ interface Attack {
 // What a view needs from the world around it each frame.
 interface FrameCtx {
   dtS: number;
+  // Run time of the snapshot in ms (statuses end at a run time).
+  timeMs: number;
   // Hero names show for this party (the selected hero's), or for this one hero when solo.
   namesParty: number;
   namesHero: number;
@@ -183,6 +196,11 @@ export class UnitView {
   // A rider on this unit (burn, chill, ...): tint and head icon until `msLeft` runs out.
   private riders = new Map<RiderId, number>();
   private readonly riderIcon: Phaser.GameObjects.Graphics;
+  // Shield, mark, buff, taunt, bind, heal over time: until (run time) and arrival order.
+  private statuses = new Map<StatusKind, { until: number; seq: number }>();
+  private statusSeq = 0;
+  private readonly statusG: Phaser.GameObjects.Graphics;
+  private statusDrawn = false;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -228,6 +246,7 @@ export class UnitView {
     this.body = scene.add.container(0, 0, [this.capsule, this.nose]);
     this.bar = scene.add.graphics();
     this.riderIcon = scene.add.graphics();
+    this.statusG = scene.add.graphics();
     // Ring at the feet in the party colour (white and thicker when selected), badge with the
     // party number beside the name.
     this.ring = scene.add.graphics();
@@ -243,6 +262,7 @@ export class UnitView {
     this.container = scene.add.container(this.x, this.y, [
       this.shadow,
       this.ring,
+      this.statusG,
       this.body,
       this.bar,
       this.riderIcon,
@@ -279,7 +299,7 @@ export class UnitView {
     if (!look) return this.leaveParts();
     const id = look.id;
     if (id === this.partsId) return true;
-    const set = ensureHeroSet(this.scene, id, look.def);
+    const set = ensureHeroSet(this.scene, id, look.def, u.tier);
     const first = set.frames.idle[0];
     this.partsSet = set;
     this.partsId = id;
@@ -493,6 +513,56 @@ export class UnitView {
     return best;
   }
 
+  setStatus(kind: StatusKind, until: number): void {
+    this.statuses.set(kind, { until, seq: this.statusSeq++ });
+  }
+
+  // Shield bubble over the unit, mark and bind signs over its head, one ring under its feet (the
+  // newest buff or heal over time). Drawn only while something runs.
+  private drawStatus(timeMs: number): void {
+    const live = liveStatuses(this.statuses, timeMs);
+    if (live.length === 0) {
+      if (this.statusDrawn) this.statusG.clear();
+      this.statusDrawn = false;
+      return;
+    }
+    this.statusDrawn = true;
+    const g = this.statusG;
+    g.clear();
+    const t = timeMs / 1000;
+    const ring = newestRing(this.statuses, live);
+    if (ring) {
+      const c = STATUS_LOOK[ring].color;
+      const pulse = 1 + Math.sin(t * 5) * 0.06;
+      g.lineStyle(3, c, 0.8).strokeEllipse(0, -2, 64 * pulse, 24 * pulse);
+      g.fillStyle(c, 0.12).fillEllipse(0, -2, 64 * pulse, 24 * pulse);
+    }
+    let signs = 0;
+    for (const k of live) {
+      const look = STATUS_LOOK[k];
+      if (look.style === 'bubble') {
+        const r = this.h * 0.62;
+        g.fillStyle(look.color, 0.14).fillEllipse(0, -this.h * 0.5, r * 1.5, r * 2);
+        g.lineStyle(2.5, look.color, 0.75 + Math.sin(t * 6) * 0.15).strokeEllipse(
+          0,
+          -this.h * 0.5,
+          r * 1.5,
+          r * 2,
+        );
+      } else if (look.style === 'sign') {
+        const x =
+          (signs++ - (live.filter((l) => STATUS_LOOK[l].style === 'sign').length - 1) / 2) * 24;
+        const y = -this.h - 52 + Math.sin(t * 4 + signs) * 3;
+        g.fillStyle(0x1a1410, 0.8).fillCircle(x, y, 11);
+        g.lineStyle(2, look.color, 1).strokeCircle(x, y, 11);
+        g.fillStyle(look.color, 1);
+        if (k === 'mark') g.fillTriangle(x - 5, y - 4, x + 5, y - 4, x, y + 5);
+        else if (k === 'taunt') g.fillRect(x - 1.5, y - 6, 3, 8).fillCircle(x, y + 6, 1.8);
+        else g.fillRect(x - 6, y - 1.5, 12, 3).fillRect(x - 1.5, y - 6, 3, 12);
+      }
+    }
+  }
+
   private drawRider(dtS: number): void {
     this.riderIcon.clear();
     for (const [id, ms] of this.riders) {
@@ -594,6 +664,7 @@ export class UnitView {
     this.tick(u.pos, u.facing.x, u.ko, ctx);
     this.drawBar(u);
     this.drawRider(ctx.dtS);
+    this.drawStatus(ctx.timeMs);
     this.showNames =
       u.kind !== 'hero' ||
       getSettings().heroNames ||
@@ -935,18 +1006,23 @@ export class UnitView {
   }
 }
 
+const SKILLS = new Map((GRAYBOX.skills ?? []).map((d) => [d.id, d]));
+const skillDef = (id: string) => SKILLS.get(id);
+
 // Keeps one UnitView per snapshot unit, plays the shared motion system for sim events and owns
 // the strike-effect layer.
 export class UnitViews {
   private readonly views = new Map<number, UnitView>();
   private readonly dying = new Map<number, UnitView>();
   private readonly fx: FxLayer;
+  private readonly skillFx: SkillFx;
 
   constructor(
     private readonly scene: Phaser.Scene,
     private readonly shake: () => void = () => {},
   ) {
     this.fx = new FxLayer(scene);
+    this.skillFx = new SkillFx(scene);
   }
 
   // `others` finds a building or lair by sim id (hits can land on those too); `dtMs` is the
@@ -954,7 +1030,7 @@ export class UnitViews {
   sync(
     units: readonly Readonly<UnitState>[],
     events: readonly SimEvent[],
-    _timeMs: number,
+    timeMs: number,
     dtMs: number,
     others: (id: number) => Vec2 | undefined = () => undefined,
     parties: readonly { id: number; members: readonly number[] }[] = [],
@@ -965,6 +1041,7 @@ export class UnitViews {
     const sel = units.find((u) => u.id === this.scene.registry.get('selectedUnit'));
     const ctx: FrameCtx = {
       dtS,
+      timeMs,
       namesParty: sel && sel.party > 0 ? sel.party : 0,
       namesHero: sel?.id ?? 0,
       fx: this.fx,
@@ -1002,6 +1079,10 @@ export class UnitViews {
       else if (e.kind === 'upgradePicked' && e.auto) this.onAutoPick(e, parties);
       else if (e.kind === 'built') this.onBuilt(e, others);
       else if (e.kind === 'rider') this.views.get(e.target)?.setRider(e.rider);
+      else if (e.kind === 'cast') this.onCast(e);
+      else if (e.kind === 'skill') this.onSkill(e);
+      else if (e.kind === 'status' && isStatusKind(e.status))
+        this.views.get(e.unit)?.setStatus(e.status, e.until);
       else if (e.kind === 'bossEmerged') this.onBossEmerged(e);
       else if (e.kind === 'enraged') this.onEnraged(e);
       else if (isSpeechEvent(e)) this.onSpeech(e);
@@ -1254,6 +1335,38 @@ export class UnitViews {
       fontSize: 36,
       tag: null,
     });
+  }
+
+  // The caster glows in its skill's colour for the windup, and now and then says the skill's name.
+  private onCast(e: Extract<SimEvent, { kind: 'cast' }>): void {
+    const def = skillDef(e.skill);
+    const view = this.views.get(e.caster);
+    if (!view) return;
+    view.glow(skillTint(def), 1.2);
+    if (e.say && def) view.say(def.name, 1800);
+  }
+
+  // The skill's pictures, drawn when the cast lands.
+  private onSkill(e: Extract<SimEvent, { kind: 'skill' }>): void {
+    const def = skillDef(e.skill);
+    const caster = this.views.get(e.caster) ?? this.dying.get(e.caster);
+    if (!caster) return;
+    const pos = (id: number): Vec | undefined => {
+      const v = this.views.get(id) ?? this.dying.get(id);
+      return v ? v.chest() : undefined;
+    };
+    const hits = e.hits.filter((id) => id !== e.caster).flatMap((id) => pos(id) ?? []);
+    const o = {
+      tint: skillTint(def),
+      from: caster.chest(),
+      point: e.point,
+      hits: hits.length ? hits : [e.point],
+      shape: shapeBox(def),
+      dashFrom: e.from,
+      seed: e.caster * 31 + e.hits.length,
+    };
+    const k = Math.max(0.8, fxScale(caster.tierNow, caster.boss));
+    for (const v of skillVisuals(def)) this.skillFx.play(v, o, k);
   }
 
   private onWindup(e: Extract<SimEvent, { kind: 'windup' }>): void {

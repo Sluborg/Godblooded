@@ -6,10 +6,10 @@ except settings (`src/ui/settings.ts`); the end screen reads `RunReport` (Sim 14
 
 ## Bottom line
 
-- **Stefan decided (2026-10-13): option B.** A currency, **Ichor**, is earned every run (won or
+- **Stefan decided (2026-10-13): option B.** A currency, **Ambrosia**, is earned every run (won or
   lost) and spent at the **Altar** in the hall on permanent upgrades. Content still unlocks by
   goals, as in option A, so the art order holds (Aesir first, Greek and Egyptian as rewards).
-- **The Altar** has 10 upgrades, 1 to 3 ranks each, about 1700 Ichor in all: roughly 25 runs to
+- **The Altar** has 10 upgrades, 1 to 3 ranks each, about 1700 Ambrosia in all: roughly 25 runs to
   fill. Each rank is small (start gold, cheaper temples, faster wake-ups); the strongest is a
   fourth card in party offers.
 - **Power creep is capped:** a full Altar is worth about +15% run strength. Balance measures
@@ -17,28 +17,28 @@ except settings (`src/ui/settings.ts`); the end screen reads `RunReport` (Sim 14
   win.
 - **Saga and Trials stay** (recommendations): a hall of tier 3 heroes, and opt-in difficulty
   after the first win.
-- **Cost:** one meta save (versioned), the Altar tab in the hall, Ichor on the end screen,
+- **Cost:** one meta save (versioned), the Altar tab in the hall, Ambrosia on the end screen,
   upgrades applied at `createWorld`. About 8 PRs across Sim, Scene, Balance and Lead.
 
 ## 1. The three options (decided: B)
 
-| Option         | Persists                                            | For                                                                   | Against                                                                                             |
-| -------------- | --------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| A Unlocks only | which content exists (temples, gods, cards, Trials) | goals without power creep; balance stays fixed; matches the art order | content must exist to unlock; nothing to do once all is open (Trials answer that)                   |
-| B Currency     | a currency ("Ichor") spent on upgrades and unlocks  | strong retention; every run pays something, even a loss               | power creep (start gold, cheaper temples) breaks the fixed targets; a shop screen; grind on a phone |
-| C Nothing      | nothing; all content from the start                 | simplest; every run fair; no save to break                            | no pull to the next run; the 3 pantheons are all there on run 1, which overwhelms                   |
+| Option         | Persists                                              | For                                                                   | Against                                                                                             |
+| -------------- | ----------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| A Unlocks only | which content exists (temples, gods, cards, Trials)   | goals without power creep; balance stays fixed; matches the art order | content must exist to unlock; nothing to do once all is open (Trials answer that)                   |
+| B Currency     | a currency ("Ambrosia") spent on upgrades and unlocks | strong retention; every run pays something, even a loss               | power creep (start gold, cheaper temples) breaks the fixed targets; a shop screen; grind on a phone |
+| C Nothing      | nothing; all content from the start                   | simplest; every run fair; no save to break                            | no pull to the next run; the 3 pantheons are all there on run 1, which overwhelms                   |
 
-## 2. Ichor and the Altar
+## 2. Ambrosia and the Altar
 
 ### Earning
 
-| Source                     | Ichor | Typical run                       |
-| -------------------------- | ----- | --------------------------------- |
-| each lair cleared          | 10    | a loss: 2 lairs, a win: 3 or more |
-| each hero reaching tier 3  | 5     | 1 to 3                            |
-| each full minute survived  | 1     | 10 to 18                          |
-| the boss slain (a win)     | 30    |                                   |
-| a Trial won with (per one) | 10    | after the first win only          |
+| Source                     | Ambrosia | Typical run                       |
+| -------------------------- | -------- | --------------------------------- |
+| each lair cleared          | 10       | a loss: 2 lairs, a win: 3 or more |
+| each hero reaching tier 3  | 5        | 1 to 3                            |
+| each full minute survived  | 1        | 10 to 18                          |
+| the boss slain (a win)     | 30       |                                   |
+| a Trial won with (per one) | 10       | after the first win only          |
 
 - A typical loss pays about 35, a typical win about 90. The end screen counts it up line by
   line ("Lair cleared +10").
@@ -58,7 +58,7 @@ except settings (`src/ui/settings.ts`); the end screen reads `RunReport` (Sim 14
 | 90    | favoured-temple | Favoured (per pantheon) | that pantheon's temple recruits 15% faster    | 1     | 80 each       |
 | 100   | fourth-card     | The Fourth Card         | party level-up offers show 4 cards            | 1     | 200           |
 
-- Total about 1700 Ichor (Favoured counted for all three pantheons). A rank needs the one
+- Total about 1700 Ambrosia (Favoured counted for all three pantheons). A rank needs the one
   before it; Favoured needs its pantheon unlocked.
 - **Return to the gods:** a free full refund at the Altar, any time outside a run, so a player
   can try other builds.
@@ -115,10 +115,10 @@ in-run omens of `events.md`). Each trial won with is marked on the hall.
 
 ## 4. Save
 
-- One localStorage key, `godblooded.meta`, JSON: `{ version: 1, runs, wins, ichor, altar:
-Record<string, number>, unlocks: string[], trialsWon: string[], saga: SagaEntry[], nextSeed: number, hintsSeen:
+- One localStorage key, `godblooded.meta`, JSON: `{ version: 1, runs, wins, ambrosia, altar:
+Record<string, number>, unlocks: string[], trialsWon: string[], saga: SagaEntry[], nextSeed: number, lean: string, hintsSeen:
 string[], hintsOn: boolean, lastBoss?:
-string }` (`nextSeed` for the run setup's portent, `meta-ui.md`; `hintsSeen` and `hintsOn` from
+string }` (`nextSeed`, and `lean`, the one pantheon chosen at the Altar, first in mapgen's lean list, `meta-ui.md`; `hintsSeen` and `hintsOn` from
   `onboarding.md`; `lastBoss` keeps the boss pick from
   repeating, `monsters-and-bosses.md`).
 - Versioned per `CLAUDE.md`: a shape change bumps `version` and adds a migration. A missing or
@@ -132,7 +132,7 @@ string }` (`nextSeed` for the run setup's portent, `meta-ui.md`; `hintsSeen` and
 | Order | Row                                                                                                    |
 | ----- | ------------------------------------------------------------------------------------------------------ |
 | 10    | `meta.ts`, pure: unlock rules over a `RunReport` and meta state; `GameData` filtered by unlocks; tests |
-| 15    | Ichor earned from a `RunReport`; Altar ranks as tuning overrides at `createWorld`; tests               |
+| 15    | Ambrosia earned from a `RunReport`; Altar ranks as tuning overrides at `createWorld`; tests            |
 | 20    | Trials as tuning overrides applied at `createWorld`                                                    |
 | 30    | Run report: Saga entries (tier 3 heroes) and the fields the conditions read                            |
 | 40    | Hero names: seeded pick from the pantheon's name list on arrival, `name` in the snapshot               |
@@ -142,7 +142,7 @@ string }` (`nextSeed` for the run setup's portent, `meta-ui.md`; `hintsSeen` and
 | Order | Row                                                                        |
 | ----- | -------------------------------------------------------------------------- |
 | 10    | Meta save: load, migrate, write after each run; dev flag in settings       |
-| 20    | End screen: Ichor count-up and new unlock cards                            |
+| 20    | End screen: Ambrosia count-up and new unlock cards                         |
 | 25    | Altar tab in the hall: rows, ranks, costs, buy, Return to the gods         |
 | 30    | Hall screen: Altar, Saga and Unlocks tabs (`meta-ui.md`)                   |
 | 40    | Run setup before a run: portent, Trials after the first win (`meta-ui.md`) |
@@ -152,7 +152,7 @@ string }` (`nextSeed` for the run setup's portent, `meta-ui.md`; `hintsSeen` and
 | Order | Row                                            |
 | ----- | ---------------------------------------------- |
 | 10    | Data: unlock rows and Trial rows               |
-| 15    | Data: Ichor sources and the 10 Altar rows      |
+| 15    | Data: Ambrosia sources and the 10 Altar rows   |
 | 20    | Data: a name list per pantheon (about 30 each) |
 
 ### Art
@@ -160,11 +160,11 @@ string }` (`nextSeed` for the run setup's portent, `meta-ui.md`; `hintsSeen` and
 | Order | Row                                                            |
 | ----- | -------------------------------------------------------------- |
 | 10    | Hall backdrop and 5 Trial icons in the UI kit style (after U2) |
-| 20    | Ichor icon and 10 Altar upgrade icons                          |
+| 20    | Ambrosia icon and 10 Altar upgrade icons                       |
 
 ## Decided (Stefan, 2026-10-13)
 
-1. **Option B:** Ichor and the Altar, with goal unlocks as in A.
+1. **Option B:** Ambrosia and the Altar, with goal unlocks as in A.
 2. **Aesir only** at the start; Greek and Egyptian unlock by goals.
 3. **Saga:** kept.
 4. **Trials:** kept as the post-win goal.

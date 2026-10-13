@@ -9,10 +9,10 @@ export interface Settings {
   // Music volume 0..1 in steps of 0.05, and a mute toggle (docs/systems/audio.md section 5).
   musicVolume: number;
   musicMuted: boolean;
-  // Names over heroes' heads: off by default; a tap on a hero shows its party's names.
-  heroNames: boolean;
   // Sound effects volume 0..1 in steps of 0.05 (docs/systems/audio.md section 5).
   effectsVolume: number;
+  // Names over heroes' heads: off by default; a tap on a hero shows its party's names.
+  heroNames: boolean;
 }
 
 export const DEFAULT_MUSIC_VOLUME = 0.6;
@@ -24,8 +24,8 @@ export const DEFAULT_SETTINGS: Settings = {
   palette: 'standard',
   musicVolume: DEFAULT_MUSIC_VOLUME,
   musicMuted: false,
-  heroNames: false,
   effectsVolume: DEFAULT_EFFECTS_VOLUME,
+  heroNames: false,
 };
 
 export const SETTINGS_KEY = 'godblooded.settings.v1';
@@ -53,8 +53,8 @@ export function parseSettings(raw: unknown): Settings {
     palette: o.palette === 'colourblind' ? 'colourblind' : 'standard',
     musicVolume: parseVolume(o.musicVolume),
     musicMuted: o.musicMuted === true,
-    heroNames: o.heroNames === true,
     effectsVolume: parseVolume(o.effectsVolume, DEFAULT_EFFECTS_VOLUME),
+    heroNames: o.heroNames === true,
   };
 }
 

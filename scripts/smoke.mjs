@@ -137,7 +137,17 @@ try {
     }, index);
     if (!center) throw new Error(`no menu button for ${type}`);
     const before = (await state()).buildings;
+    // Tap for info, then tap again to build (the menu is rebuilt between the two taps).
     await tap(await designToScreen(center));
+    await sleep(300);
+    if ((await state()).buildings !== before)
+      throw new Error(`building ${type} was built on a single tap (step ${n})`);
+    const again = await page.evaluate((i) => {
+      const b = window.__game.scene.getScene('Hud').menuButtons[i]?.button.rect;
+      return b ? [b.centerX, b.centerY] : null;
+    }, index);
+    if (!again) throw new Error(`no menu button for ${type} after the first tap`);
+    await tap(await designToScreen(again));
     await sleep(400);
     if ((await state()).buildings !== before + 1)
       throw new Error(`building ${type} was not built (step ${n})`);

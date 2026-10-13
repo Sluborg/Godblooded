@@ -26,7 +26,7 @@ export class PartsGalleryScene extends Phaser.Scene {
     looks.forEach((lk, r) => {
       const look = heroPartsLook(lk.god, lk.path, lk.tier);
       if (!look) return;
-      const set = ensureHeroSet(this.scene.scene, look.id, look.def);
+      const set = ensureHeroSet(this.scene.scene, look.id, look.def, lk.tier);
       const y = 14 + r * rowH + rowH * 0.78;
       this.add
         .text(8, y - rowH * 0.7, `${lk.path ?? lk.god} t${lk.tier}`, {
