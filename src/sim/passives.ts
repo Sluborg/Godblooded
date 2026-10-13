@@ -1,27 +1,40 @@
 import { dist } from './units';
 import type { World } from './world';
-import type { Attributes, BuffStat, PassiveDef, PassiveKeys, UnitState } from './types';
+import type {
+  Attributes,
+  BuffStat,
+  PassiveDef,
+  PassiveEffect,
+  PassiveKeys,
+  UnitState,
+} from './types';
 
 // God passives (Sim 260, docs/systems/paths-and-skills.md section 5). A passive is a set of keys
 // on GodDef; each key is implemented once, where its rule lives (stats, strikes, resting,
 // knockouts, aggro, first strike). This module finds which passives apply to a unit and folds
 // the numeric keys.
 
-// The passives that apply to a hero: its own, and the party passives of living party mates in
-// range. One per passive id.
-export function passivesFor(world: World, unit: UnitState): PassiveDef[] {
+// The passive effects that apply to a hero: its own god's, and the 'mates' and 'party' effects
+// of living party mates in range. A party effect of one passive counts once however many mates
+// carry it.
+export function passivesFor(world: World, unit: UnitState): PassiveEffect[] {
   if (unit.kind !== 'hero' || !world.data.gods?.some((g) => g.passive)) return [];
-  const out = new Map<string, PassiveDef>();
+  const out = new Map<string, PassiveEffect>();
   const own = passiveOf(world, unit);
-  if (own) out.set(own.id, own);
+  own?.effects.forEach((e, i) => {
+    if (e.scope !== 'mates') out.set(`${own.id}:${i}`, e);
+  });
   if (unit.party !== 0) {
     for (const id of world.parties.get(unit.party)?.members ?? []) {
       if (id === unit.id) continue;
       const mate = world.units.find((u) => u.id === id);
       const def = mate && !mate.ko && mate.hp > 0 ? passiveOf(world, mate) : undefined;
-      if (def && def.scope === 'party' && dist(mate!.pos, unit.pos) <= (def.range ?? Infinity)) {
-        out.set(def.id, def);
-      }
+      if (!mate || !def) continue;
+      def.effects.forEach((e, i) => {
+        if (e.scope !== 'self' && dist(mate.pos, unit.pos) <= (e.range ?? Infinity)) {
+          out.set(`${def.id}:${i}`, e);
+        }
+      });
     }
   }
   return [...out.values()];
@@ -94,7 +107,9 @@ export function passiveVsTags(
 // and a buff while below a share of max hp. Folded into buffOf (effects.ts).
 export function passiveBuff(world: World, unit: UnitState, stat: BuffStat): number {
   let total = 0;
-  const kills = world.unitRuntime.get(unit.id)?.fight?.kills ?? 0;
+  // Kill stacks last while the fight does, not into the next one.
+  const rt = world.unitRuntime.get(unit.id);
+  const kills = rt && world.timeMs < (rt.fightUntilMs ?? 0) ? (rt.fight?.kills ?? 0) : 0;
   for (const p of passivesFor(world, unit)) {
     const k = p.keys;
     if (stat === 'dodge') total += k.dodge ?? 0;
