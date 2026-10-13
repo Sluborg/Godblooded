@@ -19,6 +19,7 @@ import {
   type Strike,
 } from './motionPose';
 import { pickVariant, rotateHue, sizeJitter, tierStyle } from './monsterLook';
+import { damageLook, MAX_FLOATS, typeTint, type FloatLook, type HitInfo } from './damageLook';
 import { getSettings } from './settings';
 import { heroLabel, partyColor, partyRole, type PartyRole } from './partyLook';
 import { isSpeechEvent, pickLine, type SpeechKind } from './speechLines';
@@ -60,6 +61,7 @@ interface Attack {
   targetId: number;
   damage: number;
   dodged: boolean;
+  info?: HitInfo;
   // A heal cast: the amount (null for a strike). It lands as a beam, not a blow.
   heal: number | null;
   // Started by a sim `windup` event: waits for the matching `hit` (which carries the damage) and
@@ -79,7 +81,14 @@ interface FrameCtx {
   // Chest of a unit, building or lair by sim id, if it is on the map.
   chestOf: (id: number) => Vec | undefined;
   // Receives the visual side of a landed strike (flash, knockback, number).
-  hurt: (targetId: number, fromX: number, power: number, damage: number, dodged: boolean) => void;
+  hurt: (
+    targetId: number,
+    fromX: number,
+    power: number,
+    damage: number,
+    dodged: boolean,
+    info?: HitInfo,
+  ) => void;
   // Receives the visual side of a landed heal (green tint, sparkles, number).
   healed: (targetId: number, amount: number) => void;
 }
@@ -280,15 +289,16 @@ export class UnitView {
   // A `hit` from the sim. With a windup under way for this target it supplies the damage;
   // otherwise (older sim, no windup event) the swing is played now with the windup squeezed to
   // what fits before the impact.
-  landHit(targetId: number, damage: number, dodged: boolean): void {
+  landHit(targetId: number, damage: number, dodged: boolean, info?: HitInfo): void {
     const a = this.attack;
     if (a?.awaitingHit && a.targetId === targetId) {
       a.awaitingHit = false;
       a.damage = damage;
       a.dodged = dodged;
+      a.info = info;
       return;
     }
-    this.startAttack(targetId, damage, dodged, null, false);
+    this.startAttack(targetId, damage, dodged, null, false, info);
   }
 
   // A `heal` from the sim: the cast lands now. A windup under way for this target is released;
@@ -310,6 +320,7 @@ export class UnitView {
     dodged: boolean,
     leadS: number | null,
     awaitingHit: boolean,
+    info?: HitInfo,
   ): void {
     if (this.koK > 0 || this.dying) return;
     const strike = this.strikeKind();
@@ -320,6 +331,7 @@ export class UnitView {
       targetId,
       damage,
       dodged,
+      info,
       heal: null,
       awaitingHit,
       leadS: leadS ?? DEFAULT_LEAD_S,
@@ -511,6 +523,7 @@ export class UnitView {
       cross: a.cross,
       reach: UNIT_HEIGHT * (this.look.footprint + 0.25),
       foot: this.footOffset(),
+      tint: typeTint(a.info?.type) ?? undefined,
     });
     ctx.fx.add(r.effects);
     if (r.smash) {
@@ -519,7 +532,7 @@ export class UnitView {
       ctx.shake();
     }
     const heavy = a.strike === 'smash' || a.strike === 'stomp';
-    ctx.hurt(a.targetId, this.x, heavy ? 2 : 1, n === 0 ? a.damage : 0, a.dodged);
+    ctx.hurt(a.targetId, this.x, heavy ? 2 : 1, n === 0 ? a.damage : 0, a.dodged, a.info);
   }
 
   private applyPose(p: Pose, alpha: number): void {
@@ -683,12 +696,13 @@ export class UnitViews {
         const p = others(id);
         return p ? { x: p.x, y: p.y - 40 } : undefined;
       },
-      hurt: (targetId, fromX, power, damage, dodged) => {
+      hurt: (targetId, fromX, power, damage, dodged, info) => {
         const t = this.views.get(targetId) ?? this.dying.get(targetId);
         if (!t) return;
         t.receiveHit(fromX, power, dodged, this.fx);
-        if (!dodged && damage > 0)
-          this.floatText(t.container.x, t.container.y - t.height - 10, `${damage}`);
+        // The number: type colour, crit, miss, weak or resisted (damageLook).
+        const look = damageLook(damage, dodged, info);
+        if (look) this.floatNumber(t.container.x, t.container.y - t.height - 10, look);
       },
       healed: (targetId, amount) => {
         const t = this.views.get(targetId) ?? this.dying.get(targetId);
@@ -752,12 +766,13 @@ export class UnitViews {
     ctx: FrameCtx,
     others: (id: number) => Vec2 | undefined,
   ): void {
+    const info: HitInfo = { type: e.type, crit: e.crit, weak: e.weak, resist: e.resist };
     const attacker = this.views.get(e.attacker);
-    if (attacker) return attacker.landHit(e.target, e.damage, e.dodged);
+    if (attacker) return attacker.landHit(e.target, e.damage, e.dodged, info);
     // No unit view: a tower (or other building) shooting. An arrow flies from its top to the
     // target and the hit lands at once, knocked back away from the tower.
     const from = others(e.attacker);
-    if (!from) return ctx.hurt(e.target, Number.NaN, 1, e.damage, e.dodged);
+    if (!from) return ctx.hurt(e.target, Number.NaN, 1, e.damage, e.dodged, info);
     const top = { x: from.x, y: from.y - TOWER_MUZZLE_Y };
     const to = ctx.chestOf(e.target) ?? top;
     const dist = Math.hypot(to.x - top.x, to.y - top.y);
@@ -773,7 +788,7 @@ export class UnitViews {
       },
     ]);
     this.fx.sparks(top.x, top.y, [255, 225, 160], 4);
-    ctx.hurt(e.target, from.x, 1, e.damage, e.dodged);
+    ctx.hurt(e.target, from.x, 1, e.damage, e.dodged, info);
   }
 
   private onTierUp(
@@ -794,11 +809,28 @@ export class UnitViews {
     this.views.get(e.attacker)?.beginWindup(e.target, e.inMs / 1000);
   }
 
-  private floatText(x: number, y: number, text: string, color = '#ffd9d9'): void {
+  // Floating numbers on screen, oldest first; past MAX_FLOATS the oldest is dropped at once.
+  private floats: Phaser.GameObjects.Text[] = [];
+
+  private floatNumber(x: number, y: number, look: FloatLook): void {
+    const t = this.floatText(x, y, look.text, look.color, look.fontSize);
+    if (look.tag) this.floatText(x, y + look.fontSize * 0.9, look.tag, '#ffcf8a', 16);
+    this.floats = this.floats.filter((f) => f.active);
+    this.floats.push(t);
+    while (this.floats.length > MAX_FLOATS) this.floats.shift()?.destroy();
+  }
+
+  private floatText(
+    x: number,
+    y: number,
+    text: string,
+    color = '#ffd9d9',
+    fontSize = 26,
+  ): Phaser.GameObjects.Text {
     const t = this.scene.add
       .text(x, y, text, {
         fontFamily: 'Georgia, serif',
-        fontSize: '26px',
+        fontSize: `${fontSize}px`,
         color,
         stroke: '#000000',
         strokeThickness: 4,
@@ -812,5 +844,6 @@ export class UnitViews {
       duration: 700,
       onComplete: () => t.destroy(),
     });
+    return t;
   }
 }
