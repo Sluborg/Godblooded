@@ -71,6 +71,13 @@ export function validateAssets(root = '.') {
       if (row.strike === undefined) err(id, 'unit needs "strike"');
       if (row.weaponX === undefined) err(id, 'unit needs weaponX/weaponY');
     }
+    // Heroes (decision 2026-10-13): tier 1 is the god alone, tier 2 and 3 carry -<path>.
+    if (k.kind === 'hero') {
+      const hasPath = id.slice('hero_'.length).split('_')[0].includes('-');
+      if (tier === 1 && hasPath) err(id, 'a tier-1 hero has no path: hero_<god>_t1_...');
+      if (tier > 1 && !hasPath)
+        err(id, 'a tier 2-3 hero needs a path: hero_<god>-<path>_t<2|3>_...');
+    }
     if (row.strike !== undefined && !STRIKES.includes(row.strike))
       err(id, `strike must be one of ${STRIKES.join(', ')}`);
     if (row.strike === 'double' && row.weapon2X === undefined)
