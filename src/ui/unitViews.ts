@@ -1065,9 +1065,9 @@ const CLASSES = new Map((GRAYBOX.classes ?? []).map((d) => [d.id, d]));
 // their path's (tier 2 and up) or else their god's; weapon heroes strike physical. Mirrors
 // sim/world.ts; Scene has no snapshot field for it yet.
 function heroDamageType(u: UnitState): string {
+  // Sim decides by the unit's class (`type`), the template of its god or path.
+  if (CLASSES.get(u.type)?.spellMult === undefined) return 'physical';
   const path = u.path ? PATHS.get(u.path) : undefined;
-  const template = path?.template ?? (u.god ? GODS.get(u.god)?.template : undefined);
-  if (!template || CLASSES.get(template)?.spellMult === undefined) return 'physical';
   return path?.damageType ?? (u.god ? GODS.get(u.god)?.damageType : undefined) ?? 'physical';
 }
 const SKILLS = new Map((GRAYBOX.skills ?? []).map((d) => [d.id, d]));
@@ -1080,6 +1080,8 @@ export class UnitViews {
   private readonly dying = new Map<number, UnitView>();
   private readonly fx: FxLayer;
   private readonly skillFx: SkillFx;
+  // What each hero strikes with, for the colour of a skill with an untyped damage effect.
+  private readonly strikeType = new Map<number, string>();
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -1157,6 +1159,7 @@ export class UnitViews {
     const seen = new Set<number>();
     for (const u of units) {
       seen.add(u.id);
+      if (u.kind === 'hero') this.strikeType.set(u.id, heroDamageType(u));
       let view = this.views.get(u.id);
       if (!view) {
         view = new UnitView(this.scene, u);
@@ -1442,7 +1445,7 @@ export class UnitViews {
     const view = this.views.get(e.caster);
     if (!view) return;
     const def = skillAtTier(skillDef(e.skill), view.tierNow);
-    view.glow(skillTint(def), 1.2);
+    view.glow(skillTint(def, this.strikeType.get(e.caster)), 1.2);
     if (e.say && def) view.say(def.name, 1800);
   }
 
@@ -1458,7 +1461,7 @@ export class UnitViews {
     };
     const hits = e.hits.filter((id) => id !== e.caster).flatMap((id) => pos(id) ?? []);
     const o = {
-      tint: skillTint(def),
+      tint: skillTint(def, this.strikeType.get(e.caster)),
       from: caster.chest(),
       point: e.point,
       hits: hits.length ? hits : [e.point],
