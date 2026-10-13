@@ -2,7 +2,7 @@ import { avenge, revengeTarget, rivalPairs, vowRevenge } from './rivalry';
 import { runAutosave } from './save';
 import { generateMap } from './mapgen';
 import { deathChance, koBonds, koGoldLost, slayHero } from './deaths';
-import { buffOf, tauntOf, type UnitFx } from './effects';
+import { buffOf, isBound, runHots, tauntOf, type UnitFx } from './effects';
 import { armourBonus, weaponPower } from './items';
 import { passiveRider } from './passives';
 import { everyNthOf, passiveAggroMult, passiveArmour } from './passives';
@@ -120,7 +120,7 @@ export interface UnitRuntime {
   // A potion being drunk: time left (see potions.ts).
   drink?: { ms: number };
   // The fight this unit is in: kills so far, whether its first-hit miss is spent, strikes landed.
-  fight?: { kills: number; missUsed: boolean; strikes: number };
+  fight?: { kills: number; missUsed: boolean; strikes: number; revived?: boolean };
 }
 
 export interface World {
@@ -290,6 +290,13 @@ function runTick(world: World): void {
   // Tower victims leave now, before the lairs count their monsters or the units act.
   settleDeaths(world);
   runStatuses(world);
+  runHots(world, (by, unit, amount) => {
+    const gain = Math.min(Math.round(amount * healMult(world, unit.id)), unit.maxHp - unit.hp);
+    if (gain <= 0) return;
+    unit.hp += gain;
+    tally(world, by, 'healing', gain);
+    world.events.push({ kind: 'heal', healer: by, target: unit.id, amount: gain });
+  });
   // Burn victims leave now, before heroes flee or units act on a dead unit's turn.
   settleDeaths(world);
   runBosses(world);
@@ -363,6 +370,15 @@ function runLairs(world: World): void {
 }
 
 export function statsOf(world: World, unit: UnitState): Stats | undefined {
+  const base = unitStats(world, unit);
+  // Bound: cannot move, attacks take twice as long.
+  if (base && isBound(world, unit.id)) {
+    return { ...base, rooted: true, attackMult: (base.attackMult ?? 1) * 2 };
+  }
+  return base;
+}
+
+function unitStats(world: World, unit: UnitState): Stats | undefined {
   if (unit.kind === 'hero') {
     const cls = world.data.classes?.find((c) => c.id === unit.type);
     return (
