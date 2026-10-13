@@ -110,6 +110,8 @@ export class LevelUpScene extends Phaser.Scene {
           fontFamily: FONT,
           fontSize: '16px',
           color: lit ? COLORS.text : COLORS.textMuted,
+          align: 'center',
+          wordWrap: { width: 118 },
         })
         .setOrigin(0.5);
     });
@@ -117,7 +119,7 @@ export class LevelUpScene extends Phaser.Scene {
 
   private makeToast(): void {
     this.toast = this.add
-      .text(GAME_WIDTH / 2, 650, '', {
+      .text(GAME_WIDTH / 2, 680, '', {
         fontFamily: FONT,
         fontSize: '28px',
         color: COLORS.text,
