@@ -1,3 +1,4 @@
+import { armourBonus } from './items';
 import { passiveAttrs } from './passives';
 import { partiesHaveRivals, runRivalries } from './rivalry';
 import { dist, maxHp } from './units';
@@ -70,7 +71,8 @@ export function effectiveAttrs(world: World, unit: UnitState, base: Attributes):
   const party = world.parties.get(unit.party);
   const path = unit.tier >= 2 ? pathDef(world, unit.path) : undefined;
   const passive = passiveAttrs(world, unit);
-  if ((!party || party.upgrades.length === 0) && !path && !passive) return base;
+  const gearWp = armourBonus(world, unit).wp;
+  if ((!party || party.upgrades.length === 0) && !path && !passive && !gearWp) return base;
   const a = { ...base };
   const add = (bonus: Partial<Attributes> | undefined) => {
     for (const k of Object.keys(bonus ?? {}) as (keyof Attributes)[]) a[k] += bonus?.[k] ?? 0;
@@ -78,6 +80,7 @@ export function effectiveAttrs(world: World, unit: UnitState, base: Attributes):
   for (const up of upgradeDefs(world, party?.upgrades ?? [])) add(up.effect.attr);
   if (path) add(path.attrs[unit.tier >= 3 ? 1 : 0]);
   add(passive);
+  a.wp += gearWp;
   return a;
 }
 

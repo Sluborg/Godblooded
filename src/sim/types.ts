@@ -175,6 +175,45 @@ export interface ClassDef {
   // Casters (wizard 0.8, healer 0.5): the strike is a spell, power Int times this, it cannot be
   // dodged and it is resisted by Willpower, not armour. Missing: a weapon strike.
   spellMult?: number;
+  // Armour kit: how much of an armour level turns into armour and Willpower (default heavy).
+  kit?: Kit;
+}
+
+// Items and shops (docs/systems/items-and-shops.md): every hero has four slots. Weapon and armour
+// are levels (0 to 3) bought at the smithy; potions and one charm come from the market.
+export type Kit = 'heavy' | 'light' | 'robe';
+export type ItemSlot = 'weapon' | 'armour' | 'potion' | 'charm';
+
+export interface ItemEffects {
+  // Weapon: added to power (Str for weapon templates, Int x spellMult for casters).
+  power?: number;
+  // Armour: armour and Willpower by kit.
+  kits?: Partial<Record<Kit, { armour: number; wp: number }>>;
+  // Potion: share of max hp healed.
+  healPct?: number;
+  // Charm effects arrive with Sim 310.
+  [key: string]: unknown;
+}
+
+export interface ItemDef {
+  id: string;
+  slot: ItemSlot;
+  // Weapon and armour: the level this row is (1 to 3).
+  level?: number;
+  price: number;
+  shop: 'smithy' | 'market';
+  // The shop tier that sells it.
+  shopTier: number;
+  name?: string;
+  effects: ItemEffects;
+}
+
+// What a hero carries. Missing on a unit: level 0, no potions, no charm.
+export interface HeroItems {
+  weapon: number;
+  armour: number;
+  potions: number;
+  charm: string | null;
 }
 
 // One of 3 cards offered when a party levels up. `effect` keys are read by Sim.
@@ -562,6 +601,8 @@ export interface GameData {
   upgrades?: readonly UpgradeDef[];
   // Paths of the gods. A god with no path rows tiers up by party level alone.
   paths?: readonly PathDef[];
+  // Item rows the smithy and market sell.
+  items?: readonly ItemDef[];
   // Path skills, one per path (tier 2, upgraded at tier 3).
   skills?: readonly SkillDef[];
   // Any subset of the tunable numbers; the rest use DEFAULT_TUNING (src/sim/tuning.ts).
@@ -643,6 +684,8 @@ export interface UnitState {
   facing: Vec2;
   hp: number;
   maxHp: number;
+  // Heroes: gear carried (absent: nothing). Monsters never have any.
+  items?: HeroItems;
   // Unit being attacked, if any (Scene lunges toward it).
   target: number | null;
   // Knocked out (heroes only, monsters are removed). Out of the fight until revived.

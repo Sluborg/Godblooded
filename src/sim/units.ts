@@ -16,6 +16,8 @@ export interface Stats {
   slow?: number;
   // Attack rate gained from buffs (0.5 = 50% faster).
   haste?: number;
+  // Added to the strike's power by the wielded weapon (hero gear).
+  weaponPower?: number;
   // Multiplies the attack time (an enraged boss: 0.7).
   attackMult?: number;
   // The type of the basic attack (casters: their god's or path's); missing: physical or, for a

@@ -2,6 +2,7 @@ import { avenge, revengeTarget, rivalPairs, vowRevenge } from './rivalry';
 import { runAutosave } from './save';
 import { generateMap } from './mapgen';
 import { buffOf, tauntOf, type UnitFx } from './effects';
+import { armourBonus, weaponPower } from './items';
 import { everyNthOf, passiveAggroMult, passiveArmour } from './passives';
 import { noteFight } from './engage';
 import { runStatuses, slowOf, healMult, type UnitStatus } from './riders';
@@ -321,7 +322,12 @@ export function statsOf(world: World, unit: UnitState): Stats | undefined {
       cls && {
         weapon: cls.weapon,
         attrs: effectiveAttrs(world, unit, cls.attrs),
-        armour: scaled(cls.armour, buffOf(world, unit.id, 'armour'), passiveArmour(world, unit)),
+        armour: scaled(
+          cls.armour,
+          buffOf(world, unit.id, 'armour'),
+          passiveArmour(world, unit) + armourBonus(world, unit).armour,
+        ),
+        weaponPower: weaponPower(world, unit),
         spellMult: cls.spellMult,
         slow: slowOf(world, unit.id),
         haste: buffOf(world, unit.id, 'attackSpeed'),
@@ -672,7 +678,12 @@ export function snapshot(world: World): Snapshot {
     })),
     paths: pathStates(world),
     lairs: world.lairs.map((l) => ({ ...l, pos: { ...l.pos } })),
-    units: world.units.map((u) => ({ ...u, pos: { ...u.pos }, facing: { ...u.facing } })),
+    units: world.units.map((u) => ({
+      ...u,
+      pos: { ...u.pos },
+      facing: { ...u.facing },
+      ...(u.items ? { items: { ...u.items } } : {}),
+    })),
     bounties: world.bounties.map((b) => ({ ...b, pos: { ...b.pos } })),
     rivals: rivalPairs(world),
     map: { lean: [...world.mapLean], boss: world.bossLair },

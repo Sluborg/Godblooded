@@ -10,7 +10,7 @@ import type { GameData } from './types';
 // Changing the shape of the world (a new field is fine, it falls back to its fresh value; a
 // renamed, removed or reinterpreted one is not) bumps SAVE_VERSION and adds a migration.
 
-export const SAVE_VERSION = 1;
+export const SAVE_VERSION = 2;
 
 export interface SaveGame {
   version: number;
@@ -26,9 +26,21 @@ export class SaveError extends Error {}
 // World fields that are not part of a save: content, derived from content, or per snapshot.
 const SKIP = new Set(['data', 'rng', 'tuning', 'events', 'seed']);
 
-// Migrations: MIGRATIONS[n] turns a version n save into a version n + 1 one. Empty until the
-// first change of shape.
-const MIGRATIONS: Record<number, (save: SaveGame) => SaveGame> = {};
+// Migrations: MIGRATIONS[n] turns a version n save into a version n + 1 one.
+const MIGRATIONS: Record<number, (save: SaveGame) => SaveGame> = {
+  // 1 to 2 (Sim 280): heroes carry gear. Old heroes get level 0 and no potions.
+  1: (save) => {
+    const units = save.world.units;
+    if (Array.isArray(units)) {
+      for (const u of units as Record<string, unknown>[]) {
+        if (u && u.kind === 'hero' && !u.items) {
+          u.items = { weapon: 0, armour: 0, potions: 0, charm: null };
+        }
+      }
+    }
+    return { ...save, version: 2 };
+  },
+};
 
 export function saveWorld(world: World): SaveGame {
   const out: Record<string, unknown> = {};
