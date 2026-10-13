@@ -4,7 +4,7 @@ import { generateMap } from './mapgen';
 import { noteFight } from './engage';
 import { runStatuses, slowOf, healMult, type UnitStatus } from './riders';
 import { attackStrike, landStrike } from './strike';
-import { cancelCast, runSkill, type SkillRuntime } from './skills';
+import { cancelCast, runSkill, tickSkill, type SkillRuntime } from './skills';
 import { swing } from './swing';
 import { buildReport, sampleGold, tally, type HeroRecord } from './runstats';
 import {
@@ -369,6 +369,7 @@ function runUnits(world: World): void {
       continue;
     }
     rt.cooldownMs = Math.max(0, rt.cooldownMs - TICK_MS);
+    tickSkill(rt);
     // Raiders have no lair leash: they march on the town.
     const home = rt.raid ? undefined : world.lairs.find((l) => l.id === rt.lair);
     // Heroes that are fleeing, resting or shopping do not pick fights.
@@ -496,7 +497,12 @@ function settleDeaths(world: World): void {
       const bounty = Math.round((mon?.bounty ?? 0) * reward);
       const xp = Math.round((mon?.xp ?? 0) * reward);
       world.events.push({ kind: 'died', unit: unit.id, type: unit.type, by, bounty, xp });
-      world.recentKills.push({ pos: { ...unit.pos }, timeMs: world.timeMs });
+      // Only `kill` triggers read this; keep it to the window and only when skills exist.
+      if (world.data.skills?.length) {
+        const from = world.timeMs - world.tuning.skill.killWindowMs;
+        world.recentKills = world.recentKills.filter((k) => k.timeMs >= from);
+        world.recentKills.push({ pos: { ...unit.pos }, timeMs: world.timeMs });
+      }
       world.stats.monstersKilled++;
       avenge(world, unit.id);
       tally(world, by, 'kills');

@@ -32,6 +32,11 @@ export function skillOf(world: World, hero: UnitState): SkillDef | undefined {
   return def && hero.tier >= 3 && def.t3 ? { ...def, ...def.t3 } : def;
 }
 
+// Cooldowns run whether or not the hero may cast right now.
+export function tickSkill(rt: UnitRuntime): void {
+  if (rt.skill) rt.skill.cdMs = Math.max(0, rt.skill.cdMs - TICK_MS);
+}
+
 export function cancelCast(rt: UnitRuntime): void {
   if (rt.skill) rt.skill.cast = undefined;
 }
@@ -47,8 +52,6 @@ export function runSkill(
   const def = skillOf(world, hero);
   if (!def) return false;
   const sr = (rt.skill ??= { cdMs: 0, casts: 0 });
-  sr.cdMs = Math.max(0, sr.cdMs - TICK_MS);
-  killLog(world);
   if (sr.cast) {
     sr.cast.ms -= TICK_MS;
     if (sr.cast.ms <= 0) {
@@ -59,7 +62,7 @@ export function runSkill(
     return true;
   }
   if (sr.cdMs > 0) return false;
-  const found = evalTrigger(world, hero, def.trigger, foe);
+  const found = evalTrigger(world, hero, def.trigger, foe, def.target === 'self');
   if (!found) return false;
   const at = centre(hero, def, found, foe);
   if (!at) return false;
@@ -138,35 +141,41 @@ function evalTrigger(
   hero: UnitState,
   trig: SkillTrigger,
   foe: UnitState | null,
+  self: boolean,
 ): Found | undefined {
   if ('any' in trig) {
     for (const sub of trig.any) {
-      const hit = evalTrigger(world, hero, sub, foe);
+      const hit = evalTrigger(world, hero, sub, foe, self);
       if (hit) return hit;
     }
     return undefined;
   }
   switch (trig.kind) {
     case 'ready': {
-      if (!foe) return undefined;
       const near = foesOf(world).filter((f) => dist(hero.pos, f.pos) <= (trig.range ?? 300));
       const pick = pickFoe(hero, hero.pos, near);
       return pick && { foe: pick, point: { ...pick.pos } };
     }
     case 'engage': {
-      if (!foe) return undefined;
-      const d = dist(hero.pos, foe.pos);
-      return d >= trig.min && d <= trig.max ? { foe, point: { ...foe.pos } } : undefined;
+      const band = foesOf(world).filter((f) => {
+        const d = dist(hero.pos, f.pos);
+        return d >= trig.min && d <= trig.max;
+      });
+      const pick = pickFoe(hero, hero.pos, band);
+      return pick && { foe: pick, point: { ...pick.pos } };
     }
     case 'crowd': {
-      if (!foe) return undefined;
-      const foes = foesOf(world);
-      const inside = foes.filter((f) =>
+      // Counted around the skill's centre: the caster, or the foe it fights.
+      const centre = self ? hero : foe;
+      if (!centre) return undefined;
+      const inside = foesOf(world).filter((f) =>
         trig.angle === undefined
-          ? dist(foe.pos, f.pos) <= trig.radius
-          : inCone(hero.pos, foe.pos, trig.radius, trig.angle, f.pos),
+          ? dist(centre.pos, f.pos) <= trig.radius
+          : inCone(hero.pos, centre.pos, trig.radius, trig.angle, f.pos),
       );
-      return inside.length >= trig.n ? { foe, point: { ...foe.pos } } : undefined;
+      if (inside.length < trig.n) return undefined;
+      const at = self ? pickFoe(hero, hero.pos, inside) : foe;
+      return { foe: at ?? undefined, point: { ...centre.pos } };
     }
     case 'allyHurt': {
       const hurt = alliesOf(world, hero).filter(
@@ -185,17 +194,13 @@ function evalTrigger(
       return hurt || hunted ? { foe: foe ?? undefined, point: { ...hero.pos } } : undefined;
     }
     case 'kill': {
-      const near = world.recentKills.find((k) => dist(hero.pos, k.pos) <= trig.radius);
+      const near = world.recentKills.find(
+        (k) =>
+          k.timeMs >= world.timeMs - world.tuning.skill.killWindowMs &&
+          dist(hero.pos, k.pos) <= trig.radius,
+      );
       return near ? { point: { ...near.pos } } : undefined;
     }
-  }
-}
-
-// Forget kills older than the window.
-function killLog(world: World): void {
-  const from = world.timeMs - world.tuning.skill.killWindowMs;
-  if (world.recentKills.length > 0 && world.recentKills[0].timeMs < from) {
-    world.recentKills = world.recentKills.filter((k) => k.timeMs >= from);
   }
 }
 
@@ -233,8 +238,16 @@ export function foesInShape(
 ): { unit: UnitState; mult: number }[] {
   const foes = foesOf(world);
   switch (shape.kind) {
-    case 'single':
-      return target && target.hp > 0 && !target.ko ? [{ unit: target, mult: 1 }] : [];
+    case 'single': {
+      // Anchored to the cast point: the target counts while it is still there, else the
+      // nearest foe that is.
+      const reach = world.tuning.skill.pointReach;
+      const here =
+        target && target.hp > 0 && !target.ko && dist(point, target.pos) <= reach
+          ? target
+          : pickNearest(foes, point, reach);
+      return here ? [{ unit: here, mult: 1 }] : [];
+    }
     case 'circle':
       return foes
         .filter((f) => dist(point, f.pos) <= shape.radius)

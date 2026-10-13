@@ -91,6 +91,7 @@ export const DEFAULT_TUNING: Tuning = {
     castWindupMs: 500,
     killWindowMs: 3_000,
     traitNudge: 0.15,
+    pointReach: 60,
     speechEvery: 4,
   },
   rider: {

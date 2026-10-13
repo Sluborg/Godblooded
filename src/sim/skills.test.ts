@@ -343,3 +343,54 @@ describe('skill shapes', () => {
     expect(got.map((x) => x.mult)).toEqual([1, 0.5, 0.25]);
   });
 });
+
+describe('skill engine, review fixes', () => {
+  it('ready and engage reach foes beyond the aggro radius', () => {
+    const w = createWorld(1, mkData({ ...bolt, trigger: { kind: 'ready', range: 300 } }));
+    hero(w);
+    monster(w, 780, 500);
+    expect(of(run(w, 1000), 'cast').length).toBeGreaterThan(0);
+  });
+
+  it('a self-centred crowd counts foes around the caster, not around the foe', () => {
+    const w = createWorld(1, mkData(slam));
+    hero(w);
+    // Two rats cluster 200 away from the hero: not a crowd for a circle around the hero.
+    monster(w, 700, 500);
+    monster(w, 710, 520);
+    expect(of(run(w, 2000), 'cast')).toHaveLength(0);
+  });
+
+  it('cooldown runs while the hero is not fighting', () => {
+    const w = createWorld(1, mkData({ ...bolt, cooldownS: 5 }));
+    const h = hero(w);
+    const rat = monster(w, 540, 500, 100_000);
+    run(w, 600);
+    rat.pos = { x: 3000, y: 3000 };
+    h.mode = 'rest';
+    run(w, 6000);
+    h.mode = 'explore';
+    rat.pos = { x: 540, y: 500 };
+    const ev = run(w, 100);
+    expect(of(ev, 'cast')).toHaveLength(1);
+  });
+
+  it('a single cast misses a target that left the cast point', () => {
+    const w = createWorld(1, mkData(bolt));
+    hero(w);
+    const rat = monster(w, 540, 500, 100_000);
+    run(w, 200);
+    rat.pos = { x: 700, y: 500 };
+    const ev = run(w, 600);
+    expect(of(ev, 'skill')[0].hits).toEqual([]);
+  });
+
+  it('keeps no kill history without skill rows', () => {
+    const d = mkData(bolt);
+    const w = createWorld(1, { ...d, skills: [] });
+    hero(w);
+    monster(w, 530, 500, 5);
+    run(w, 2000);
+    expect(w.recentKills).toHaveLength(0);
+  });
+});

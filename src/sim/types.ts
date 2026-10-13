@@ -307,6 +307,8 @@ export interface SkillTuning {
   killWindowMs: number;
   // Self-hurt triggers fire this share of max hp earlier for a coward, later for a brave hero.
   traitNudge: number;
+  // A single-target cast hits its target (or the nearest foe) within this of the cast point.
+  pointReach: number;
   // One cast in this many carries `say` (Scene shows the skill name as a speech bubble).
   speechEvery: number;
 }
