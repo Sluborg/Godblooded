@@ -7,6 +7,7 @@ import { drawBackdrop } from '../ui/backdrop';
 import { canInstall, onInstallChange, promptInstall } from '../ui/install';
 import { clearSave, hasSave } from '../ui/saveStore';
 import { makeButton } from '../ui/button';
+import { getMusic } from '../ui/musicPlayer';
 
 const FONT = 'Georgia, serif';
 
@@ -19,6 +20,7 @@ export class TitleScene extends Phaser.Scene {
 
   create(): void {
     const cx = GAME_WIDTH / 2;
+    getMusic(this).play(this, 'mus_title');
     drawBackdrop(this);
     this.cameras.main.fadeIn(300, 0, 0, 0);
     // The logo picture when Art has picked one, else the wordmark.

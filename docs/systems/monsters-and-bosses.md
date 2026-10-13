@@ -170,6 +170,10 @@ B17), and Scene shows the lair tier in code, with no new art.
 
 ### How monsters look (tier 1, 2, 3)
 
+**Style (taste test, decision 2026-10-14): grim and scary.** Same cartoon proportions and thin
+colour-matched outlines as the heroes, but gaunt faces, sunken glowing eyes, scars, rot and
+rags, in earthy colours only slightly muted; menace from shape and posture, not gore.
+
 Same rule as the heroes (`paths-and-skills.md` section 6, cartoon units from parts): a monster
 keeps its face, body and palette on every tier; each tier adds **one silhouette change** and
 grows a little (size x1.0, x1.1, x1.2). The **tier colour** (green, yellow, red,
@@ -180,12 +184,12 @@ whole-sprite tint, so it never clashes with Scene's rider and heal tints.
 | ------------ | -------------------------------------------------------- | ---------------------------------------- | ---------------------------------------------------------- |
 | draugr       | grey-green skin, rusted mail, dented helm, notched sword | a cracked round shield, a tattered cape  | a horned helm, frost on the blade, a cold mist at the feet |
 | troll        | mossy grey skin, huge arms, a tree-branch club           | a stone in the club, a bone necklace     | moss and a small tree on the back, a boulder club          |
-| harpy        | feathered wings, bird legs with talons, wild hair        | longer wing tips, a stolen gold necklace | a feather crest, storm-dark wings with a bright edge       |
+| harpy        | gaunt hag face, ragged feathered wings, long talons      | longer wing tips, a stolen gold necklace | a bone-and-feather crest, storm-dark tattered wings        |
 | minotaur     | bull head with horns, bare chest, a big axe              | a bronze nose ring, a leather harness    | gilded horns, a double-headed axe                          |
 | jackal-man   | jackal head, black fur, linen kilt, a short spear        | a bronze collar, a small round shield    | a gold headdress, a khopesh                                |
 | scarab swarm | a knot of black beetles with gold backs                  | a bigger knot, a few flying beetles      | one large gold scarab at the centre                        |
 
-- **Elites** (from lair tier 2, `progression.md`): the same picture with a **gold outline edge**
+- **Elites** (from lair tier 2, `progression.md`): the same picture with a **thin gold outline edge**
   and a bigger health bar; an elite with a skill (lair tier 3) shows the skill's colour in the
   eyes.
 - **Readable at 0.7x on a phone:** each tier must change the outline (a shield, horns, a
@@ -197,7 +201,9 @@ whole-sprite tint, so it never clashes with Scene's rider and heal tints.
 
 ### How bosses look
 
-Bosses are about 2.5x a hero's height (Fafnir's art sets the size) and have one look; the sim
+Bosses are the grimmest units on the map (taste test): about 2.5x a hero's height (Fafnir's
+art sets the size), earthy colours with one sickly accent and clearly visible effects (bosses sit at the top of
+the effect scale, like tier 3), and one look; the sim
 still scales their hp with the lair tier (visual only). The
 **telegraph** is the boss's one moving tell; `Signature moves` above gives its timing.
 

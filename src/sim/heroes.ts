@@ -1,3 +1,4 @@
+import { nearSealedLair } from './boss';
 import { earn, newRecord } from './runstats';
 import { fledParty, fleeThreshold, newParty, pantheonOf, TRAITS } from './parties';
 import { slowOf } from './riders';
@@ -418,6 +419,8 @@ function chooseFlags(world: World): void {
     let best: number | undefined;
     let bestScore = 0;
     for (const flag of world.bounties) {
+      // A flag next to a sealed boss lair waits: nobody can claim it yet.
+      if (nearSealedLair(world, flag.pos, world.tuning.bounty.dangerRadius)) continue;
       const score = flagAppetite(world, unit, flag.gold, flag.pos);
       if (score !== null && score > bestScore) {
         best = flag.id;

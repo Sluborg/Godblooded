@@ -206,6 +206,10 @@ export interface BossTuning {
   enrageAt: number;
   enrageAttackMult: number;
   enrageCalls: number;
+  // A boss lair is sealed (cannot be attacked, its boss cannot come out) until the run reaches
+  // sealUntilMs or sealLairs other lairs have fallen, whichever comes first.
+  sealUntilMs: number;
+  sealLairs: number;
 }
 
 export interface LairDef {
@@ -250,8 +254,17 @@ export interface ItemEffects {
   kits?: Partial<Record<Kit, { armour: number; wp: number }>>;
   // Potion: share of max hp healed.
   healPct?: number;
-  // Charm effects arrive with Sim 310.
-  [key: string]: unknown;
+  // Charm (generic, items-and-shops.md section 2): added to crit and dodge chance.
+  crit?: number;
+  dodge?: number;
+  // Charm: a share cut off hits of these damage types (fire 0.25 = fire hits 25% softer).
+  softer?: Partial<Record<string, number>>;
+  // Charm: the wither rider does not take hold on the wearer.
+  noWither?: boolean;
+  // Charm: heals this share of max hp per kill.
+  healOnKill?: number;
+  // Charm: the first landed hit of each fight is multiplied by this (0.5: halved).
+  firstHitMult?: number;
 }
 
 export interface ItemDef {
@@ -365,6 +378,8 @@ export interface HeroTuning {
   proudSpend: number;
   // Potions a hero may carry, by market tier.
   potionMax: number[];
+  // A hero holding a charm swaps it only for one priced at least this much (and dearer).
+  charmSwapPrice: number;
   // A hero drinks below its flee threshold plus this (points as a share of max hp), a coward
   // plus cowardDrinkAdd; one that never flees drinks at neverFleeDrink. A drink takes drinkMs.
   potionDrinkAdd: number;
@@ -475,6 +490,54 @@ export interface SaveTuning {
   // The sim emits an `autosave` event every this many ms of run time (0 = never); Scene answers
   // it with saveWorld(). Not emitted while the world waits for a card pick.
   autosaveMs: number;
+}
+
+// What a miracle does at its spot. Damage is flat (gods have no attributes) and goes through the
+// strike pipeline as a spell: no dodge, no crit, resisted by Willpower.
+export interface MiracleEffect {
+  kind: 'damage' | 'heal' | 'shield' | 'buff';
+  // Foes are the monsters within the miracle's radius, heroes every hero within it.
+  to: 'foes' | 'heroes';
+  // Only targets with this tag (undead).
+  tag?: string;
+  // Damage: flat per strike, its type (default 'magic') and rider (arc, sear).
+  amount?: number;
+  type?: string;
+  rider?: RiderId;
+  // Damage: this many strikes on random foes (one each), spread evenly over `overS` seconds.
+  // Without it every target is struck once.
+  strikes?: number;
+  overS?: number;
+  // Heal and shield: share of max hp.
+  pct?: number;
+  // Shield and buff: seconds, and the buff's stat and amount.
+  s?: number;
+  stat?: BuffStat;
+  buff?: number;
+}
+
+export interface MiracleDef {
+  id: string;
+  pantheon: string;
+  radius: number;
+  effects: readonly MiracleEffect[];
+  // Names for Scene's tell and effect art.
+  visual?: readonly string[];
+}
+
+// God favours (docs/systems/events.md section 3): temples fill a bar per pantheon; a full bar
+// makes the god cast its miracle where its children are in the most danger.
+export interface FavourTuning {
+  // Bar points per second per temple tier is 1 / perTempleTierS.
+  perTempleTierS: number;
+  // Added when a hero of the pantheon tiers up, and when a party with one of its heroes clears a lair.
+  tierUpGain: number;
+  lairGain: number;
+  max: number;
+  // A hero below this share of max hp is in danger.
+  dangerHp: number;
+  // The tell lasts this long before the miracle lands.
+  tellMs: number;
 }
 
 export interface StatsTuning {
@@ -735,6 +798,14 @@ export interface TownTuning {
   raidGrowEveryMs: number;
   // A resting hero at or above this hp fraction rejoins the fight when raiders come near.
   defendHp: number;
+  // A raid is announced this long before it arrives (event raidWarning), and a tower of tier 2
+  // or more in town gives the warning towerWarnAddMs earlier still.
+  raidWarnMs: number;
+  towerWarnAddMs: number;
+  // A lair that tiers up sends one raid of its own (announced raidWarnMs ahead).
+  raidOnTierUp: boolean;
+  // Gold the town gets when every raider of a raid is dead ("the town cheers").
+  raidBeatenGold: number;
 }
 
 export interface BountyTuning {
@@ -807,6 +878,7 @@ export interface Tuning {
   save: SaveTuning;
   stats: StatsTuning;
   role: RoleTuning;
+  favour: FavourTuning;
   town: TownTuning;
   bounty: BountyTuning;
 }
@@ -827,6 +899,8 @@ export interface GameData {
   items?: readonly ItemDef[];
   // Path skills, one per path (tier 2, upgraded at tier 3).
   skills?: readonly SkillDef[];
+  // One miracle per pantheon (docs/systems/events.md section 3). Without rows no bar fills.
+  miracles?: readonly MiracleDef[];
   // Rows for the units skills summon.
   summons?: readonly SummonDef[];
   // Any subset of the tunable numbers; the rest use DEFAULT_TUNING (src/sim/tuning.ts).
@@ -843,6 +917,7 @@ export interface GameData {
     save?: Partial<SaveTuning>;
     stats?: Partial<StatsTuning>;
     role?: Partial<RoleTuning>;
+    favour?: Partial<FavourTuning>;
     town?: Partial<TownTuning>;
     bounty?: Partial<BountyTuning>;
   };
@@ -993,7 +1068,8 @@ export type SimEvent =
     }
   | { kind: 'bossEmerged'; unit: number; lair: number }
   | { kind: 'enraged'; unit: number }
-  | { kind: 'heal'; healer: number; target: number; amount: number }
+  // `source: 'miracle'`: a god's doing; `healer` is 0 (no unit swings or casts).
+  | { kind: 'heal'; healer: number; target: number; amount: number; source?: 'miracle' }
   | {
       kind: 'hit';
       attacker: number;
@@ -1008,6 +1084,8 @@ export type SimEvent =
       absorbed?: number;
       // A burn tick rather than a strike.
       tick?: boolean;
+      // `source: 'miracle'`: a god's doing; `attacker` is 0 (no unit swings or casts).
+      source?: 'miracle';
       // The target's type row made it x1.5 or more (weak) or less than x1 (resist).
       weak?: boolean;
       resist?: boolean;
@@ -1040,13 +1118,28 @@ export type SimEvent =
     }
   | { kind: 'tierUp'; unit: number; tier: number; path: string | null }
   | { kind: 'pathOffer'; party: number; hero: number; options: string[] }
-  | { kind: 'raid'; lair: number; size: number }
   // A charger starts its charge toward `to`.
   | { kind: 'charge'; unit: number; to: Vec2 }
   // A swarm splits into two halves.
   | { kind: 'split'; unit: number; into: number[] }
   // A monster snatched gold from a hero.
   | { kind: 'stolen'; thief: number; victim: number; gold: number }
+  // A raid is coming from `from` (the lair) in `inMs`; `early` is the tower's longer warning.
+  | {
+      kind: 'raidWarning';
+      raid: number;
+      lair: number;
+      size: number;
+      inMs: number;
+      from: Vec2;
+      dir: Vec2;
+      early?: boolean;
+    }
+  | { kind: 'raid'; lair: number; size: number; raid?: number }
+  // Every raider of the raid is dead: the town cheers and gets `gold`.
+  | { kind: 'raidBeaten'; raid: number; gold: number }
+  // The lair fell before its announced raid left: no raid comes.
+  | { kind: 'raidCancelled'; raid: number; lair: number }
   // A rider took hold on `target` (burn, chill, wither; arc and sear show in the hit itself).
   | { kind: 'rider'; target: number; rider: RiderId; by: number }
   // A hero starts casting a skill; it lands `inMs` later. `say`: Scene shows the skill name.
@@ -1096,6 +1189,12 @@ export type SimEvent =
   // A hero drank a potion (`left` still carried) and healed `amount`.
   | { kind: 'drank'; unit: number; amount: number; left: number }
   | { kind: 'shopped'; unit: number; spent: number; tax: number; item?: string }
+  // The seal on a boss lair broke: it can be attacked now.
+  | { kind: 'bossLairUnsealed'; lair: number; by: 'time' | 'lairs' }
+  // A god starts its miracle at `pos`; it lands after `tellMs` (Scene draws the tell).
+  | { kind: 'miracle'; id: string; pantheon: string; pos: Vec2; tellMs: number }
+  // A party leader got a charm from a lair that fell.
+  | { kind: 'relic'; unit: number; item: string; lair: number }
   | { kind: 'bountyPlaced'; bounty: number; gold: number };
 
 export type Command =
@@ -1161,12 +1260,14 @@ export interface Snapshot {
   readonly parties: readonly Readonly<PartyState>[];
   readonly paths: readonly Readonly<PathState>[];
   readonly bounties: readonly Readonly<BountyState>[];
+  // Favour bar of every pantheon with a miracle row (0 to max); a full bar waits for a fight.
+  readonly favour: readonly Readonly<{ pantheon: string; value: number; max: number }>[];
   // Where heroes were slain; the markers stay for the run.
   readonly graves: readonly Readonly<GraveState>[];
   // Pairs of living heroes who are rivals right now (lower id first).
   readonly rivals: readonly (readonly [number, number])[];
   // This run's map: the pantheons it leans on and the boss lair (null on a fixed map).
-  readonly map: Readonly<{ lean: string[]; boss: number | null }>;
+  readonly map: Readonly<{ lean: string[]; boss: number | null; sealed: boolean }>;
   // The end screen numbers once the run is won or lost; null while it is running. Totals for
   // the run are in `stats`.
   readonly report: Readonly<RunReport> | null;

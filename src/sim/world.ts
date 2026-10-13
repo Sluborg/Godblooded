@@ -3,7 +3,7 @@ import { runAutosave } from './save';
 import { generateMap } from './mapgen';
 import { deathChance, koBonds, koGoldLost, slayHero } from './deaths';
 import { buffOf, isBound, runHots, tauntOf, type UnitFx } from './effects';
-import { armourBonus, weaponPower } from './items';
+import { armourBonus, charmEffects, weaponPower } from './items';
 import { passiveRider } from './passives';
 import { everyNthOf, passiveAggroMult, passiveArmour } from './passives';
 import { noteFight } from './engage';
@@ -18,6 +18,7 @@ import {
   roleTurn,
   splitSwarm,
 } from './roles';
+import { runFavour } from './favour';
 import { removeSummon, runSummon, runSummonUpkeep, summonStats } from './summons';
 import { runStatuses, slowOf, healMult, type UnitStatus } from './riders';
 import { attackStrike, landStrike } from './strike';
@@ -26,9 +27,11 @@ import { cancelCast, runSkill, supportEffect, tickSkill, type SkillRuntime } fro
 import { swing, type Area } from './swing';
 import {
   bossNumbers,
+  bossSealed,
   cleaveStrike,
   isBoss,
   runBosses,
+  runBossSeal,
   spawnMonster,
   type BossRuntime,
 } from './boss';
@@ -38,6 +41,7 @@ import {
   attackLair,
   nearestBuilding,
   pickLair,
+  planTierRaid,
   runRaids,
   runTowers,
   upgradeBuilding,
@@ -118,6 +122,7 @@ export interface UnitRuntime {
   // Monster roles: a harrier on its way back to its lair to heal, a charger mid-charge (the way it
   // runs and the time left) and when it may charge again, a swarm half (cannot split again).
   retreat?: boolean;
+  healAcc?: number;
   charge?: { dir: Vec2; ms: number };
   chargeCdMs?: number;
   half?: boolean;
@@ -125,6 +130,8 @@ export interface UnitRuntime {
   regenStopMs?: number;
   regenAcc?: number;
   stolen?: number;
+  // The raid it belongs to (a raid is beaten when none of its raiders is left).
+  raidId?: number;
   // A strike in its windup: the target and the time left before it lands.
   swing?: { target: number; ms: number; area?: Area };
   cooldownMs: number;
@@ -145,7 +152,13 @@ export interface UnitRuntime {
   // A potion being drunk: time left (see potions.ts).
   drink?: { ms: number };
   // The fight this unit is in: kills so far, whether its first-hit miss is spent, strikes landed.
-  fight?: { kills: number; missUsed: boolean; strikes: number; revived?: boolean };
+  fight?: {
+    kills: number;
+    missUsed: boolean;
+    strikes: number;
+    revived?: boolean;
+    ringUsed?: boolean;
+  };
 }
 
 export interface World {
@@ -176,6 +189,9 @@ export interface World {
   pendingDeaths: { victim: number; by: number }[];
   // Where heroes were slain.
   graves: GraveState[];
+  // God favour bars by pantheon, and the miracle steps still to run (the landing, spread strikes).
+  favour: Record<string, number>;
+  miracleSteps: { atMs: number; id: string; pos: Vec2; by: number; effect: number | null }[];
   // Monsters that died lately, for `kill` skill triggers.
   recentKills: { pos: Vec2; timeMs: number; by: number; type: string; tier: number }[];
   // Summons waiting to be called again (a falcon that died).
@@ -187,10 +203,16 @@ export interface World {
     end?: { radius: number; effects: readonly SkillEffect[] };
   }[];
   nextRaidMs: number;
+  // Raids announced and still to arrive, the timed raid already planned for, and raids on the way.
+  raidPlans: { id: number; atMs: number; lair: number; size: number; early: boolean }[];
+  raidPlannedFor: number;
+  raidActive: number[];
   stats: RunStats;
   bounties: BountyState[];
   // Generated map: the boss lair that wins the run and the pantheons the map leans on.
   bossLair: number | null;
+  // The seal on the boss lairs has broken (runBossSeal).
+  bossUnsealed: boolean;
   mapLean: string[];
   // End screen tallies (src/sim/runstats.ts).
   heroRecords: Map<number, HeroRecord>;
@@ -225,9 +247,14 @@ export function createWorld(seed: number, data: GameData): World {
     bonds: new Map(),
     pendingDeaths: [],
     graves: [],
+    favour: {},
+    miracleSteps: [],
     recentKills: [],
     respawns: [],
     nextRaidMs: 0,
+    raidPlans: [],
+    raidPlannedFor: -1,
+    raidActive: [],
     stats: {
       monstersKilled: 0,
       lairsDestroyed: 0,
@@ -238,6 +265,7 @@ export function createWorld(seed: number, data: GameData): World {
     },
     bounties: [],
     bossLair: null,
+    bossUnsealed: false,
     mapLean: [],
     heroRecords: new Map(),
     lairLog: [],
@@ -333,6 +361,7 @@ function runTick(world: World): void {
   });
   // Burn victims leave now, before heroes flee or units act on a dead unit's turn.
   settleDeaths(world);
+  runBossSeal(world);
   runBosses(world);
   runLairs(world);
   runRaids(world);
@@ -340,6 +369,7 @@ function runTick(world: World): void {
   runSummonUpkeep(world);
   runBounties(world);
   runQuirks(world);
+  runFavour(world);
   runParties(world);
   runUnits(world);
   // Combat, heroes and the economy hook in here (Sim backlog 30 and up).
@@ -372,6 +402,7 @@ function tierUpLair(
     tier: lair.tier,
     ...(pressure ? { pressure: true } : {}),
   });
+  planTierRaid(world, lair, pressure);
 }
 
 function runLairs(world: World): void {
@@ -429,6 +460,7 @@ function unitStats(world: World, unit: UnitState): Stats | undefined {
           passiveArmour(world, unit) + armourBonus(world, unit).armour,
         ),
         weaponPower: weaponPower(world, unit),
+        types: charmTypes(world, unit),
         spellMult: cls.spellMult,
         slow: slowOf(world, unit.id),
         haste: buffOf(world, unit.id, 'attackSpeed'),
@@ -453,6 +485,30 @@ function unitStats(world: World, unit: UnitState): Stats | undefined {
       attackMult: bossRt?.enraged ? bossNumbers(world, mon).enrageAttackMult : undefined,
     }
   );
+}
+
+// A bloodstone heals its wearer a share of max hp for each kill.
+function healOnKill(world: World, id: number): void {
+  const hero = world.units.find((u) => u.id === id);
+  const share = hero && hero.kind === 'hero' ? charmEffects(world, hero).healOnKill : undefined;
+  if (!hero || !share || hero.ko || hero.hp <= 0) return;
+  const amount = Math.min(
+    Math.round(share * hero.maxHp * healMult(world, hero.id)),
+    hero.maxHp - hero.hp,
+  );
+  if (amount <= 0) return;
+  hero.hp += amount;
+  tally(world, hero.id, 'healing', amount);
+  world.events.push({ kind: 'heal', healer: hero.id, target: hero.id, amount });
+}
+
+// A charm that softens damage types is a type row on the hero (0.75 for fire 0.25 softer).
+function charmTypes(world: World, unit: UnitState): Partial<Record<string, number>> | undefined {
+  const softer = charmEffects(world, unit).softer;
+  if (!softer) return undefined;
+  const row: Partial<Record<string, number>> = {};
+  for (const [type, cut] of Object.entries(softer)) row[type] = 1 - (cut ?? 0);
+  return row;
 }
 
 // A caster hero strikes with its path's type, else its god's (weapon templates are physical).
@@ -568,7 +624,7 @@ function pickTarget(world: World, unit: UnitState, stats: Stats, home?: Vec2): U
     const d = dist(unit.pos, other.pos);
     if (d > reach) continue;
     // A harrier picks the weakest hero in reach, anything else the nearest.
-    const score = weakest ? other.hp : d;
+    const score = weakest && other.kind === 'hero' ? other.hp : d;
     if (score >= bestD) continue;
     if (home && dist(home, other.pos) > world.tuning.monster.leash) continue;
     best = other;
@@ -735,6 +791,7 @@ function settleDeaths(world: World): void {
       tally(world, by, 'kills');
       const krt = world.unitRuntime.get(by);
       if (krt?.fight) krt.fight.kills++;
+      healOnKill(world, by);
       payBounty(world, by, bounty + stolenBy(world, unit.id));
       shareXp(world, by, xp);
       splitSwarm(world, unit, mrt);
@@ -869,9 +926,14 @@ export function snapshot(world: World): Snapshot {
       ...(u.summon ? { summon: { ...u.summon } } : {}),
     })),
     bounties: world.bounties.map((b) => ({ ...b, pos: { ...b.pos } })),
+    favour: (world.data.miracles ?? []).map((m) => ({
+      pantheon: m.pantheon,
+      value: world.favour[m.pantheon] ?? 0,
+      max: world.tuning.favour.max,
+    })),
     graves: world.graves.map((g) => ({ ...g, pos: { ...g.pos } })),
     rivals: rivalPairs(world),
-    map: { lean: [...world.mapLean], boss: world.bossLair },
+    map: { lean: [...world.mapLean], boss: world.bossLair, sealed: bossSealed(world) },
     report: buildReport(world),
     events,
   };

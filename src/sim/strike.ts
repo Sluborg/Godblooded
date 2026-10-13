@@ -2,6 +2,7 @@ import { armourPct, critChance, dodgeChance, resistPct, type Stats } from './uni
 import type { World } from './world';
 import { applyRider } from './riders';
 import { buffOf, takeDamage } from './effects';
+import { charmEffects } from './items';
 import { hasPassive, passiveVsTags } from './passives';
 import { regenHit, snatch } from './quirks';
 import { tally } from './runstats';
@@ -182,6 +183,15 @@ export function landStrike(
     ...(boost || vsTag !== 1 ? { skillMult: (input.skillMult ?? 1) * (1 + boost) * vsTag } : {}),
     ...(crit ? { critAdd: crit } : {}),
   });
+  // A ward-ring halves the first hit of each fight that lands on its wearer.
+  const ring = foe.kind === 'hero' ? charmEffects(world, foe).firstHitMult : undefined;
+  if (ring !== undefined && frt && !out.dodged && out.damage > 0) {
+    const fight = (frt.fight ??= { kills: 0, missUsed: false, strikes: 0 });
+    if (!fight.ringUsed) {
+      fight.ringUsed = true;
+      out.damage = Math.max(1, Math.round(out.damage * ring));
+    }
+  }
   const taken = takeDamage(world, foe, out.damage);
   out.damage = taken.dealt;
   foe.hp -= taken.hp;

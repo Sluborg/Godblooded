@@ -2,7 +2,7 @@ import { quirkOf } from './quirks';
 import { landStrike, attackStrike } from './strike';
 import { dist, scaleAttrs, speedOf, stepToward, TICK_MS, type Stats } from './units';
 import { targetOf, type UnitRuntime, type World } from './world';
-import type { MonsterDef, MonsterRole, UnitState, Vec2 } from './types';
+import type { MonsterDef, MonsterRole, UnitState } from './types';
 
 // Monster roles (Sim 360, docs/systems/monsters-and-bosses.md section 1). Brute is the default
 // behaviour; the others change who a monster goes for, how it opens a fight, and how it dies.
@@ -32,7 +32,7 @@ export function packMult(world: World, unit: UnitState): number {
   let mates = 0;
   for (const o of world.units) {
     if (o.id === unit.id || o.kind !== 'monster' || o.hp <= 0) continue;
-    if (dist(o.pos, unit.pos) <= t.packRadius && roleOf(world, o) === 'pack') mates++;
+    if (dist(o.pos, unit.pos) <= t.packRadius && o.type === unit.type) mates++;
   }
   return 1 + Math.min(t.packMax, t.packBonus * mates);
 }
@@ -61,6 +61,7 @@ export function splitSwarm(world: World, unit: UnitState, rt: UnitRuntime | unde
     world.unitRuntime.set(id, {
       lair: rt.lair,
       ...(rt.raid ? { raid: true } : {}),
+      ...(rt.raidId !== undefined ? { raidId: rt.raidId } : {}),
       cooldownMs: 0,
       target: null,
       idleMs: 0,
@@ -93,26 +94,29 @@ export function roleTurn(
   return false;
 }
 
-// Below the flee line a harrier runs home, heals there, and comes back when it is well.
+// Below the flee line a harrier runs to its lair, heals there (only there), and comes back when
+// it is well. A raider has no lair to run to and keeps fighting.
 function harrierTurn(world: World, unit: UnitState, rt: UnitRuntime, stats: Stats): boolean {
   const t = world.tuning.role;
+  const lair = rt.lair === null || rt.raid ? undefined : world.lairs.find((l) => l.id === rt.lair);
+  if (!lair) {
+    rt.retreat = false;
+    return false;
+  }
   if (!rt.retreat && unit.hp < t.harrierFleeHp * unit.maxHp) rt.retreat = true;
   if (!rt.retreat) return false;
   rt.swing = undefined;
   unit.target = null;
-  const lair = rt.lair === null ? undefined : world.lairs.find((l) => l.id === rt.lair);
-  // A raider or an orphan has no lair to run to: it heals where it stands.
-  const home: Vec2 | undefined = rt.raid ? undefined : lair?.pos;
-  if (home && dist(unit.pos, home) > 40) {
-    const dir = stepToward(unit.pos, home, (speedOf(stats) * TICK_MS) / 1000);
+  if (dist(unit.pos, lair.pos) > 40) {
+    const dir = stepToward(unit.pos, lair.pos, (speedOf(stats) * TICK_MS) / 1000);
     if (dir.x !== 0 || dir.y !== 0) unit.facing = dir;
     return true;
   }
-  unit.hp = Math.min(unit.maxHp, unit.hp + (t.harrierHealPctS * unit.maxHp * TICK_MS) / 1000);
-  if (unit.hp >= t.harrierReturnHp * unit.maxHp) {
-    unit.hp = Math.round(unit.hp);
-    rt.retreat = false;
-  }
+  const acc = (rt.healAcc ?? 0) + (t.harrierHealPctS * unit.maxHp * TICK_MS) / 1000;
+  const whole = Math.floor(acc);
+  rt.healAcc = acc - whole;
+  unit.hp = Math.min(unit.maxHp, unit.hp + whole);
+  if (unit.hp >= t.harrierReturnHp * unit.maxHp) rt.retreat = false;
   return true;
 }
 
@@ -128,7 +132,10 @@ function chargerTurn(
   const t = world.tuning.role;
   rt.chargeCdMs = Math.max(0, (rt.chargeCdMs ?? 0) - TICK_MS);
   if (!rt.charge) {
-    if (!foe || (rt.chargeCdMs ?? 0) > 0 || foe.kind === 'summon') return false;
+    // A rooted charger cannot run (speed 0 would never end the charge).
+    if (!foe || (rt.chargeCdMs ?? 0) > 0 || foe.kind === 'summon' || speedOf(stats) <= 0) {
+      return false;
+    }
     const d = dist(unit.pos, foe.pos);
     if (d < t.chargeMin || d > t.chargeMax) return false;
     const dir = { x: (foe.pos.x - unit.pos.x) / d, y: (foe.pos.y - unit.pos.y) / d };
@@ -145,9 +152,13 @@ function chargerTurn(
   charge.ms -= TICK_MS;
   // The first hero in reach takes the blow.
   let hit: UnitState | undefined;
+  const { width, height } = world.data.map;
+  unit.pos.x = Math.min(width, Math.max(0, unit.pos.x));
+  unit.pos.y = Math.min(height, Math.max(0, unit.pos.y));
   for (const o of world.units) {
-    if (o.kind === 'monster' || o.ko || o.hp <= 0) continue;
-    if (dist(unit.pos, o.pos) <= stats.weapon.range && (!hit || o === foe)) hit = o;
+    if (o.kind !== 'hero' || o.ko || o.hp <= 0) continue;
+    const d = dist(unit.pos, o.pos);
+    if (d <= stats.weapon.range && (!hit || o === foe || d < dist(unit.pos, hit.pos))) hit = o;
   }
   if (hit) {
     landStrike(world, unit, hit, {
@@ -156,7 +167,6 @@ function chargerTurn(
       ...(quirkOf(world, unit)?.chargeSure ? { canDodge: false } : {}),
     });
     const d = dist(unit.pos, hit.pos) || 1;
-    const { width, height } = world.data.map;
     hit.pos = {
       x: Math.min(
         width,
