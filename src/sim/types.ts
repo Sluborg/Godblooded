@@ -15,6 +15,8 @@ export interface BuildingDef {
   // Gold for tier 2 and tier 3 (index = current tier - 1). Missing: the building's cost times
   // tuning.building.upgradeCostMult.
   upgradeCost?: readonly number[];
+  // One plain line for the build menu and tooltips (Design, buildings.md). Display only.
+  text?: string;
 }
 
 // A god: heroes are children of a god, called by a temple of its pantheon. `template` is the
