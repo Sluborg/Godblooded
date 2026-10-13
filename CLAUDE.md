@@ -59,9 +59,8 @@ docs/         design, collaboration, inboxes, requests, sessions
 - **Codex: manual only.** Lead decides which PRs get `@codex review` and comments it; the author
   fixes the findings.
 - Self-review the diff before the PR (`code-review` skill).
-- **Lead lands PRs.** Workers never merge their own. Lead never lands red CI. Lead lands a green
-  draft by pushing a merge commit of its head to `main` (GitHub then marks the PR merged), not
-  with the merge button, which needs the PR marked ready.
+- **Integrator lands PRs** (delegated by Lead). Workers never merge their own. Never land red CI.
+  A draft is marked ready only right before it is merged, once CI is green and Review is clear.
 - Stacked work: base every PR on `main`; if a branch builds on another, say "stacked on #N" in
   the title and Lead lands them in order.
 - `main` deploys to https://sluborg.github.io/Godblooded/ automatically.
@@ -69,6 +68,6 @@ docs/         design, collaboration, inboxes, requests, sessions
 
 ## Hard stops
 
-- No commits straight to `main`, except Lead's docs-only commits and Lead landing green PRs.
+- No commits straight to `main`, except Lead's docs-only commits.
 - No editing another role's files; no merging red CI; no breaking saves.
 - Never claim done without running the checks. Never invent APIs; if unsure, say so.
