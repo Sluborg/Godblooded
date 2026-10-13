@@ -33,7 +33,7 @@ export const CLASSES: readonly ClassDef[] = [
     kit: 'light',
     armour: 3,
   },
-  // Wizard: str stands for spell power until magic has its own stat.
+  // Wizard: spell power is Int x spellMult; Str only adds hp.
   {
     id: 'wizard',
     attrs: { str: 5, dex: 4, sta: 3, cha: 3, per: 5, int: 7, wp: 5 },
@@ -576,11 +576,33 @@ export const UPGRADES: readonly UpgradeDef[] = [
     text: '+1 potion slot each',
     effect: { keys: { potionSlots: 1 } },
   },
+  {
+    id: 'tight-purse',
+    god: 'loki',
+    pickTag: 'gold',
+    family: 'nerve',
+    rarity: 'common',
+    name: 'Tight Purse',
+    text: 'Knocked-out members lose half as much gold',
+    effect: { keys: { koGoldLoss: 0.5 } },
+  },
+  {
+    id: 'wolf-blood',
+    god: 'odin',
+    pickTag: 'nerve',
+    family: 'nerve',
+    rarity: 'common',
+    name: 'Wolf Blood',
+    text: '+25% damage while below 30% hp',
+    effect: { keys: { belowHp: { below: 0.3, stat: 'damage', amount: 0.25 } } },
+  },
 ];
 
 // Aesir path skills (docs/systems/aesir-content.md section 4), one per path, mapped onto the
 // SkillDef shapes Sim shipped. Multipliers are on power (Str, or Int x spellMult).
 export const SKILLS: readonly SkillDef[] = [
+  // Approximation: the spec marks the foe with the most hp and caps tier 3 at 3 targets;
+  // SkillDef marks the hero's own foe and every foe in the circle.
   {
     id: 'raven-omen',
     path: 'odin-seer',
@@ -603,10 +625,11 @@ export const SKILLS: readonly SkillDef[] = [
     trigger: { kind: 'engage', min: 120, max: 300 },
     cooldownS: 14,
     target: 'foe',
-    shape: { kind: 'line', length: 300 },
+    shape: { kind: 'single' },
     effects: [{ kind: 'damage', mult: 2.5, type: 'physical', sure: true }],
     visual: ['line'],
-    t3: { effects: [{ kind: 'damage', mult: 3.5, type: 'physical', sure: true }] },
+    // Tier 3 pierces the line. Approximation: the spec's extra 1.0x on the first foe has no field.
+    t3: { shape: { kind: 'line', length: 300 } },
   },
   {
     id: 'mjolnir-slam',
@@ -636,6 +659,7 @@ export const SKILLS: readonly SkillDef[] = [
     shape: { kind: 'chain', jumps: 3, radius: 120, falloff: 0.7 },
     effects: [{ kind: 'damage', mult: 0.9, type: 'lightning' }],
     visual: ['chain'],
+    // Approximation: the spec's tier 3 pillar on the last foe hit has no field.
     t3: { shape: { kind: 'chain', jumps: 5, radius: 120, falloff: 0.7 } },
   },
   {
@@ -679,6 +703,7 @@ export const SKILLS: readonly SkillDef[] = [
     shape: { kind: 'circle', radius: 70 },
     effects: [{ kind: 'damage', mult: 1.2, type: 'fire', rider: 'burn' }],
     visual: ['bolt', 'burst'],
+    // Approximation: the spec's 6 s burn at tier 3 has no field; the burn keeps its tuning length.
     t3: { shape: { kind: 'circle', radius: 100 } },
   },
   {
@@ -695,11 +720,13 @@ export const SKILLS: readonly SkillDef[] = [
       { kind: 'shield', pct: 0.2, s: 5 },
     ],
     visual: ['dash', 'shield'],
+    // Approximation: the spec hits the hurt ally's attacker; SkillDef hits every foe within 70 of
+    // the ally (the attacker is one of them), and tier 3's 1.0x burst lands on the same circle.
     t3: {
-      shape: { kind: 'circle', radius: 100 },
       effects: [
         { kind: 'dash' },
-        { kind: 'damage', mult: 2.3, type: 'physical' },
+        { kind: 'damage', mult: 1.8, type: 'physical' },
+        { kind: 'damage', mult: 1.0, type: 'physical' },
         { kind: 'shield', pct: 0.35, s: 5 },
       ],
     },
@@ -711,118 +738,24 @@ export const SKILLS: readonly SkillDef[] = [
     trigger: { kind: 'allyHurt', below: 0.5, radius: 220 },
     cooldownS: 12,
     target: 'ally',
-    shape: { kind: 'circle', radius: 60 },
-    effects: [
-      { kind: 'shield', mult: 2, s: 6 },
-      { kind: 'damage', mult: 0, type: 'frost', rider: 'chill' },
-    ],
+    shape: { kind: 'single' },
+    // Approximation: the spec also chills the ally's attacker at tier 2; a single-ally shape holds
+    // no foe, so the chill comes with the tier 3 circle.
+    effects: [{ kind: 'shield', mult: 2, s: 6 }],
     visual: ['shield'],
-    t3: { shape: { kind: 'circle', radius: 200 } },
+    t3: {
+      shape: { kind: 'circle', radius: 200 },
+      effects: [
+        { kind: 'shield', mult: 2, s: 6 },
+        { kind: 'damage', mult: 0, type: 'frost', rider: 'chill' },
+      ],
+    },
   },
 ];
 
 // Units the skills call.
 export const SUMMONS: readonly SummonDef[] = [
   { id: 'decoy', hpShare: 0.2, taunt: { radius: 120 } },
-];
-
-// Gear (docs/systems/items-and-shops.md section 2). Weapon and armour levels come from the
-// smithy, potions from the market; a shop of tier t sells every level up to t. Charms wait for
-// their effects (Sim 310).
-export const ITEMS: readonly ItemDef[] = [
-  {
-    id: 'weapon-1',
-    slot: 'weapon',
-    level: 1,
-    name: 'Tempered',
-    price: 60,
-    shop: 'smithy',
-    shopTier: 1,
-    effects: { power: 2 },
-  },
-  {
-    id: 'weapon-2',
-    slot: 'weapon',
-    level: 2,
-    name: 'Master-forged',
-    price: 150,
-    shop: 'smithy',
-    shopTier: 2,
-    effects: { power: 4 },
-  },
-  {
-    id: 'weapon-3',
-    slot: 'weapon',
-    level: 3,
-    name: 'Godsteel',
-    price: 320,
-    shop: 'smithy',
-    shopTier: 3,
-    effects: { power: 7 },
-  },
-  {
-    id: 'armour-1',
-    slot: 'armour',
-    level: 1,
-    price: 50,
-    shop: 'smithy',
-    shopTier: 1,
-    effects: {
-      kits: {
-        heavy: { armour: 4, wp: 0 },
-        light: { armour: 2, wp: 1 },
-        robe: { armour: 0, wp: 2 },
-      },
-    },
-  },
-  {
-    id: 'armour-2',
-    slot: 'armour',
-    level: 2,
-    price: 130,
-    shop: 'smithy',
-    shopTier: 2,
-    effects: {
-      kits: {
-        heavy: { armour: 8, wp: 1 },
-        light: { armour: 4, wp: 2 },
-        robe: { armour: 1, wp: 4 },
-      },
-    },
-  },
-  {
-    id: 'armour-3',
-    slot: 'armour',
-    level: 3,
-    price: 280,
-    shop: 'smithy',
-    shopTier: 3,
-    effects: {
-      kits: {
-        heavy: { armour: 13, wp: 2 },
-        light: { armour: 7, wp: 3 },
-        robe: { armour: 2, wp: 7 },
-      },
-    },
-  },
-  {
-    id: 'healing',
-    slot: 'potion',
-    name: 'Healing potion',
-    price: 20,
-    shop: 'market',
-    shopTier: 1,
-    effects: { healPct: 40 },
-  },
-  {
-    id: 'greater',
-    slot: 'potion',
-    name: 'Greater potion',
-    price: 40,
-    shop: 'market',
-    shopTier: 2,
-    effects: { healPct: 70 },
-  },
 ];
 
 // Gear (docs/systems/items-and-shops.md section 2). Weapon and armour levels come from the
