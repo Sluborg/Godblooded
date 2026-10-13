@@ -1,4 +1,5 @@
 import { makeGround, releaseGround } from '../ui/ground';
+import { flagAt } from '../ui/flagCard';
 import { getMusic } from '../ui/musicPlayer';
 import Phaser from 'phaser';
 import { COLORS, GAME_HEIGHT, GAME_WIDTH } from '../config';
@@ -56,6 +57,8 @@ export interface MapTap {
   hero?: number | null;
   // Id of a tapped building (opens the building panel), or null.
   building?: number | null;
+  // Id of a tapped bounty flag (opens the flag card), or null.
+  flag?: number | null;
   target: { pos: Vec2; label: string } | null;
 }
 
@@ -344,6 +347,15 @@ export class MapScene extends Phaser.Scene {
     return command(this.world, { kind: 'upgrade', building });
   }
 
+  // Take a bounty flag down (half the gold comes back) or add gold to one that stands.
+  tryCancelBounty(bounty: number): CommandResult {
+    return command(this.world, { kind: 'cancelBounty', bounty });
+  }
+
+  tryRaiseBounty(bounty: number, gold: number): CommandResult {
+    return command(this.world, { kind: 'raiseBounty', bounty, gold });
+  }
+
   // Pan the camera to a place (an event feed tap).
   jumpTo(pos: Vec2): void {
     this.setWatch(false);
@@ -371,6 +383,8 @@ export class MapScene extends Phaser.Scene {
     }
     const building = this.buildingAt(w);
     if (building !== null) return { plot: null, building, target: null };
+    const flag = flagAt(this.snap.bounties, w);
+    if (flag !== null) return { plot: null, flag, target: null };
     const hit = [...this.snap.units, ...this.snap.lairs]
       .map((e) => ({ e, d: Math.hypot(e.pos.x - w.x, e.pos.y - w.y) }))
       .filter(({ d }) => d < TARGET_RADIUS)

@@ -7,6 +7,7 @@ import { emptyItems } from './items';
 import { buyItem, hasItemRows, nearestShop, planShopping, type ShopStop } from './shopping';
 import { isBound } from './effects';
 import { passiveKoMult, passiveRestMult } from './passives';
+import { koTimeMult } from './quirks';
 import { dist, maxHp, speed, stepToward, tierValue, TICK_MS } from './units';
 import type { World } from './world';
 import type { LairState, PartyIntent, Vec2, UnitState } from './types';
@@ -247,11 +248,12 @@ function revive(world: World, unit: UnitState, rt: HeroRuntime): void {
   world.events.push({ kind: 'revived', unit: unit.id });
 }
 
-export function heroKnockedOut(world: World, unit: UnitState): void {
+export function heroKnockedOut(world: World, unit: UnitState, by?: number): void {
   const rt = world.heroRuntime.get(unit.id);
   if (!rt) return;
   unit.mode = 'ko';
-  rt.koMs = tune(world).koMs * passiveKoMult(world, unit);
+  rt.koMs =
+    tune(world).koMs * passiveKoMult(world, unit) * (by === undefined ? 1 : koTimeMult(world, by));
   rt.dest = null;
 }
 
