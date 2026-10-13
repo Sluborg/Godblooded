@@ -8,6 +8,7 @@ import {
   TICK_MS,
   type Stats,
 } from './units';
+import { takeDamage } from './effects';
 import { shareXp } from './parties';
 import { earn, tally } from './runstats';
 import { attackStrike, hitEvent, resolveStrike } from './strike';
@@ -249,9 +250,10 @@ export function runTowers(world: World): void {
       canCrit: false,
       target: targetOf(world, foe),
     });
-    const dmg = hit.damage;
-    foe.hp -= dmg;
-    world.events.push(hitEvent(b.id, foe.id, hit));
+    const taken = takeDamage(world, foe, hit.damage);
+    hit.damage = taken.dealt;
+    foe.hp -= taken.hp;
+    world.events.push(hitEvent(b.id, foe.id, hit, taken.dealt - taken.hp));
     if (foe.hp <= 0) {
       foe.hp = 0;
       world.pendingDeaths.push({ victim: foe.id, by: b.id });

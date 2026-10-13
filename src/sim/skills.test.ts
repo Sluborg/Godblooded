@@ -297,6 +297,25 @@ describe('skill engine', () => {
   });
 });
 
+describe('skill engine, review round 2', () => {
+  it('kill ignores kills by other parties', () => {
+    const k: SkillDef = {
+      ...bolt,
+      trigger: { kind: 'kill', radius: 300 },
+      target: 'self',
+      shape: { kind: 'circle', radius: 100 },
+    };
+    const w = createWorld(1, mkData(k));
+    const h = hero(w);
+    h.mode = 'rest';
+    w.recentKills.push({ pos: { ...h.pos }, timeMs: w.timeMs, by: 9999 });
+    expect(of(run(w, 500), 'cast')).toHaveLength(0);
+    w.recentKills.push({ pos: { ...h.pos }, timeMs: w.timeMs, by: h.id });
+    h.mode = 'explore';
+    expect(of(run(w, 200), 'cast').length).toBeGreaterThan(0);
+  });
+});
+
 describe('skill shapes', () => {
   const w = createWorld(1, mkData(bolt));
   const h = hero(w);

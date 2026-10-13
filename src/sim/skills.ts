@@ -1,8 +1,18 @@
-import { applyRider } from './riders';
+import { applyBuff, applyMark, applyShield, applyTaunt } from './effects';
+import { applyRider, healMult } from './riders';
+import { tally } from './runstats';
 import { attackStrike, landStrike } from './strike';
 import { dist, TICK_MS, type Stats } from './units';
 import { statsOf, targetOf, type UnitRuntime, type World } from './world';
-import type { DamageEffect, SkillDef, SkillShape, SkillTrigger, UnitState, Vec2 } from './types';
+import type {
+  DamageEffect,
+  SkillDef,
+  SkillEffect,
+  SkillShape,
+  SkillTrigger,
+  UnitState,
+  Vec2,
+} from './types';
 
 // The skill engine (Sim 240, docs/systems/paths-and-skills.md). A hero on a path with a skill
 // row checks the row's trigger every tick while its cooldown is down. When it holds, the hero
@@ -23,6 +33,8 @@ interface Found {
   foe?: UnitState;
   ally?: UnitState;
   point: Vec2;
+  // Where a cone or line should face when the cast sits on the caster.
+  aim?: Vec2;
 }
 
 // The hero's skill, with the tier 3 form merged over it from tier 3.
@@ -72,7 +84,7 @@ export function runSkill(
   sr.cast = { target: at.unit?.id ?? null, point: at.point, ms: t.castWindupMs };
   rt.swing = undefined;
   // A skill sitting on the caster still points at the foe: cones and lines aim along facing.
-  face(hero, at.unit?.pos ?? found.foe?.pos ?? at.point);
+  face(hero, found.aim ?? at.unit?.pos ?? found.foe?.pos ?? at.point);
   world.events.push({
     kind: 'cast',
     skill: def.id,
@@ -171,9 +183,10 @@ function evalTrigger(
       // Counted around the skill's centre: the caster, or the foe it fights. A cone opens from
       // the caster toward the foe (the nearest one when the skill sits on the caster).
       const all = foesOf(world);
-      const toward = foe ?? (self ? pickNearest(all, hero.pos, trig.radius) : undefined);
+      // Only for a hero in a fight (it has a foe), not one passing by.
+      if (!foe) return undefined;
+      const toward = foe;
       const centre = self ? hero : foe;
-      if (!centre || !toward) return undefined;
       const inside = all.filter((f) =>
         trig.angle === undefined
           ? dist(centre.pos, f.pos) <= trig.radius
@@ -181,7 +194,7 @@ function evalTrigger(
       );
       if (inside.length < trig.n) return undefined;
       const at = self || hero.trait === 'proud' ? pickFoe(hero, hero.pos, inside) : foe;
-      return { foe: at ?? undefined, point: { ...centre.pos } };
+      return { foe: at ?? undefined, point: { ...centre.pos }, aim: { ...toward.pos } };
     }
     case 'allyHurt': {
       const hurt = alliesOf(world, hero).filter(
@@ -200,10 +213,19 @@ function evalTrigger(
       return hurt || hunted ? { foe: foe ?? undefined, point: { ...hero.pos } } : undefined;
     }
     case 'kill': {
+      // A kill by the hero or its party only, not by a party passing by.
+      const mine = (by: number) => {
+        const killer = world.units.find((u) => u.id === by);
+        return (
+          by === hero.id ||
+          (killer !== undefined && killer.party !== 0 && killer.party === hero.party)
+        );
+      };
       const near = world.recentKills.find(
         (k) =>
           k.timeMs >= world.timeMs - world.tuning.skill.killWindowMs &&
-          dist(hero.pos, k.pos) <= trig.radius,
+          dist(hero.pos, k.pos) <= trig.radius &&
+          mine(k.by),
       );
       return near ? { point: { ...near.pos } } : undefined;
     }
@@ -248,15 +270,21 @@ export function foesInShape(
   shape: SkillShape,
   point: Vec2,
   target: UnitState | undefined,
+  // Who the shape can reach: foes by default, or the caster's side for support effects.
+  pool: UnitState[] = foesOf(world),
 ): { unit: UnitState; mult: number }[] {
-  const foes = foesOf(world);
+  const foes = pool;
   switch (shape.kind) {
     case 'single': {
       // Anchored to the cast point: the target counts while it is still there, else the
       // nearest foe that is.
       const reach = world.tuning.skill.pointReach;
       const here =
-        target && target.hp > 0 && !target.ko && dist(point, target.pos) <= reach
+        target &&
+        pool.includes(target) &&
+        target.hp > 0 &&
+        !target.ko &&
+        dist(point, target.pos) <= reach
           ? target
           : pickNearest(foes, point, reach);
       return here ? [{ unit: here, mult: 1 }] : [];
@@ -278,7 +306,11 @@ export function foesInShape(
       // Anchored to the cast point like `single`: a target that left it is not followed.
       const reach = world.tuning.skill.pointReach;
       let cur =
-        target && target.hp > 0 && !target.ko && dist(point, target.pos) <= reach
+        target &&
+        pool.includes(target) &&
+        target.hp > 0 &&
+        !target.ko &&
+        dist(point, target.pos) <= reach
           ? target
           : pickNearest(foes, point, reach);
       const out: { unit: UnitState; mult: number }[] = [];
@@ -316,21 +348,122 @@ function resolve(
 ): void {
   if (hero.ko || hero.hp <= 0) return;
   const target = targetId === null ? undefined : world.units.find((u) => u.id === targetId);
-  const hits = foesInShape(world, hero, def.shape, point, target);
   const stats = statsOf(world, hero);
-  for (const effect of def.effects) {
-    if ((effect.on ?? 'cast') !== 'cast') continue;
-    if (effect.kind === 'damage' && stats) {
-      for (const h of hits) if (h.unit.hp > 0) damage(world, hero, stats, effect, h.unit, h.mult);
+  const effects = def.effects.filter((e) => (e.on ?? 'cast') === 'cast');
+  // A dash comes first: the shapes that follow sit where the caster lands.
+  let from: Vec2 | undefined;
+  if (effects.some((e) => e.kind === 'dash')) {
+    from = { ...hero.pos };
+    dash(world, hero, point);
+  }
+  const foes = foesInShape(world, hero, def.shape, point, target);
+  let side: { unit: UnitState; mult: number }[] | undefined;
+  const allies = () =>
+    (side ??= foesInShape(world, hero, def.shape, point, target, [hero, ...alliesOf(world, hero)]));
+  const touched = new Set<number>();
+  for (const effect of effects) {
+    const to = effect.to ?? defaultTo(effect.kind);
+    const hits = to === 'foes' ? foes : to === 'allies' ? allies() : [{ unit: hero, mult: 1 }];
+    for (const h of hits) {
+      if (h.unit.hp <= 0 || h.unit.ko) continue;
+      if (effect.kind === 'damage') {
+        if (stats) damage(world, hero, stats, effect, h.unit, h.mult);
+      } else {
+        support(world, hero, stats, effect, h.unit);
+      }
+      touched.add(h.unit.id);
     }
   }
   world.events.push({
     kind: 'skill',
     skill: def.id,
     caster: hero.id,
-    hits: hits.map((h) => h.unit.id),
+    hits: [...touched],
     point: { ...point },
+    ...(from ? { from } : {}),
   });
+}
+
+function defaultTo(kind: SkillEffect['kind']): 'foes' | 'allies' | 'self' {
+  switch (kind) {
+    case 'heal':
+    case 'shield':
+    case 'buff':
+      return 'allies';
+    case 'dash':
+      return 'self';
+    default:
+      return 'foes';
+  }
+}
+
+// The caster steps to the point, stopping a melee reach short of it.
+function dash(world: World, hero: UnitState, point: Vec2): void {
+  const d = dist(hero.pos, point);
+  const stop = 20;
+  if (d <= stop) return;
+  const k = (d - stop) / d;
+  const { width, height } = world.data.map;
+  hero.pos = {
+    x: Math.min(width, Math.max(0, hero.pos.x + (point.x - hero.pos.x) * k)),
+    y: Math.min(height, Math.max(0, hero.pos.y + (point.y - hero.pos.y) * k)),
+  };
+  face(hero, point);
+}
+
+// Every effect other than damage and dash.
+function support(
+  world: World,
+  hero: UnitState,
+  stats: Stats | undefined,
+  effect: SkillEffect,
+  unit: UnitState,
+): void {
+  switch (effect.kind) {
+    case 'heal': {
+      if (!stats) return;
+      const gain = Math.round(
+        world.tuning.combat.healPower *
+          (stats.attrs.int + stats.attrs.wp) *
+          effect.mult *
+          healMult(world, unit.id),
+      );
+      const amount = Math.min(gain, unit.maxHp - unit.hp);
+      if (amount <= 0) return;
+      unit.hp += amount;
+      tally(world, hero.id, 'healing', amount);
+      world.events.push({ kind: 'heal', healer: hero.id, target: unit.id, amount });
+      return;
+    }
+    case 'shield': {
+      const hp =
+        effect.pct !== undefined
+          ? effect.pct * unit.maxHp
+          : stats
+            ? (effect.mult ?? 1) * (stats.attrs.int + stats.attrs.wp)
+            : 0;
+      applyShield(world, unit, Math.round(hp), effect.s);
+      return;
+    }
+    case 'buff':
+      applyBuff(world, unit, effect.stat, effect.amount, effect.s);
+      return;
+    case 'mark':
+      applyMark(world, unit, effect.pct, effect.s);
+      return;
+    case 'taunt':
+      // Bosses ignore taunt.
+      if (!statsOf(world, unit)?.tags?.includes('boss')) applyTaunt(world, unit, hero.id, effect.s);
+      return;
+    case 'stagger': {
+      const rt = world.unitRuntime.get(unit.id);
+      if (!rt) return;
+      rt.swing = undefined;
+      rt.cooldownMs = Math.max(rt.cooldownMs, world.tuning.combat.windupMs);
+      cancelCast(rt);
+      return;
+    }
+  }
 }
 
 function damage(

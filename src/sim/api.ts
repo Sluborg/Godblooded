@@ -35,6 +35,7 @@ export type {
   PlotState,
   RiderId,
   RiderTuning,
+  BuffStat,
   SkillDef,
   SkillEffect,
   SkillHook,

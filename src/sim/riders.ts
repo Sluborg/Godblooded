@@ -1,4 +1,5 @@
 import { resolveStrike, hitEvent, type StrikeOut } from './strike';
+import { takeDamage } from './effects';
 import { tally } from './runstats';
 import { dist } from './units';
 import type { UnitRuntime, World } from './world';
@@ -82,9 +83,11 @@ function arc(world: World, attacker: number, target: UnitState, out: StrikeOut):
     canCrit: false,
     target: dest,
   });
-  next.hp -= jump.damage;
-  tally(world, attacker, 'damage', jump.damage);
-  world.events.push(hitEvent(attacker, next.id, jump));
+  const taken = takeDamage(world, next, jump.damage);
+  jump.damage = taken.dealt;
+  next.hp -= taken.hp;
+  tally(world, attacker, 'damage', taken.dealt);
+  world.events.push(hitEvent(attacker, next.id, jump, taken.dealt - taken.hp));
   if (next.hp <= 0) {
     next.hp = 0;
     world.pendingDeaths.push({ victim: next.id, by: attacker });
@@ -101,16 +104,18 @@ export function runStatuses(world: World): void {
     if (st.wither && world.timeMs >= st.wither.untilMs) st.wither = undefined;
     const burn = st.burn;
     if (burn && !unit.ko && unit.hp > 0 && world.timeMs >= burn.nextMs) {
-      unit.hp -= burn.tick;
-      tally(world, burn.by, 'damage', burn.tick);
+      const taken = takeDamage(world, unit, burn.tick);
+      unit.hp -= taken.hp;
+      tally(world, burn.by, 'damage', taken.dealt);
       world.events.push({
         kind: 'hit',
         attacker: burn.by,
         target: unit.id,
-        damage: burn.tick,
+        damage: taken.hp,
         dodged: false,
         type: 'fire',
         tick: true,
+        ...(taken.dealt > taken.hp ? { absorbed: taken.dealt - taken.hp } : {}),
       });
       burn.left--;
       burn.nextMs += world.tuning.rider.burnEveryMs;

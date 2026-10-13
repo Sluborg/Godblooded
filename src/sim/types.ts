@@ -290,9 +290,14 @@ export type SkillShape =
 // When an effect runs. Only 'cast' (the default) exists until statuses and summons arrive.
 export type SkillHook = 'cast' | 'hit' | 'kill' | 'expire' | 'death';
 
+export type BuffStat = 'attackSpeed' | 'dodge' | 'armour' | 'damage' | 'crit';
+
 interface EffectBase {
   // Defaults to 'cast'.
   on?: SkillHook;
+  // Who the effect lands on, out of the shape: foes (damage, stagger, mark, taunt), allies
+  // (heal, shield, buff; the caster counts as one), or the caster alone (dash). Override here.
+  to?: 'foes' | 'allies' | 'self';
 }
 
 // `mult` x power (a weapon hero's Str, a caster's Int x spellMult) of `type` (default: the
@@ -305,8 +310,62 @@ export interface DamageEffect extends EffectBase {
   sure?: boolean;
 }
 
-// The other effects of the spec join this union with Sim 250.
-export type SkillEffect = DamageEffect;
+// Heals `mult` x (Int + Wp) of the caster, like a healer's heal.
+export interface HealEffect extends EffectBase {
+  kind: 'heal';
+  mult: number;
+}
+
+// Absorbs `mult` x (Int + Wp) of the caster, or `pct` of the target's max hp, for `s` seconds.
+export interface ShieldEffect extends EffectBase {
+  kind: 'shield';
+  mult?: number;
+  pct?: number;
+  s: number;
+}
+
+// For `s` seconds: attackSpeed, dodge, damage and crit add `amount` (0.25 = +25%, dodge and crit
+// as flat chance added after the curve); armour is multiplied by 1 + amount. A new buff of the
+// same stat replaces the old one.
+export interface BuffEffect extends EffectBase {
+  kind: 'buff';
+  stat: BuffStat;
+  amount: number;
+  s: number;
+}
+
+// Cancels the targets' windups (and casts): their strike starts over.
+export interface StaggerEffect extends EffectBase {
+  kind: 'stagger';
+}
+
+// Targets take `pct` more damage from everyone for `s` seconds (0.25 = +25%).
+export interface MarkEffect extends EffectBase {
+  kind: 'mark';
+  pct: number;
+  s: number;
+}
+
+// Foes in the shape go for the caster for `s` seconds (bosses ignore it).
+export interface TauntEffect extends EffectBase {
+  kind: 'taunt';
+  s: number;
+}
+
+// The caster steps to the cast point (stopping in melee reach), before the other effects.
+export interface DashEffect extends EffectBase {
+  kind: 'dash';
+}
+
+export type SkillEffect =
+  | DamageEffect
+  | HealEffect
+  | ShieldEffect
+  | BuffEffect
+  | StaggerEffect
+  | MarkEffect
+  | TauntEffect
+  | DashEffect;
 
 export interface SkillDef {
   id: string;
@@ -607,6 +666,8 @@ export type SimEvent =
       type: string;
       // A critical strike (absent when it was not).
       crit?: boolean;
+      // The part of the damage a shield took (`damage` is what reached the hp).
+      absorbed?: number;
       // A burn tick rather than a strike.
       tick?: boolean;
       // The target's type row made it x1.5 or more (weak) or less than x1 (resist).
@@ -634,7 +695,11 @@ export type SimEvent =
       say?: boolean;
     }
   // A cast lands on `hits` (unit ids) around `point`.
-  | { kind: 'skill'; skill: string; caster: number; hits: number[]; point: Vec2 }
+  // `hits`: every unit an effect touched (foes, allies, the caster). `from`: where the caster
+  // stood when it dashed (the dash is instant; Scene animates it from `from` to the caster).
+  | { kind: 'skill'; skill: string; caster: number; hits: number[]; point: Vec2; from?: Vec2 }
+  // A shield, mark, buff or taunt took hold on `unit` until run time `until`.
+  | { kind: 'status'; unit: number; status: 'shield' | 'mark' | 'buff' | 'taunt'; until: number }
   | { kind: 'argue'; a: number; b: number }
   | { kind: 'revenge'; hero: number; target: number; victim: number }
   | { kind: 'avenged'; hero: number; target: number }

@@ -14,6 +14,8 @@ export interface Stats {
   spellMult?: number;
   // Share of speed and attack rate lost to chill (0 when none).
   slow?: number;
+  // Attack rate gained from buffs (0.5 = 50% faster).
+  haste?: number;
   // Multiplies the attack time (an enraged boss: 0.7).
   attackMult?: number;
   // The type of the basic attack (casters: their god's or path's); missing: physical or, for a
@@ -67,7 +69,8 @@ export function damage(a: Attributes): number {
 export function attackMs(s: Stats, k: number = DEFAULT_COMBAT.attackK): number {
   return (
     (s.weapon.baseAttackS * 1000 * (1 - curve(s.attrs.dex, k)) * (s.attackMult ?? 1)) /
-    (1 - (s.slow ?? 0))
+    (1 - (s.slow ?? 0)) /
+    (1 + (s.haste ?? 0))
   );
 }
 

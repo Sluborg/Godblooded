@@ -1,6 +1,7 @@
 import { armourPct, critChance, dodgeChance, resistPct, type Stats } from './units';
 import type { World } from './world';
 import { applyRider } from './riders';
+import { buffOf, takeDamage } from './effects';
 import { tally } from './runstats';
 import type { Attributes, RiderId, SimEvent, UnitState } from './types';
 
@@ -27,7 +28,11 @@ export interface StrikeIn {
     armour?: number;
     types?: Partial<Record<string, number>>;
     tags?: readonly string[];
+    // Flat dodge added after the curve (buffs).
+    dodgeAdd?: number;
   };
+  // Flat crit chance added after the curve (buffs).
+  critAdd?: number;
   // Tower bolts cannot dodge-roll (true by default for physical strikes with a target).
   canDodge?: boolean;
   // Tower bolts cannot crit.
@@ -58,7 +63,7 @@ export function resolveStrike(world: World, s: StrikeIn): StrikeOut {
     physical &&
     s.canDodge !== false &&
     s.target &&
-    world.rng() < dodgeChance(s.target.attrs, t.dodgeK)
+    world.rng() < Math.min(0.9, dodgeChance(s.target.attrs, t.dodgeK) + (s.target.dodgeAdd ?? 0))
   ) {
     return { dodged: true, crit: false, damage: 0, type, weak: false, resist: false };
   }
@@ -67,7 +72,10 @@ export function resolveStrike(world: World, s: StrikeIn): StrikeOut {
   // 40 crit
   // Bosses cannot be crit.
   const bossTarget = s.target?.tags?.includes('boss');
-  const crit = s.canCrit !== false && !bossTarget && world.rng() < critChance(s.attrs, t.critK);
+  const crit =
+    s.canCrit !== false &&
+    !bossTarget &&
+    world.rng() < Math.min(0.9, critChance(s.attrs, t.critK) + (s.critAdd ?? 0));
   if (crit) dmg *= t.critMult;
   // 50 type multiplier: the target's row for this type; fire hurts buildings more
   let row = s.target?.types?.[type] ?? 1;
@@ -116,14 +124,16 @@ export function attackStrike(
 }
 
 // The `hit` event of a resolved strike.
-export function hitEvent(attacker: number, target: number, out: StrikeOut): SimEvent {
+// `absorbed`: the part of the damage a shield took (the event's damage is what reached the hp).
+export function hitEvent(attacker: number, target: number, out: StrikeOut, absorbed = 0): SimEvent {
   return {
     kind: 'hit',
     attacker,
     target,
-    damage: out.damage,
+    damage: out.damage - absorbed,
     dodged: out.dodged,
     type: out.type,
+    ...(absorbed > 0 ? { absorbed } : {}),
     ...(out.crit ? { crit: true } : {}),
     ...(out.weak ? { weak: true } : {}),
     ...(out.resist ? { resist: true } : {}),
@@ -138,10 +148,18 @@ export function landStrike(
   foe: UnitState,
   input: StrikeIn,
 ): StrikeOut {
-  const out = resolveStrike(world, input);
-  foe.hp -= out.damage;
+  const boost = buffOf(world, attacker.id, 'damage');
+  const crit = buffOf(world, attacker.id, 'crit');
+  const out = resolveStrike(world, {
+    ...input,
+    ...(boost ? { skillMult: (input.skillMult ?? 1) * (1 + boost) } : {}),
+    ...(crit ? { critAdd: crit } : {}),
+  });
+  const taken = takeDamage(world, foe, out.damage);
+  out.damage = taken.dealt;
+  foe.hp -= taken.hp;
   tally(world, attacker.id, 'damage', out.damage);
-  world.events.push(hitEvent(attacker.id, foe.id, out));
+  world.events.push(hitEvent(attacker.id, foe.id, out, taken.dealt - taken.hp));
   if (input.rider && !out.dodged) applyRider(world, input.rider, attacker.id, foe, out);
   if (foe.hp <= 0) {
     foe.hp = 0;
