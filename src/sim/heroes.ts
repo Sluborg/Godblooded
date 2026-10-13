@@ -1,3 +1,4 @@
+import { lairSealed, nearSealedLair } from './boss';
 import { earn, newRecord } from './runstats';
 import { fledParty, fleeThreshold, newParty, pantheonOf, TRAITS } from './parties';
 import { slowOf } from './riders';
@@ -485,12 +486,16 @@ function chooseGoals(world: World): void {
       sinceMs: world.timeMs,
     };
     for (const flag of world.bounties) {
+      // A flag next to a sealed boss lair waits: nobody can claim it yet.
+      if (nearSealedLair(world, flag.pos, world.tuning.bounty.dangerRadius)) continue;
       const score = flagScore(world, unit, flag.gold, flag.pos);
       if (score !== null && score > best.score) {
         best = { kind: 'flag', id: flag.id, score, sinceMs: world.timeMs };
       }
     }
     for (const lair of world.lairs) {
+      // A sealed boss lair cannot be attacked yet.
+      if (lairSealed(world, lair.id)) continue;
       const score = lairScore(world, unit, lair);
       if (score !== null && score > best.score) {
         best = { kind: 'lair', id: lair.id, score, sinceMs: world.timeMs };

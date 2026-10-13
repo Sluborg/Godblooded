@@ -174,8 +174,11 @@ same face, hair, palette and silhouette as `hero_<god>_t1_front`, adding gear an
 A **summon** (`sum_`, a unit a path skill calls up, such as Horus's falcon) is drawn and shipped
 like a monster still: one front picture facing right, with its strike and weapon point.
 
-Heroes and buildings get a picture per tier. **Monsters have tier-1 pictures only**: the game
-shows a tougher monster by colour (tint) in code.
+Heroes and buildings get a picture per tier. **Monsters change visibly per tier** (Lead
+2026-10-13, `docs/systems/monsters-and-bosses.md` "How monsters look"): the same face, body and
+palette, one new silhouette piece per tier (a shield, horns, a crest), and the tier colour on the
+eyes and the ground ring (drawn by the game, not in the picture). Lairs have one tier-1 picture;
+the game shows the lair tier.
 
 ## Manifest
 
@@ -215,6 +218,15 @@ shows a tougher monster by colour (tint) in code.
 - Sorted by id. `npm run validate:art` (also part of `npm test`) checks every row and PNG: id
   format, fields, file path, size, alpha, nothing cut off at the border, no key colour left, no
   PNG without a row.
+
+## Music
+
+Music rows follow `docs/systems/audio.md` section 6 and `docs/systems/music-prompts.md` section 4:
+`{ id: "mus_<name>", kind: "mus", file: "audio/mus_<name>", loopStartMs, loopEndMs, bpm, key,
+license, source }`, the file **without extension**: both `.ogg` and `.m4a` ship (stereo, 44.1
+kHz, 96 kbps), loops at about -16 LUFS and stings about -14 LUFS, peaks below -1 dB. Extra
+fields: `loopCrossfadeMs` when the loop needs a crossfade at the seam, `loudnessLufs`, `note`.
+The raw file stays in `assets/source/<batch>/`, never in `public/`.
 
 ## Pipeline (Art)
 

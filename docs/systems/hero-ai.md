@@ -52,7 +52,8 @@ picture: argue, revenge, avenged, partyFormed, bountyClaimed.
 | rest    | resting                         | bed (small, dim)           | none                            |
 | defend  | rejoining to defend the town    | tower                      | "The town!"                     |
 
-- **Event** `intent { party, kind, target?, pos? }` whenever the party leader's intent changes;
+- **Event** `intent { party, intent: { kind, target?, pos? } }` whenever the party leader's
+  intent changes (the shape Sim ships in #221);
   the snapshot carries `party.intent` for Scene.
 - **A member who breaks from the plan shows its own intent:** `unit.intent` is set whenever a
   hero's own goal differs from its party's (an oath, a solo flee, a proud hero staying in a

@@ -30,6 +30,23 @@ const MAX = {
 // Total bytes of shipped PNGs (offline cache budget, Lead 2026-10-13: 12 MB; lazy-load if M3 passes it).
 export const ART_BUDGET = 12e6;
 
+// A music row: id `mus_<name>`, kind "mus", both formats on disk, loop points in ms.
+export function musicErrors(row, assets) {
+  const id = row.id;
+  const out = [];
+  if (!/^mus_[a-z0-9]+(_[a-z0-9]+)*$/.test(id)) out.push(`${id}: music id must be mus_<name>`);
+  if (row.kind !== 'mus') out.push(`${id}: kind must be "mus"`);
+  if (row.file !== `audio/${id}`) out.push(`${id}: file must be audio/${id} (no extension)`);
+  else
+    for (const ext of ['ogg', 'm4a'])
+      if (!existsSync(join(assets, `${row.file}.${ext}`)))
+        out.push(`${id}: ${row.file}.${ext} missing`);
+  const { loopStartMs: a, loopEndMs: b } = row;
+  if (!Number.isInteger(a) || !Number.isInteger(b) || a < 0 || b <= a)
+    out.push(`${id}: loopStartMs and loopEndMs must be whole ms, start < end`);
+  return out;
+}
+
 function pngsUnder(dir) {
   if (!existsSync(dir)) return [];
   return readdirSync(dir).flatMap((f) => {
@@ -57,6 +74,11 @@ export function validateAssets(root = '.', budget = ART_BUDGET) {
       if (typeof row[f] !== 'string' || !row[f]) err(id, `missing string "${f}"`);
     if (seen.has(id)) err(id, 'duplicate id');
     seen.add(id);
+    // Music (docs/systems/audio.md section 6): `file` has no extension, .ogg and .m4a ship.
+    if (/^mus_/.test(id)) {
+      errors.push(...musicErrors(row, assets));
+      continue;
+    }
     const k = kindOf(id);
     if (!k) {
       err(id, 'id does not match docs/asset-spec.md');

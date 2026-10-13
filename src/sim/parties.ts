@@ -1,5 +1,6 @@
 import { armourBonus } from './items';
 import { autoPickCard, leaderOf, offerCards } from './cards';
+import { addFavour } from './favour';
 import { passiveAttrs } from './passives';
 import { partiesHaveRivals, runRivalries } from './rivalry';
 import { dist, maxHp } from './units';
@@ -167,7 +168,7 @@ function builtPantheons(world: World): Set<string> {
   return out;
 }
 
-const godPantheon = (world: World, god: string): string =>
+export const godPantheon = (world: World, god: string): string =>
   world.data.gods?.find((g) => g.id === god)?.pantheon ?? '';
 
 const pathTaken = (world: World, id: string): number | null =>
@@ -214,6 +215,8 @@ function retier(world: World, party: Party): void {
     const tier = wantedTier(world, party, u);
     const template = (u.tier >= 1 && tier >= 2 && pathDef(world, u.path)?.template) || u.type;
     if (tier === u.tier && template === u.type) continue;
+    if (tier > u.tier)
+      addFavour(world, godPantheon(world, u.god ?? ''), world.tuning.favour.tierUpGain);
     u.tier = tier;
     u.type = template;
     refreshMaxHp(world, u);

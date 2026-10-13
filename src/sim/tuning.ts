@@ -42,6 +42,7 @@ export const DEFAULT_TUNING: Tuning = {
     greedySpend: 0.35,
     proudSpend: 0.8,
     potionMax: [2, 2, 3],
+    charmSwapPrice: 200,
     potionDrinkAdd: 0.1,
     cowardDrinkAdd: 0.25,
     neverFleeDrink: 0.3,
@@ -121,6 +122,8 @@ export const DEFAULT_TUNING: Tuning = {
     speechEvery: 4,
   },
   boss: {
+    sealUntilMs: 720_000,
+    sealLairs: 2,
     emergeBelow: 0.75,
     cleaveEvery: 3,
     cleaveRadius: 70,
@@ -153,6 +156,14 @@ export const DEFAULT_TUNING: Tuning = {
     switchMin: 10,
     exploreValue: 20,
     lairXpWeight: 0.5,
+  },
+  favour: {
+    perTempleTierS: 4,
+    tierUpGain: 10,
+    lairGain: 15,
+    max: 100,
+    dangerHp: 0.5,
+    tellMs: 1500,
   },
   town: {
     townHallHp: 500,
@@ -192,6 +203,7 @@ export function resolveTuning(data: GameData): Tuning {
     save: { ...DEFAULT_TUNING.save, ...t?.save },
     stats: { ...DEFAULT_TUNING.stats, ...t?.stats },
     ai: { ...DEFAULT_TUNING.ai, ...t?.ai },
+    favour: { ...DEFAULT_TUNING.favour, ...t?.favour },
     town: { ...DEFAULT_TUNING.town, ...t?.town },
     bounty: { ...DEFAULT_TUNING.bounty, ...t?.bounty },
   };
