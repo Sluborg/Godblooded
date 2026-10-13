@@ -19,7 +19,7 @@ import { clearSave, newSeed, readSave, writeSave } from '../ui/saveStore';
 import { getSettings } from '../ui/settings';
 import { heroLabel, partyColor } from '../ui/partyLook';
 import { UnitViews } from '../ui/unitViews';
-import { buildingArtCandidates, buildingScale } from '../ui/unitLook';
+import { buildingArtCandidates, buildingScale, lairArtCandidates } from '../ui/unitLook';
 import { ASSETS_KEY, type ManifestAsset } from '../ui/assets';
 import { OFFER_KEY, type LevelUpOffer } from './LevelUpScene';
 import { attachCameraControls } from '../ui/cameraControls';
@@ -332,8 +332,10 @@ export class MapScene extends Phaser.Scene {
     for (const l of this.snap.lairs) {
       const key = `l${l.id}`;
       seen.add(key);
-      if (!this.views.has(key)) this.views.set(key, this.makeMarker(l.type, l.pos, 44, 0x2b1d33));
-      this.updateBar(this.views.get(key), l.hp, l.maxHp, 90, -2 * 44 - 30);
+      if (!this.views.has(key)) this.views.set(key, this.makeLair(l));
+      else this.refreshLair(this.views.get(key), l.type, l.tier, l.boss);
+      const top = (this.views.get(key)?.getData('top') as number | undefined) ?? 2 * 44;
+      this.updateBar(this.views.get(key), l.hp, l.maxHp, 90, -top - 30);
     }
     for (const b of this.snap.bounties) {
       const key = `f${b.id}`;
@@ -530,6 +532,40 @@ export class MapScene extends Phaser.Scene {
       })
       .setOrigin(0.5);
     return this.add.container(pos.x, pos.y, [body, label]).setDepth(pos.y);
+  }
+
+  // A lair: its picture (`bld_lair_<id>_t<tier>`, tier 1 as the fallback) standing on its base, a
+  // boss lair larger; the dark dot with its name when Art has none.
+  private makeLair(l: { type: string; tier: number; pos: Vec2; boss: boolean }) {
+    const c = this.makeMarker(l.type, l.pos, 44, 0x2b1d33);
+    this.refreshLair(c, l.type, l.tier, l.boss);
+    return c;
+  }
+
+  // Swaps in the picture for the lair's current tier when there is one (a tier-up changes it).
+  private refreshLair(
+    view: Phaser.GameObjects.GameObject | undefined,
+    type: string,
+    tier: number,
+    boss: boolean,
+  ): void {
+    if (!(view instanceof Phaser.GameObjects.Container) || view.getData('tier') === tier) return;
+    view.setData('tier', tier);
+    const art = lairArtCandidates(type, tier).find((id) => this.textures.exists(id));
+    if (!art) return;
+    const row = (this.registry.get(ASSETS_KEY) as Map<string, ManifestAsset> | undefined)?.get(art);
+    let img = view.getData('img') as Phaser.GameObjects.Image | undefined;
+    if (!img) {
+      // The first picture replaces the placeholder dot and its name.
+      for (const o of [...view.list]) if (o !== view.getData('bar')) o.destroy();
+      img = this.add.image(0, 0, art);
+      view.add(img);
+      view.setData('img', img);
+    } else img.setTexture(art);
+    img.setOrigin(row?.anchorX ?? 0.5, row?.anchorY ?? 1);
+    const k = buildingScale(img.width, img.height) * (boss ? 1.35 : 1);
+    img.setScale(k);
+    view.setData('top', img.height * k);
   }
 
   // Stand-in for lairs and monsters until the unit view (Scene 50): a dot with its type.
