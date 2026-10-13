@@ -376,7 +376,11 @@ export class UnitView {
 
   update(u: UnitState, ctx: FrameCtx, role: PartyRole = 'solo'): void {
     this.applyArt(u);
-    if (u.kind === 'hero') this.label.setText(heroLabel(u));
+    if (u.kind === 'hero') {
+      this.label.setText(heroLabel(u));
+      // The path name can be wider than "<God>-born": keep the party badge beside the label.
+      this.badge.setX(-this.label.width / 2 - 4);
+    }
     this.tick(u.pos, u.facing.x, u.ko, ctx);
     this.drawBar(u);
     this.drawParty(u, role);
