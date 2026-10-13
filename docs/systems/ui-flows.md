@@ -22,13 +22,13 @@ other specs need (`items-and-shops.md`, `buildings.md`, `events.md`, `meta.md`,
 ## 1. Navigation map
 
 ```
-Boot ──> Title ──Play──> [Trial picker, after the first win] ──> Map + Hud
+Boot ──> Title ──Play──> Run setup (omen, Trials after the first win; `meta-ui.md`) ──> Map + Hud
            │  ├─Continue (Map asleep, run not over) ──> Map + Hud
            │  ├─Hall (new) ──> tabs: Altar, Pantheons, Buildings, Cards, Saga ──Back──> Title
            │  └─Settings ──Back──> (where it came from)
 Map + Hud ──Menu──> Pause ──Resume / Restart / Settings / Quit to title
           ──path offer──> path tray over the map (run at 30%) ──pick──> Map
-          ──won or lost──> End screen ──Play again / Title (new)
+          ──won or lost──> End screen ──Play again (to Run setup) / Altar / Title (`meta-ui.md`)
 ```
 
 - **Modal rule:** at most one modal over the map. Priority when two want the screen: end
