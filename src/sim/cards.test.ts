@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createWorld, type GameData } from './api';
+import { createWorld, step, type GameData } from './api';
 import { newParty, shareXp } from './parties';
 import { offerCards } from './cards';
 import { spawnHero } from './world';
@@ -270,5 +270,27 @@ describe('card offers', () => {
     shareXp(manual.w, manual.ids[0], 10 + 20 + 30);
     expect(manual.p.level).toBe(2);
     expect(manual.p.offer).toHaveLength(3);
+  });
+
+  it('an open offer from an old save is taken by the party itself on load', () => {
+    const cards = ['a', 'b', 'c'].map((id) => card(id, 'stats'));
+    const { w, p } = party(mk(cards, { party: { autoPick: true } }));
+    p.offer = ['a', 'b', 'c'];
+    step(w, 1_000);
+    expect(p.offer).toBeNull();
+    expect(p.upgrades).toHaveLength(1);
+  });
+
+  it('a pending pick slows the run to offerSlowdown instead of freezing it', () => {
+    const cards = ['a', 'b', 'c'].map((id) => card(id, 'stats'));
+    const { w, p } = party(mk(cards, { party: { autoPick: false, offerSlowdown: 0.3 } }));
+    p.offer = ['a', 'b', 'c'];
+    const t = w.timeMs;
+    step(w, 1_000);
+    expect(w.timeMs - t).toBe(300);
+    const frozen = party(mk(cards, { party: { autoPick: false, offerSlowdown: 0 } }));
+    frozen.p.offer = ['a', 'b', 'c'];
+    step(frozen.w, 1_000);
+    expect(frozen.w.timeMs).toBe(0);
   });
 });

@@ -52,6 +52,7 @@ export const DEFAULT_TUNING: Tuning = {
     offerSize: 3,
     maxLevel: 8,
     autoPick: true,
+    offerSlowdown: 0.3,
     traitPickWeight: 3,
     favourLevel: 7,
     rarity: { low: [70, 30, 0], mid: [50, 40, 10], high: [30, 50, 20] },

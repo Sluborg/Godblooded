@@ -69,7 +69,7 @@ const data: GameData = {
   tuning: {
     town: { raidFirstMs: 10_000_000 },
     hero: { firstRecruitMs: 10_000_000 },
-    party: { autoPick: false },
+    party: { autoPick: false, offerSlowdown: 0 },
   },
 };
 

@@ -253,13 +253,18 @@ export function step(world: World, dtMs: number): void {
   if (world.status !== 'running' || dtMs <= 0) return;
   world.accumulatorMs += dtMs;
   let ticks = 0;
-  // The run waits while a party has a level-up pick pending.
-  while (world.accumulatorMs >= TICK_MS && ticks < MAX_TICKS_PER_STEP) {
-    if (hasPendingPick(world)) {
+  // The run slows to `offerSlowdown` of its speed while a party has a pick pending (0: it
+  // waits). A tick then costs TICK_MS / slowdown of real time.
+  const slow = world.tuning.party.offerSlowdown;
+  for (;;) {
+    const pending = hasPendingPick(world);
+    if (pending && slow <= 0) {
       world.accumulatorMs = 0;
       return;
     }
-    world.accumulatorMs -= TICK_MS;
+    const cost = pending ? TICK_MS / slow : TICK_MS;
+    if (world.accumulatorMs + 1e-6 < cost || ticks >= MAX_TICKS_PER_STEP) break;
+    world.accumulatorMs -= cost;
     runTick(world);
     ticks++;
   }

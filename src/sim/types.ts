@@ -316,6 +316,9 @@ export interface PartyTuning {
   // The party picks its level-up card itself, by its leader's personality (no pause, no player
   // choice). Off: the run waits for the player's pick.
   autoPick: boolean;
+  // While a pick is open (a path card, or an upgrade offer with autoPick off) the run goes at
+  // this share of its speed; 0 freezes it.
+  offerSlowdown: number;
   // A card matching the leader's trait weighs this many times a plain one in the auto-pick draw.
   traitPickWeight: number;
   // The level whose offer is the party's god's favour cards.

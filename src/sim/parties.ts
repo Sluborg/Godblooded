@@ -336,6 +336,17 @@ export function fledParty(world: World, unit: UnitState): void {
 // Level 1 parties that meet while exploring may join up, more likely with a bond or a loyal
 // member. Runs once a second.
 export function runParties(world: World): void {
+  // A save from before auto-pick may hold an open upgrade offer: the party takes it itself.
+  if (tune(world).autoPick) {
+    for (const p of world.parties.values()) {
+      if (!p.offer) continue;
+      const leader = leaderOf(world, p);
+      const pick = autoPickCard(world, p, p.offer);
+      p.offer = null;
+      const god = world.data.upgrades?.find((u) => u.id === pick)?.god ?? leader?.god ?? undefined;
+      applyUpgrade(world, p, pick, { auto: true, hero: leader?.id, god });
+    }
+  }
   if (world.tick % tune(world).mergeEveryTicks !== 0) return;
   runRivalries(world);
   const ids = [...world.parties.keys()].sort((a, b) => a - b);
