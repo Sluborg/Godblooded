@@ -70,7 +70,7 @@ preset below or listed as silent. Damage-type sounds follow `combat.md`.
 | skill cast                                   | by visual (`paths-and-skills.md`): bolt, burst, cone ... | `sfx_skill_<visual>`          |
 | UI                                           | tap, back, disabled (a dull click)                       | `sfx_ui_tap`, `_back`, `_off` |
 | partyFormed                                  | two short drum beats                                     | `sfx_party`                   |
-| upgradePicked / pathOffer                    | UI confirm / the levelUp chord again                     | `sfx_ui_tap`, `sfx_levelup`   |
+| upgradePicked / pathOffer                    | a soft chime as the card rises / the levelUp chord again | `sfx_ui_tap`, `sfx_levelup`   |
 | argue                                        | a short grumble (low, 2 notes)                           | `sfx_argue`                   |
 | revenge / avenged                            | a rising war cry tone / a sharp stab and drum            | `sfx_revenge`, `sfx_avenged`  |
 | fled                                         | quick patter of steps                                    | `sfx_flee`                    |
