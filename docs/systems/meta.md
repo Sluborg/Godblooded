@@ -7,7 +7,7 @@ except settings (`src/ui/settings.ts`); the end screen reads `RunReport` (Sim 14
 ## Bottom line
 
 - **Recommendation: option A, unlocks only,** plus two power-free extras: a **Saga** (a hall of
-  the heroes who reached tier 3) and **Omens** (opt-in difficulty after the first win).
+  the heroes who reached tier 3) and **Trials** (opt-in difficulty after the first win).
 - **Why A:** no permanent power means the balance targets (55-75% wins, 15-18 min) hold on run
   1 and run 50; unlocks give the next run a goal; and it fits the art order (Aesir first, Greek
   and Egyptian arrive as rewards, exactly when their art ships).
@@ -18,11 +18,11 @@ except settings (`src/ui/settings.ts`); the end screen reads `RunReport` (Sim 14
 
 ## 1. The three options
 
-| Option         | Persists                                           | For                                                                   | Against                                                                                             |
-| -------------- | -------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| A Unlocks only | which content exists (temples, gods, cards, Omens) | goals without power creep; balance stays fixed; matches the art order | content must exist to unlock; nothing to do once all is open (Omens answer that)                    |
-| B Currency     | a currency ("Ichor") spent on upgrades and unlocks | strong retention; every run pays something, even a loss               | power creep (start gold, cheaper temples) breaks the fixed targets; a shop screen; grind on a phone |
-| C Nothing      | nothing; all content from the start                | simplest; every run fair; no save to break                            | no pull to the next run; the 3 pantheons are all there on run 1, which overwhelms                   |
+| Option         | Persists                                            | For                                                                   | Against                                                                                             |
+| -------------- | --------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| A Unlocks only | which content exists (temples, gods, cards, Trials) | goals without power creep; balance stays fixed; matches the art order | content must exist to unlock; nothing to do once all is open (Trials answer that)                   |
+| B Currency     | a currency ("Ichor") spent on upgrades and unlocks  | strong retention; every run pays something, even a loss               | power creep (start gold, cheaper temples) breaks the fixed targets; a shop screen; grind on a phone |
+| C Nothing      | nothing; all content from the start                 | simplest; every run fair; no save to break                            | no pull to the next run; the 3 pantheons are all there on run 1, which overwhelms                   |
 
 ### What B would look like (for comparison)
 
@@ -48,7 +48,7 @@ cards (stats, sustain, nerve) and the standard seeded map (Sim 150).
 | 50    | Egyptian temple and its 4 gods | win with a Greek hero in the town          |
 | 60    | Charms (market tier 2 stock)   | a hero buys level 2 gear                   |
 | 70    | God's favour cards             | a party reaches level 7                    |
-| 80    | Omens                          | win once                                   |
+| 80    | Trials                         | win once                                   |
 | 90    | Large maps, more lairs (later) | win with all three temples built           |
 
 - Every unlock is a row; the conditions read only `RunReport` and run stats, so Sim can test
@@ -66,11 +66,12 @@ cards (stats, sustain, nerve) and the standard seeded map (Sim 150).
 - Up to 50 entries, newest first. One tap on the hall's Saga tab.
 - It turns pillar 2 (personality you can see) into a reason to remember a run.
 
-### Omens (after the first win)
+### Trials (after the first win)
 
-Opt-in difficulty, picked before a run, stacking. Each omen won with is marked on the hall.
+Opt-in difficulty, picked before a run, stacking (named Trials so they do not clash with the
+in-run omens of `events.md`). Each trial won with is marked on the hall.
 
-| Order | Omen          | Effect                       |
+| Order | Trial         | Effect                       |
 | ----- | ------------- | ---------------------------- |
 | 10    | Blood Moon    | first raid 2 minutes earlier |
 | 20    | Restless Dead | lairs start at tier 2        |
@@ -81,7 +82,7 @@ Opt-in difficulty, picked before a run, stacking. Each omen won with is marked o
 ## 3. Save
 
 - One localStorage key, `godblooded.meta`, JSON: `{ version: 1, runs, wins, unlocks: string[],
-omensWon: string[], saga: SagaEntry[] }`.
+trialsWon: string[], saga: SagaEntry[] }`.
 - Versioned per `CLAUDE.md`: a shape change bumps `version` and adds a migration. A missing or
   broken save starts fresh (it never blocks play).
 - A dev flag (settings) unlocks everything, for testing and for Stefan.
@@ -93,7 +94,7 @@ omensWon: string[], saga: SagaEntry[] }`.
 | Order | Row                                                                                                    |
 | ----- | ------------------------------------------------------------------------------------------------------ |
 | 10    | `meta.ts`, pure: unlock rules over a `RunReport` and meta state; `GameData` filtered by unlocks; tests |
-| 20    | Omens as tuning overrides applied at `createWorld`                                                     |
+| 20    | Trials as tuning overrides applied at `createWorld`                                                    |
 | 30    | Run report: Saga entries (tier 3 heroes) and the fields the conditions read                            |
 | 40    | Hero names: seeded pick from the pantheon's name list on arrival, `name` in the snapshot               |
 
@@ -104,24 +105,24 @@ omensWon: string[], saga: SagaEntry[] }`.
 | 10    | Meta save: load, migrate, write after each run; dev flag in settings                 |
 | 20    | End screen: new unlock cards                                                         |
 | 30    | Hall screen: pantheons, buildings and cards (locked greyed with condition), Saga tab |
-| 40    | Omen picker before a run (after the first win)                                       |
+| 40    | Trial picker before a run (after the first win)                                      |
 
 ### Lead
 
 | Order | Row                                            |
 | ----- | ---------------------------------------------- |
-| 10    | Data: unlock rows and Omen rows                |
+| 10    | Data: unlock rows and Trial rows               |
 | 20    | Data: a name list per pantheon (about 30 each) |
 
 ### Art
 
-| Order | Row                                                           |
-| ----- | ------------------------------------------------------------- |
-| 10    | Hall backdrop and 5 Omen icons in the UI kit style (after U2) |
+| Order | Row                                                            |
+| ----- | -------------------------------------------------------------- |
+| 10    | Hall backdrop and 5 Trial icons in the UI kit style (after U2) |
 
 ## OPEN (Stefan decides)
 
-1. **A, B or C?** Recommendation: A (unlocks only) with Saga and Omens.
+1. **A, B or C?** Recommendation: A (unlocks only) with Saga and Trials.
 2. If A: start with **Aesir only** (recommendation) or all three pantheons from run 1?
 3. **Saga:** keep (recommendation) or skip?
-4. **Omens:** keep as the post-win goal (recommendation) or add later?
+4. **Trials:** keep as the post-win goal (recommendation) or add later?
