@@ -1,5 +1,5 @@
 import { armourBonus } from './items';
-import { offerCards } from './cards';
+import { autoPickCard, offerCards } from './cards';
 import { passiveAttrs } from './passives';
 import { partiesHaveRivals, runRivalries } from './rivalry';
 import { dist, maxHp } from './units';
@@ -125,8 +125,13 @@ export function shareXp(world: World, killer: number, xp: number): void {
     party.xp -= xpNext(world, party.level);
     party.level++;
     const ids = offerCards(world, party);
-    if (ids.length > 0) party.offer = ids;
+    if (ids.length > 0 && !tune(world).autoPick) party.offer = ids;
     world.events.push({ kind: 'levelUp', party: party.id, level: party.level, offer: ids });
+    // The party picks for itself, by its leader's personality (no pause, no player choice).
+    if (ids.length > 0 && tune(world).autoPick) {
+      const leader = world.units.find((u) => u.id === party.members[0]);
+      applyUpgrade(world, party, autoPickCard(world, party, ids), { auto: true, hero: leader?.id });
+    }
     settleTiers(world, party);
   }
 }
@@ -287,8 +292,19 @@ export function pickUpgrade(
   if (party.pathOffer) return { ok: false, reason: 'pick a path first' };
   if (!party.offer) return { ok: false, reason: 'no pick pending' };
   if (!party.offer.includes(upgrade)) return { ok: false, reason: 'not offered' };
-  const def = world.data.upgrades?.find((u) => u.id === upgrade);
   party.offer = null;
+  applyUpgrade(world, party, upgrade, {});
+  return { ok: true, id: partyId };
+}
+
+// A party takes a card: it joins the party's upgrades, max hp refreshes, healing cards heal.
+function applyUpgrade(
+  world: World,
+  party: Party,
+  upgrade: string,
+  by: { auto?: boolean; hero?: number },
+): void {
+  const def = world.data.upgrades?.find((u) => u.id === upgrade);
   party.upgrades.push(upgrade);
   for (const id of party.members) {
     const u = world.units.find((x) => x.id === id);
@@ -298,8 +314,13 @@ export function pickUpgrade(
       u.hp = Math.min(u.maxHp, u.hp + (u.maxHp * def.effect.healPct) / 100);
     }
   }
-  world.events.push({ kind: 'upgradePicked', party: partyId, upgrade });
-  return { ok: true, id: partyId };
+  world.events.push({
+    kind: 'upgradePicked',
+    party: party.id,
+    upgrade,
+    ...(by.auto ? { auto: true } : {}),
+    ...(by.hero !== undefined ? { hero: by.hero } : {}),
+  });
 }
 
 // Fleeing costs trust: the party mates like the runner a little less.

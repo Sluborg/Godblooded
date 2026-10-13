@@ -3,7 +3,7 @@ import { createWorld, type GameData } from './api';
 import { newParty, shareXp } from './parties';
 import { offerCards } from './cards';
 import { spawnHero } from './world';
-import type { CardNeeds, CardRarity, UpgradeDef } from './types';
+import type { CardNeeds, CardRarity, UnitState, UpgradeDef } from './types';
 
 const none = { str: 0, dex: 0, sta: 0, cha: 0, per: 0, int: 0, wp: 0 };
 const weapon = { baseAttackS: 1, range: 40 };
@@ -172,5 +172,50 @@ describe('card offers', () => {
     expect(p.level).toBe(2);
     expect(p.offer).toBeNull();
     expect(p.xp).toBeGreaterThan(400);
+  });
+
+  it('with autoPick the party takes a card itself, by its leader, without pausing', () => {
+    const cards: UpgradeDef[] = [
+      { ...card('plain', 'stats'), pickTag: 'sight' },
+      { ...card('sword', 'stats'), pickTag: 'attack', god: 'athena' },
+      { ...card('shield', 'stats'), pickTag: 'defence' },
+      { ...card('coin', 'stats'), pickTag: 'gold', god: 'thor' },
+    ];
+    const pick = (trait: UnitState['trait']) => {
+      const data = mk(cards, {
+        party: { autoPick: true, offerSize: 4, xpPerLevel: 10 },
+      });
+      const { w, p, ids } = party(data);
+      const leader = w.units.find((u) => u.id === ids[0])!;
+      leader.trait = trait;
+      shareXp(w, ids[0], 10);
+      expect(p.level).toBe(2);
+      expect(p.offer).toBeNull();
+      const picked = w.events.filter((e) => e.kind === 'upgradePicked');
+      expect(picked).toHaveLength(1);
+      expect(p.upgrades).toHaveLength(1);
+      expect(picked[0]).toMatchObject({ party: p.id, auto: true, hero: leader.id });
+      return p.upgrades[0];
+    };
+    expect(pick('brave')).toBe('sword');
+    expect(pick('vengeful')).toBe('sword');
+    expect(pick('coward')).toBe('shield');
+    expect(pick('greedy')).toBe('coin');
+    expect(pick('curious')).toBe('plain');
+    // thor's own card for loyal and proud
+    expect(pick('loyal')).toBe('coin');
+    expect(pick('proud')).toBe('coin');
+  });
+
+  it('autoPick levels through several levels at once; off, the offer waits', () => {
+    const cards = ['a', 'b', 'c', 'd', 'e'].map((id) => card(id, 'stats'));
+    const auto = party(mk(cards, { party: { autoPick: true, xpPerLevel: 10 } }));
+    shareXp(auto.w, auto.ids[0], 10 + 20 + 30);
+    expect(auto.p.level).toBe(4);
+    expect(auto.p.upgrades).toHaveLength(3);
+    const manual = party(mk(cards, { party: { autoPick: false, xpPerLevel: 10 } }));
+    shareXp(manual.w, manual.ids[0], 10 + 20 + 30);
+    expect(manual.p.level).toBe(2);
+    expect(manual.p.offer).toHaveLength(3);
   });
 });

@@ -51,6 +51,7 @@ export const DEFAULT_TUNING: Tuning = {
     xpPerLevel: 30,
     offerSize: 3,
     maxLevel: 8,
+    autoPick: true,
     favourLevel: 7,
     rarity: { low: [70, 30, 0], mid: [50, 40, 10], high: [30, 50, 20] },
     bondCap: 10,

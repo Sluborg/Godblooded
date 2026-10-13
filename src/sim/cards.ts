@@ -107,6 +107,39 @@ export function offerCards(world: World, party: Party): string[] {
   return out.map((c) => c.id);
 }
 
+// The card a party takes by itself (level-ups.md section 4, deterministic): its leader's trait
+// decides. brave and vengeful look for an `attack` card, coward `defence`, greedy `gold` (else
+// attack), curious `sight`; loyal and proud take the first card offered by the leader's own god.
+// No match: the first card offered.
+export function autoPickCard(world: World, party: Party, ids: string[]): string {
+  const cards = ids
+    .map((id) => world.data.upgrades?.find((u) => u.id === id))
+    .filter((c): c is UpgradeDef => !!c);
+  const leader = world.units.find((u) => u.id === party.members[0]);
+  const tag = (t: string) => cards.find((c) => c.pickTag === t)?.id;
+  let pick: string | undefined;
+  switch (leader?.trait) {
+    case 'brave':
+    case 'vengeful':
+      pick = tag('attack');
+      break;
+    case 'coward':
+      pick = tag('defence');
+      break;
+    case 'greedy':
+      pick = tag('gold') ?? tag('attack');
+      break;
+    case 'curious':
+      pick = tag('sight');
+      break;
+    case 'loyal':
+    case 'proud':
+      pick = cards.find((c) => c.god !== undefined && c.god === leader.god)?.id;
+      break;
+  }
+  return pick ?? ids[0];
+}
+
 function shuffle<T>(world: World, list: T[]): T[] {
   const a = [...list];
   for (let i = a.length - 1; i > 0; i--) {
