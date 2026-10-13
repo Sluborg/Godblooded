@@ -326,6 +326,12 @@ function statsOf(world: World, unit: UnitState): Stats | undefined {
   );
 }
 
+// What a strike needs to know about a unit it hits.
+export function targetOf(world: World, unit: UnitState) {
+  const st = statsOf(world, unit);
+  return st && { attrs: st.attrs, armour: st.armour };
+}
+
 function runUnits(world: World): void {
   for (const unit of world.units) {
     const rt = world.unitRuntime.get(unit.id);

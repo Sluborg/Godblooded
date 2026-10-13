@@ -12,7 +12,7 @@ import { shareXp } from './parties';
 import { earn, tally } from './runstats';
 import { attackStrike, resolveStrike } from './strike';
 import { swing } from './swing';
-import type { UnitRuntime, World } from './world';
+import { targetOf, type UnitRuntime, type World } from './world';
 import type { BuildingCore, CommandResult, LairState, UnitState, Vec2 } from './types';
 
 // The town side of a run, simplified and logged in docs/decisions.md: heroes can destroy
@@ -251,6 +251,7 @@ export function runTowers(world: World): void {
       power: tierValue(t.towerDamage, b.tier, 0),
       canDodge: false,
       canCrit: false,
+      target: targetOf(world, foe),
     }).damage;
     foe.hp -= dmg;
     world.events.push({ kind: 'hit', attacker: b.id, target: foe.id, damage: dmg, dodged: false });

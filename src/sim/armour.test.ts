@@ -17,6 +17,54 @@ function world(extra: Partial<GameData> = {}) {
   });
 }
 
+describe('tower bolts and armour', () => {
+  it('a tower bolt is a physical strike: monster armour cuts it, dodge and crit still skip', () => {
+    const w = createWorld(1, {
+      buildings: [],
+      startGold: 0,
+      map: { width: 3000, height: 3000 },
+      townHall: { x: 2800, y: 2800 },
+      monsters: [
+        {
+          id: 'ogre',
+          attrs: { ...none, sta: 60, dex: 50, per: 50 },
+          weapon,
+          bounty: 1,
+          xp: 1,
+          armour: 20,
+        },
+      ],
+      lairs: [{ id: 'den', monster: 'ogre', spawnS: 1, maxAlive: 1, hp: 1e9 }],
+      lairSites: [{ lair: 'den', pos: { x: 500, y: 500 } }],
+      tuning: {
+        combat: { critK: 1e-9 },
+        building: { towerDamage: [20] },
+        lair: { tierUpEveryMs: 0 },
+        town: { raidFirstMs: 10_000_000 },
+      },
+    });
+    w.buildings.push({
+      id: 900,
+      type: 'tower',
+      tier: 1,
+      pos: { x: 480, y: 480 },
+      plot: 0,
+      hp: 100,
+      maxHp: 100,
+    });
+    const hits: number[] = [];
+    for (let i = 0; i < 200; i++) {
+      step(w, 100);
+      for (const e of snapshot(w).events) {
+        if (e.kind === 'hit' && e.attacker === 900) hits.push(e.damage);
+      }
+    }
+    // 20 flat, armour 20 (K 20) takes 45%; never dodged, never a crit
+    expect(hits.length).toBeGreaterThan(2);
+    expect(hits.every((d) => d === 11)).toBe(true);
+  });
+});
+
 describe('armour and magic resist', () => {
   it('a weapon strike is cut by armour, a spell by Willpower, and not the other way round', () => {
     const w = world();
