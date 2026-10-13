@@ -19,34 +19,34 @@ them, but not too often.
 
 ## 1. Situations
 
-| Id           | Fires on (Sim event or Scene condition)                                                                             | Priority | Chance       |
-| ------------ | ------------------------------------------------------------------------------------------------------------------- | -------- | ------------ |
-| arrive       | `arrived`                                                                                                           | high     | 100%         |
-| explore      | intent `explore` (`hero-ai.md` `intent` event)                                                                      | low      | 10%          |
-| spot_lair    | a lair becomes discovered by this hero                                                                              | mid      | 50%          |
-| fight_start  | the hero's fight starts (`combat.md` fight boundary)                                                                | mid      | 25%          |
-| low_hp       | hp drops below 35% (once per fight)                                                                                 | mid      | 40%          |
-| flee         | `fled`                                                                                                              | high     | 100%         |
-| ko           | `knockout` (the hero itself)                                                                                        | high     | 100%         |
-| revive       | `revived`                                                                                                           | mid      | 60%          |
-| kill         | the hero lands a killing blow                                                                                       | mid      | 20%          |
-| level_up     | `upgradePicked` (after the card closes): the party leader (`members[0]`, or the next member not knocked out) speaks | high     | 100%         |
-| path_pick    | `tierUp` to tier 2                                                                                                  | high     | 100%         |
-| shop         | `shopped`                                                                                                           | low      | 25%          |
-| rest         | intent `rest` (`hero-ai.md` `intent` event)                                                                         | low      | 15%          |
-| bounty_seen  | a flag is placed in the hero's aggro range                                                                          | low      | 30%          |
-| bounty_taken | the hero (or its party) commits to a flag                                                                           | mid      | 50%          |
-| raid         | `raidWarning` (planned, `events.md`) or today's `raid`, a hero in town speaks                                       | high     | 100%         |
-| boss         | the boss emerges, a hero in view speaks                                                                             | high     | 100%         |
-| argue        | `argue` (one of the two)                                                                                            | mid      | 100%         |
-| revenge      | `revenge` (the oath taker)                                                                                          | high     | 100%         |
-| idle         | a hero has said nothing for 60 s and is not fighting                                                                | low      | 10% per 15 s |
-| lair_go      | intent `lair` (party leader)                                                                                        | mid      | 50%          |
-| retreat      | intent `retreat` / `partyRetreat` (party leader)                                                                    | high     | 100%         |
-| defend       | intent `defend` / `defend` event                                                                                    | mid      | 60%          |
-| slain        | the hero is slain by a boss (`combat.md` section 6)                                                                 | high     | 100%         |
-| mourn        | a party mate was slain; one member speaks                                                                           | high     | 100%         |
-| omen         | `omenStart` (`events.md`): a hero of the omen's pantheon in view                                                    | mid      | 100%         |
+| Id           | Fires on (Sim event or Scene condition)                                                                            | Priority | Chance       |
+| ------------ | ------------------------------------------------------------------------------------------------------------------ | -------- | ------------ |
+| arrive       | `arrived`                                                                                                          | high     | 100%         |
+| explore      | intent `explore` (`hero-ai.md` `intent` event)                                                                     | low      | 10%          |
+| spot_lair    | a lair becomes discovered by this hero                                                                             | mid      | 50%          |
+| fight_start  | the hero's fight starts (`combat.md` fight boundary)                                                               | mid      | 25%          |
+| low_hp       | hp drops below 35% (once per fight)                                                                                | mid      | 40%          |
+| flee         | `fled`                                                                                                             | high     | 100%         |
+| ko           | `knockout` (the hero itself)                                                                                       | high     | 100%         |
+| revive       | `revived`                                                                                                          | mid      | 60%          |
+| kill         | the hero lands a killing blow                                                                                      | mid      | 20%          |
+| level_up     | `upgradePicked` (the party's own pick): the party leader (`members[0]`, or the next member not knocked out) speaks | high     | 100%         |
+| path_pick    | `tierUp` to tier 2                                                                                                 | high     | 100%         |
+| shop         | `shopped`                                                                                                          | low      | 25%          |
+| rest         | intent `rest` (`hero-ai.md` `intent` event)                                                                        | low      | 15%          |
+| bounty_seen  | a flag is placed in the hero's aggro range                                                                         | low      | 30%          |
+| bounty_taken | the hero (or its party) commits to a flag                                                                          | mid      | 50%          |
+| raid         | `raidWarning` (planned, `events.md`) or today's `raid`, a hero in town speaks                                      | high     | 100%         |
+| boss         | the boss emerges, a hero in view speaks                                                                            | high     | 100%         |
+| argue        | `argue` (one of the two)                                                                                           | mid      | 100%         |
+| revenge      | `revenge` (the oath taker)                                                                                         | high     | 100%         |
+| idle         | a hero has said nothing for 60 s and is not fighting                                                               | low      | 10% per 15 s |
+| lair_go      | intent `lair` (party leader)                                                                                       | mid      | 50%          |
+| retreat      | intent `retreat` / `partyRetreat` (party leader)                                                                   | high     | 100%         |
+| defend       | intent `defend` / `defend` event                                                                                   | mid      | 60%          |
+| slain        | the hero is slain by a boss (`combat.md` section 6)                                                                | high     | 100%         |
+| mourn        | a party mate was slain; one member speaks                                                                          | high     | 100%         |
+| omen         | `omenStart` (`events.md`): a hero of the omen's pantheon in view                                                   | mid      | 100%         |
 
 This table **replaces the speech column of `hero-ai.md` section 2**: intents speak through
 the `explore`, `lair_go`, `retreat`, `rest`, `defend`, `bounty_taken` (flag) and `revenge`

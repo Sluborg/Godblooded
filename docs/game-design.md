@@ -47,8 +47,8 @@ falls or your town hall burns.
 
 - **Temples recruit.** Each pantheon's temple calls Godbloods of that pantheon. Which temples you
   build decides who comes to your town.
-- **Divine parent = flavour plus a boon line** in the level-up choices (Aesir: fury and frost,
-  Greek: cunning and glory, Egyptian: death and sun; OPEN, draft only).
+- **Divine parent = flavour plus a boon line** in the level-up cards the party draws (Aesir: fury
+  and frost, Greek: cunning and glory, Egyptian: death and sun).
 - **Monsters are mythic,** grouped by pantheon (draugr, trolls, harpies, minotaurs, jackal-men,
   scarab swarms, ...). A run's map leans on one or two pantheons for its bestiary.
 
@@ -62,14 +62,18 @@ falls or your town hall burns.
 4. **Parties form** by traits and bonds (2-4 heroes). They explore, hunt, return to heal and shop.
 5. **Bounty flags:** tap a spot or a monster, pay gold. Heroes weigh the bounty against the danger
    by personality; that is your main steering tool.
-6. **Party level up:** pick 1 of 3 upgrades (stats, a skill, a pantheon boon). At party levels 3
-   and 6 the heroes tier up and change skin.
+6. **Party level up:** the party picks its own upgrade card by personality and celebrates on the
+   map (decision 2026-10-13). At party levels 3 and 6 the heroes tier up and change skin; the
+   player chooses each hero's path at level 3.
 7. **Lairs grow:** every few minutes a lair tiers up and spawns stronger monsters with new skins;
    raids hit the town. Clearing a lair stops it.
 8. **End:** win when the final lair (a boss) falls; lose when the town hall is destroyed.
 
-**Between runs (meta):** unlock new temples, classes, buildings and upgrade cards. OPEN: what
-persists, and the currency.
+**Between runs (meta):** every run earns Ichor; the Altar spends it on 10 permanent upgrades
+(capped near +15% power), and goals unlock new temples, gods, buildings and cards
+(`docs/systems/meta.md`). **Gods act on their own:** temples fill a favour bar and the god
+intervenes in the fight where its children are most hurt; the player never casts.
+**Teaching:** plain first-time hints, no narrator (`docs/systems/hint-texts.md`).
 
 ## Content draft (first set)
 
@@ -97,7 +101,7 @@ Decision 2026-10-13 (Stefan): classes are gone from the game. The player meets G
 temple calls a child of one of its pantheon's gods, and at the first tier-up (party level 3) the
 hero takes one of that god's two paths; tier 3 (level 6) is the same path's stronger form. At
 most two children of the same god in town, and they take different paths; if both paths are
-free the player picks on the level-up card.
+free the player picks it on the path tray.
 
 **Dev only:** each god and each path points to a hidden **template** (the old class rows:
 warrior, paladin, ranger, rogue, wizard, healer) that sets stats, weapon and strike. Templates
@@ -124,16 +128,16 @@ instead of new art.
 
 ## Milestones
 
-| Order | Milestone        | Done when                                                                                                                                                            |
-| ----- | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 10    | M1 Graybox       | Shapes only: town hall, 1 temple, 1 market, 2 lairs. Heroes arrive, form parties, hunt, return, shop. Bounty flag. Level-up pick. Win or lose. Stefan: fun to watch? |
-| 20    | M2 First art     | Tier 1 of the 4 Aesir gods, 6 monsters and the buildings in (one front picture each, mirrored), party colours, UI kit and logo.                                      |
-| 30    | M3 Tiers and run | Tier 2 and 3 skins, lair growth, party tier-ups, 3 pantheon temples, meta unlocks.                                                                                   |
-| 40    | M4 Feel          | Speech bubbles, hit effects, sound, juice, balance pass.                                                                                                             |
+| Order | Milestone        | Done when                                                                                                                                                        |
+| ----- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 10    | M1 Graybox       | Shapes only: town hall, 1 temple, 1 market, 2 lairs. Heroes arrive, form parties, hunt, return, shop. Bounty flag. Level-ups. Win or lose. Stefan: fun to watch? |
+| 20    | M2 First art     | Tier 1 of the 4 Aesir gods, 6 monsters and the buildings in (one front picture each, mirrored), party colours, UI kit and logo.                                  |
+| 30    | M3 Tiers and run | Tier 2 and 3 skins, lair growth, party tier-ups, 3 pantheon temples, Ichor and the Altar.                                                                        |
+| 40    | M4 Feel          | Speech bubbles, hit effects, sound, juice, balance pass.                                                                                                         |
 
 Art for M2 starts in parallel with M1 once the style test (Art backlog) is approved by Stefan.
 
 ## OPEN (Stefan decides)
 
-- The 3 gods per pantheon and each pantheon's boon theme.
-- What persists between runs.
+- The art style: painted single pictures or cartoon units built from parts
+  (`docs/reference/style-test.html`).

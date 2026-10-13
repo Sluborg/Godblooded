@@ -1,6 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import type { SaveGame } from '../sim/api';
-import { clearSave, hasSave, newSeed, readSave, SAVE_KEY, writeSave } from './saveStore';
+import { migrateSave, SaveError, type SaveGame } from '../sim/api';
+import {
+  clearSave,
+  hasSave,
+  storedIsNewer,
+  isNewerSave,
+  newSeed,
+  readSave,
+  SAVE_KEY,
+  writeSave,
+} from './saveStore';
 
 function fakeStore(initial: Record<string, string> = {}) {
   const m = new Map(Object.entries(initial));
@@ -54,5 +63,44 @@ describe('newSeed', () => {
   });
   it('never returns 0', () => {
     expect(newSeed(0, 0)).toBe(1);
+  });
+});
+
+describe('isNewerSave', () => {
+  it('tells a newer game save from a damaged one', () => {
+    const err = (raw: unknown): unknown => {
+      try {
+        migrateSave(raw);
+      } catch (e) {
+        return e;
+      }
+      return null;
+    };
+    const newer = err({ version: 9999, seed: 1, rng: 1, world: {} });
+    expect(newer).toBeInstanceOf(SaveError);
+    expect(isNewerSave(newer)).toBe(true);
+    expect(isNewerSave(err('junk'))).toBe(false);
+    expect(isNewerSave(new Error('other'))).toBe(false);
+  });
+});
+
+describe('a newer stored save', () => {
+  const newer = JSON.stringify({ version: 9999, seed: 1, rng: 1, world: {} });
+  it('is never overwritten or cleared', () => {
+    const s = fakeStore({ [SAVE_KEY]: newer });
+    expect(storedIsNewer(s)).toBe(true);
+    expect(writeSave(save, s)).toBe(false);
+    clearSave(s);
+    expect(s.raw.get(SAVE_KEY)).toBe(newer);
+  });
+  it('does not protect an older or damaged save', () => {
+    const old = fakeStore({ [SAVE_KEY]: JSON.stringify(save) });
+    expect(storedIsNewer(old)).toBe(false);
+    clearSave(old);
+    expect(old.raw.has(SAVE_KEY)).toBe(false);
+    const bad = fakeStore({ [SAVE_KEY]: 'junk' });
+    expect(storedIsNewer(bad)).toBe(false);
+    clearSave(bad);
+    expect(bad.raw.has(SAVE_KEY)).toBe(false);
   });
 });
