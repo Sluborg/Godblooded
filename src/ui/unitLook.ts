@@ -13,7 +13,7 @@ export function unitArtId(kind: 'hero' | 'monster', type: string, tier: number):
 }
 
 // Pictures to try for a unit, best first (docs/asset-spec.md, Gods and paths). A hero on a path
-// from tier 2 wears `hero_<path>_t<tier>_front` (path ids carry the god: `thor-hammerborn`); then
+// from tier 2 wears `hero_<path>_t<tier>_front` (tier 3 falls back to tier 2) (path ids carry the god: `thor-hammerborn`); then
 // its god's tier 1 picture; then the tier 1 picture of the hidden template (`type`, the shipped
 // class art); then the placeholder. A missing picture never drops a unit past an earlier look.
 export function artCandidates(
@@ -29,7 +29,8 @@ export function artCandidates(
     return out;
   }
   const out: string[] = [];
-  if (path && tier > 1) out.push(unitArtId(kind, path, tier));
+  // A tier 3 path hero falls back to its tier 2 picture before the god's tier 1 one.
+  if (path) for (let t = tier; t >= 2; t--) out.push(unitArtId(kind, path, t));
   if (god) out.push(unitArtId(kind, god, 1));
   out.push(unitArtId(kind, type, 1));
   return out;
@@ -39,6 +40,13 @@ export function artCandidates(
 export function buildingArtCandidates(type: string, tier: number): string[] {
   const out = [`bld_${type}_t${tier}`];
   if (tier > 1) out.push(`bld_${type}_t1`);
+  return out;
+}
+
+// Pictures to try for a lair (Art ships `bld_lair_<id>_t1`; higher tiers fall back to tier 1).
+export function lairArtCandidates(type: string, tier: number): string[] {
+  const out = [`bld_lair_${type}_t${tier}`];
+  if (tier > 1) out.push(`bld_lair_${type}_t1`);
   return out;
 }
 

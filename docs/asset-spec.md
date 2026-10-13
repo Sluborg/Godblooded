@@ -21,7 +21,9 @@ Animation frames: a unit id plus `_walk1`-`_walk4`, `_attack1`-`_attack3` or `_h
 (`hero_warrior_t1_front_walk2`); all frames of a unit share canvas, scale and feet position.
 
 Names are lowercase letters; a name of several words joins them with a hyphen
-(`mon_jackal-man_t1_front`). The underscore only separates the parts of an id.
+(`mon_jackal-man_t1_front`). The underscore only separates the parts of an id. Exception: `ui_`
+and `art_` ids have no tier or view, so everything after the prefix is the name and may use
+underscores to group (`ui_icon_speed2`, `ui_item_charm_bloodstone`, `ui_button_pressed`).
 
 Heroes are children of gods (`docs/game-design.md` "Gods and paths", decision 2026-10-13).
 Tier 1 is the god alone (`hero_thor_t1_front`); tier 2 and 3 add a hyphen and the path
