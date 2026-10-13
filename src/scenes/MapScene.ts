@@ -22,6 +22,7 @@ import { artCandidates } from '../ui/unitLook';
 import { UnitViews } from '../ui/unitViews';
 import { iconScale } from '../ui/icons';
 import { releaseSets } from '../ui/parts/bake';
+import { effectiveSpeed } from '../ui/pathSpeed';
 import { lairDecal, lairPlate, townPatch } from '../ui/groundDecal';
 import { buildingArtCandidates, buildingScale, lairArtCandidates } from '../ui/unitLook';
 import { ASSETS_KEY, type ManifestAsset } from '../ui/assets';
@@ -146,7 +147,12 @@ export class MapScene extends Phaser.Scene {
   }
 
   update(_time: number, deltaMs: number): void {
-    const speed = (this.registry.get('speed') as number) ?? 1;
+    const button = (this.registry.get('speed') as number) ?? 1;
+    // A path offer open (as of the last snapshot) slows the run to 0.3x, absolute.
+    const speed = effectiveSpeed(
+      button,
+      this.snap.parties.some((p) => p.pathOffer !== null),
+    );
     step(this.world, deltaMs * speed);
     this.snap = snapshot(this.world);
     if (this.snap.events.some((e) => e.kind === 'autosave')) this.saveNow();

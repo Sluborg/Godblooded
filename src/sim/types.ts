@@ -531,8 +531,56 @@ export interface DashEffect extends EffectBase {
   kind: 'dash';
 }
 
+// Pushes the targets `dist` away from the caster (bosses cannot be knocked back).
+export interface KnockbackEffect extends EffectBase {
+  kind: 'knockback';
+  dist: number;
+}
+
+// Targets cannot move and attack 50% slower for `s` seconds (a boss: half the time).
+export interface BindEffect extends EffectBase {
+  kind: 'bind';
+  s: number;
+}
+
+// Stands a knocked out party mate in the shape up at `pct` of max hp, once per fight.
+export interface ReviveEffect extends EffectBase {
+  kind: 'revive';
+  pct: number;
+}
+
+// Foes in the shape below `below` of max hp die (not bosses).
+export interface ExecuteEffect extends EffectBase {
+  kind: 'execute';
+  below: number;
+}
+
+// Removes the riders (burn, chill, wither) from the targets.
+export interface CleanseEffect extends EffectBase {
+  kind: 'cleanse';
+}
+
+// Heals the targets `pct` of max hp per second for `s` seconds.
+export interface HotEffect extends EffectBase {
+  kind: 'hot';
+  pct: number;
+  s: number;
+}
+
+// Restarts the timer of the buffs, shield and heal over time this skill put on the caster.
+export interface RefreshEffect extends EffectBase {
+  kind: 'refresh';
+}
+
 export type SkillEffect =
   | DamageEffect
+  | KnockbackEffect
+  | BindEffect
+  | ReviveEffect
+  | ExecuteEffect
+  | CleanseEffect
+  | HotEffect
+  | RefreshEffect
   | HealEffect
   | ShieldEffect
   | BuffEffect
@@ -918,7 +966,12 @@ export type SimEvent =
   // stood when it dashed (the dash is instant; Scene animates it from `from` to the caster).
   | { kind: 'skill'; skill: string; caster: number; hits: number[]; point: Vec2; from?: Vec2 }
   // A shield, mark, buff or taunt took hold on `unit` until run time `until`.
-  | { kind: 'status'; unit: number; status: 'shield' | 'mark' | 'buff' | 'taunt'; until: number }
+  | {
+      kind: 'status';
+      unit: number;
+      status: 'shield' | 'mark' | 'buff' | 'taunt' | 'bind' | 'hot';
+      until: number;
+    }
   | { kind: 'argue'; a: number; b: number }
   | { kind: 'revenge'; hero: number; target: number; victim: number }
   | { kind: 'avenged'; hero: number; target: number }

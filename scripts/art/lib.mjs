@@ -47,6 +47,13 @@ export const KINDS = {
     nominal: { axis: 'height', share: 0.75, px: 256 },
     anchor: 'feet',
   },
+  // Summoned units (a path skill's falcon, wolf, ...): one front still, drawn like a unit.
+  sum: {
+    re: /^sum_[a-z]+(-[a-z]+)*_t[1-3]_front$/,
+    dir: 'units',
+    nominal: { axis: 'height', share: 0.75, px: 256 },
+    anchor: 'feet',
+  },
   bld: {
     // Tier optional: untiered pieces such as bld_ruin, bld_scaffold, bld_caravan.
     re: /^bld_[a-z]+(-[a-z]+)*(_[a-z]+(-[a-z]+)*)?(_t[1-3])?$/,
