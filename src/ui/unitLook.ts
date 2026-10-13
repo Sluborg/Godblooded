@@ -29,6 +29,21 @@ export function artCandidates(
   return out;
 }
 
+// Pictures to try for a building, best first: its tier, then tier 1, then the placeholder square.
+export function buildingArtCandidates(type: string, tier: number): string[] {
+  const out = [`bld_${type}_t${tier}`];
+  if (tier > 1) out.push(`bld_${type}_t1`);
+  return out;
+}
+
+// A building picture is scaled to fit a footprint this wide and this tall, in world units (a plot
+// is about 220 apart), so a tall tower and a wide hall both sit on their plot.
+export const BUILDING_FIT = { w: 190, h: 280 };
+
+export function buildingScale(picW: number, picH: number): number {
+  return Math.min(BUILDING_FIT.w / picW, BUILDING_FIT.h / picH);
+}
+
 // Skin variants of one unit share its look: `draugr-v2` is a draugr. Strips a trailing `-v<n>`.
 export function baseType(name: string): string {
   return name.replace(/-v\d+$/, '');

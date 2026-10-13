@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { lookOf } from '../data/looks';
-import { artCandidates, baseType, unitArtId } from './unitLook';
+import {
+  artCandidates,
+  baseType,
+  buildingArtCandidates,
+  buildingScale,
+  unitArtId,
+} from './unitLook';
 
 describe('skin variants', () => {
   it('strips a trailing -v<n> so a variant shares its unit look', () => {
@@ -37,5 +43,16 @@ describe('artCandidates', () => {
       'mon_troll_t1_front',
     ]);
     expect(artCandidates('hero', 'warrior', 1, 'warrior-thor')).toEqual(['hero_warrior_t1_front']);
+  });
+});
+
+describe('building art', () => {
+  it('tries the tier, then tier 1', () => {
+    expect(buildingArtCandidates('tower', 1)).toEqual(['bld_tower_t1']);
+    expect(buildingArtCandidates('tower', 3)).toEqual(['bld_tower_t3', 'bld_tower_t1']);
+  });
+  it('fits wide pictures by width and tall ones by height', () => {
+    expect(buildingScale(380, 300) * 380).toBeCloseTo(190);
+    expect(buildingScale(346, 583) * 583).toBeCloseTo(280);
   });
 });

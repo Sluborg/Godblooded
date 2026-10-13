@@ -15,6 +15,8 @@ import {
 import { getSettings } from '../ui/settings';
 import { partyColor } from '../ui/partyLook';
 import { UnitViews } from '../ui/unitViews';
+import { buildingArtCandidates, buildingScale } from '../ui/unitLook';
+import { ASSETS_KEY, type ManifestAsset } from '../ui/assets';
 import { OFFER_KEY, type LevelUpOffer } from './LevelUpScene';
 import { attachCameraControls } from '../ui/cameraControls';
 import type { HudScene } from './HudScene';
@@ -213,10 +215,12 @@ export class MapScene extends Phaser.Scene {
   private sync(dtMs = 0): void {
     const seen = new Set<string>();
     for (const b of this.snap.buildings) {
-      const key = `b${b.id}`;
+      // The tier is part of the key: a tier-up replaces the view with the next picture.
+      const key = `b${b.id}t${b.tier}`;
       seen.add(key);
-      if (!this.views.has(key)) this.views.set(key, this.makeBuilding(b.type, b.pos.x, b.pos.y));
-      this.updateBar(this.views.get(key), b.hp, b.maxHp, BUILDING_SIZE, -BUILDING_SIZE - 14);
+      if (!this.views.has(key)) this.views.set(key, this.makeBuilding(b.type, b.tier, b.pos));
+      const top = (this.views.get(key)?.getData('top') as number | undefined) ?? BUILDING_SIZE;
+      this.updateBar(this.views.get(key), b.hp, b.maxHp, BUILDING_SIZE, -top - 14);
     }
     for (const l of this.snap.lairs) {
       const key = `l${l.id}`;
@@ -340,7 +344,22 @@ export class MapScene extends Phaser.Scene {
     }
   }
 
-  private makeBuilding(type: string, x: number, y: number): Phaser.GameObjects.Container {
+  // The building's picture (its tier, else tier 1) standing on its base, scaled to the plot; the
+  // coloured square with the type name when the manifest has none.
+  private makeBuilding(type: string, tier: number, pos: Vec2): Phaser.GameObjects.Container {
+    const art = buildingArtCandidates(type, tier).find((id) => this.textures.exists(id));
+    if (art) {
+      const row = (this.registry.get(ASSETS_KEY) as Map<string, ManifestAsset> | undefined)?.get(
+        art,
+      );
+      const img = this.add.image(0, 0, art).setOrigin(row?.anchorX ?? 0.5, row?.anchorY ?? 1);
+      const k = buildingScale(img.width, img.height);
+      img.setScale(k);
+      return this.add
+        .container(pos.x, pos.y, [img])
+        .setData('top', img.height * k)
+        .setDepth(pos.y);
+    }
     const body = this.add
       .rectangle(
         0,
@@ -357,7 +376,7 @@ export class MapScene extends Phaser.Scene {
         color: '#1a1410',
       })
       .setOrigin(0.5);
-    return this.add.container(x, y, [body, label]).setDepth(y);
+    return this.add.container(pos.x, pos.y, [body, label]).setDepth(pos.y);
   }
 
   // Stand-in for lairs and monsters until the unit view (Scene 50): a dot with its type.
