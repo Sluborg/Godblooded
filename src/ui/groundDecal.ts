@@ -4,8 +4,6 @@ import Phaser from 'phaser';
 // trodden patch; a monster lair on dark cracked earth with a blood-red ring, a faint red glow and
 // a red name plate with a skull. Drawn with shapes, so it needs no art.
 
-export const DECAL_DATA = 'decal';
-
 // "wyrm-nest" -> "Wyrm Nest".
 export function lairTitle(type: string): string {
   return type
@@ -39,7 +37,7 @@ export function lairDecal(scene: Phaser.Scene, boss: boolean): Phaser.GameObject
       .lineTo((x3 * w) / 2, -6 + (y3 * h) / 2)
       .strokePath();
   }
-  return g.setData(DECAL_DATA, true);
+  return g;
 }
 
 export function townPatch(scene: Phaser.Scene): Phaser.GameObjects.Graphics {
@@ -47,7 +45,7 @@ export function townPatch(scene: Phaser.Scene): Phaser.GameObjects.Graphics {
   g.fillStyle(0xc9a45c, 0.2).fillEllipse(0, -6, 250, 104);
   g.fillStyle(0xe0c27a, 0.14).fillEllipse(0, -6, 170, 70);
   g.lineStyle(3, 0xe0c27a, 0.3).strokeEllipse(0, -6, 250, 104);
-  return g.setData(DECAL_DATA, true);
+  return g;
 }
 
 // The red plate under a lair: a drawn skull and its name.
@@ -74,5 +72,5 @@ export function lairPlate(scene: Phaser.Scene, type: string): Phaser.GameObjects
   skull.fillRect(sx - 1, 3, 2, 5);
   text.x = 0;
   const plate = scene.add.container(0, 30, [text, skull]);
-  return plate.setData(DECAL_DATA, true);
+  return plate;
 }
