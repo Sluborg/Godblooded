@@ -13,7 +13,9 @@ import { shareXp } from './parties';
 import { earn, tally } from './runstats';
 import { attackStrike, hitEvent, resolveStrike } from './strike';
 import { swing } from './swing';
-import { lairProtected } from './boss';
+import { lairProtected, lairSealed } from './boss';
+import { addFavour, partyPantheons } from './favour';
+import { grantLairRelic } from './relic';
 import { targetOf, type UnitRuntime, type World } from './world';
 import type { BuildingCore, CommandResult, LairState, UnitState, Vec2 } from './types';
 
@@ -81,6 +83,7 @@ export function pickLair(world: World, unit: UnitState): LairState | null {
   let best: LairState | null = null;
   let bestD = world.tuning.monster.lairAggro;
   for (const l of world.lairs) {
+    if (lairSealed(world, l.id)) continue;
     const d = dist(unit.pos, l.pos);
     if (d <= bestD) {
       best = l;
@@ -99,6 +102,8 @@ export function attackLair(
   stats: Stats,
   lair: LairState,
 ): void {
+  // A sealed boss lair cannot be attacked.
+  if (lairSealed(world, lair.id)) return;
   unit.target = lair.id;
   if (!approach(unit, stats, lair.pos)) {
     rt.swing = undefined;
@@ -128,6 +133,8 @@ export function attackLair(
       bounty: tm.lairBounty,
     });
     shareXp(world, unit.id, tm.lairXp);
+    for (const p of partyPantheons(world, unit)) addFavour(world, p, world.tuning.favour.lairGain);
+    grantLairRelic(world, unit, lair.id);
     // A generated map is won by its boss lair; a fixed one when the last lair falls.
     const won =
       world.bossLair !== null

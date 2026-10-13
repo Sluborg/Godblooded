@@ -116,9 +116,10 @@ in-run omens of `events.md`). Each trial won with is marked on the hall.
 ## 4. Save
 
 - One localStorage key, `godblooded.meta`, JSON: `{ version: 1, runs, wins, ichor, altar:
-Record<string, number>, unlocks: string[], trialsWon: string[], saga: SagaEntry[], hintsSeen:
+Record<string, number>, unlocks: string[], trialsWon: string[], saga: SagaEntry[], nextSeed: number, hintsSeen:
 string[], hintsOn: boolean, lastBoss?:
-string }` (`hintsSeen` and `hintsOn` from `onboarding.md`; `lastBoss` keeps the boss pick from
+string }` (`nextSeed` for the run setup's portent, `meta-ui.md`; `hintsSeen` and `hintsOn` from
+  `onboarding.md`; `lastBoss` keeps the boss pick from
   repeating, `monsters-and-bosses.md`).
 - Versioned per `CLAUDE.md`: a shape change bumps `version` and adds a migration. A missing or
   broken save starts fresh (it never blocks play).
@@ -138,13 +139,13 @@ string }` (`hintsSeen` and `hintsOn` from `onboarding.md`; `lastBoss` keeps the 
 
 ### Scene
 
-| Order | Row                                                                                  |
-| ----- | ------------------------------------------------------------------------------------ |
-| 10    | Meta save: load, migrate, write after each run; dev flag in settings                 |
-| 20    | End screen: Ichor count-up and new unlock cards                                      |
-| 25    | Altar tab in the hall: rows, ranks, costs, buy, Return to the gods                   |
-| 30    | Hall screen: pantheons, buildings and cards (locked greyed with condition), Saga tab |
-| 40    | Trial picker before a run (after the first win)                                      |
+| Order | Row                                                                        |
+| ----- | -------------------------------------------------------------------------- |
+| 10    | Meta save: load, migrate, write after each run; dev flag in settings       |
+| 20    | End screen: Ichor count-up and new unlock cards                            |
+| 25    | Altar tab in the hall: rows, ranks, costs, buy, Return to the gods         |
+| 30    | Hall screen: Altar, Saga and Unlocks tabs (`meta-ui.md`)                   |
+| 40    | Run setup before a run: portent, Trials after the first win (`meta-ui.md`) |
 
 ### Lead
 
