@@ -5,6 +5,7 @@
 import Phaser from 'phaser';
 import type { PartsDef } from '../../data/heroParts';
 import { drawHuman, setState } from './proto.gen';
+import { PARTS_STYLE, gradePixels } from './partsStyle';
 import {
   ATLAS_COLS as COLS,
   FRAME_COUNT,
@@ -75,12 +76,22 @@ export function ensureHeroSet(scene: Phaser.Scene, id: string, def: PartsDef): B
       c.scale(k, k);
       c.translate(ORIGIN.x, ORIGIN.y);
       const st = frameState(pose, i);
-      setState({ ctx: c, T: st.time, FL: 0 });
+      setState({
+        ctx: c,
+        T: st.time,
+        FL: 0,
+        OW: PARTS_STYLE.outlineScale,
+        OD: PARTS_STYLE.outlineDarken,
+      });
       drawHuman({ ...st.pose, d: def, x: 0, y: 0, face: 1, alpha: 1, hits: 0 });
       setState({ ctx: null });
       c.restore();
     }
   }
+  // The palette grade, once over the whole atlas.
+  const img = c.getImageData(0, 0, tex.width, tex.height);
+  gradePixels(img.data);
+  c.putImageData(img, 0, 0);
   tex.refresh();
   tex.setFilter(Phaser.Textures.FilterMode.LINEAR);
   sets.set(id, set);

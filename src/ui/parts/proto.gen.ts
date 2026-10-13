@@ -12,12 +12,21 @@ let T = 0,
   SEL = { t: 1, p: 0 },
   speed = 1,
   zoom = 1;
+// Outline style (src/ui/style.ts): width scale and how far toward ink the outline colour goes.
+let OW = 1,
+  OD = 0;
+function outlineOf(fill) {
+  if (!OD || typeof fill !== 'string' || fill[0] !== '#') return INK;
+  return mix(fill, INK, OD);
+}
 
 // The page globals the drawing reads (the canvas context, the clock, the hit flash, the tint).
 export function setState(s) {
   if ('ctx' in s) ctx = s.ctx;
   if ('T' in s) T = s.T;
   if ('FL' in s) FL = s.FL;
+  if ('OW' in s) OW = s.OW;
+  if ('OD' in s) OD = s.OD;
 }
 
 const W = 1280,
@@ -74,7 +83,7 @@ function C(c) {
 const LIGHT = '#fff2d0',
   SHADE = '#1f1b38';
 const tone = (c, k) => (k >= 0 ? mix(c, LIGHT, k) : mix(c, SHADE, -k));
-function fs(fill, path, lw = LW, stroke = INK) {
+function fs(fill, path, lw = LW, stroke = null) {
   ctx.beginPath();
   path();
   if (fill) {
@@ -82,8 +91,8 @@ function fs(fill, path, lw = LW, stroke = INK) {
     ctx.fill();
   }
   if (lw) {
-    ctx.lineWidth = lw;
-    ctx.strokeStyle = stroke;
+    ctx.lineWidth = lw * OW;
+    ctx.strokeStyle = stroke || outlineOf(fill);
     ctx.lineJoin = 'round';
     ctx.lineCap = 'round';
     ctx.stroke();
@@ -121,8 +130,8 @@ function paint(fill, path, bx, by, bw, bh, o = {}) {
   if (lw) {
     ctx.beginPath();
     path();
-    ctx.lineWidth = lw;
-    ctx.strokeStyle = o.stroke || INK;
+    ctx.lineWidth = lw * OW;
+    ctx.strokeStyle = o.stroke || outlineOf(fill);
     ctx.lineJoin = 'round';
     ctx.lineCap = 'round';
     ctx.stroke();
