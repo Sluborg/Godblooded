@@ -350,6 +350,10 @@ export interface PartyTuning {
   rarity: { low: number[]; mid: number[]; high: number[] };
   bondCap: number;
   baseFlee: number;
+  // Half of the party (rounded up) below baseFlee makes the whole party retreat together; a proud
+  // hero holds on until this share of its hp.
+  retreatShare: number;
+  proudRetreatAt: number;
   // Rivalries: heroes whose bond is at or below this are rivals (bonds run from -3 up).
   rivalBelow: number;
   // Rivals this close argue, at most once per argueEveryMs per pair.
@@ -682,8 +686,10 @@ export interface TownTuning {
   raidLairs: number;
   // Raids get one monster bigger per lair every this many ms.
   raidGrowEveryMs: number;
-  // A resting hero at or above this hp fraction rejoins the fight when raiders come near.
+  // A resting hero at or above this hp fraction rejoins the fight when a monster comes within
+  // defendRange of a building.
   defendHp: number;
+  defendRange: number;
 }
 
 // How a hero chooses (docs/systems/hero-ai.md section 3): flag, lair and explore all get a score;
@@ -1068,6 +1074,10 @@ export type SimEvent =
   | { kind: 'shopped'; unit: number; spent: number; tax: number; item?: string }
   // A party's intent changed (its leader chose a flag or a lair, retreats, rests ...).
   | { kind: 'intent'; party: number; intent: PartyIntent }
+  // The party falls back together: these heroes turn for home (no bond is lost).
+  | { kind: 'partyRetreat'; party: number; units: number[] }
+  // A resting hero rejoins to defend the town.
+  | { kind: 'defend'; unit: number }
   | { kind: 'bountyPlaced'; bounty: number; gold: number };
 
 export type Command =

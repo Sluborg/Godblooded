@@ -152,3 +152,117 @@ describe('intent', () => {
     expect(ev2.some((e) => e.kind === 'intent' && e.intent.kind === 'retreat')).toBe(true);
   });
 });
+
+function party(w: W, n: number): UnitState[] {
+  const heroes = Array.from({ length: n }, (_, i) => hero(w, 1500 + i * 10, 1500));
+  const lead = heroes[0];
+  const p = w.parties.get(lead.party)!;
+  for (const h of heroes.slice(1)) {
+    w.parties.delete(h.party);
+    h.party = lead.party;
+    p.members.push(h.id);
+  }
+  return heroes;
+}
+
+describe('party retreat', () => {
+  it('half the fighting members below the line send everyone home together, with no bond lost', () => {
+    const w = createWorld(1, base);
+    const [a, b, c] = party(w, 3);
+    a.hp = Math.floor(a.maxHp * 0.2);
+    b.hp = Math.floor(b.maxHp * 0.2);
+    const ev = run(w, 100);
+    const [r] = ev.filter(
+      (e): e is Extract<SimEvent, { kind: 'partyRetreat' }> => e.kind === 'partyRetreat',
+    );
+    expect(r.units.sort()).toEqual([a.id, b.id, c.id].sort());
+    expect([a.mode, b.mode, c.mode]).toEqual(['return', 'return', 'return']);
+    expect(w.bonds.size).toBe(0);
+  });
+
+  it('one hurt member of three is not enough', () => {
+    const w = createWorld(1, base);
+    const [a, b] = party(w, 3);
+    a.hp = Math.floor(a.maxHp * 0.2);
+    const ev = run(w, 100);
+    expect(ev.some((e) => e.kind === 'partyRetreat')).toBe(false);
+    expect(b.mode).toBe('explore');
+    // alone it still flees, and that costs trust as before
+    expect(a.mode).toBe('return');
+  });
+
+  it('a proud hero stays until 20% hp', () => {
+    const w = createWorld(1, base);
+    const [a, b, c] = party(w, 3);
+    c.trait = 'proud';
+    a.hp = Math.floor(a.maxHp * 0.2);
+    b.hp = Math.floor(b.maxHp * 0.2);
+    c.hp = Math.floor(c.maxHp * 0.25);
+    run(w, 100);
+    expect(a.mode).toBe('return');
+    expect(c.mode).toBe('explore');
+    c.hp = Math.floor(c.maxHp * 0.15);
+    run(w, 100);
+    expect(c.mode).toBe('return');
+  });
+});
+
+describe('defend', () => {
+  const monster = (w: W, x: number, y: number) => {
+    const id = w.nextId++;
+    w.units.push({
+      id,
+      kind: 'monster',
+      type: 'draugr',
+      tier: 1,
+      god: null,
+      path: null,
+      pos: { x, y },
+      facing: { x: 0, y: 1 },
+      hp: 100000,
+      maxHp: 100000,
+      target: null,
+      ko: false,
+      mode: 'wander',
+      party: 0,
+      trait: null,
+      gold: 0,
+      bounty: null,
+    });
+    w.unitRuntime.set(id, { lair: null, cooldownMs: 0, target: null, idleMs: 0 });
+  };
+  const withTown = (): W => {
+    const w = createWorld(1, base);
+    w.buildings.push({
+      id: w.nextId++,
+      type: 'market',
+      tier: 1,
+      pos: { x: 700, y: 500 },
+      plot: null,
+      hp: 100,
+      maxHp: 100,
+    });
+    return w;
+  };
+
+  it('a resting hero rejoins when a monster is within 400 of a building', () => {
+    const w = withTown();
+    const h = hero(w, 520, 500);
+    h.mode = 'rest';
+    monster(w, 1000, 500);
+    const ev = run(w, 200);
+    expect(h.mode).not.toBe('rest');
+    expect(ev.some((e) => e.kind === 'defend' && e.unit === h.id)).toBe(true);
+  });
+
+  it('a monster near the hero but far from every building does not call it', () => {
+    const w = withTown();
+    const h = hero(w, 3000, 3000);
+    h.mode = 'rest';
+    h.hp = Math.floor(h.maxHp * 0.6);
+    monster(w, 3050, 3000);
+    const ev = run(w, 200);
+    expect(h.mode).toBe('rest');
+    expect(ev.some((e) => e.kind === 'defend')).toBe(false);
+  });
+});

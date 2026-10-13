@@ -72,6 +72,8 @@ export const DEFAULT_TUNING: Tuning = {
     bondCap: 10,
     // Hp fraction a hero flees at before upgrades and personality.
     baseFlee: 0.3,
+    retreatShare: 0.5,
+    proudRetreatAt: 0.2,
     rivalBelow: -2,
     argueRange: 200,
     argueEveryMs: 20_000,
@@ -163,6 +165,7 @@ export const DEFAULT_TUNING: Tuning = {
     raidLairs: 1,
     raidGrowEveryMs: 300_000,
     defendHp: 0.5,
+    defendRange: 400,
   },
   bounty: {
     dangerRadius: 250,

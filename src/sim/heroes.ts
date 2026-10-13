@@ -1,12 +1,12 @@
 import { earn, newRecord } from './runstats';
-import { fledParty, fleeThreshold, newParty, pantheonOf, TRAITS } from './parties';
+import { baseFleeOf, fledParty, fleeThreshold, newParty, pantheonOf, TRAITS } from './parties';
 import { slowOf } from './riders';
 import { revengeTarget } from './rivalry';
 import { emptyItems } from './items';
 import { buyItem, hasItemRows, nearestShop, planShopping, type ShopStop } from './shopping';
 import { isBound } from './effects';
-import { passiveAggroMult, passiveKoMult, passiveRestMult } from './passives';
-import { aggroRange, dist, maxHp, speed, stepToward, tierValue, TICK_MS } from './units';
+import { passiveKoMult, passiveRestMult } from './passives';
+import { dist, maxHp, speed, stepToward, tierValue, TICK_MS } from './units';
 import type { World } from './world';
 import type { LairState, PartyIntent, Vec2, UnitState } from './types';
 
@@ -104,6 +104,7 @@ export function runTemples(world: World): void {
 
 // Before units act: flee when hurt, count down knockouts.
 export function runHeroes(world: World): void {
+  retreatParties(world);
   for (const unit of world.units) {
     const rt = world.heroRuntime.get(unit.id);
     if (unit.kind !== 'hero' || !rt) continue;
@@ -122,6 +123,34 @@ export function runHeroes(world: World): void {
       world.events.push({ kind: 'fled', unit: unit.id });
     } else if (unit.mode === 'rest' || unit.mode === 'shop') {
       defend(world, unit, rt);
+    }
+  }
+}
+
+// Party retreat: when half of the members still in the fight (rounded up) are below the party's
+// own flee line, everyone falls back together (a proud hero stays until its own line). No bond
+// is lost; a hero that already fled alone is out of the count.
+function retreatParties(world: World): void {
+  for (const party of world.parties.values()) {
+    const fighting = party.members
+      .map((id) => world.units.find((u) => u.id === id))
+      .filter((u): u is UnitState => !!u && !u.ko && u.mode === 'explore');
+    if (fighting.length < 2) continue;
+    const hurt = fighting.filter((u) => u.hp < u.maxHp * baseFleeOf(world, u)).length;
+    if (hurt < Math.ceil(fighting.length * world.tuning.party.retreatShare)) continue;
+    const going: number[] = [];
+    for (const u of fighting) {
+      if (u.trait === 'proud' && u.hp >= u.maxHp * fleeThreshold(world, u)) continue;
+      if (drinksInsteadOfFleeing(world, u)) continue;
+      const rt = world.heroRuntime.get(u.id);
+      if (!rt) continue;
+      u.mode = 'return';
+      u.target = null;
+      rt.dest = null;
+      going.push(u.id);
+    }
+    if (going.length > 0) {
+      world.events.push({ kind: 'partyRetreat', party: party.id, units: going });
     }
   }
 }
@@ -184,15 +213,18 @@ function finishShopping(unit: UnitState, rt: HeroRuntime): void {
   rt.dest = null;
 }
 
-// A rested enough hero rejoins the fight when monsters come close to town.
+// A rested enough hero rejoins the fight when a monster comes within defendRange of a building.
 function defend(world: World, unit: UnitState, rt: HeroRuntime): void {
   if (unit.hp < unit.maxHp * world.tuning.town.defendHp) return;
-  const cls = world.data.classes?.find((c) => c.id === unit.type);
-  const reach = cls ? aggroRange(cls.attrs) * passiveAggroMult(world, unit) : 0;
-  if (world.units.some((m) => m.kind === 'monster' && dist(unit.pos, m.pos) <= reach)) {
-    unit.mode = 'explore';
-    rt.dest = null;
-  }
+  const range = world.tuning.town.defendRange;
+  const threatened = world.units.some(
+    (m) =>
+      m.kind === 'monster' && m.hp > 0 && world.buildings.some((b) => dist(b.pos, m.pos) <= range),
+  );
+  if (!threatened) return;
+  unit.mode = 'explore';
+  rt.dest = null;
+  world.events.push({ kind: 'defend', unit: unit.id });
 }
 
 function revive(world: World, unit: UnitState, rt: HeroRuntime): void {

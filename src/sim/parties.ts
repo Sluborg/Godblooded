@@ -95,13 +95,20 @@ export function effectiveAttrs(world: World, unit: UnitState, base: Attributes):
   return a;
 }
 
-// Hp percent below which a hero flees: the party's upgrade, scaled by personality.
-export function fleeThreshold(world: World, unit: UnitState): number {
+// The party's own flee line: the base, lowered by its upgrades, before personality.
+export function baseFleeOf(world: World, unit: UnitState): number {
   const party = world.parties.get(unit.party);
   let flee = tune(world).baseFlee;
   for (const up of upgradeDefs(world, party?.upgrades ?? [])) {
     if (up.effect.flee !== undefined) flee = Math.min(flee, up.effect.flee);
   }
+  return flee;
+}
+
+// Hp percent below which a hero flees: the party's upgrade, scaled by personality.
+export function fleeThreshold(world: World, unit: UnitState): number {
+  const flee = baseFleeOf(world, unit);
+  if (unit.trait === 'proud') return Math.min(flee, tune(world).proudRetreatAt);
   if (unit.trait === 'brave') return flee * 0.67;
   if (unit.trait === 'coward') return flee * 1.5;
   return flee;
