@@ -56,7 +56,7 @@ falls or your town hall burns.
 
 1. Start: a town hall, a little gold, fog around the town, 2-3 monster lairs out in it.
 2. **Build** (tap a plot): temples (recruit), market (income), smithy and alchemist (heroes buy
-   gear and potions, taxed for your income), healer's shrine, guard tower, walls.
+   gear and potions, taxed for your income), healer's shrine, guard tower, Hearth Hall (no walls).
 3. **Heroes arrive** at the temples, pay nothing to you, and spend their loot in your shops: your
    income is their spending, exactly like Majesty.
 4. **Parties form** by traits and bonds (2-4 heroes). They explore, hunt, return to heal and shop.
@@ -69,17 +69,20 @@ falls or your town hall burns.
    raids hit the town. Clearing a lair stops it.
 8. **End:** win when the final lair (a boss) falls; lose when the town hall is destroyed.
 
-**Between runs (meta):** unlock new temples, classes, buildings and upgrade cards. OPEN: what
-persists, and the currency.
+**Between runs (meta):** every run earns Ichor; the Altar spends it on 10 permanent upgrades
+(capped near +15% power), and goals unlock new temples, gods, buildings and cards
+(`docs/systems/meta.md`). **Gods act on their own:** temples fill a favour bar and the god
+intervenes in the fight where its children are most hurt; the player never casts.
+**Teaching:** plain first-time hints, no narrator (`docs/systems/hint-texts.md`).
 
 ## Content draft (first set)
 
-| Kind      | First set                                                                    | Tiers |
-| --------- | ---------------------------------------------------------------------------- | ----- |
-| Godbloods | 4 gods per pantheon, 2 paths per god (table under "Gods and paths")          | 3     |
-| Monsters  | 6 types, draft: draugr, troll, harpy, minotaur, jackal-man, wyrm (boss)      | 3     |
-| Buildings | Town hall, 3 temples (one per pantheon), market, smithy, shrine, guard tower | 3     |
-| Traits    | Brave, Coward, Greedy, Proud, Loyal, Vengeful, Curious                       | n/a   |
+| Kind      | First set                                                                     | Tiers |
+| --------- | ----------------------------------------------------------------------------- | ----- |
+| Godbloods | 4 gods per pantheon, 2 paths per god (table under "Gods and paths")           | 3     |
+| Monsters  | 6 types plus 6 bosses (2 per pantheon, `docs/systems/monsters-and-bosses.md`) | 3     |
+| Buildings | Town hall, 3 temples (one per pantheon), market, smithy, shrine, guard tower  | 3     |
+| Traits    | Brave, Coward, Greedy, Proud, Loyal, Vengeful, Curious                        | n/a   |
 
 Personality traits drive behaviour (which flag, flee threshold, who they party with, what they
 say). Visible bonds: heroes who win together like each other; a coward who flees costs trust.
@@ -89,7 +92,7 @@ say). Visible bonds: heroes who win together like each other; a coward who flees
 Real-time on the map, each unit attacking on its own cooldown. Reference: Coda "Combat System"
 (7 attributes Str, Dex, Sta, Cha, Per, Int, Wp; hp = Sta*8 + Str*4; damage = Str; dodge and
 armor as saturating curves capped at 90%; attack time from weapon base reduced by Dex;
-knockout by default, permadeath only against bosses). Sim may simplify for the graybox and
+knockout by default, permadeath on a knockout by a boss or in a tier 3 lair). Sim may simplify for the graybox and
 says so in `docs/decisions.md`.
 
 ## Gods and paths
@@ -129,12 +132,11 @@ instead of new art.
 | ----- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 10    | M1 Graybox       | Shapes only: town hall, 1 temple, 1 market, 2 lairs. Heroes arrive, form parties, hunt, return, shop. Bounty flag. Level-ups. Win or lose. Stefan: fun to watch? |
 | 20    | M2 First art     | Tier 1 of the 4 Aesir gods, 6 monsters and the buildings in (one front picture each, mirrored), party colours, UI kit and logo.                                  |
-| 30    | M3 Tiers and run | Tier 2 and 3 skins, lair growth, party tier-ups, 3 pantheon temples, meta unlocks.                                                                               |
+| 30    | M3 Tiers and run | Tier 2 and 3 skins, lair growth, party tier-ups, 3 pantheon temples, Ichor and the Altar.                                                                        |
 | 40    | M4 Feel          | Speech bubbles, hit effects, sound, juice, balance pass.                                                                                                         |
 
 Art for M2 starts in parallel with M1 once the style test (Art backlog) is approved by Stefan.
 
 ## OPEN (Stefan decides)
 
-- The 3 gods per pantheon and each pantheon's boon theme.
-- What persists between runs.
+- Nothing open right now; see `docs/decisions.md` for the latest calls.

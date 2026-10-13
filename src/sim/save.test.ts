@@ -15,6 +15,7 @@ import {
   type SimEvent,
 } from './api';
 import { shareXp } from './parties';
+import { spawnHero } from './world';
 
 type W = ReturnType<typeof createWorld>;
 
@@ -64,8 +65,12 @@ describe('save and load', () => {
     expect(snapshot(a).stats.heroesArrived).toBeGreaterThan(2);
   });
 
-  it('survives a pending card pick: the world stays frozen on the same offer', () => {
-    const a = createWorld(3, GRAYBOX);
+  it('survives a pending card pick: the world stays slowed on the same offer', () => {
+    const manual: GameData = {
+      ...GRAYBOX,
+      tuning: { ...GRAYBOX.tuning, party: { autoPick: false } },
+    };
+    const a = createWorld(3, manual);
     play(a, 200_000);
     // stop right on a card: deal xp until one is open
     const party = [...a.parties.values()][0];
@@ -73,10 +78,12 @@ describe('save and load', () => {
     shareXp(a, party.members[0], 200);
     const open = [...a.parties.values()].find((p) => p.offer || p.pathOffer);
     expect(open).toBeDefined();
-    const b = roundtrip(a);
+    const b = roundtrip(a, manual);
     const t = b.timeMs;
     step(b, 2_000);
-    expect(b.timeMs).toBe(t);
+    // at the offer slowdown (30%): 600 ms of 2 s
+    expect(b.timeMs - t).toBeLessThan(700);
+    expect(b.timeMs - t).toBeGreaterThan(0);
     const pb = b.parties.get(open?.id ?? 0);
     expect(pb?.offer).toEqual(open?.offer);
     expect(pb?.pathOffer).toEqual(open?.pathOffer);
@@ -228,5 +235,38 @@ describe('save checks', () => {
     delete save.world.towerNextMs;
     const w = loadWorld(save, GRAYBOX);
     expect(w.towerNextMs).toBeInstanceOf(Map);
+  });
+});
+
+describe('save v2 to v3', () => {
+  it('migrates a hero holding greater potions: flasks take the old potionId', () => {
+    const a = createWorld(2, GRAYBOX);
+    const id = spawnHero(a, 'thor', { x: 300, y: 300 });
+    const hero = a.units.find((u) => u.id === id)!;
+    hero.items = { weapon: 1, armour: 0, potions: 2, charm: null };
+    const old = JSON.parse(JSON.stringify(saveWorld(a)));
+    old.version = 2;
+    const saved = old.world.units.find((u: { id: number }) => u.id === id);
+    saved.items.potionId = 'greater';
+    const migrated = migrateSave(old);
+    expect(migrated.version).toBe(3);
+    const back = loadWorld(old, GRAYBOX);
+    const items = back.units.find((u) => u.id === id)?.items as unknown as Record<string, unknown>;
+    expect(items.flasks).toEqual(['greater', 'greater']);
+    expect(items.potionId).toBeUndefined();
+    expect(items.potions).toBe(2);
+  });
+
+  it('a hero with no potions, or no potionId, keeps plain potions', () => {
+    const a = createWorld(2, GRAYBOX);
+    const id = spawnHero(a, 'thor', { x: 300, y: 300 });
+    const hero = a.units.find((u) => u.id === id)!;
+    hero.items = { weapon: 0, armour: 0, potions: 1, charm: null };
+    const old = JSON.parse(JSON.stringify(saveWorld(a)));
+    old.version = 2;
+    const back = loadWorld(old, GRAYBOX);
+    const items = back.units.find((u) => u.id === id)?.items as unknown as Record<string, unknown>;
+    expect(items.flasks).toBeUndefined();
+    expect(items.potions).toBe(1);
   });
 });

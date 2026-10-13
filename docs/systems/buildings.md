@@ -32,7 +32,8 @@ temples, tower raid warning) and `progression.md`.
 - Numbers in plain type are today's (Sim 130 and decisions); the rest are new.
 - **Upgrade cost** stays as today: cost x1.5 for tier 2, x2.5 for tier 3. Town hall: 400 for
   tier 2, 900 for tier 3 (data `upgradeCost`).
-- **Shrine and boss death** is `combat.md`'s -5 points per shrine tier, listed here per tier.
+- **Shrine and boss death** is `combat.md`'s -5 points per shrine tier, listed here per tier;
+  the tier 3 lair death chance drops by half as much (`combat.md` section 6).
 - **Hearth Hall vs. shrine:** the shrine heals fast; the hall heals slower but keeps parties
   together and grows bonds. Heroes rest at the closest of the two unless their party is below
   50% hp (then the shrine).
@@ -107,10 +108,9 @@ Heroes inside a destroyed shop or hall are pushed out, unhurt.
 | ----- | ---------------------------------------- |
 | 10    | Building rows and tuning above; 12 plots |
 
-## OPEN (Stefan decides)
+## Decided (Stefan, 2026-10-13)
 
-1. **Town hall tiers gate other buildings** (recommendation), or every building upgrades
-   freely as today?
-2. **Hearth Hall:** add it (recommendation), or keep the building list as it is?
-3. **Ruins and rebuild at half cost** (recommendation), or destroyed buildings vanish as today?
-4. **Walls:** left out on purpose. Want them anyway?
+1. **Town hall tiers gate other buildings.**
+2. **Hearth Hall** is added.
+3. **Ruins stay and rebuild at half cost.**
+4. **Walls:** left out.

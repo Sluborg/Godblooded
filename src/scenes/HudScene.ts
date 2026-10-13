@@ -199,7 +199,9 @@ export class HudScene extends Phaser.Scene {
       },
       townHall: snap.buildings.find((b) => b.type === 'townhall')?.pos ?? { x: 0, y: 0 },
     };
+    const levels = new Map<number, number>();
     for (const e of events) {
+      if (e.kind === 'levelUp') levels.set(e.party, e.level);
       if (e.kind === 'raid') {
         const lair = snap.lairs.find((l) => l.id === e.lair);
         this.showBanner(
@@ -218,7 +220,9 @@ export class HudScene extends Phaser.Scene {
         const who = lead ? heroLabel(lead) : `Party ${e.party}`;
         // A party that chose itself says which level it reached; a manual pick keeps its short toast.
         this.showToast(
-          e.auto && party ? autoPickToast(who, party.level, name) : pickToast(who, name),
+          e.auto && party
+            ? autoPickToast(who, levels.get(e.party) ?? party.level, name)
+            : pickToast(who, name),
         );
       } else if (e.kind === 'buildingDestroyed') {
         this.showBanner(`${e.type.replace('_', ' ')} destroyed!`, '#8a1c2bdd');

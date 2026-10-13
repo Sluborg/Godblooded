@@ -33,6 +33,8 @@ import { ART_NOMINAL_PX, PLACEHOLDER, UNIT_HEIGHT, artCandidates, baseType } fro
 
 // Speech bubbles: how long one stays, the most on screen at once, and the quiet time per unit.
 const BUBBLE_MS = 2200;
+const HIGH_BUBBLE_MS = 3000;
+const HIGH_WAIT_MS = 1500;
 // How far ahead of the impact the windup is allowed to start when the sim gives no warning:
 // the `hit` event arrives at impact, so the windup is squeezed into this (docs/api: Scene 70).
 const DEFAULT_LEAD_S = 0.09;
@@ -754,7 +756,7 @@ export class UnitView {
 
   // One bubble per unit: a new line replaces the old one. It lives on the unit's container,
   // so it follows the unit and fades with it.
-  say(text: string): void {
+  say(text: string, ms = BUBBLE_MS): void {
     this.bubble?.destroy();
     const label = this.scene.add
       .text(0, 0, text, { fontFamily: 'Georgia, serif', fontSize: '22px', color: '#1a1410' })
@@ -781,7 +783,7 @@ export class UnitView {
     this.scene.tweens.add({
       targets: bubble,
       alpha: 0,
-      delay: BUBBLE_MS,
+      delay: ms,
       duration: 250,
       onComplete: () => {
         bubble.destroy();
@@ -894,24 +896,49 @@ export class UnitViews {
         this.dying.delete(id);
       }
     }
+    this.flushQueued();
     this.fx.update(dtS);
   }
 
   private speech = new SpeechLimit();
 
   // Heroes only, rationed by SpeechLimit (one bark in town per few seconds, one per hero per 30 s).
+  // A high priority bark that meets the global gap waits up to HIGH_WAIT_MS for it, then drops
+  // (barks.md section 2 rule 3). Mid and low barks drop at once.
+  private queued: { e: Extract<SimEvent, { kind: SpeechKind }>; until: number } | null = null;
+
   private onSpeech(e: Extract<SimEvent, { kind: SpeechKind }>): void {
+    // A high bark is waiting for the gap: it is first in line, so nothing else may cut in.
+    if (this.queued) return;
+    if (!this.trySpeak(e) && BARK_META[e.kind].priority === 'high' && !this.queued)
+      this.queued = { e, until: this.scene.time.now + HIGH_WAIT_MS };
+  }
+
+  // Retries the queued high bark once per frame until it speaks or runs out of time.
+  private flushQueued(): void {
+    const q = this.queued;
+    if (!q) return;
+    if (this.scene.time.now > q.until || this.trySpeak(q.e, true)) this.queued = null;
+  }
+
+  // `retry`: the queued high bark trying again (its chance was rolled the first time).
+  private trySpeak(e: Extract<SimEvent, { kind: SpeechKind }>, retry = false): boolean {
     const view = this.views.get(e.unit);
-    if (!view || !view.isHero) return;
+    if (!view || !view.isHero) return true; // nothing to wait for
     const meta = BARK_META[e.kind];
     // Only heroes on screen speak; small events speak only some of the time.
     const cam = this.scene.cameras.main.worldView;
-    if (!cam.contains(view.container.x, view.container.y)) return;
-    if (meta.chance < 1 && barkRoll(e.unit, view.barkTries++) >= meta.chance) return;
+    if (!cam.contains(view.container.x, view.container.y)) return true;
+    if (!retry && meta.chance < 1 && barkRoll(e.unit, view.barkTries++) >= meta.chance) return true;
     let live = 0;
-    for (const v of this.views.values()) if (v.hasBubble) live++;
-    if (!this.speech.allow(e.unit, this.scene.time.now, live, meta.priority)) return;
-    view.say(pickLine(e.kind, e.unit, view.spoken++));
+    for (const v of this.views.values())
+      if (v.hasBubble && cam.contains(v.container.x, v.container.y)) live++;
+    if (!this.speech.allow(e.unit, this.scene.time.now, live, meta.priority)) return false;
+    view.say(
+      pickLine(e.kind, e.unit, view.spoken++),
+      meta.priority === 'high' ? HIGH_BUBBLE_MS : BUBBLE_MS,
+    );
+    return true;
   }
 
   private onHit(
@@ -995,10 +1022,14 @@ export class UnitViews {
   ): void {
     const def = (GRAYBOX.upgrades ?? []).find((u) => u.id === e.upgrade);
     const color = cardColor(def?.effect);
-    for (const v of this.crew(e.party, parties)) {
-      v.glow(color, 1.2);
-      this.fx.sparkle(v.container.x, v.container.y - v.height * 0.5, 8, GOLD_SPARKS);
-    }
+    // `levelUp` and this event arrive in the same tick: the card's glow waits for the party glow
+    // to be seen first.
+    this.scene.time.delayedCall(700, () => {
+      for (const v of this.crew(e.party, parties)) {
+        v.glow(color, 1.2);
+        this.fx.sparkle(v.container.x, v.container.y - v.height * 0.5, 8, GOLD_SPARKS);
+      }
+    });
   }
 
   private crew(

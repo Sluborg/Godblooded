@@ -107,37 +107,59 @@ export function offerCards(world: World, party: Party): string[] {
   return out.map((c) => c.id);
 }
 
-// The card a party takes by itself (level-ups.md section 4, deterministic): its leader's trait
-// decides. brave and vengeful look for an `attack` card, coward `defence`, greedy `gold` (else
-// attack), curious `sight`; loyal and proud take the first card offered by the leader's own god.
-// No match: the first card offered.
+// The party's leader for picks and barks: the first member, or the next one that is not knocked out.
+export function leaderOf(world: World, party: Party): UnitState | undefined {
+  const members = party.members
+    .map((id) => world.units.find((u) => u.id === id))
+    .filter((u): u is UnitState => !!u);
+  return members.find((u) => !u.ko) ?? members[0];
+}
+
+// The tags a leader's trait looks for in an offer (level-ups.md section 3).
+function wantedTags(trait: UnitState['trait'], cards: UpgradeDef[]): string[] {
+  switch (trait) {
+    case 'brave':
+    case 'proud':
+      return ['attack'];
+    case 'coward':
+      return ['defence'];
+    case 'greedy':
+      return cards.some((c) => c.pickTag === 'gold') ? ['gold'] : ['attack'];
+    case 'curious':
+      return ['sight'];
+    case 'loyal':
+      return ['sustain'];
+    case 'vengeful':
+      return ['attack', 'nerve'];
+    default:
+      return [];
+  }
+}
+
+// The card a party takes by itself: a weighted draw on the seeded RNG. Every card weighs 1,
+// times `traitPickWeight` when it matches the leader's trait (a pickTag it looks for; for loyal
+// and proud also the cards its own god offers).
 export function autoPickCard(world: World, party: Party, ids: string[]): string {
   const cards = ids
     .map((id) => world.data.upgrades?.find((u) => u.id === id))
     .filter((c): c is UpgradeDef => !!c);
-  const leader = world.units.find((u) => u.id === party.members[0]);
-  const tag = (t: string) => cards.find((c) => c.pickTag === t)?.id;
-  let pick: string | undefined;
-  switch (leader?.trait) {
-    case 'brave':
-    case 'vengeful':
-      pick = tag('attack');
-      break;
-    case 'coward':
-      pick = tag('defence');
-      break;
-    case 'greedy':
-      pick = tag('gold') ?? tag('attack');
-      break;
-    case 'curious':
-      pick = tag('sight');
-      break;
-    case 'loyal':
-    case 'proud':
-      pick = cards.find((c) => c.god !== undefined && c.god === leader.god)?.id;
-      break;
+  if (cards.length === 0) return ids[0];
+  const leader = leaderOf(world, party);
+  const tags = wantedTags(leader?.trait ?? null, cards);
+  const ownGod = leader?.trait === 'loyal' || leader?.trait === 'proud';
+  const boost = world.tuning.party.traitPickWeight;
+  const weights = cards.map((c) => {
+    const match =
+      (c.pickTag !== undefined && tags.includes(c.pickTag)) ||
+      (ownGod && c.god !== undefined && c.god === leader?.god);
+    return match ? boost : 1;
+  });
+  let roll = world.rng() * weights.reduce((n, x) => n + x, 0);
+  for (const [i, w] of weights.entries()) {
+    if (roll < w) return cards[i].id;
+    roll -= w;
   }
-  return pick ?? ids[0];
+  return cards[cards.length - 1].id;
 }
 
 function shuffle<T>(world: World, list: T[]): T[] {

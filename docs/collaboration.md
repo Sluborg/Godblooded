@@ -30,7 +30,7 @@ Only the owner edits. Everyone else asks through the owner's inbox.
 - **Scene:** `src/scenes/`, `src/ui/`, `src/main.ts`, `src/config.ts`, `index.html`.
 - **Art:** `art-tasks/`, `public/assets/`, `assets/source/`, `scripts/art/`,
   `docs/asset-spec.md`, `docs/art-requests.md` (status column; anyone adds rows).
-- **Design:** `docs/systems/` (specs; Lead turns them into backlog rows).
+- **Design:** `docs/systems/` and `docs/playtest-m2.md` (specs; Lead turns them into backlog rows).
 - **Balance:** `src/data/` (numbers and rows; Lead keeps the say on what content exists).
 - **Integrator, Review:** no files; Integrator may push merge commits to PR branches.
 - **Lead also:** `docs/sessions.md`, `docs/inbox/*.md` (see "Talking").

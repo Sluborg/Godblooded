@@ -31,7 +31,9 @@ try {
   const sim = await server.ssrLoadModule('/src/sim/api.ts');
   const { GRAYBOX: base } = await server.ssrLoadModule('/src/data/graybox.ts');
   const GRAYBOX = dataFile ? withOverride(base, JSON.parse(readFileSync(dataFile, 'utf8'))) : base;
+  // The smithy joins the order once the data has one (heroes then buy weapons and armour).
   const BUILD_ORDER = ['temple_aesir', 'market', 'shrine', 'tower'];
+  if (GRAYBOX.buildings.some((b) => b.id === 'smithy')) BUILD_ORDER.splice(2, 0, 'smithy');
   const DT = 100;
   const results = [];
 

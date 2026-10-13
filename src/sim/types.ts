@@ -66,6 +66,14 @@ export interface PassiveKeys {
   belowHp?: { below: number; stat: BuffStat; amount: number };
   // Healing received multiplier.
   healTakenMult?: number;
+  // Extra potions a hero may carry.
+  potionSlots?: number;
+  // Multiplies skill cooldowns (0.8: 20% shorter).
+  cooldownMult?: number;
+  // Multiplies the radius and range of skills (1.25: 25% more).
+  rangeMult?: number;
+  // Basic strikes carry this rider.
+  rider?: RiderId;
 }
 
 // One effect of a passive: a set of keys and who gets them. `scope` 'self' is the owner only,
@@ -213,8 +221,9 @@ export interface HeroItems {
   weapon: number;
   armour: number;
   potions: number;
-  // The potion row they came from (the strongest bought; drinking reads its heal).
-  potionId?: string;
+  // The potions carried, by item id (so small and greater ones keep their own heal). Its
+  // length is `potions`; missing means that many plain 40% potions.
+  flasks?: string[];
   charm: string | null;
 }
 
@@ -238,13 +247,19 @@ export interface UpgradeDef {
   id: string;
   name: string;
   text: string;
-  effect: { attr?: Partial<Attributes>; healPct?: number; flee?: number };
+  effect: {
+    attr?: Partial<Attributes>;
+    healPct?: number;
+    flee?: number;
+    // Party-wide keys, the same ones a god passive sets (PassiveKeys), summed over the cards taken.
+    keys?: PassiveKeys;
+  };
   // Offer rules (docs/systems/progression.md section 2). A card with none of these behaves as
   // before: common, no needs, offered however often.
   family?: CardFamily;
   rarity?: CardRarity;
   needs?: CardNeeds;
-  // Who offers it and what the party's leader looks for (auto-pick, level-ups.md section 4):
+  // Who offers it and what the party's leader looks for (auto-pick, level-ups.md):
   // attack, defence, sustain, sight, gold or nerve.
   god?: string;
   pickTag?: string;
@@ -299,6 +314,14 @@ export interface HeroTuning {
   proudSpend: number;
   // Potions a hero may carry, by market tier.
   potionMax: number[];
+  // A hero drinks below its flee threshold plus this (points as a share of max hp), a coward
+  // plus cowardDrinkAdd; one that never flees drinks at neverFleeDrink. A drink takes drinkMs.
+  potionDrinkAdd: number;
+  cowardDrinkAdd: number;
+  neverFleeDrink: number;
+  // Heal share (percent of max hp) of a potion with no item row.
+  plainPotionPct: number;
+  drinkMs: number;
   taxRate: number;
   arrive: number;
   lairSearchRadius: number;
@@ -316,6 +339,11 @@ export interface PartyTuning {
   // The party picks its level-up card itself, by its leader's personality (no pause, no player
   // choice). Off: the run waits for the player's pick.
   autoPick: boolean;
+  // While a pick is open (a path card, or an upgrade offer with autoPick off) the run goes at
+  // this share of its speed; 0 freezes it.
+  offerSlowdown: number;
+  // A card matching the leader's trait weighs this many times a plain one in the auto-pick draw.
+  traitPickWeight: number;
   // The level whose offer is the party's god's favour cards.
   favourLevel: number;
   // Rarity weights [common, rare, epic] by party level: 2-3, 4-5, 6 and up.
@@ -829,7 +857,15 @@ export type SimEvent =
   | { kind: 'partyFormed'; party: number; members: number[] }
   | { kind: 'levelUp'; party: number; level: number; offer: string[] }
   // `auto`: the party chose the card itself (tuning.party.autoPick), `hero` its leader.
-  | { kind: 'upgradePicked'; party: number; upgrade: string; auto?: boolean; hero?: number }
+  // `god`: the god that offers the card (its own `god`, else the leader's) for "Thor offers: X".
+  | {
+      kind: 'upgradePicked';
+      party: number;
+      upgrade: string;
+      auto?: boolean;
+      hero?: number;
+      god?: string;
+    }
   | { kind: 'tierUp'; unit: number; tier: number; path: string | null }
   | { kind: 'pathOffer'; party: number; hero: number; options: string[] }
   | { kind: 'raid'; lair: number; size: number }
@@ -866,6 +902,8 @@ export type SimEvent =
   | { kind: 'fled'; unit: number }
   | { kind: 'revived'; unit: number }
   // `item`: the item id of one purchase (absent for the plain market spend without item rows).
+  // A hero drank a potion (`left` still carried) and healed `amount`.
+  | { kind: 'drank'; unit: number; amount: number; left: number }
   | { kind: 'shopped'; unit: number; spent: number; tax: number; item?: string }
   | { kind: 'bountyPlaced'; bounty: number; gold: number };
 

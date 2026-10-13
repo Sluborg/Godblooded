@@ -566,7 +566,7 @@ Format: `- text` for every hero, `- [god] text` or `- [trait] text` for tagged l
 | Sim             | 10    | Events Scene needs that are missing: `fightStart` per unit, `lowHp` once per fight, the killer on `died` is there already (`by`); depends on `intent` (`hero-ai.md` row 10), `discovered` (`hero-ai.md` row 25), `raidWarning` and `omenStart` (`events.md` rows 10, 20), `slain` (`combat.md` row 80) |
 | Scene           | 30    | Test: every line at most 40 characters, every tag a real god or trait id                                                                                                                                                                                                                               |
 
-## OPEN (Stefan decides)
+## Decided (Stefan, 2026-10-13)
 
-1. **Tone:** mostly heroic with some jokes (Loki, idle lines). More jokes, or more grim?
-2. **Frequency:** set by Lead 2026-10-13 to a 5 s gap and 30 s per hero (real time), after the playtest; more or less?
+1. **Tone:** mostly heroic with some jokes, as written.
+2. **Frequency:** 5 s global gap and 30 s per hero (real time), max 2 on screen.

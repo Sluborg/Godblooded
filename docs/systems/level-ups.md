@@ -123,9 +123,9 @@ stays, option C's auto-pick becomes the rule, option B (fewer, bigger choices) c
 | Balance | 10    | On each upgrade card: `god` (who offers it), `offerLine`, `pickTag` (attack, defence, sustain, sight, gold, nerve); `tuning.party.traitPickWeight` 3                                                                                    |
 | Art     | 10    | 12 god sigils (small badges) for the cards and the path tray                                                                                                                                                                            |
 
-## OPEN (Stefan decides)
+## Decided (Stefan, 2026-10-13)
 
-1. **Path tray waits** at 30% speed with no timeout (this draft), or freeze the run for the
-   path pick as today?
-2. **Trait weight x3:** a clear personality (this draft), or stronger (always the trait's
-   card when there is one)?
+1. **Party picks its card** (personality-weighted, no pause); the player picks paths.
+2. **Path tray waits** at 30% speed with no timeout.
+3. **Trait weight x3.**
+4. **Option B** stays for later.

@@ -156,7 +156,7 @@ describe('shopping trips', () => {
     // tax = price x 0.5 x tier multiplier (market tier 2: 1.25, smithy tier 1: 1)
     expect(shopped.map((s) => s.tax)).toEqual([25, 25]);
     expect(h.gold).toBe(200 - 90);
-    expect(h.items).toMatchObject({ armour: 1, weapon: 0, potions: 1, potionId: 'greater' });
+    expect(h.items).toMatchObject({ armour: 1, weapon: 0, potions: 1, flasks: ['greater'] });
     expect(w.gold).toBe(50);
     expect(h.mode).toBe('explore');
   });
