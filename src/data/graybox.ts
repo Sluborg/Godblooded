@@ -332,12 +332,44 @@ export const MONSTERS: readonly MonsterDef[] = [
     bounty: 40,
     xp: 35,
   },
+  {
+    id: 'harpy',
+    attrs: { str: 4, dex: 7, sta: 4, cha: 1, per: 5, int: 1, wp: 3 },
+    weapon: { baseAttackS: 1.3, range: 40 },
+    bounty: 14,
+    xp: 12,
+  },
+  {
+    id: 'jackal-man',
+    attrs: { str: 6, dex: 5, sta: 6, cha: 1, per: 4, int: 2, wp: 5 },
+    weapon: { baseAttackS: 1.6, range: 45 },
+    bounty: 18,
+    xp: 15,
+  },
+  {
+    id: 'minotaur',
+    attrs: { str: 9, dex: 3, sta: 10, cha: 1, per: 3, int: 1, wp: 5 },
+    weapon: { baseAttackS: 2.1, range: 50 },
+    bounty: 34,
+    xp: 30,
+  },
+  {
+    id: 'wyrm',
+    attrs: { str: 10, dex: 3, sta: 12, cha: 1, per: 4, int: 2, wp: 8 },
+    weapon: { baseAttackS: 2.6, range: 70 },
+    bounty: 120,
+    xp: 100,
+  },
 ];
 
 // The barrow is the early fight; the troll den is the final lair (win when it falls).
 export const LAIRS: readonly LairDef[] = [
   { id: 'barrow', monster: 'draugr', spawnS: 10, maxAlive: 6, hp: 3500 },
   { id: 'troll-den', monster: 'troll', spawnS: 25, maxAlive: 6, hp: 24000 },
+  { id: 'harpy-roost', monster: 'harpy', spawnS: 11, maxAlive: 6, hp: 4000 },
+  { id: 'jackal-camp', monster: 'jackal-man', spawnS: 13, maxAlive: 6, hp: 6000 },
+  { id: 'labyrinth', monster: 'minotaur', spawnS: 24, maxAlive: 5, hp: 18000 },
+  { id: 'wyrm-nest', monster: 'wyrm', spawnS: 60, maxAlive: 1, hp: 12000 },
 ];
 
 // Level-up cards; a party is offered 3 different ones. Graybox set: stats, sustain, nerve.
@@ -406,7 +438,7 @@ export const GRAYBOX: GameData = {
   // about 17 knockouts per run. Unset keys use DEFAULT_TUNING in src/sim/tuning.ts.
   tuning: {
     hero: { maxPerTemple: 7, recruitMs: 22_000 },
-    town: { raidFirstMs: 300_000, raidEveryMs: 120_000, raidGrowEveryMs: 240_000 },
+    town: { raidFirstMs: 360_000, raidEveryMs: 150_000, raidGrowEveryMs: 480_000, raidSize: 1 },
   },
   classes: CLASSES,
   gods: GODS,
@@ -414,11 +446,25 @@ export const GRAYBOX: GameData = {
   upgrades: UPGRADES,
   monsters: MONSTERS,
   lairs: LAIRS,
-  // M1 map: the barrow up left near town, the troll den far down right.
-  lairSites: [
-    { lair: 'barrow', pos: { x: 500, y: 450 } },
-    { lair: 'troll-den', pos: { x: 2100, y: 1350 } },
-  ],
+  // Each run draws its own map (Sim 150): 4-6 lairs from the pool, leaning on one pantheon, and
+  // the wyrm nest as the boss lair; the run is won when the boss falls.
+  lairSites: [],
+  mapRules: {
+    lairs: [4, 6],
+    pool: [
+      { lair: 'barrow', pantheon: 'aesir', weight: 2 },
+      { lair: 'troll-den', pantheon: 'aesir' },
+      { lair: 'harpy-roost', pantheon: 'greek', weight: 2 },
+      { lair: 'labyrinth', pantheon: 'greek' },
+      { lair: 'jackal-camp', pantheon: 'egyptian', weight: 2 },
+    ],
+    boss: 'wyrm-nest',
+    leanCount: 1,
+    leanWeight: 3,
+    margin: 150,
+    minTownDist: 600,
+    minLairDist: 350,
+  },
   // 8 build plots in a ring around the town hall (plot id = index).
   plots: [
     { x: 1590, y: 800 },
