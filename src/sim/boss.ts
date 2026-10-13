@@ -65,6 +65,43 @@ const bossOf = (world: World, lair: LairState) => {
 const bossUnits = (world: World, lairId: number) =>
   world.units.filter((u) => world.unitRuntime.get(u.id)?.boss?.lair === lairId && u.hp > 0);
 
+// A boss lair is sealed until the run is old enough or enough other lairs have fallen.
+export function lairSealed(world: World, lairId: number): boolean {
+  if (world.bossUnsealed) return false;
+  const lair = world.lairs.find((l) => l.id === lairId);
+  return !!lair && !!bossOf(world, lair);
+}
+
+// Is a sealed boss lair within `radius` of a point? (Bounties there wait.)
+export const nearSealedLair = (world: World, pos: { x: number; y: number }, radius: number) =>
+  world.lairs.some((l) => lairSealed(world, l.id) && dist(l.pos, pos) <= radius);
+
+// Is any boss lair still sealed? (For the snapshot.)
+export const bossSealed = (world: World): boolean =>
+  !world.bossUnsealed && world.lairs.some((l) => !!bossOf(world, l));
+
+// Every tick: the seal breaks at sealUntilMs or after sealLairs lairs have fallen.
+export function runBossSeal(world: World): void {
+  if (world.bossUnsealed) return;
+  // An old save with the boss already out never reseals.
+  if ([...world.lairRuntime.values()].some((r) => r.bossSpawned)) {
+    world.bossUnsealed = true;
+    return;
+  }
+  const t = world.tuning.boss;
+  const by =
+    world.timeMs >= t.sealUntilMs
+      ? 'time'
+      : world.stats.lairsDestroyed >= t.sealLairs
+        ? 'lairs'
+        : undefined;
+  if (!by) return;
+  world.bossUnsealed = true;
+  for (const lair of world.lairs) {
+    if (bossOf(world, lair)) world.events.push({ kind: 'bossLairUnsealed', lair: lair.id, by });
+  }
+}
+
 // A boss lair stands while its boss lives, and until the boss has come out.
 export function lairProtected(world: World, lairId: number): boolean {
   const lair = world.lairs.find((l) => l.id === lairId);
@@ -77,7 +114,7 @@ export function runBosses(world: World): void {
   for (const lair of world.lairs) {
     const found = bossOf(world, lair);
     const lrt = world.lairRuntime.get(lair.id);
-    if (!found || !lrt) continue;
+    if (!found || !lrt || lairSealed(world, lair.id)) continue;
     const n = bossNumbers(world, found.mon);
     if (!lrt.bossSpawned && lair.hp < lair.maxHp * n.emergeBelow) {
       lrt.bossSpawned = true;

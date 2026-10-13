@@ -1,7 +1,9 @@
 import Phaser from 'phaser';
 import { COLORS, MIN_TOUCH } from '../config';
 import { ASSETS_KEY, type ManifestAsset } from './assets';
-import { BUTTON_COLORS, buttonState, type ButtonState } from './buttonStyle';
+import { buttonState, type ButtonState } from './buttonStyle';
+import { UI_STYLE, WOOD_BUTTON } from './uiStyle';
+import { drawWoodSlab } from './woodFrame';
 import { addIcon } from './icons';
 import { nineSliceArgs } from './nineSlice';
 
@@ -13,27 +15,16 @@ export interface Button {
   setActive(active: boolean): void;
 }
 
-// Draws the code-drawn button: iron fill, bronze rim, light bevel on top and dark below, shine.
+// Draws the code-drawn button: a wood slab, lit, reddened when selected, greyed when disabled and
+// shaded when pressed (palettes in uiStyle.ts).
 function drawButton(
   g: Phaser.GameObjects.Graphics,
   w: number,
   h: number,
   state: ButtonState,
 ): void {
-  const c = BUTTON_COLORS[state];
-  const r = 10;
   g.clear();
-  g.fillStyle(c.rim, 1).fillRoundedRect(-w / 2, -h / 2, w, h, r);
-  g.fillStyle(c.fill, 1).fillRoundedRect(-w / 2 + 4, -h / 2 + 4, w - 8, h - 8, r - 3);
-  // A soft 2 px inner highlight that follows the rounded corners (light on a raised button, dark
-  // when pressed): no flat band under the rim.
-  g.lineStyle(2, c.bevelLight, c.inner).strokeRoundedRect(
-    -w / 2 + 6,
-    -h / 2 + 6,
-    w - 12,
-    h - 12,
-    r - 4,
-  );
+  drawWoodSlab(g, w, h, WOOD_BUTTON[state]);
 }
 
 export interface ButtonOptions {
@@ -66,7 +57,7 @@ export function makeButton(
   const kit = ['ui_button', 'ui_button_pressed', 'ui_button_disabled'].map((id) =>
     scene.textures.exists(id) ? nineSliceArgs(rows?.get(id)) : null,
   );
-  const useKit = kit.every((k) => k !== null);
+  const useKit = UI_STYLE.preferKitPictures && kit.every((k) => k !== null);
   const art = useKit
     ? scene.add.nineslice(
         0,

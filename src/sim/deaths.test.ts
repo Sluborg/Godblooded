@@ -182,10 +182,44 @@ describe('permadeath', () => {
   });
 
   it('a monster of a tier 3 lair can kill too', () => {
-    const w = createWorld(1, mk({ bossDeathChance: 1, deathFloor: 1 }));
+    const w = createWorld(1, mk({ lairDeathChance: 1 }));
     const h = hero(w);
+    h.pos = { ...w.lairs[0].pos };
     const ev = kill(w, h, monster(w, 'rat', 3, w.lairs[0].id));
     expect(ev.some((e) => e.kind === 'slain')).toBe(true);
+  });
+
+  it('a tier 3 lair slays at 10%, cuts count half, and only within range of the lair', () => {
+    const w = createWorld(1, mk());
+    const h = hero(w);
+    const lair = w.lairs[0];
+    const rat = monster(w, 'rat', 3, lair.id);
+    // out of range: no risk
+    expect(deathChance(w, h, rat.id)).toBeUndefined();
+    h.pos = { x: lair.pos.x + 300, y: lair.pos.y };
+    expect(deathChance(w, h, rat.id)).toBeCloseTo(0.1);
+    const shrine = (tier: number) =>
+      w.buildings.push({
+        id: w.nextId++,
+        type: 'shrine',
+        tier,
+        pos: { x: 0, y: 0 },
+        plot: null,
+        hp: 1,
+        maxHp: 1,
+      });
+    shrine(2);
+    // shrine tier 2 cuts the boss chance by 10 points, the lair chance by 5
+    expect(deathChance(w, h, rat.id)).toBeCloseTo(0.05);
+    shrine(3);
+    // tier 3 shrine: 15 points off the boss chance, 7.5 off the lair; with a healer it is safe
+    expect(deathChance(w, h, rat.id)).toBeCloseTo(0.025);
+    const healer = hero(w, 'freyja');
+    const party = w.parties.get(h.party)!;
+    w.parties.delete(healer.party);
+    healer.party = h.party;
+    party.members.push(healer.id);
+    expect(deathChance(w, h, rat.id)).toBe(0);
   });
 
   it('an empty party goes with its last member', () => {

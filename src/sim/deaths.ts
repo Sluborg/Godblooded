@@ -1,6 +1,7 @@
 import { addBond } from './parties';
 import { passiveDeathAdd, passiveKoGoldLoss } from './passives';
 import { isBoss } from './boss';
+import { dist } from './units';
 import type { World } from './world';
 import type { UnitState } from './types';
 
@@ -24,20 +25,32 @@ export function koBonds(world: World, unit: UnitState): void {
     if (other !== unit.id) addBond(world, unit.id, other, -1);
 }
 
-// Does this killer put a knockout at risk of death? A boss, or a monster of a tier 3 lair
-// (raiders do not count: they march on the town, not in a lair).
-function deadly(world: World, killer: UnitState | undefined): boolean {
-  if (!killer || killer.kind !== 'monster') return false;
+// What can kill a hero it knocks out: a boss, or a monster of a tier 3 lair when the knockout is
+// within lairDeathRange of that lair (raiders do not count: they march on the town).
+function killerKind(
+  world: World,
+  unit: UnitState,
+  killer: UnitState | undefined,
+): 'boss' | 'lair' | undefined {
+  if (!killer || killer.kind !== 'monster') return undefined;
   const mon = world.data.monsters?.find((m) => m.id === killer.type);
-  if (isBoss(mon)) return true;
+  if (isBoss(mon)) return 'boss';
   const rt = world.unitRuntime.get(killer.id);
-  return killer.tier >= 3 && rt?.lair !== null && rt?.lair !== undefined && !rt.raid;
+  if (killer.tier < 3 || rt?.lair === null || rt?.lair === undefined || rt.raid) return undefined;
+  const lair = world.lairs.find((l) => l.id === rt.lair);
+  return lair && dist(unit.pos, lair.pos) <= world.tuning.combat.lairDeathRange
+    ? 'lair'
+    : undefined;
 }
 
 // The chance a hero knocked out by `by` is slain, or undefined when `by` cannot kill.
 export function deathChance(world: World, unit: UnitState, by: number): number | undefined {
-  const killer = world.units.find((u) => u.id === by);
-  if (!deadly(world, killer)) return undefined;
+  const kind = killerKind(
+    world,
+    unit,
+    world.units.find((u) => u.id === by),
+  );
+  if (!kind) return undefined;
   const t = world.tuning.combat;
   const shrineTier = Math.max(
     0,
@@ -53,12 +66,14 @@ export function deathChance(world: World, unit: UnitState, by: number): number |
       !!world.data.classes?.find((c) => c.id === mate.type)?.heals
     );
   });
-  const chance =
-    t.bossDeathChance -
-    t.deathShrineStep * shrineTier -
+  // Every point added to the boss chance (a cut is negative); the lair takes half of it.
+  const delta =
+    -t.deathShrineStep * shrineTier -
     (healer ? t.deathHealerStep : 0) +
     passiveDeathAdd(world, unit);
-  return Math.max(t.deathFloor, chance);
+  return kind === 'boss'
+    ? Math.max(t.deathFloor, t.bossDeathChance + delta)
+    : Math.max(0, t.lairDeathChance + delta / 2);
 }
 
 // A hero is slain: it leaves the party and the map for good and a grave stays.

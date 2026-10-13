@@ -159,7 +159,7 @@ describe('seeded map', () => {
     });
     const snap = snapshot(w);
     expect(snap.lairs).toHaveLength(1);
-    expect(snap.map).toEqual({ lean: [], boss: null });
+    expect(snap.map).toEqual({ lean: [], boss: null, sealed: false });
   });
 
   it('keeps the boss beyond minTownDist even when only the corners are that far', () => {
