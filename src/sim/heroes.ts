@@ -2,6 +2,7 @@ import { earn, newRecord } from './runstats';
 import { fledParty, fleeThreshold, newParty, pantheonOf, TRAITS } from './parties';
 import { slowOf } from './riders';
 import { revengeTarget } from './rivalry';
+import { emptyItems } from './items';
 import { passiveAggroMult, passiveKoMult, passiveRestMult } from './passives';
 import { aggroRange, dist, maxHp, speed, stepToward, tierValue, TICK_MS } from './units';
 import type { World } from './world';
@@ -49,6 +50,7 @@ export function spawnHero(world: World, godId: string, pos: Vec2, temple = 0): n
     party: 0,
     trait: TRAITS[Math.floor(world.rng() * TRAITS.length)],
     gold: cls.startGold,
+    items: emptyItems(),
     bounty: null,
   });
   world.unitRuntime.set(id, { lair: null, cooldownMs: 0, target: null, idleMs: 0 });

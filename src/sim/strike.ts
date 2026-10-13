@@ -116,12 +116,17 @@ export function attackStrike(
   if (stats.spellMult !== undefined) {
     return {
       attrs: stats.attrs,
-      power: Math.max(1, stats.attrs.int * stats.spellMult),
+      power: Math.max(1, stats.attrs.int * stats.spellMult) + (stats.weaponPower ?? 0),
       type: stats.damageType ?? 'magic',
       target,
     };
   }
-  return { attrs: stats.attrs, type: stats.damageType, target };
+  return {
+    attrs: stats.attrs,
+    ...(stats.weaponPower ? { power: Math.max(1, stats.attrs.str) + stats.weaponPower } : {}),
+    type: stats.damageType,
+    target,
+  };
 }
 
 // The `hit` event of a resolved strike.
