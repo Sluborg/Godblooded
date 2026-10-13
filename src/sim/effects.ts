@@ -1,3 +1,4 @@
+import { passiveBuff } from './passives';
 import type { World } from './world';
 import type { BuffStat, UnitState } from './types';
 
@@ -27,6 +28,9 @@ function slot(world: World, id: number): UnitFx | undefined {
 export function applyShield(world: World, unit: UnitState, hp: number, s: number): void {
   const fx = slot(world, unit.id);
   if (!fx || hp <= 0) return;
+  // A weaker recast does not wipe out a stronger shield that is still up.
+  const old = fx.shield;
+  if (old && world.timeMs < old.until && old.hp > hp) return;
   const until = world.timeMs + s * 1000;
   fx.shield = { hp, until };
   world.events.push({ kind: 'status', unit: unit.id, status: 'shield', until });
@@ -64,7 +68,8 @@ export function applyBuff(
 
 // The sum of the unit's running buffs of a stat (0 when none).
 export function buffOf(world: World, id: number, stat: BuffStat): number {
-  let sum = 0;
+  const unit = world.units.find((u) => u.id === id);
+  let sum = unit ? passiveBuff(world, unit, stat) : 0;
   for (const b of fxOf(world, id)?.buffs ?? []) {
     if (b.stat === stat && world.timeMs < b.until) sum += b.amount;
   }

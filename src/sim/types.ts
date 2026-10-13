@@ -28,6 +28,54 @@ export interface GodDef {
   template: string;
   // The type a caster child of this god strikes with at tier 1 (weapon templates are physical).
   damageType?: DamageType;
+  // Always-on trait of the god's children from tier 1 (see PassiveDef).
+  passive?: PassiveDef;
+}
+
+// A god's passive (docs/systems/paths-and-skills.md section 5): a set of keys, each implemented
+// once. `scope` 'self' applies to its owner; 'party' to the owner and its living party mates
+// within `range` (default: anywhere). A party passive does not stack with itself (two Odin
+// children give +3 Per, not +6).
+export interface PassiveKeys {
+  // Flat attributes.
+  attr?: Partial<Attributes>;
+  // Wins the first-strike check: the foe opens with the delay.
+  firstStrike?: boolean;
+  // Damage multiplier against a monster tag ({ giant: 1.3 }).
+  vsTag?: Record<string, number>;
+  // The first strike against the unit each fight misses.
+  firstHitMisses?: boolean;
+  // Flat chance added after the curve.
+  dodge?: number;
+  crit?: number;
+  // Knockout rules for the hero: gold lost (multiplier; read with the knockout cost row, Sim
+  // 230) and the knockout timer multiplier.
+  koGoldLoss?: number;
+  koMult?: number;
+  // Flat armour.
+  armour?: number;
+  // `per` of a buff stat for every kill this fight, up to `max` stacks.
+  onKillStack?: { stat: BuffStat; per: number; max: number };
+  // Resting heals this many times faster.
+  restMult?: number;
+  // Every `n`th basic strike also runs these effects on its target (stagger today).
+  everyNth?: { n: number; effects: readonly SkillEffect[] };
+  // Aggro range multiplier.
+  aggroMult?: number;
+  // Added to the boss death chance on a knockout (read with Sim 230).
+  bossDeathAdd?: number;
+  // A buff while below a share of max hp.
+  belowHp?: { below: number; stat: BuffStat; amount: number };
+  // Healing received multiplier.
+  healTakenMult?: number;
+}
+
+export interface PassiveDef {
+  id: string;
+  name: string;
+  scope: 'self' | 'party';
+  range?: number;
+  keys: PassiveKeys;
 }
 
 // A path of a god: the tier 2 and 3 identity a child of `god` takes at party level 3. A hero

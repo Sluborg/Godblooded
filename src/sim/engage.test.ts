@@ -122,20 +122,21 @@ describe('fights', () => {
     const hrt = w.unitRuntime.get(hid);
     const mrt = w.unitRuntime.get(mon.id);
     if (!hrt || !mrt) throw new Error('runtime');
+    const hero = w.units.find((u) => u.id === hid) as UnitState;
     const stats = { attrs: { ...none, dex: 10, per: 10 }, weapon };
     const foeStats = { attrs: none, weapon };
-    noteFight(w, hrt, stats, mrt, foeStats);
+    noteFight(w, hero, hrt, stats, mon, mrt, foeStats);
     const until = hrt.fightUntilMs ?? 0;
     expect(until).toBe(w.timeMs + 5_000);
     expect(mrt.cooldownMs).toBeGreaterThan(0);
     // still the same fight 3 s later: no new delay
     w.timeMs += 3_000;
     mrt.cooldownMs = 0;
-    noteFight(w, hrt, stats, mrt, foeStats);
+    noteFight(w, hero, hrt, stats, mon, mrt, foeStats);
     expect(mrt.cooldownMs).toBe(0);
     // 6 s of no foe, then they meet again: fresh
     w.timeMs += 9_000;
-    noteFight(w, hrt, stats, mrt, foeStats);
+    noteFight(w, hero, hrt, stats, mon, mrt, foeStats);
     expect(mrt.cooldownMs).toBeGreaterThan(0);
   });
 
@@ -150,9 +151,10 @@ describe('fights', () => {
     if (!hrt || !art || !brt) throw new Error('runtime');
     const stats = { attrs: { ...none, dex: 10, per: 10 }, weapon };
     const foeStats = { attrs: none, weapon };
-    noteFight(w, hrt, stats, art, foeStats);
+    const hero = w.units.find((u) => u.id === hid) as UnitState;
+    noteFight(w, hero, hrt, stats, a, art, foeStats);
     // b, fresh, meets the hero who is already fighting: no first-strike wait for b
-    noteFight(w, brt, foeStats, hrt, stats);
+    noteFight(w, b, brt, foeStats, hero, hrt, stats);
     expect(brt.cooldownMs).toBe(0);
   });
 });

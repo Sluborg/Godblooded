@@ -1,3 +1,4 @@
+import { passiveAttrs } from './passives';
 import { partiesHaveRivals, runRivalries } from './rivalry';
 import { dist, maxHp } from './units';
 import type { World } from './world';
@@ -68,13 +69,15 @@ function upgradeDefs(world: World, ids: readonly string[]): UpgradeDef[] {
 export function effectiveAttrs(world: World, unit: UnitState, base: Attributes): Attributes {
   const party = world.parties.get(unit.party);
   const path = unit.tier >= 2 ? pathDef(world, unit.path) : undefined;
-  if ((!party || party.upgrades.length === 0) && !path) return base;
+  const passive = passiveAttrs(world, unit);
+  if ((!party || party.upgrades.length === 0) && !path && !passive) return base;
   const a = { ...base };
   const add = (bonus: Partial<Attributes> | undefined) => {
     for (const k of Object.keys(bonus ?? {}) as (keyof Attributes)[]) a[k] += bonus?.[k] ?? 0;
   };
   for (const up of upgradeDefs(world, party?.upgrades ?? [])) add(up.effect.attr);
   if (path) add(path.attrs[unit.tier >= 3 ? 1 : 0]);
+  add(passive);
   return a;
 }
 

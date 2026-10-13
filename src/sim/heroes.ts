@@ -2,6 +2,7 @@ import { earn, newRecord } from './runstats';
 import { fledParty, fleeThreshold, newParty, pantheonOf, TRAITS } from './parties';
 import { slowOf } from './riders';
 import { revengeTarget } from './rivalry';
+import { passiveAggroMult, passiveKoMult, passiveRestMult } from './passives';
 import { aggroRange, dist, maxHp, speed, stepToward, tierValue, TICK_MS } from './units';
 import type { World } from './world';
 import type { Vec2, UnitState } from './types';
@@ -116,7 +117,7 @@ export function runHeroes(world: World): void {
 function defend(world: World, unit: UnitState, rt: HeroRuntime): void {
   if (unit.hp < unit.maxHp * world.tuning.town.defendHp) return;
   const cls = world.data.classes?.find((c) => c.id === unit.type);
-  const reach = cls ? aggroRange(cls.attrs) : 0;
+  const reach = cls ? aggroRange(cls.attrs) * passiveAggroMult(world, unit) : 0;
   if (world.units.some((m) => m.kind === 'monster' && dist(unit.pos, m.pos) <= reach)) {
     unit.mode = 'explore';
     rt.dest = null;
@@ -136,7 +137,7 @@ export function heroKnockedOut(world: World, unit: UnitState): void {
   const rt = world.heroRuntime.get(unit.id);
   if (!rt) return;
   unit.mode = 'ko';
-  rt.koMs = tune(world).koMs;
+  rt.koMs = tune(world).koMs * passiveKoMult(world, unit);
   rt.dest = null;
 }
 
@@ -188,7 +189,10 @@ export function heroMove(world: World, unit: UnitState): void {
     }
     case 'rest': {
       const spot = restSpot(world, unit.pos);
-      const rate = tune(world).restPerS * (spot.shrine ? tune(world).shrineMult : 1);
+      const rate =
+        tune(world).restPerS *
+        (spot.shrine ? tune(world).shrineMult : 1) *
+        passiveRestMult(world, unit);
       unit.hp = Math.min(unit.maxHp, unit.hp + (unit.maxHp * rate * TICK_MS) / 1000);
       if (unit.hp >= unit.maxHp) {
         unit.mode =
