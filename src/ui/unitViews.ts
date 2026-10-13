@@ -1,5 +1,7 @@
 import Phaser from 'phaser';
+import { GRAYBOX } from '../data/graybox';
 import { lookOf, type UnitLook } from '../data/looks';
+import { bossState } from './bossLook';
 import type { RiderId, SimEvent, UnitState, Vec2 } from '../sim/api';
 import { ASSETS_KEY, type ManifestAsset } from './assets';
 import {
@@ -839,10 +841,12 @@ export class UnitViews {
       let view = this.views.get(u.id);
       if (!view) {
         view = new UnitView(this.scene, u);
-        if (this.pendingBoss.delete(u.id)) view.boss = true;
-        if (this.pendingEnraged.delete(u.id)) view.enraged = true;
         this.views.set(u.id, view);
       }
+      // Boss and enraged come from the snapshot (they survive a reload); events add the show.
+      const bs = bossState(u, GRAYBOX.monsters);
+      if (bs.boss) view.boss = true;
+      if (bs.enraged) view.enraged = true;
       view.update(u, ctx, partyRole(u.id, u.party, parties));
     }
     for (const [id, view] of this.views) {
@@ -962,16 +966,9 @@ export class UnitViews {
   }
 
   // The boss steps out of its lair: marked as a boss for its big bar, a ring and a shake.
-  private pendingBoss = new Set<number>();
-  private pendingEnraged = new Set<number>();
-
   private onBossEmerged(e: Extract<SimEvent, { kind: 'bossEmerged' }>): void {
     const v = this.views.get(e.unit);
-    if (!v) {
-      // Events run before new views exist: the flag is applied when the view is created.
-      this.pendingBoss.add(e.unit);
-      return;
-    }
+    if (!v) return; // the flag comes from the snapshot; a brand-new boss just skips the ring
     v.boss = true;
     this.fx.add([{ type: 'ring', x: v.container.x, y: v.container.y, r: 180, age: 0, life: 0.9 }]);
     this.fx.dust(v.container.x, v.container.y, 2.4);
@@ -981,11 +978,7 @@ export class UnitViews {
   // The boss enrages: a red pulse on it, a shout over its head and a shake.
   private onEnraged(e: Extract<SimEvent, { kind: 'enraged' }>): void {
     const v = this.views.get(e.unit);
-    if (!v) {
-      this.pendingBoss.add(e.unit);
-      this.pendingEnraged.add(e.unit);
-      return;
-    }
+    if (!v) return;
     v.enraged = true;
     this.fx.add([{ type: 'ring', x: v.container.x, y: v.container.y, r: 140, age: 0, life: 0.7 }]);
     this.shake();
