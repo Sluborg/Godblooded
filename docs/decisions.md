@@ -185,3 +185,9 @@ entries that say Ichor mean Ambrosia. No code uses the name yet.
 Scene's wood-and-parchment UI (#233) uses dark parchment panel centres so the existing light
 text stays readable. Light parchment with dark ink is a later pass, revisited with Art's UI kit
 (U8) and shown to Stefan.
+
+## 2026-10-14 Look sheet answers (`docs/systems/look-sheet.md`)
+
+Stefan: Fafnir is built from **code parts** (no art order). Hero name labels are **off** by
+default; tapping a hero shows the names of everyone in that hero's party. Lair plates show the
+**lair's name** (e.g. "Wolf Den").
