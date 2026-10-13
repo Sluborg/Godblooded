@@ -93,6 +93,9 @@ interface Attack {
 // What a view needs from the world around it each frame.
 interface FrameCtx {
   dtS: number;
+  // Hero names show for this party (the selected hero's), or for this one hero when solo.
+  namesParty: number;
+  namesHero: number;
   fx: FxLayer;
   shake: () => void;
   // Chest of a unit, building or lair by sim id, if it is on the map.
@@ -131,6 +134,8 @@ export class UnitView {
   private readonly pennant: Phaser.GameObjects.Graphics;
   private readonly label: Phaser.GameObjects.Text;
   private ringKey = '';
+  // A hero's name, party number and pennant show only when asked (heroNames or a tap).
+  private showNames = true;
   // The tier last seen in the snapshot (a tier 3 monster is a boss-sized threat: its hits shake).
   tierNow = 1;
   private bubble: Phaser.GameObjects.Container | null = null;
@@ -589,6 +594,11 @@ export class UnitView {
     this.tick(u.pos, u.facing.x, u.ko, ctx);
     this.drawBar(u);
     this.drawRider(ctx.dtS);
+    this.showNames =
+      u.kind !== 'hero' ||
+      getSettings().heroNames ||
+      u.id === ctx.namesHero ||
+      (u.party > 0 && u.party === ctx.namesParty);
     this.drawParty(u, role);
     this.drawPennant(u, role);
   }
@@ -799,7 +809,7 @@ export class UnitView {
   // when selected).
   private drawParty(u: UnitState, role: PartyRole): void {
     const selected = this.scene.registry.get('selectedUnit') === u.id;
-    const key = `${role}:${u.party}:${selected}:${getSettings().palette}:${u.kind}:${u.tier}:${this.boss}`;
+    const key = `${role}:${u.party}:${selected}:${getSettings().palette}:${u.kind}:${u.tier}:${this.boss}:${this.showNames}`;
     if (key === this.ringKey) return;
     this.ringKey = key;
     this.ring.clear();
@@ -827,7 +837,8 @@ export class UnitView {
       return;
     }
     const inParty = role !== 'solo';
-    this.badge.setVisible(inParty);
+    this.label.setVisible(this.showNames);
+    this.badge.setVisible(inParty && this.showNames);
     if (inParty) {
       const c = partyColor(u.party);
       this.badge.setText(`${u.party}`).setBackgroundColor(`#${c.toString(16).padStart(6, '0')}`);
@@ -842,7 +853,7 @@ export class UnitView {
 
   private drawPennant(u: UnitState, role: PartyRole): void {
     this.pennant.clear();
-    if (role !== 'leader') return;
+    if (role !== 'leader' || !this.showNames) return;
     const c = partyColor(u.party);
     const x = this.label.width / 2 + 12;
     const base = this.label.y;
@@ -950,8 +961,12 @@ export class UnitViews {
     paths: readonly { id: string; name: string }[] = [],
   ): void {
     const dtS = Math.min(MAX_DT_S, dtMs / 1000);
+    // Names are off unless the player taps a hero: then every hero of its party shows one.
+    const sel = units.find((u) => u.id === this.scene.registry.get('selectedUnit'));
     const ctx: FrameCtx = {
       dtS,
+      namesParty: sel && sel.party > 0 ? sel.party : 0,
+      namesHero: sel?.id ?? 0,
       fx: this.fx,
       shake: this.shake,
       chestOf: (id) => {
