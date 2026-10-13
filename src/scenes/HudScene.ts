@@ -248,7 +248,7 @@ export class HudScene extends Phaser.Scene {
             X + ROSTER_W / 2,
             y + rowH / 2,
             ROSTER_W - 20,
-            rowH - 6,
+            rowH,
             r.unit === selected ? 0x4a3322 : 0x241a12,
             0.95,
           )
