@@ -42,7 +42,8 @@ Map + Hud ──Menu──> Pause ──Resume / Restart / Settings / Quit to ti
 **wood-and-parchment frame** (dark wood border, parchment fill, iron studs). Damage numbers are
 big and coloured by type; **hit effects grow with progression** (subtle at tier 1, stronger at tier
 2, clearly effectful at tier 3, for bosses and late in a run) and **there is no screen shake**. Heroes carry
-their party ring and a small name label; a level-up is a pillar of light with a banner.
+their party ring; name labels are off by default, and tapping a hero shows the names of everyone in
+its party while its Party panel is open (Stefan, 2026-10-14); a level-up is a pillar of light with a banner.
 
 | Zone              | Where (px)               | Holds                                                                                 |
 | ----------------- | ------------------------ | ------------------------------------------------------------------------------------- |
@@ -87,13 +88,13 @@ opened from another card.
 XP bar, upgrades as one row of small icons), then 4 member rows of 80 px = 470 of the 480 px
 slot. Today's header is 190 px and the fourth row spills below the slot.
 
-| Card     | Opened by                | Shows                                                                           | Buttons                                                                   |
-| -------- | ------------------------ | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| Party    | tap a hero (today)       | level, XP, upgrades, member rows (today)                                        | member row tap opens the Hero card                                        |
-| Hero     | tap a member row         | god, path, tier, trait, the four item slots, gold, kills (`items-and-shops.md`) | back                                                                      |
-| Building | tap a building           | name, tier, what it does now, what the next tier adds, hp                       | Upgrade (cost; greyed with the reason: gold, or "needs town hall tier 2") |
-| Shop     | tap the market or smithy | the building card plus what it sells now                                        | Upgrade                                                                   |
-| Flag     | tap a bounty flag        | amount, heroes heading for it (party dots), time placed                         | Raise (+25, +50), Cancel (50% back)                                       |
+| Card     | Opened by                | Shows                                                                              | Buttons                                                                   |
+| -------- | ------------------------ | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| Party    | tap a hero (today)       | level, XP, upgrades, member rows (today); name labels show over the party's heroes | member row tap opens the Hero card                                        |
+| Hero     | tap a member row         | god, path, tier, trait, the four item slots, gold, kills (`items-and-shops.md`)    | back                                                                      |
+| Building | tap a building           | name, tier, what it does now, what the next tier adds, hp                          | Upgrade (cost; greyed with the reason: gold, or "needs town hall tier 2") |
+| Shop     | tap the market or smithy | the building card plus what it sells now                                           | Upgrade                                                                   |
+| Flag     | tap a bounty flag        | amount, heroes heading for it (party dots), time placed                            | Raise (+25, +50), Cancel (50% back)                                       |
 
 ## 5. Menus in the bottom strip
 
