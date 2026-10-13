@@ -645,12 +645,17 @@ function fight(world: World, unit: UnitState, rt: UnitRuntime, stats: Stats, foe
   const breathing =
     boss &&
     breath &&
-    (boss.rt.strikes + 1) % (boss.rt.enraged ? breath.enragedEveryN : breath.everyN) === 0;
+    (boss.rt.strikes + 1) % Math.max(1, boss.rt.enraged ? breath.enragedEveryN : breath.everyN) ===
+      0;
   const cone: ConeArea | undefined =
-    breathing && breath && d > 0
+    breathing && breath
       ? {
           from: { x: unit.pos.x, y: unit.pos.y },
-          dir: { x: (foe.pos.x - unit.pos.x) / d, y: (foe.pos.y - unit.pos.y) / d },
+          // On top of the target there is no direction to aim: use the way the boss faces.
+          dir:
+            d > 0
+              ? { x: (foe.pos.x - unit.pos.x) / d, y: (foe.pos.y - unit.pos.y) / d }
+              : { ...unit.facing },
           range: breath.range,
           angleDeg: breath.angleDeg,
         }

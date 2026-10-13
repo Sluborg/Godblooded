@@ -170,7 +170,8 @@ export function breathStrike(
 ): void {
   const half = ((move.angleDeg / 2) * Math.PI) / 180;
   for (const u of world.units) {
-    if (u.kind !== 'hero' || u.ko || u.hp <= 0) continue;
+    // Heroes and their summons burn alike; the dead and knocked out are skipped.
+    if ((u.kind !== 'hero' && u.kind !== 'summon') || u.ko || u.hp <= 0) continue;
     const d = dist(cone.from, u.pos);
     if (d > cone.range) continue;
     // Straight at the boss counts as inside; otherwise the angle to the axis must fit.
