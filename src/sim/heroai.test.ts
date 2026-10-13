@@ -91,9 +91,10 @@ describe('score and commit', () => {
   it('switches to a much better flag once the hold is over', () => {
     const w = createWorld(1, { ...base, startGold: 1000 });
     const h = hero(w);
-    flag(w, 1500, 500, 50);
+    flag(w, 1500, 500, 90);
     run(w, 1_100);
     const first = w.heroRuntime.get(h.id)?.goal;
+    expect(first?.kind).toBe('flag');
     flag(w, 1500, 520, 200);
     // within the hold nothing changes
     run(w, 3_000);
@@ -129,6 +130,33 @@ describe('score and commit', () => {
     expect(w.heroRuntime.get(h.id)?.goal?.kind).toBe('flag');
     run(w, 1_000);
     expect(w.lairs[0].hp).toBe(w.lairs[0].maxHp);
+  });
+});
+
+describe('review regressions', () => {
+  it('the intent does not flip between lair and explore while a lair is fought', () => {
+    const w = createWorld(1, {
+      ...base,
+      lairs: [{ id: 'barrow', monster: 'draugr', spawnS: 2, maxAlive: 4, hp: 100_000 }],
+      lairSites: [{ lair: 'barrow', pos: { x: 800, y: 500 } }],
+    });
+    hero(w, 600, 500);
+    const ev = run(w, 20_000);
+    const kinds = ev
+      .filter((e): e is Extract<SimEvent, { kind: 'intent' }> => e.kind === 'intent')
+      .map((e) => e.intent.kind);
+    // a handful of changes at most (explore, lair, maybe retreat/rest), not one every few seconds
+    expect(kinds.length).toBeLessThan(8);
+    expect(kinds.join(',')).not.toMatch(/lair,explore,lair,explore/);
+  });
+
+  it('a new flag is noticed within a second even after a long walk', () => {
+    const w = createWorld(1, { ...base, startGold: 1000 });
+    const h = hero(w);
+    run(w, 20_000);
+    flag(w, h.pos.x + 400, h.pos.y, 300);
+    run(w, 1_100);
+    expect(w.heroRuntime.get(h.id)?.goal?.kind).toBe('flag');
   });
 });
 

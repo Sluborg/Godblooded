@@ -904,7 +904,8 @@ export interface UnitState {
 
 export type UnitMode = 'wander' | 'explore' | 'return' | 'rest' | 'shop' | 'ko';
 
-export type IntentKind = 'flag' | 'lair' | 'revenge' | 'explore' | 'retreat' | 'shop' | 'rest';
+export type IntentKind =
+  'flag' | 'lair' | 'revenge' | 'explore' | 'retreat' | 'shop' | 'rest' | 'defend';
 
 // What a party is heading for: a flag or lair by id, with the place when it has one.
 export interface PartyIntent {

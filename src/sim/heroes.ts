@@ -495,7 +495,18 @@ function chooseGoals(world: World): void {
         ai.exploreValue - (rt.dest ? dist(unit.pos, rt.dest) * ai.exploreDistanceCost : 0),
       );
     }
-    if (cur && curScore !== null && world.timeMs - cur.sinceMs < ai.commitMs) {
+    // A hero fighting its lair goal keeps it above exploring, whatever the lair now scores; an
+    // explore goal holds nothing and any better option pre-empts it; every other goal holds for
+    // commitMs.
+    const exploring = cur?.kind === 'explore';
+    if (
+      cur?.kind === 'lair' &&
+      unit.target === cur.id &&
+      world.lairs.some((l) => l.id === cur.id)
+    ) {
+      curScore = Math.max(curScore ?? 0, ai.exploreValue + ai.switchMin);
+    }
+    if (cur && curScore !== null && !exploring && world.timeMs - cur.sinceMs < ai.commitMs) {
       cur.score = curScore;
       continue;
     }
@@ -520,14 +531,13 @@ function chooseGoals(world: World): void {
     // Keep the current goal unless the best beats it by the margin.
     if (cur && curScore !== null) {
       const margin = Math.max(ai.switchMin, ai.switchMargin * Math.abs(curScore));
+      // The hold started when the goal was chosen; keeping it does not restart the clock.
       if (best.kind === cur.kind && best.id === cur.id) {
         cur.score = curScore;
-        cur.sinceMs = world.timeMs;
         continue;
       }
-      if (best.score < curScore + margin) {
+      if (!exploring && best.score < curScore + margin) {
         cur.score = curScore;
-        cur.sinceMs = world.timeMs;
         continue;
       }
     }
@@ -544,14 +554,11 @@ function chooseGoals(world: World): void {
 // What a party is doing, from its leader's mode and goal; an `intent` event when it changes.
 export function syncIntent(world: World): void {
   for (const party of world.parties.values()) {
-    const lead = world.units.find(
-      (u) =>
-        u.id ===
-        party.members.find((id) => {
-          const m = world.units.find((x) => x.id === id);
-          return m && !m.ko;
-        }),
-    );
+    // The leader the followers follow: the first member out exploring, else the first one up.
+    const up = party.members
+      .map((id) => world.units.find((u) => u.id === id))
+      .filter((u): u is UnitState => !!u && !u.ko);
+    const lead = up.find((u) => u.mode === 'explore') ?? up[0];
     if (!lead) continue;
     const rt = world.heroRuntime.get(lead.id);
     let intent: PartyIntent;
@@ -560,9 +567,7 @@ export function syncIntent(world: World): void {
     else if (lead.mode === 'shop') intent = { kind: 'shop' };
     else if (lead.mode === 'explore') {
       const sworn = revengeTarget(world, lead);
-      const lair = lead.target !== null ? world.lairs.find((l) => l.id === lead.target) : undefined;
       if (sworn) intent = { kind: 'revenge', target: sworn.id, pos: { ...sworn.pos } };
-      else if (lair) intent = { kind: 'lair', target: lair.id, pos: { ...lair.pos } };
       else if (rt?.goal?.kind === 'flag') {
         const flag = world.bounties.find((b) => b.id === rt.goal?.id);
         intent = flag
@@ -585,4 +590,19 @@ export function committedToFlag(world: World, unit: UnitState): boolean {
   const lead = leaderOf(world, unit) ?? unit;
   const goal = world.heroRuntime.get(lead.id)?.goal;
   return goal?.kind === 'flag' && world.bounties.some((b) => b.id === goal.id);
+}
+
+// A hero (or its party's leader) that takes on a lair makes it the party's goal, so the intent
+// stays "lair" for as long as the fight lasts.
+export function adoptLair(world: World, unit: UnitState, lair: LairState): void {
+  const lead = leaderOf(world, unit) ?? unit;
+  const rt = world.heroRuntime.get(lead.id);
+  if (!rt || (rt.goal?.kind === 'lair' && rt.goal.id === lair.id)) return;
+  // No hold: a clearly better option (a rich flag) may still take the party away.
+  rt.goal = {
+    kind: 'lair',
+    id: lair.id,
+    score: 0,
+    sinceMs: world.timeMs - world.tuning.ai.commitMs,
+  };
 }
