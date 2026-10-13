@@ -21,3 +21,4 @@ Take the first **Ready** batch of **your track** that is not in the upload log; 
 | B6    | buildings | `B6.md` | Temples t1: Aesir, Greek, Egyptian                              | 3      | Done   |
 | B7    | buildings | `B7.md` | Town hall, market, smithy, shrine, tower t1                     | 5      | Done   |
 | B8    | heroes    | `B8.md` | Warrior t1 back (front = S4 chunky warrior)                     | 1      | Done   |
+| B9    | buildings | `B9.md` | Buildings tier 2: all eight, the three temples included         | 8      | Ready  |
