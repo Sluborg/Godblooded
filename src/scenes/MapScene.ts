@@ -4,6 +4,9 @@ import { GRAYBOX } from '../data/graybox';
 import {
   command,
   createWorld,
+  loadWorld,
+  saveWorld,
+  SaveError,
   snapshot,
   step,
   type CommandResult,
@@ -12,6 +15,7 @@ import {
   type Vec2,
   type World,
 } from '../sim/api';
+import { clearSave, newSeed, readSave, writeSave } from '../ui/saveStore';
 import { getSettings } from '../ui/settings';
 import { heroLabel, partyColor } from '../ui/partyLook';
 import { UnitViews } from '../ui/unitViews';
@@ -66,9 +70,33 @@ export class MapScene extends Phaser.Scene {
     super('Map');
   }
 
+  // A new run (fresh seed) or, when Continue asked for it, the saved one. A save that cannot be
+  // loaded (damaged, from a newer game) is dropped and a new run starts.
+  private startWorld(): World {
+    const wantSave = this.registry.get('startMode') === 'continue';
+    this.registry.set('startMode', 'new');
+    if (wantSave) {
+      try {
+        return loadWorld(readSave(), GRAYBOX);
+      } catch (e) {
+        if (!(e instanceof SaveError)) throw e;
+        clearSave();
+      }
+    }
+    // Every fresh run (Play, Play again, Restart) drops the old checkpoint at once, so a reload
+    // before the first autosave cannot bring the abandoned run back.
+    clearSave();
+    return createWorld(newSeed(), GRAYBOX);
+  }
+
+  // Writes the run to storage (autosave, and when the player quits to the title).
+  saveNow(): void {
+    if (this.snap.status === 'running') writeSave(saveWorld(this.world));
+  }
+
   create(): void {
     const { width, height } = GRAYBOX.map;
-    this.world = createWorld(1, GRAYBOX);
+    this.world = this.startWorld();
     this.registry.set('speed', getSettings().speed);
     const cam = this.cameras.main;
     const minZoom = Math.max(GAME_WIDTH / width, GAME_HEIGHT / height);
@@ -102,6 +130,8 @@ export class MapScene extends Phaser.Scene {
     const speed = (this.registry.get('speed') as number) ?? 1;
     step(this.world, deltaMs * speed);
     this.snap = snapshot(this.world);
+    if (this.snap.events.some((e) => e.kind === 'autosave')) this.saveNow();
+    if (this.snap.status !== 'running') clearSave();
     this.registry.set('gold', this.snap.gold);
     this.registry.set('timeMs', this.snap.timeMs);
     this.registry.set('status', this.snap.status);
@@ -205,11 +235,18 @@ export class MapScene extends Phaser.Scene {
     return command(this.world, { kind: 'pickUpgrade', party, upgrade });
   }
 
-  // Bounty amounts are the HUD's choice; the sim validates and spends.
+  // Upgrade a building to its next tier (the sim checks gold and the tier cap).
   tryUpgrade(building: number): CommandResult {
     return command(this.world, { kind: 'upgrade', building });
   }
 
+  // Pan the camera to a place (an event feed tap).
+  jumpTo(pos: Vec2): void {
+    this.setWatch(false);
+    this.cameras.main.pan(pos.x, pos.y, 450, 'Sine.easeInOut');
+  }
+
+  // Bounty amounts are the HUD's choice; the sim validates and spends.
   tryBounty(pos: Vec2, gold: number): CommandResult {
     return command(this.world, { kind: 'placeBounty', pos, gold });
   }

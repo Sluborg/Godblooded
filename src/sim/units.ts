@@ -8,6 +8,20 @@ export const TICK_MS = 50;
 export interface Stats {
   attrs: Attributes;
   weapon: { baseAttackS: number; range: number };
+  // Flat armour against physical strikes (0 when missing).
+  armour?: number;
+  // A caster's strike is a spell of Int times this (see ClassDef.spellMult).
+  spellMult?: number;
+  // Share of speed and attack rate lost to chill (0 when none).
+  slow?: number;
+  // Multiplies the attack time (an enraged boss: 0.7).
+  attackMult?: number;
+  // The type of the basic attack (casters: their god's or path's); missing: physical or, for a
+  // caster, an untyped spell.
+  damageType?: string;
+  // As a target: tags and the damage type to multiplier row (monsters).
+  tags?: readonly string[];
+  types?: Partial<Record<string, number>>;
 }
 
 // Graybox derivations from the Coda combat reference (Lead's numbers stay attributes only).
@@ -51,7 +65,15 @@ export function damage(a: Attributes): number {
 
 // Attack time falls with Dex but never below 10% of the weapon's base time.
 export function attackMs(s: Stats, k: number = DEFAULT_COMBAT.attackK): number {
-  return s.weapon.baseAttackS * 1000 * (1 - curve(s.attrs.dex, k));
+  return (
+    (s.weapon.baseAttackS * 1000 * (1 - curve(s.attrs.dex, k)) * (s.attackMult ?? 1)) /
+    (1 - (s.slow ?? 0))
+  );
+}
+
+// World units per second of a unit, chill included.
+export function speedOf(s: Stats): number {
+  return speed(s.attrs) * (1 - (s.slow ?? 0));
 }
 
 export function dodgeChance(a: Attributes, k: number = DEFAULT_COMBAT.dodgeK): number {
