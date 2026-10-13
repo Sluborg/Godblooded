@@ -18,8 +18,9 @@ import {
 import { clearSave, newSeed, readSave, writeSave } from '../ui/saveStore';
 import { getSettings } from '../ui/settings';
 import { heroLabel, partyColor } from '../ui/partyLook';
+import { artCandidates } from '../ui/unitLook';
 import { UnitViews } from '../ui/unitViews';
-import { buildingArtCandidates, buildingScale } from '../ui/unitLook';
+import { buildingArtCandidates, buildingScale, lairArtCandidates } from '../ui/unitLook';
 import { ASSETS_KEY, type ManifestAsset } from '../ui/assets';
 import { OFFER_KEY, type LevelUpOffer } from './LevelUpScene';
 import { attachCameraControls } from '../ui/cameraControls';
@@ -34,6 +35,8 @@ const BUILDING_COLORS: Record<string, number> = {
   tower: 0x9a9a9a,
 };
 const BUILDING_SIZE = 96;
+// How long the camera takes to show the levelled party before its cards come up.
+const FOCUS_MS = 700;
 const TARGET_RADIUS = 70;
 const PLOT_SIZE = 120;
 const INTEREST_MAX = 8;
@@ -60,6 +63,8 @@ export class MapScene extends Phaser.Scene {
   private links!: Phaser.GameObjects.Graphics;
   // Party whose level-up cards are open (the sim is frozen until it is picked), or null.
   private offerKey: string | null = null;
+  // The ring on the ground around the party that levelled, while its cards are up.
+  private offerRing: Phaser.GameObjects.Ellipse | null = null;
   // Camera mode: by hand, watching the best fight, or following one hero (until it is gone).
   private cam: 'off' | 'watch' | 'unit' = 'off';
   private followId = 0;
@@ -112,6 +117,7 @@ export class MapScene extends Phaser.Scene {
       blocked: (x, y) => this.registry.get('modal') === true || (this.hud()?.blocks(x, y) ?? false),
     });
     this.offerKey = null;
+    this.offerRing = null;
     this.cam = 'off';
     this.followId = 0;
     this.director.reset();
@@ -190,13 +196,17 @@ export class MapScene extends Phaser.Scene {
         : `up:${party.id}:${party.level}`;
     if (key === this.offerKey) return;
     if (this.offerKey !== null) this.scene.stop('LevelUp');
+    this.offerRing?.destroy();
+    this.offerRing = null;
     this.offerKey = key;
     this.registry.set('modal', key !== null);
     if (!party) return;
     const po = pathParty?.pathOffer;
+    const who = this.partyWho(party, po?.hero ?? null);
+    let offer: LevelUpOffer;
     if (po) {
       const hero = this.snap.units.find((u) => u.id === po.hero);
-      const offer: LevelUpOffer = {
+      offer = {
         party: party.id,
         level: party.level,
         size: party.members.length,
@@ -207,19 +217,75 @@ export class MapScene extends Phaser.Scene {
           const p = this.snap.paths.find((x) => x.id === id);
           return p ? [{ id: p.id, god: p.god, name: p.name, pantheon: p.pantheon }] : [];
         }),
+        ...who,
       };
-      this.registry.set(OFFER_KEY, offer);
-      this.scene.launch('LevelUp');
     } else if (party.offer) {
-      const offer: LevelUpOffer = {
+      offer = {
         party: party.id,
         level: party.level,
         size: party.members.length,
         upgrades: [...party.offer],
+        ...who,
       };
-      this.registry.set(OFFER_KEY, offer);
-      this.scene.launch('LevelUp');
-    }
+    } else return;
+    // Show WHERE first: the camera glides to the party and a ring marks it, and only then do the
+    // cards come up (the sim is frozen meanwhile).
+    this.registry.set(OFFER_KEY, offer);
+    this.focusParty(who.focus, who.color);
+    this.time.delayedCall(getSettings().reducedMotion ? 0 : FOCUS_MS, () => {
+      if (this.offerKey === key) this.scene.launch('LevelUp');
+    });
+  }
+
+  // Who is in the party that levelled: colour, leader, members with their pictures, and where.
+  private partyWho(
+    party: { id: number; members: readonly number[] },
+    picking: number | null,
+  ): Required<Pick<LevelUpOffer, 'color' | 'leader' | 'members' | 'focus'>> {
+    const units = party.members.flatMap((id) => {
+      const u = this.snap.units.find((x) => x.id === id);
+      return u ? [u] : [];
+    });
+    const leader = units[0];
+    const cx = units.length ? units.reduce((s, u) => s + u.pos.x, 0) / units.length : 0;
+    const cy = units.length ? units.reduce((s, u) => s + u.pos.y, 0) / units.length : 0;
+    return {
+      color: partyColor(party.id),
+      leader: leader ? heroLabel(leader) : 'the party',
+      members: units.map((u) => ({
+        id: u.id,
+        label: heroLabel(u),
+        art: artCandidates('hero', u.type, u.tier, u.path, u.god),
+        picking: picking === u.id,
+      })),
+      focus: { x: cx, y: cy },
+    };
+  }
+
+  // Glide the camera to the party and ring it in its colour for as long as the cards are up.
+  private focusParty(at: Vec2, color: number): void {
+    this.setWatch(false);
+    this.offerRing?.destroy();
+    this.cameras.main.pan(
+      at.x,
+      at.y,
+      getSettings().reducedMotion ? 1 : FOCUS_MS - 100,
+      'Sine.easeInOut',
+    );
+    const ring = this.add
+      .ellipse(at.x, at.y, 260, 120, color, 0.18)
+      .setStrokeStyle(8, color, 0.95)
+      .setDepth(999_900);
+    this.offerRing = ring;
+    if (!getSettings().reducedMotion)
+      this.tweens.add({
+        targets: ring,
+        scale: 1.25,
+        alpha: 0.6,
+        duration: 700,
+        yoyo: true,
+        repeat: -1,
+      });
   }
 
   // Sim command entry for the HUD. The sim decides; the result carries the refusal reason.
@@ -235,11 +301,18 @@ export class MapScene extends Phaser.Scene {
     return command(this.world, { kind: 'pickUpgrade', party, upgrade });
   }
 
-  // Bounty amounts are the HUD's choice; the sim validates and spends.
+  // Upgrade a building to its next tier (the sim checks gold and the tier cap).
   tryUpgrade(building: number): CommandResult {
     return command(this.world, { kind: 'upgrade', building });
   }
 
+  // Pan the camera to a place (an event feed tap).
+  jumpTo(pos: Vec2): void {
+    this.setWatch(false);
+    this.cameras.main.pan(pos.x, pos.y, 450, 'Sine.easeInOut');
+  }
+
+  // Bounty amounts are the HUD's choice; the sim validates and spends.
   tryBounty(pos: Vec2, gold: number): CommandResult {
     return command(this.world, { kind: 'placeBounty', pos, gold });
   }
@@ -325,8 +398,10 @@ export class MapScene extends Phaser.Scene {
     for (const l of this.snap.lairs) {
       const key = `l${l.id}`;
       seen.add(key);
-      if (!this.views.has(key)) this.views.set(key, this.makeMarker(l.type, l.pos, 44, 0x2b1d33));
-      this.updateBar(this.views.get(key), l.hp, l.maxHp, 90, -2 * 44 - 30);
+      if (!this.views.has(key)) this.views.set(key, this.makeLair(l));
+      else this.refreshLair(this.views.get(key), l.type, l.tier, l.boss);
+      const top = (this.views.get(key)?.getData('top') as number | undefined) ?? 2 * 44;
+      this.updateBar(this.views.get(key), l.hp, l.maxHp, 90, -top - 30);
     }
     for (const b of this.snap.bounties) {
       const key = `f${b.id}`;
@@ -523,6 +598,40 @@ export class MapScene extends Phaser.Scene {
       })
       .setOrigin(0.5);
     return this.add.container(pos.x, pos.y, [body, label]).setDepth(pos.y);
+  }
+
+  // A lair: its picture (`bld_lair_<id>_t<tier>`, tier 1 as the fallback) standing on its base, a
+  // boss lair larger; the dark dot with its name when Art has none.
+  private makeLair(l: { type: string; tier: number; pos: Vec2; boss: boolean }) {
+    const c = this.makeMarker(l.type, l.pos, 44, 0x2b1d33);
+    this.refreshLair(c, l.type, l.tier, l.boss);
+    return c;
+  }
+
+  // Swaps in the picture for the lair's current tier when there is one (a tier-up changes it).
+  private refreshLair(
+    view: Phaser.GameObjects.GameObject | undefined,
+    type: string,
+    tier: number,
+    boss: boolean,
+  ): void {
+    if (!(view instanceof Phaser.GameObjects.Container) || view.getData('tier') === tier) return;
+    view.setData('tier', tier);
+    const art = lairArtCandidates(type, tier).find((id) => this.textures.exists(id));
+    if (!art) return;
+    const row = (this.registry.get(ASSETS_KEY) as Map<string, ManifestAsset> | undefined)?.get(art);
+    let img = view.getData('img') as Phaser.GameObjects.Image | undefined;
+    if (!img) {
+      // The first picture replaces the placeholder dot and its name.
+      for (const o of [...view.list]) if (o !== view.getData('bar')) o.destroy();
+      img = this.add.image(0, 0, art);
+      view.add(img);
+      view.setData('img', img);
+    } else img.setTexture(art);
+    img.setOrigin(row?.anchorX ?? 0.5, row?.anchorY ?? 1);
+    const k = buildingScale(img.width, img.height) * (boss ? 1.35 : 1);
+    img.setScale(k);
+    view.setData('top', img.height * k);
   }
 
   // Stand-in for lairs and monsters until the unit view (Scene 50): a dot with its type.

@@ -87,6 +87,13 @@ export const DEFAULT_TUNING: Tuning = {
     towerDamage: [8, 14, 22],
     towerCooldownMs: [2000, 1800, 1600],
   },
+  skill: {
+    castWindupMs: 500,
+    killWindowMs: 3_000,
+    traitNudge: 0.15,
+    pointReach: 60,
+    speechEvery: 4,
+  },
   boss: {
     emergeBelow: 0.75,
     cleaveEvery: 3,
@@ -146,6 +153,7 @@ export function resolveTuning(data: GameData): Tuning {
     building: { ...DEFAULT_TUNING.building, ...t?.building },
     boss: { ...DEFAULT_TUNING.boss, ...t?.boss },
     rider: { ...DEFAULT_TUNING.rider, ...t?.rider },
+    skill: { ...DEFAULT_TUNING.skill, ...t?.skill },
     save: { ...DEFAULT_TUNING.save, ...t?.save },
     stats: { ...DEFAULT_TUNING.stats, ...t?.stats },
     town: { ...DEFAULT_TUNING.town, ...t?.town },

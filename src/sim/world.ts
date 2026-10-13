@@ -4,6 +4,7 @@ import { generateMap } from './mapgen';
 import { noteFight } from './engage';
 import { runStatuses, slowOf, healMult, type UnitStatus } from './riders';
 import { attackStrike, landStrike } from './strike';
+import { cancelCast, runSkill, tickSkill, type SkillRuntime } from './skills';
 import { swing, type Area } from './swing';
 import {
   bossNumbers,
@@ -103,6 +104,8 @@ export interface UnitRuntime {
   boss?: BossRuntime;
   // The fight this unit is in runs until here (see engage.ts).
   fightUntilMs?: number;
+  // Heroes with a path skill: cooldown and the cast in progress (see skills.ts).
+  skill?: SkillRuntime;
 }
 
 export interface World {
@@ -131,6 +134,8 @@ export interface World {
   parties: Map<number, Party>;
   bonds: Map<string, number>;
   pendingDeaths: { victim: number; by: number }[];
+  // Monsters that died lately, for `kill` skill triggers.
+  recentKills: { pos: Vec2; timeMs: number }[];
   nextRaidMs: number;
   stats: RunStats;
   bounties: BountyState[];
@@ -169,6 +174,7 @@ export function createWorld(seed: number, data: GameData): World {
     parties: new Map(),
     bonds: new Map(),
     pendingDeaths: [],
+    recentKills: [],
     nextRaidMs: 0,
     stats: {
       monstersKilled: 0,
@@ -302,7 +308,7 @@ function runLairs(world: World): void {
   }
 }
 
-function statsOf(world: World, unit: UnitState): Stats | undefined {
+export function statsOf(world: World, unit: UnitState): Stats | undefined {
   if (unit.kind === 'hero') {
     const cls = world.data.classes?.find((c) => c.id === unit.type);
     return (
@@ -350,10 +356,12 @@ function runUnits(world: World): void {
     const stats = statsOf(world, unit);
     if (!rt || !stats) continue;
     if (unit.ko) {
-      if (rt) rt.swing = undefined;
+      rt.swing = undefined;
+      cancelCast(rt);
       continue;
     }
     rt.cooldownMs = Math.max(0, rt.cooldownMs - TICK_MS);
+    tickSkill(rt);
     // Raiders have no lair leash: they march on the town.
     const home = rt.raid ? undefined : world.lairs.find((l) => l.id === rt.lair);
     // Heroes that are fleeing, resting or shopping do not pick fights.
@@ -362,7 +370,15 @@ function runUnits(world: World): void {
     const ally = busy ? null : healTarget(world, unit);
     const foe = busy || ally ? null : pickTarget(world, unit, stats, home?.pos);
     unit.target = ally ? ally.id : foe ? foe.id : null;
-    if (ally) {
+    // A hero with a skill ready casts instead of its next strike or step.
+    let casting = false;
+    if (unit.kind === 'hero') {
+      if (busy) cancelCast(rt);
+      else casting = runSkill(world, unit, rt, foe);
+    }
+    if (casting) {
+      rt.swing = undefined;
+    } else if (ally) {
       heal(world, unit, rt, stats, ally);
     } else if (foe) {
       noteFight(world, rt, stats, world.unitRuntime.get(foe.id), statsOf(world, foe));
@@ -492,6 +508,12 @@ function settleDeaths(world: World): void {
       const bounty = Math.round((mon?.bounty ?? 0) * reward);
       const xp = Math.round((mon?.xp ?? 0) * reward);
       world.events.push({ kind: 'died', unit: unit.id, type: unit.type, by, bounty, xp });
+      // Only `kill` triggers read this; keep it to the window and only when skills exist.
+      if (world.data.skills?.length) {
+        const from = world.timeMs - world.tuning.skill.killWindowMs;
+        world.recentKills = world.recentKills.filter((k) => k.timeMs >= from);
+        world.recentKills.push({ pos: { ...unit.pos }, timeMs: world.timeMs });
+      }
       world.stats.monstersKilled++;
       avenge(world, unit.id);
       tally(world, by, 'kills');
