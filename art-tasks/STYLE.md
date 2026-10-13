@@ -6,7 +6,7 @@ below (cartoon, painterly details) is the current direction; older shipped pictu
 pixel art and get redrawn over time.
 
 - **Look (Stefan 2026-10-13, replaces the earlier pixel-art look):** **cartoony with painterly
-  details**. Cartoon shapes: simple rounded forms, a big head with a readable face, a small body,
+  details**. Cartoon shapes: simple rounded forms, about **2.5 heads tall** (a big head with a readable face, a small body),
   a chunky weapon, a **thick even dark outline** around every shape, crisp clean edges (no blur,
   no pixel dithering). Painterly finish inside the outline: soft shading, a light rim light,
   brush texture on wood, fur and fabric, bright highlights on metal. Light from the top left.
@@ -38,7 +38,7 @@ pixel art and get redrawn over time.
   Grip like a real fighter (axe and hammer at the lower end of the handle). The whole weapon is
   inside the picture, never cut off.
 
-- **Shading:** pixel shading, light from the top left. No cast shadow, no shadow ellipse under the
+- **Shading:** soft painterly shading, light from the top left. No cast shadow, no shadow ellipse under the
   feet, no glow outside the object unless the batch asks for a tier-3 aura.
 - **Phone readability:** units show about 60-80 px tall; the silhouette, the weapon and the accent
   colour carry the read.
