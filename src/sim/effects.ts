@@ -18,6 +18,13 @@ export interface UnitFx {
   bind?: { until: number };
   // Heals `pct` of max hp per second until `until`; `nextMs` is the next second's payout.
   hot?: { pct: number; until: number; nextMs: number; by: number; src?: string; s: number };
+  // Boss moves: poisoned (pct of max hp per second as death, next payout at nextMs, by the boss),
+  // frightened (runs from a point), turned to stone (no actions, half damage), swallowed (out
+  // of the fight until `until`, or until the boss has lost `freeAt` hp or fewer).
+  poison?: { pctS: number; until: number; nextMs: number; by: number };
+  fear?: { from: { x: number; y: number }; until: number };
+  stone?: { until: number };
+  swallow?: { until: number; by: number; pctS: number; nextMs: number; freeAtHp: number };
   // The shield's skill, so Refresh can restart it.
   shieldSrc?: { src: string; s: number };
 }
@@ -100,6 +107,8 @@ export function takeDamage(
   const fx = fxOf(world, unit.id);
   if (!fx || damage <= 0) return { dealt: damage, hp: damage };
   let dealt = damage;
+  // Turned to stone: half damage.
+  if (fx.stone && world.timeMs < fx.stone.until) dealt = Math.max(1, Math.round(dealt / 2));
   if (fx.mark && world.timeMs < fx.mark.until) {
     dealt = Math.max(1, Math.round(dealt * (1 + fx.mark.pct)));
   }
@@ -185,4 +194,75 @@ export function runHots(
     }
     if (world.timeMs >= hot.until) fx.hot = undefined;
   }
+}
+
+// Boss move statuses (bossmoves.ts). Each applier sets the status and tells Scene.
+export function applyPoison(
+  world: World,
+  unit: UnitState,
+  pctS: number,
+  s: number,
+  by: number,
+): void {
+  const fx = slot(world, unit.id);
+  if (!fx) return;
+  const until = world.timeMs + s * 1000;
+  fx.poison = { pctS, until, nextMs: world.timeMs + 1000, by };
+  world.events.push({ kind: 'status', unit: unit.id, status: 'poison', until });
+}
+
+// Any heal on a poisoned unit ends its poison.
+export function curePoison(world: World, id: number): void {
+  const fx = fxOf(world, id);
+  if (fx?.poison) fx.poison = undefined;
+}
+
+export function applyFear(
+  world: World,
+  unit: UnitState,
+  from: { x: number; y: number },
+  s: number,
+): void {
+  const fx = slot(world, unit.id);
+  if (!fx) return;
+  const until = world.timeMs + s * 1000;
+  fx.fear = { from: { ...from }, until };
+  world.events.push({ kind: 'status', unit: unit.id, status: 'fear', until });
+}
+
+export function applyStone(world: World, unit: UnitState, s: number): void {
+  const fx = slot(world, unit.id);
+  if (!fx) return;
+  const until = world.timeMs + s * 1000;
+  fx.stone = { until };
+  world.events.push({ kind: 'status', unit: unit.id, status: 'stone', until });
+}
+
+export function applySwallow(
+  world: World,
+  unit: UnitState,
+  s: number,
+  by: number,
+  pctS: number,
+  freeAtHp: number,
+): void {
+  const fx = slot(world, unit.id);
+  if (!fx) return;
+  const until = world.timeMs + s * 1000;
+  fx.swallow = { until, by, pctS, nextMs: world.timeMs + 1000, freeAtHp };
+  world.events.push({ kind: 'status', unit: unit.id, status: 'swallowed', until });
+}
+
+export const isSwallowed = (world: World, id: number): boolean => {
+  const s = fxOf(world, id)?.swallow;
+  return !!s && world.timeMs < s.until;
+};
+export const isStoned = (world: World, id: number): boolean => {
+  const s = fxOf(world, id)?.stone;
+  return !!s && world.timeMs < s.until;
+};
+// The point a frightened unit runs from, while the fear lasts.
+export function fearOf(world: World, id: number): { x: number; y: number } | undefined {
+  const f = fxOf(world, id)?.fear;
+  return f && world.timeMs < f.until ? f.from : undefined;
 }

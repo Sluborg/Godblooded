@@ -2,11 +2,22 @@ import { avenge, revengeTarget, rivalPairs, vowRevenge } from './rivalry';
 import { runAutosave } from './save';
 import { generateMap } from './mapgen';
 import { deathChance, koBonds, koGoldLost, slayHero } from './deaths';
-import { buffOf, isBound, runHots, tauntOf, type UnitFx } from './effects';
+import {
+  buffOf,
+  curePoison,
+  fearOf,
+  isBound,
+  isStoned,
+  isSwallowed,
+  runHots,
+  tauntOf,
+  type UnitFx,
+} from './effects';
 import { armourBonus, charmEffects, weaponPower } from './items';
 import { passiveRider } from './passives';
 import { everyNthOf, passiveAggroMult, passiveArmour } from './passives';
 import { noteFight } from './engage';
+import { headCount, runBossMoves } from './bossmoves';
 import { runFavour } from './favour';
 import { removeSummon, runSummon, runSummonUpkeep, summonStats } from './summons';
 import { runStatuses, slowOf, healMult, type UnitStatus } from './riders';
@@ -327,12 +338,14 @@ function runTick(world: World): void {
     if (gain <= 0) return;
     unit.hp += gain;
     tally(world, by, 'healing', gain);
+    curePoison(world, unit.id);
     world.events.push({ kind: 'heal', healer: by, target: unit.id, amount: gain });
   });
   // Burn victims leave now, before heroes flee or units act on a dead unit's turn.
   settleDeaths(world);
   runBossSeal(world);
   runBosses(world);
+  runBossMoves(world);
   runLairs(world);
   runRaids(world);
   runHeroes(world);
@@ -463,6 +476,7 @@ function healOnKill(world: World, id: number): void {
   if (amount <= 0) return;
   hero.hp += amount;
   tally(world, hero.id, 'healing', amount);
+  curePoison(world, hero.id);
   world.events.push({ kind: 'heal', healer: hero.id, target: hero.id, amount });
 }
 
@@ -514,6 +528,30 @@ function runUnits(world: World): void {
     if (unit.kind === 'summon') {
       runSummon(world, unit, rt, stats);
       continue;
+    }
+    if (unit.kind === 'hero') {
+      // Swallowed or turned to stone: no actions at all.
+      if (isSwallowed(world, unit.id) || isStoned(world, unit.id)) {
+        rt.swing = undefined;
+        cancelCast(rt);
+        cancelDrink(rt);
+        unit.target = null;
+        continue;
+      }
+      // Frightened: runs from the point it fears.
+      const from = fearOf(world, unit.id);
+      if (from) {
+        rt.swing = undefined;
+        cancelCast(rt);
+        unit.target = null;
+        const away = { x: unit.pos.x * 2 - from.x, y: unit.pos.y * 2 - from.y };
+        const dir = stepToward(unit.pos, away, (speedOf(stats) * TICK_MS) / 1000);
+        if (dir.x !== 0 || dir.y !== 0) unit.facing = dir;
+        const { width, height } = world.data.map;
+        unit.pos.x = Math.min(width, Math.max(0, unit.pos.x));
+        unit.pos.y = Math.min(height, Math.max(0, unit.pos.y));
+        continue;
+      }
     }
     // Raiders have no lair leash: they march on the town.
     const home = rt.raid ? undefined : world.lairs.find((l) => l.id === rt.lair);
@@ -580,6 +618,8 @@ function pickTarget(world: World, unit: UnitState, stats: Stats, home?: Vec2): U
     if ((other.kind === 'monster') === (unit.kind === 'monster') || other.ko || other.hp <= 0) {
       continue;
     }
+    // A swallowed hero is out of the fight.
+    if (other.kind === 'hero' && isSwallowed(world, other.id)) continue;
     // Nothing on foot can reach a flier.
     if (other.kind === 'summon' && stats.weapon.range <= 60 && flies(world, other)) continue;
     const d = dist(unit.pos, other.pos);
@@ -623,6 +663,7 @@ function heal(world: World, unit: UnitState, rt: UnitRuntime, stats: Stats, ally
     if (amount <= 0 || ally.ko) return;
     ally.hp += amount;
     tally(world, unit.id, 'healing', amount);
+    curePoison(world, ally.id);
     world.events.push({ kind: 'heal', healer: unit.id, target: ally.id, amount });
   });
 }
@@ -669,6 +710,25 @@ function fight(world: World, unit: UnitState, rt: UnitRuntime, stats: Stats, foe
         const input = attackStrike(stats, targetOf(world, foe));
         const rider = unit.kind === 'hero' ? passiveRider(world, unit) : undefined;
         landStrike(world, unit, foe, rider ? { ...input, rider } : input);
+        // A Hydra strikes with every head it has: the nearest other heroes in reach too.
+        const heads = headCount(world, unit);
+        if (heads > 1) {
+          const others = world.units
+            .filter(
+              (o) =>
+                o.kind === 'hero' &&
+                o.id !== foe.id &&
+                !o.ko &&
+                o.hp > 0 &&
+                !isSwallowed(world, o.id) &&
+                dist(unit.pos, o.pos) <= stats.weapon.range + 20,
+            )
+            .sort((a, b) => dist(unit.pos, a.pos) - dist(unit.pos, b.pos))
+            .slice(0, heads - 1);
+          for (const o of others) {
+            landStrike(world, unit, o, attackStrike(stats, targetOf(world, o)));
+          }
+        }
       }
       // A passive that adds effects to every nth strike.
       const nth = everyNthOf(world, unit);

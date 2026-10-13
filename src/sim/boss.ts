@@ -17,6 +17,13 @@ export interface BossRuntime {
   // Strikes made so far; the cleaveEvery-th one is a cleave.
   strikes: number;
   enraged: boolean;
+  // Timed signature moves (bossmoves.ts): when the next one starts and the one being announced.
+  nextMoveMs?: number;
+  pending?: { kind: 'venom' | 'howl' | 'riddle' | 'swallow'; atMs: number; target: number };
+  // Three Heads: heads left, cuts made so far, and when the cut head regrows (null: stays cut).
+  heads?: number;
+  cuts?: number;
+  regrowAtMs?: number | null;
 }
 
 export const isBoss = (mon: MonsterDef | undefined): boolean => !!mon?.boss;

@@ -2,6 +2,7 @@ import { armourPct, critChance, dodgeChance, resistPct, type Stats } from './uni
 import type { World } from './world';
 import { applyRider } from './riders';
 import { buffOf, takeDamage } from './effects';
+import { hydraHit } from './bossmoves';
 import { charmEffects } from './items';
 import { hasPassive, passiveVsTags } from './passives';
 import { tally } from './runstats';
@@ -198,6 +199,7 @@ export function landStrike(
   const credit = attacker.summon?.owner ?? attacker.id;
   tally(world, credit, 'damage', out.damage);
   world.events.push(hitEvent(attacker.id, foe.id, out, taken.dealt - taken.hp));
+  if (!out.dodged && foe.kind === 'monster') hydraHit(world, foe, out.type);
   if (input.rider && !out.dodged) applyRider(world, input.rider, attacker.id, foe, out);
   if (foe.hp <= 0) {
     foe.hp = 0;
