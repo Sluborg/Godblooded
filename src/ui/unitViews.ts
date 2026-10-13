@@ -27,6 +27,7 @@ import { getSettings } from './settings';
 import { heroLabel, partyColor, partyRole, type PartyRole } from './partyLook';
 import { SpeechLimit } from './speechLimit';
 import { cardColor } from './levelUpLook';
+import { fxScale, scaledCount } from './style';
 import { BARK_META, barkRoll, isSpeechEvent, pickLine, type SpeechKind } from './speechLines';
 import { buildHeal, buildStrike, FxLayer, type Vec } from './strikeFx';
 import { ART_NOMINAL_PX, PLACEHOLDER, UNIT_HEIGHT, artCandidates, baseType } from './unitLook';
@@ -95,6 +96,8 @@ interface FrameCtx {
     info?: HitInfo,
     // The second blow of a double strike: it animates but shows no number of its own.
     silent?: boolean,
+    // Effect strength of the attacker (tier, boss): see style.ts.
+    fxK?: number,
   ) => void;
   // Receives the visual side of a landed heal (green tint, sparkles, number).
   healed: (targetId: number, amount: number) => void;
@@ -361,7 +364,7 @@ export class UnitView {
   }
 
   // The visual side of being hit: flash, knockback, sparks. The sim already took the hp.
-  receiveHit(fromX: number, power: number, dodged: boolean, fx: FxLayer): void {
+  receiveHit(fromX: number, power: number, dodged: boolean, fx: FxLayer, fxK = 1): void {
     // knocked away from the blow; with no known attacker, backwards
     const dir: 1 | -1 = Number.isNaN(fromX) ? (this.face === 1 ? -1 : 1) : this.x < fromX ? -1 : 1;
     this.koDir = dir;
@@ -372,8 +375,8 @@ export class UnitView {
     this.hit = 1;
     this.kb = dir * this.h * 0.12 * power;
     const c = this.chest();
-    fx.sparks(c.x, c.y, [255, 225, 160], 7);
-    fx.blood(c.x, c.y, dir);
+    fx.sparks(c.x, c.y, [255, 225, 160], scaledCount(7, fxK));
+    if (fxK >= 0.8) fx.blood(c.x, c.y, dir);
   }
 
   // The visual side of being healed: a brief green tint and sparkles. The sim already added hp.
@@ -638,7 +641,16 @@ export class UnitView {
       ctx.shake();
     }
     const heavy = a.strike === 'smash' || a.strike === 'stomp';
-    ctx.hurt(a.targetId, this.x, heavy ? 2 : 1, n === 0 ? a.damage : 0, a.dodged, a.info, n !== 0);
+    ctx.hurt(
+      a.targetId,
+      this.x,
+      heavy ? 2 : 1,
+      n === 0 ? a.damage : 0,
+      a.dodged,
+      a.info,
+      n !== 0,
+      fxScale(this.tierNow, this.boss),
+    );
   }
 
   private applyPose(p: Pose, alpha: number): void {
@@ -833,10 +845,10 @@ export class UnitViews {
         const p = others(id);
         return p ? { x: p.x, y: p.y - 40 } : undefined;
       },
-      hurt: (targetId, fromX, power, damage, dodged, info, silent) => {
+      hurt: (targetId, fromX, power, damage, dodged, info, silent, fxK) => {
         const t = this.views.get(targetId) ?? this.dying.get(targetId);
         if (!t) return;
-        t.receiveHit(fromX, power, dodged, this.fx);
+        t.receiveHit(fromX, power, dodged, this.fx, fxK ?? 1);
         // The number: type colour, crit, miss, weak or resisted (damageLook).
         const look = silent ? null : damageLook(damage, dodged, info);
         if (look) this.floatNumber(t.container.x, t.container.y - t.height - 10, look);
