@@ -1,19 +1,19 @@
 # Next batches
 
-**Freeze (Stefan 2026-10-13): every batch is Draft. Do not start any batch** until a batch here
-is Ready again. Then take the first **Ready** batch of **your track** that is not in the upload
+**Stefan's go (2026-10-14): only S5 and U1B are Ready.** Every other batch stays Draft until
+Stefan says go. Then take the first **Ready** batch of **your track** that is not in the upload
 log; never a **Draft** (Art is still waiting on Stefan). Art sets a batch to Done when its images are shipped.
 
 | Batch | Track     | File     | What                                                                | Images | Status |
 | ----- | --------- | -------- | ------------------------------------------------------------------- | ------ | ------ |
-| S5    | heroes    | `S5.md`  | Style test: cartoon units from parts, temple, barrow (first)        | 8      | Draft  |
+| S5    | heroes    | `S5.md`  | Style test: cartoon units from parts, temple, barrow (first)        | 8      | Ready  |
 | V1    | monsters  | `V1.md`  | Monster variants: draugr, harpy, jackal-man, minotaur -v2, -v3      | 8      | Done   |
 | A1    | heroes    | `A1.md`  | Aesir gods t1 (Odin, Thor, Loki, Freyja) and their 8 paths t2       | 12     | Done   |
 | H1    | heroes    | `H1.md`  | Aesir god children tier 1 as parts sheets (taste-test look)         | 4      | Draft  |
 | H2    | heroes    | `H2.md`  | Aesir paths tier 2 as parts sheets (after H1)                       | 8      | Draft  |
 | A2    | heroes    | `A2.md`  | Aesir paths tier 3 as parts sheets (after H2)                       | 8      | Draft  |
 | U1    | ui        | `U1.md`  | Logo and app icon: three options                                    | 6      | Done   |
-| U1B   | ui        | `U1B.md` | Logo option B revised: fixed khopesh, Greek spear, calmer sun, drop | 4      | Draft  |
+| U1B   | ui        | `U1B.md` | Logo option B revised: fixed khopesh, Greek spear, calmer sun, drop | 4      | Ready  |
 | U8    | ui        | `U8.md`  | UI kit in wood and parchment: panel, 3 buttons, 9 icons             | 13     | Draft  |
 | U2    | ui        | `U2.md`  | UI kit: 9-slice panel, buttons (3 states), 9 icons, after U1        | 13     | Done   |
 | U3    | ui        | `U3.md`  | Splash key art: Godbloods facing a monster horde at dusk            | 1      | Done   |
