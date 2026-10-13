@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { DIAG_KEY, formatArtDiag, type ArtDiag } from '../ui/artDiag';
 import { COLORS, GAME_HEIGHT, GAME_WIDTH } from '../config';
 import { ASSETS_KEY, type ManifestAsset } from '../ui/assets';
 import { pickLogoId } from '../ui/assetPriority';
@@ -66,6 +67,16 @@ export class TitleScene extends Phaser.Scene {
         color: COLORS.text,
       })
       .setOrigin(1, 1);
+    // Art report (loaded count, first error, renderer) for screenshots from devices without art.
+    const diag = this.registry.get(DIAG_KEY) as ArtDiag | undefined;
+    if (diag)
+      this.add
+        .text(GAME_WIDTH - 16, GAME_HEIGHT - 40, formatArtDiag(diag), {
+          fontFamily: 'monospace',
+          fontSize: '16px',
+          color: diag.loaded < diag.expected ? '#ff9a8a' : COLORS.textMuted,
+        })
+        .setOrigin(1, 1);
   }
 
   // A run to continue: the one Quit put to sleep in this page, or the one in storage (autosave
