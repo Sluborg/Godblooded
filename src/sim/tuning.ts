@@ -18,6 +18,11 @@ export const DEFAULT_TUNING: Tuning = {
     fightGapMs: 5_000,
     firstStrikeDelay: 0.5,
     buildingFireMult: 1.5,
+    koGoldLoss: 0.25,
+    bossDeathChance: 0.2,
+    deathShrineStep: 0.05,
+    deathHealerStep: 0.05,
+    deathFloor: 0.05,
   },
   hero: {
     firstRecruitMs: 5_000,
@@ -57,7 +62,8 @@ export const DEFAULT_TUNING: Tuning = {
     offerSize: 3,
     maxLevel: 8,
     autoPick: true,
-    offerSlowdown: 0.3,
+    // 1: no slowdown in the sim. Scene owns the path-tray slowdown (0.3x absolute, Lead 2026-10-13).
+    offerSlowdown: 1,
     traitPickWeight: 3,
     favourLevel: 7,
     rarity: { low: [70, 30, 0], mid: [50, 40, 10], high: [30, 50, 20] },

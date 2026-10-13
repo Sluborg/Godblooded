@@ -31,3 +31,21 @@ export function partySubtitle(party: number, size: number): string {
 export function pickToast(leaderLabel: string, cardName: string): string {
   return `Party of ${leaderLabel}: ${cardName}`;
 }
+
+// The toast when the party picked its card itself: "Party of Thor-born reached level 3: Iron Will".
+export function autoPickToast(leaderLabel: string, level: number, cardName: string): string {
+  return `${partyHeader(leaderLabel, level)}: ${cardName}`;
+}
+
+// The glow a card puts on the party: red for strength, blue for dexterity, green for stamina and
+// healing, gold for anything else.
+export function cardColor(effect?: {
+  attr?: Partial<Record<string, number>>;
+  healPct?: number;
+}): number {
+  const a = effect?.attr ?? {};
+  if ((a.str ?? 0) > 0) return 0xff5a4a;
+  if ((a.dex ?? 0) > 0) return 0x7ad7ff;
+  if ((a.sta ?? 0) > 0 || (effect?.healPct ?? 0) > 0) return 0x6fcf6f;
+  return 0xffd75a;
+}

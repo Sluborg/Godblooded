@@ -92,6 +92,11 @@ export const passiveRestMult = (world: World, unit: UnitState) =>
   product(world, unit, (k) => k.restMult);
 export const passiveKoMult = (world: World, unit: UnitState) =>
   product(world, unit, (k) => k.koMult);
+export const passiveKoGoldLoss = (world: World, unit: UnitState) =>
+  product(world, unit, (k) => k.koGoldLoss);
+// Added to the death chance of a hero (Anubis: -0.1 for the party).
+export const passiveDeathAdd = (world: World, unit: UnitState) =>
+  sum(world, unit, (k) => k.bossDeathAdd);
 export const passiveAggroMult = (world: World, unit: UnitState) =>
   product(world, unit, (k) => k.aggroMult);
 export const passivePotionSlots = (world: World, unit: UnitState) =>

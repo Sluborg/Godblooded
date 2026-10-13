@@ -56,6 +56,8 @@ export type FxEffect =
       tint?: number;
     }
   | { type: 'ring'; x: number; y: number; r: number; age: number; life: number }
+  // A level-up: a pillar of light in the party colour standing on the ground at x, y.
+  | { type: 'pillar'; x: number; y: number; color: number; age: number; life: number }
   // A boss cleave: the red ground marker that fills until the strike lands.
   | { type: 'cleave'; owner: number; x: number; y: number; r: number; age: number; life: number }
   // A heal: a soft gold-green beam from the healer's weapon to the target's chest.
@@ -484,6 +486,15 @@ export class FxLayer {
       g.lineStyle(4, 0xff4a3a, 0.5 + 0.5 * pulse);
       g.strokeCircle(e.x, e.y, e.r);
       g.lineStyle(2, 0xff9a8a, 0.8 * (1 - p)).strokeCircle(e.x, e.y, e.r * (1 - p));
+    } else if (e.type === 'pillar') {
+      // Rises fast, hangs, fades: layered widths make a soft glowing column and a bright core.
+      const rise = Math.min(1, p * 4);
+      const a = p < 0.3 ? 1 : 1 - (p - 0.3) / 0.7;
+      const hgt = 420 * rise;
+      g.fillStyle(e.color, 0.12 * a).fillRect(e.x - 60, e.y - hgt, 120, hgt);
+      g.fillStyle(e.color, 0.22 * a).fillRect(e.x - 34, e.y - hgt, 68, hgt);
+      g.fillStyle(0xffffff, 0.5 * a).fillRect(e.x - 10, e.y - hgt, 20, hgt);
+      g.fillStyle(e.color, 0.35 * a).fillEllipse(e.x, e.y, 150 * (0.6 + p), 54 * (0.6 + p));
     } else if (e.type === 'ring') {
       g.lineStyle(6 * (1 - p) + 1, 0xe6d2aa, 0.8 * (1 - p));
       g.strokeEllipse(e.x, e.y, e.r * (0.2 + p) * 2, e.r * (0.2 + p) * 0.64);
