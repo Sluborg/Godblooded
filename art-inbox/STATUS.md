@@ -116,3 +116,20 @@ U1 | 2026-10-13T18:27:13.074Z | ui | ui_logo_a, ui_icon_app_a, ui_logo_b, ui_ico
 U1: six unchanged 1254x1254 built-in PNGs. Drive metadata verified MIME, sizes and destination. A logo https://drive.google.com/file/d/1vPv9UewY65MZiVXENVaypTpnQ6oCKzME/view ; A app https://drive.google.com/file/d/1LOeW-v69pnsDjXVb508i_eWs37RZlr_A/view ; ui_logo_b: https://drive.google.com/file/d/159GGdB0F2dDPxXyaSvaajfxwO71syAQV/view?usp=drivesdk ; ui_icon_app_b: https://drive.google.com/file/d/1hw-wMY8yJ4yu7aU3eDPQyVUJ0q6wiXNS/view?usp=drivesdk ; ui_logo_c: https://drive.google.com/file/d/1rHo-vvCD8da_kty9Pdz76mw9jTnNvMsa/view?usp=drivesdk ; ui_icon_app_c: https://drive.google.com/file/d/1qe9dYMPV9iePVqsZLtg2DvXr5-bAV_em/view?usp=drivesdk . Review: wordmarks spell GODBLOODED correctly; three distinct emblem ideas. Designs oversized versus requested90%/80%, background near-magenta rather than exact key. A has extra quadrant decorations; icons still carry finer metal/feather texture than ideal48px. No clipping or scenery, no resizing/cropping/recompression.
 
 U2 | 2026-10-13T18:27:22.051Z | ui | started
+
+
+A1 | 2026-10-13T18:29:33.569Z | heroes | hero_odin_t1_front, hero_thor_t1_front, hero_loki_t1_front, hero_freyja_t1_front, hero_odin-seer_t2_front, hero_odin-wanderer_t2_front, hero_thor-hammerborn_t2_front, hero_thor-stormcaller_t2_front, hero_loki-trickster_t2_front, hero_loki-flamebinder_t2_front, hero_freyja-valkyrie_t2_front, hero_freyja-seidkona_t2_front | uploaded
+A1 delivery: twelve unchanged 1254x1254 PNGs made with built-in imagegen; tier 2 edited from the corresponding tier-1 character. Required chunky-warrior and concept references used. Drive metadata readback verified every name, PNG MIME, byte size and destination folder.
+hero_odin_t1_front (1840927 bytes): https://drive.google.com/file/d/1_WvAPcPy3UPoxMOzMChVwbmFWqJGMeRu/view?usp=drivesdk
+hero_thor_t1_front (1645755 bytes): https://drive.google.com/file/d/1WUaMNbw7w3v-bCWLrd2MaDE1dlVqkfmV/view?usp=drivesdk
+hero_loki_t1_front (1555509 bytes): https://drive.google.com/file/d/13WT7LPeVMNl5SIMI7Jqo9AzDtVCIL4hY/view?usp=drivesdk
+hero_freyja_t1_front (1568986 bytes): https://drive.google.com/file/d/1hePgUsAJrjz-niKmrtpLJHcnF0GCTClh/view?usp=drivesdk
+hero_odin-seer_t2_front (2032812 bytes): https://drive.google.com/file/d/1eBM7_ef47YVEB_vt36VeGkOeEl7Lz11C/view?usp=drivesdk
+hero_odin-wanderer_t2_front (2035219 bytes): https://drive.google.com/file/d/109qK9YCIVP9bAGHVk-Df0YPRmDe4D3O3/view?usp=drivesdk
+hero_thor-hammerborn_t2_front (1896708 bytes): https://drive.google.com/file/d/16QLA0isTv9FrEVdbj3y_zeGnxCXFrJFH/view?usp=drivesdk
+hero_thor-stormcaller_t2_front (1927805 bytes): https://drive.google.com/file/d/1RopaN-baZTfstqt-_POoeKJkAfhnRSvq/view?usp=drivesdk
+hero_loki-trickster_t2_front (1791878 bytes): https://drive.google.com/file/d/1IZ4YJNPz6mYUGaQl9QgOGWEO6sG9KohJ/view?usp=drivesdk
+hero_loki-flamebinder_t2_front (1691331 bytes): https://drive.google.com/file/d/15ps1LrVsyH4HwJCYQEda3mkmPgatb600/view?usp=drivesdk
+hero_freyja-valkyrie_t2_front (1846716 bytes): https://drive.google.com/file/d/1bgf6le4uEEnqQ51vorIMZxh6f5_hPXQk/view?usp=drivesdk
+hero_freyja-seidkona_t2_front (1867296 bytes): https://drive.google.com/file/d/1whLziLbatra7bNhvAv1520LyHjeUT5JM/view?usp=drivesdk
+Review: characters retain recognizable faces/hair/build across paths; all face right, whole weapons visible. Several figures oversized versus nominal75% height/feet88%, especially raised weapons. Odin t1 staff is carved/ornate rather than plain ash; Odin bolt staffs, Freyja t1 staff, Stormcaller rod and Flamebinder wand are raised above shoulder rather than specified shoulder-height front position (front hand also reads as viewer-left/back side). Seer has stronger blue ornament/glow than faint specification. Stormcaller and Flamebinder effects extend beyond object. Valkyrie helmet wings spread more than folded close, gold trim prominent. Freyja reads cute rather than grim, retained for identity. Backgrounds near key rather than exact hex. No resize/crop/conversion/recompression. Please review strike-focus positions and framing before shipping.
