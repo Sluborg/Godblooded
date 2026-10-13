@@ -21,7 +21,8 @@ buildings in `buildings.md`); this sheet is the common frame.
   with no wood-and-parchment and no town colours.
 - **Effects grow with progression:** subtle at tier 1, stronger at tier 2, clearly effectful at
   tier 3, for bosses and late in a run; never screen shake.
-- **3 OPEN for Stefan** (end of page), each with a recommendation.
+- **Stefan decided (2026-10-14):** Fafnir is code parts; name labels are off by default and a
+  tap on a hero shows the names of its whole party; the lair plate carries the lair's name.
 
 ## 1. Global rules
 
@@ -38,12 +39,12 @@ buildings in `buildings.md`); this sheet is the common frame.
 
 ## 2. Heroes
 
-| Item        | Reads as                                 | Parts                                                                                        | Palette                                   | Owner              |
-| ----------- | ---------------------------------------- | -------------------------------------------------------------------------------------------- | ----------------------------------------- | ------------------ |
-| Hero        | a child of its god, its path at a glance | body, head, headgear or hair, cape, front and back hand, front and back foot, weapon, shield | per god (`paths-and-skills.md` section 6) | Scene (code parts) |
-| Party ring  | which party this hero belongs to         | a thin ellipse under the feet in the party colour, 70% opacity                               | the 8 party colours                       | Scene              |
-| Name label  | who it is                                | name in 14 px on a small parchment tab above the head, the party colour as a thin edge       | parchment fill, dark brown text           | Scene              |
-| Knocked out | down, not dead                           | the KO pose, greyed 30%, a small swirl                                                       |                                           | Scene              |
+| Item        | Reads as                                 | Parts                                                                                                                                                                                          | Palette                                   | Owner              |
+| ----------- | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- | ------------------ |
+| Hero        | a child of its god, its path at a glance | body, head, headgear or hair, cape, front and back hand, front and back foot, weapon, shield                                                                                                   | per god (`paths-and-skills.md` section 6) | Scene (code parts) |
+| Party ring  | which party this hero belongs to         | a thin ellipse under the feet in the party colour, 70% opacity                                                                                                                                 | the 8 party colours                       | Scene              |
+| Name label  | who it is, on request                    | off by default; tapping a hero shows the labels of everyone in its party while its Party panel is open: name in 14 px on a small parchment tab above the head, the party colour as a thin edge | parchment fill, dark brown text           | Scene              |
+| Knocked out | down, not dead                           | the KO pose, greyed 30%, a small swirl                                                                                                                                                         |                                           | Scene              |
 
 ## 3. Monsters (the M2 five and Fafnir)
 
@@ -53,14 +54,14 @@ shape, not gore), drawn from code parts like heroes. Tier: one visible added pie
 yellow, red) on the **eyes and the ground ring**, never on the whole body. Elites: a thin gold
 outline edge.
 
-| Monster    | Reads as                                    | Parts (tier 1)                                                                                         | Palette                                              | Owner      |
-| ---------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------ | ---------------------------------------------------- | ---------- |
-| Draugr     | a dead Norse warrior, hunched and cold      | grey-blue skin body, near-black mail, rusted helm, wispy beard, glowing cold eyes, jagged axe, tatters | dead grey, near black, rust; eyes cold cyan          | Scene      |
-| Troll      | a huge, slow brute (1.7x)                   | moss-dark hide body, fur, heavy brow head with tusks, ember eyes, spiked club, big hands and feet      | moss green, dark brown; eyes ember orange            | Scene      |
-| Harpy      | a flying hag that darts in and out          | gaunt hag head, ragged wings (2, flapping), bird legs with talons, wild hair                           | dusk grey-brown wings, sallow skin; eyes pale yellow | Scene      |
-| Minotaur   | a bull-man that charges                     | bull head with horns, bare chest body, leather kilt, big axe, hooves                                   | dark brown hide, bone horns; eyes red                | Scene      |
-| Jackal-man | a pack hunter of the desert dead            | jackal head with long ears, black fur body, linen kilt, short spear                                    | black, dirty linen, bronze; eyes amber               | Scene      |
-| Fafnir     | the boss: a wyrm guarding gold (about 2.5x) | long neck, horned head with jaw, body on four legs, folded wings, tail, a gold hoard at its feet       | dark green, gold belly and hoard; one sickly accent  | **OPEN 1** |
+| Monster    | Reads as                                    | Parts (tier 1)                                                                                         | Palette                                              | Owner |
+| ---------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------ | ---------------------------------------------------- | ----- |
+| Draugr     | a dead Norse warrior, hunched and cold      | grey-blue skin body, near-black mail, rusted helm, wispy beard, glowing cold eyes, jagged axe, tatters | dead grey, near black, rust; eyes cold cyan          | Scene |
+| Troll      | a huge, slow brute (1.7x)                   | moss-dark hide body, fur, heavy brow head with tusks, ember eyes, spiked club, big hands and feet      | moss green, dark brown; eyes ember orange            | Scene |
+| Harpy      | a flying hag that darts in and out          | gaunt hag head, ragged wings (2, flapping), bird legs with talons, wild hair                           | dusk grey-brown wings, sallow skin; eyes pale yellow | Scene |
+| Minotaur   | a bull-man that charges                     | bull head with horns, bare chest body, leather kilt, big axe, hooves                                   | dark brown hide, bone horns; eyes red                | Scene |
+| Jackal-man | a pack hunter of the desert dead            | jackal head with long ears, black fur body, linen kilt, short spear                                    | black, dirty linen, bronze; eyes amber               | Scene |
+| Fafnir     | the boss: a wyrm guarding gold (about 2.5x) | long neck, horned head with jaw, body on four legs, folded wings, tail, a gold hoard at its feet       | dark green, gold belly and hoard; one sickly accent  | Scene |
 
 - **Telegraphs and enrage** for Fafnir per `monsters-and-bosses.md` "How bosses look" (head
   rears back, a red cone on the ground, smoke; glowing cracks on the neck when enraged).
@@ -130,18 +131,17 @@ building carries **none** of them:
 
 ## 8. Proposed rows
 
-| Role    | Order | Row                                                                                                      |
-| ------- | ----- | -------------------------------------------------------------------------------------------------------- |
-| Scene   | 10    | Monster parts for draugr, troll, harpy, minotaur, jackal-man (tier pieces, eyes, ring), in the #193 bake |
-| Scene   | 20    | Name label on heroes; bounty flag per section 6; damage numbers per section 6                            |
-| Scene   | 30    | Lair cues: corrupted ground decal, red skull plate, door glow (with B17)                                 |
-| Art     | 10    | Fafnir per OPEN 1; UI kit in wood and parchment                                                          |
-| Balance | 10    | Monster part rows (like `heroParts.ts`) for the five M2 monsters                                         |
+| Role    | Order | Row                                                                                                                 |
+| ------- | ----- | ------------------------------------------------------------------------------------------------------------------- |
+| Scene   | 10    | Monster parts for draugr, troll, harpy, minotaur, jackal-man and Fafnir (tier pieces, eyes, ring), in the #193 bake |
+| Scene   | 20    | Name labels on the tapped hero's party (off otherwise); bounty flag and damage numbers per section 6                |
+| Scene   | 30    | Lair cues: corrupted ground decal, red skull plate, door glow (with B17)                                            |
+| Art     | 10    | UI kit in wood and parchment                                                                                        |
+| Balance | 10    | Monster part rows (like `heroParts.ts`) for the five M2 monsters                                                    |
 
-## OPEN (Stefan decides)
+## Decided (Stefan, 2026-10-14)
 
-1. **Fafnir:** code parts like every other unit (recommendation: one pipeline, it can rear and
-   breathe), or an Art picture moved in code?
-2. **Name labels:** on every hero at normal zoom and hidden when zoomed out (recommendation), or
-   only on the tapped party?
-3. **Lair plate text:** the lair's name ("Draugr Barrow", recommendation) or only the skull?
+1. **Fafnir** is code parts like every other unit (one pipeline, it can rear and breathe).
+2. **Name labels** are off by default; tapping a hero shows the names of everyone in that hero's
+   party (not the recommendation, which was always on at normal zoom).
+3. **The lair plate** carries the lair's name ("Draugr Barrow") with the skull.
