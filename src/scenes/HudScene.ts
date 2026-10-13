@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { COLORS, GAME_WIDTH, MIN_TOUCH } from '../config';
 import { GRAYBOX } from '../data/graybox';
 import type { CommandResult } from '../sim/api';
+import { makePanel } from '../ui/panel';
 import { makeButton, type Button } from '../ui/button';
 import { PartyPanel } from '../ui/partyPanel';
 import type { SimEvent, Vec2 } from '../sim/api';
@@ -34,6 +35,7 @@ export class HudScene extends Phaser.Scene {
   private panel!: PartyPanel;
   private endObjects: Phaser.GameObjects.GameObject[] = [];
   private speedButtons: Button[] = [];
+  private watchBtn: Button | null = null;
   private menu: Phaser.GameObjects.GameObject[] = [];
   private menuButtons: { button: Button; cost: number }[] = [];
   private menuRect: Phaser.Geom.Rectangle | null = null;
@@ -82,6 +84,10 @@ export class HudScene extends Phaser.Scene {
       this.speedButtons.push(b);
     });
     makeButton(this, 890, 40, 110, MIN_TOUCH, 'Menu', () => this.openPause());
+    this.watchBtn = makeButton(this, 770, 40, 110, MIN_TOUCH, 'Watch', () => {
+      const m = map.registry.get('camMode');
+      map.setWatch(m !== 'watch');
+    });
     this.refreshSpeed();
     this.toast = this.add
       .text(GAME_WIDTH / 2, 640, '', {
@@ -112,6 +118,7 @@ export class HudScene extends Phaser.Scene {
   }
 
   update(_time: number, deltaMs: number): void {
+    this.watchBtn?.setActive(this.registry.get('camMode') === 'watch');
     const snap = (this.scene.get('Map') as MapScene).snapshot;
     for (const l of snap.lairs) this.places.set(l.id, l.pos);
     for (const b of snap.buildings) this.places.set(b.id, b.pos);
@@ -271,6 +278,11 @@ export class HudScene extends Phaser.Scene {
       return;
     }
     this.panel.hide();
+    // A tap on bare ground while a menu is open dismisses it (a second tap places a bounty).
+    if (this.menu.length > 0 && tap.plot === null && tap.target?.label === 'this spot') {
+      this.closeMenu();
+      return;
+    }
     if (tap.plot !== null) {
       const plot = tap.plot;
       this.openMenu(
@@ -296,8 +308,12 @@ export class HudScene extends Phaser.Scene {
 
   private openMenu(title: string, options: MenuOption[]): void {
     this.closeMenu();
+    // Every menu ends in a Close button: the only other way out used to be a tap on the map,
+    // which opened a bounty menu on the bare ground instead.
+    options = [...options, { label: 'Close', cost: 0, pick: () => this.closeMenu() }];
     const n = options.length;
-    const bw = 230;
+    const gap0 = 14;
+    const bw = Math.min(230, Math.floor((GAME_WIDTH - 40 - (n + 1) * gap0) / n));
     const bh = 100;
     const gap = 14;
     const w = n * bw + (n + 1) * gap;
@@ -305,9 +321,7 @@ export class HudScene extends Phaser.Scene {
     const cx = GAME_WIDTH / 2;
     const cy = 720 - h / 2 - 12;
     this.menuRect = new Phaser.Geom.Rectangle(cx - w / 2, cy - h / 2, w, h);
-    const panel = this.add
-      .rectangle(cx, cy, w, h, 0x120d09, 0.92)
-      .setStrokeStyle(3, COLORS.gold, 0.8);
+    const panel = makePanel(this, cx, cy, w, h, 0.92);
     const heading = this.add
       .text(cx, cy - h / 2 + 24, title, { ...TEXT, fontSize: '24px', color: COLORS.textMuted })
       .setOrigin(0.5);

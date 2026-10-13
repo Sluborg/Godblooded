@@ -143,6 +143,29 @@ try {
       throw new Error(`building ${type} was not built (step ${n})`);
   }
 
+  // A bounty menu can be dismissed: tap bare ground (opens it), tap Close (the last button).
+  const menuOpen = () =>
+    page.evaluate(() => window.__game.scene.getScene('Hud').menuButtons.length > 0);
+  const ground = await page.evaluate(() => {
+    const m = window.__game.scene.getScene('Map');
+    const c = m.cameras.main.midPoint;
+    return [c.x + 300, c.y - 100];
+  });
+  await tap(await worldToScreen(ground));
+  if (!(await menuOpen())) throw new Error('bounty menu did not open on bare ground');
+  const close = await page.evaluate(() => {
+    const list = window.__game.scene.getScene('Hud').menuButtons;
+    const b = list[list.length - 1].button.rect;
+    return [b.centerX, b.centerY];
+  });
+  await tap(await designToScreen(close));
+  await sleep(300);
+  if (await menuOpen()) throw new Error('bounty menu did not close on Close');
+  await tap(await worldToScreen(ground));
+  await tap(await worldToScreen(ground));
+  await sleep(300);
+  if (await menuOpen()) throw new Error('bounty menu did not close on a bare-ground tap');
+
   // 4x speed.
   const fast = await page.evaluate(() => {
     const b = window.__game.scene.getScene('Hud').speedButtons[2].rect;

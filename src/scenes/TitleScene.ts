@@ -1,5 +1,8 @@
 import Phaser from 'phaser';
 import { COLORS, GAME_HEIGHT, GAME_WIDTH } from '../config';
+import { ASSETS_KEY, type ManifestAsset } from '../ui/assets';
+import { pickLogoId } from '../ui/assetPriority';
+import { drawBackdrop } from '../ui/backdrop';
 import { makeButton } from '../ui/button';
 
 const FONT = 'Georgia, serif';
@@ -13,13 +16,20 @@ export class TitleScene extends Phaser.Scene {
 
   create(): void {
     const cx = GAME_WIDTH / 2;
-    this.add.rectangle(cx, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, COLORS.background);
-    this.add.rectangle(cx, GAME_HEIGHT - 90, GAME_WIDTH, 180, COLORS.ground);
-    // Logo placeholder: a framed wordmark until the real logo (U1) lands.
-    this.add.rectangle(cx, 170, 760, 170, 0x000000, 0.35).setStrokeStyle(4, COLORS.gold, 0.8);
-    this.add
-      .text(cx, 170, 'GODBLOODED', { fontFamily: FONT, fontSize: '96px', color: '#f2c14e' })
-      .setOrigin(0.5);
+    drawBackdrop(this);
+    this.cameras.main.fadeIn(300, 0, 0, 0);
+    // The logo picture when Art has picked one, else the wordmark.
+    const rows = this.registry.get(ASSETS_KEY) as Map<string, ManifestAsset> | undefined;
+    const logoId = pickLogoId(rows?.keys() ?? []);
+    if (logoId && this.textures.exists(logoId)) {
+      const logo = this.add.image(cx, 170, logoId);
+      logo.setScale(Math.min(1, 200 / logo.height));
+    } else {
+      this.add
+        .text(cx, 170, 'GODBLOODED', { fontFamily: FONT, fontSize: '104px', color: '#f2c14e' })
+        .setOrigin(0.5)
+        .setShadow(0, 6, '#000000', 10, false, true);
+    }
     this.add
       .text(cx, 285, 'Build the town. Hire the children of gods. Watch them fight.', {
         fontFamily: FONT,

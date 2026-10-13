@@ -15,8 +15,11 @@ import {
 import { getSettings } from '../ui/settings';
 import { heroLabel, partyColor } from '../ui/partyLook';
 import { UnitViews } from '../ui/unitViews';
+import { buildingArtCandidates, buildingScale } from '../ui/unitLook';
+import { ASSETS_KEY, type ManifestAsset } from '../ui/assets';
 import { OFFER_KEY, type LevelUpOffer } from './LevelUpScene';
 import { attachCameraControls } from '../ui/cameraControls';
+import { easeToward, WatchDirector } from '../ui/watchCam';
 import type { HudScene } from './HudScene';
 
 const BUILDING_COLORS: Record<string, number> = {
@@ -51,6 +54,10 @@ export class MapScene extends Phaser.Scene {
   private links!: Phaser.GameObjects.Graphics;
   // Party whose level-up cards are open (the sim is frozen until it is picked), or null.
   private offerKey: string | null = null;
+  // Camera mode: by hand, watching the best fight, or following one hero (until it is gone).
+  private cam: 'off' | 'watch' | 'unit' = 'off';
+  private followId = 0;
+  private director = new WatchDirector();
   private views = new Map<string, Phaser.GameObjects.GameObject>();
 
   constructor() {
@@ -71,9 +78,14 @@ export class MapScene extends Phaser.Scene {
     attachCameraControls(this, {
       minZoom,
       onTap: (w) => this.events.emit('mapTapped', this.resolveTap(w)),
+      onManual: () => this.setWatch(false),
       blocked: (x, y) => this.registry.get('modal') === true || (this.hud()?.blocks(x, y) ?? false),
     });
     this.offerKey = null;
+    this.cam = 'off';
+    this.followId = 0;
+    this.director.reset();
+    this.registry.set('camMode', 'off');
     this.registry.set('modal', false);
     this.unitViews = new UnitViews(this, () => {
       if (!getSettings().reducedMotion) this.cameras.main.shake(130, 0.004);
@@ -95,6 +107,42 @@ export class MapScene extends Phaser.Scene {
     this.syncOffer();
     // Motion runs at the game speed, but not past 2x: a 4x swing would be a blur.
     this.sync(deltaMs * Math.min(speed, 2));
+    this.updateCamera(deltaMs);
+  }
+
+  // Watch on: the camera drifts to the most interesting fight. Off: back to by hand.
+  setWatch(on: boolean): void {
+    this.cam = on ? 'watch' : 'off';
+    this.followId = 0;
+    this.director.reset();
+    this.registry.set('camMode', this.cam);
+  }
+
+  // Follow one hero until it leaves the map or the player drags.
+  followUnit(id: number): void {
+    this.cam = 'unit';
+    this.followId = id;
+    this.registry.set('camMode', 'unit');
+  }
+
+  private updateCamera(dtMs: number): void {
+    if (this.cam === 'off') return;
+    let target: Vec2 | null;
+    if (this.cam === 'unit') {
+      const u = this.snap.units.find((x) => x.id === this.followId);
+      if (!u) return this.setWatch(false);
+      target = u.pos;
+    } else {
+      target =
+        this.director.update(this.snap.units, dtMs, [
+          ...this.snap.lairs.map((l) => l.id),
+          ...this.snap.buildings.map((b) => b.id),
+        ])?.center ?? null;
+    }
+    if (!target) return;
+    const cam = this.cameras.main;
+    const next = easeToward({ x: cam.midPoint.x, y: cam.midPoint.y }, target, dtMs);
+    cam.centerOn(next.x, next.y);
   }
 
   // Level-up cards open while any party has an offer and close when the sim accepts a pick. A
@@ -158,6 +206,7 @@ export class MapScene extends Phaser.Scene {
   // Bounty amounts are the HUD's choice; the sim validates and spends.
   // Pan the camera to a place (an event feed tap).
   jumpTo(pos: Vec2): void {
+    this.setWatch(false);
     this.cameras.main.pan(pos.x, pos.y, 450, 'Sine.easeInOut');
   }
 
@@ -175,7 +224,10 @@ export class MapScene extends Phaser.Scene {
       .map((u) => ({ u, d: Math.hypot(u.pos.x - w.x, u.pos.y - w.y) }))
       .filter(({ d }) => d < TARGET_RADIUS)
       .sort((a, b) => a.d - b.d)[0];
-    if (hero) return { plot: null, hero: hero.u.id, target: null };
+    if (hero) {
+      this.followUnit(hero.u.id);
+      return { plot: null, hero: hero.u.id, target: null };
+    }
     const hit = [...this.snap.units, ...this.snap.lairs]
       .map((e) => ({ e, d: Math.hypot(e.pos.x - w.x, e.pos.y - w.y) }))
       .filter(({ d }) => d < TARGET_RADIUS)
@@ -219,10 +271,12 @@ export class MapScene extends Phaser.Scene {
   private sync(dtMs = 0): void {
     const seen = new Set<string>();
     for (const b of this.snap.buildings) {
-      const key = `b${b.id}`;
+      // The tier is part of the key: a tier-up replaces the view with the next picture.
+      const key = `b${b.id}t${b.tier}`;
       seen.add(key);
-      if (!this.views.has(key)) this.views.set(key, this.makeBuilding(b.type, b.pos.x, b.pos.y));
-      this.updateBar(this.views.get(key), b.hp, b.maxHp, BUILDING_SIZE, -BUILDING_SIZE - 14);
+      if (!this.views.has(key)) this.views.set(key, this.makeBuilding(b.type, b.tier, b.pos));
+      const top = (this.views.get(key)?.getData('top') as number | undefined) ?? BUILDING_SIZE;
+      this.updateBar(this.views.get(key), b.hp, b.maxHp, BUILDING_SIZE, -top - 14);
     }
     for (const l of this.snap.lairs) {
       const key = `l${l.id}`;
@@ -260,6 +314,7 @@ export class MapScene extends Phaser.Scene {
     );
     this.drawLinks();
     for (const e of this.snap.events) {
+      if (e.kind === 'lairTierUp') this.lairGrows(e.lair, e.tier);
       if (e.kind !== 'hit') continue;
       const view = this.views.get(`b${e.target}`) ?? this.views.get(`l${e.target}`);
       if (view && !e.dodged)
@@ -290,6 +345,51 @@ export class MapScene extends Phaser.Scene {
   }
 
   // While a hero is selected, its party's pick is drawn as lines to the flags they head for.
+  // A lair reaching a new tier: it swells, a red ring spreads and a label rises.
+  private lairGrows(id: number, tier: number): void {
+    const lair = this.snap.lairs.find((l) => l.id === id);
+    if (!lair) return;
+    const view = this.views.get(`l${id}`);
+    if (view && !getSettings().reducedMotion)
+      this.tweens.add({
+        targets: view,
+        scale: 1.25,
+        duration: 220,
+        yoyo: true,
+        ease: 'Sine.easeOut',
+      });
+    const { x, y } = lair.pos;
+    const ring = this.add
+      .circle(x, y, 30, 0x000000, 0)
+      .setStrokeStyle(6, 0xd9534f, 0.9)
+      .setDepth(1_000_000);
+    this.tweens.add({
+      targets: ring,
+      scale: getSettings().reducedMotion ? 3 : 7,
+      alpha: 0,
+      duration: 700,
+      onComplete: () => ring.destroy(),
+    });
+    const label = this.add
+      .text(x, y - 90, `${lair.type} lair grows (tier ${tier})`, {
+        fontFamily: 'Georgia, serif',
+        fontSize: '28px',
+        color: '#ff9a8a',
+        stroke: '#000000',
+        strokeThickness: 5,
+      })
+      .setOrigin(0.5)
+      .setDepth(1_000_000);
+    this.tweens.add({
+      targets: label,
+      y: label.y - 50,
+      alpha: 0,
+      delay: 600,
+      duration: 900,
+      onComplete: () => label.destroy(),
+    });
+  }
+
   private drawLinks(): void {
     this.links.clear();
     const selected = this.snap.units.find((u) => u.id === this.registry.get('selectedUnit'));
@@ -346,7 +446,22 @@ export class MapScene extends Phaser.Scene {
     }
   }
 
-  private makeBuilding(type: string, x: number, y: number): Phaser.GameObjects.Container {
+  // The building's picture (its tier, else tier 1) standing on its base, scaled to the plot; the
+  // coloured square with the type name when the manifest has none.
+  private makeBuilding(type: string, tier: number, pos: Vec2): Phaser.GameObjects.Container {
+    const art = buildingArtCandidates(type, tier).find((id) => this.textures.exists(id));
+    if (art) {
+      const row = (this.registry.get(ASSETS_KEY) as Map<string, ManifestAsset> | undefined)?.get(
+        art,
+      );
+      const img = this.add.image(0, 0, art).setOrigin(row?.anchorX ?? 0.5, row?.anchorY ?? 1);
+      const k = buildingScale(img.width, img.height);
+      img.setScale(k);
+      return this.add
+        .container(pos.x, pos.y, [img])
+        .setData('top', img.height * k)
+        .setDepth(pos.y);
+    }
     const body = this.add
       .rectangle(
         0,
@@ -363,7 +478,7 @@ export class MapScene extends Phaser.Scene {
         color: '#1a1410',
       })
       .setOrigin(0.5);
-    return this.add.container(x, y, [body, label]).setDepth(y);
+    return this.add.container(pos.x, pos.y, [body, label]).setDepth(pos.y);
   }
 
   // Stand-in for lairs and monsters until the unit view (Scene 50): a dot with its type.
