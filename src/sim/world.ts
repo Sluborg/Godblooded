@@ -7,6 +7,7 @@ import { armourBonus, charmEffects, weaponPower } from './items';
 import { passiveRider } from './passives';
 import { everyNthOf, passiveAggroMult, passiveArmour } from './passives';
 import { noteFight } from './engage';
+import { runFavour } from './favour';
 import { removeSummon, runSummon, runSummonUpkeep, summonStats } from './summons';
 import { runStatuses, slowOf, healMult, type UnitStatus } from './riders';
 import { attackStrike, landStrike } from './strike';
@@ -161,6 +162,9 @@ export interface World {
   pendingDeaths: { victim: number; by: number }[];
   // Where heroes were slain.
   graves: GraveState[];
+  // God favour bars by pantheon, and the miracle steps still to run (the landing, spread strikes).
+  favour: Record<string, number>;
+  miracleSteps: { atMs: number; id: string; pos: Vec2; by: number; effect: number | null }[];
   // Monsters that died lately, for `kill` skill triggers.
   recentKills: { pos: Vec2; timeMs: number; by: number; type: string; tier: number }[];
   // Summons waiting to be called again (a falcon that died).
@@ -210,6 +214,8 @@ export function createWorld(seed: number, data: GameData): World {
     bonds: new Map(),
     pendingDeaths: [],
     graves: [],
+    favour: {},
+    miracleSteps: [],
     recentKills: [],
     respawns: [],
     nextRaidMs: 0,
@@ -324,6 +330,7 @@ function runTick(world: World): void {
   runHeroes(world);
   runSummonUpkeep(world);
   runBounties(world);
+  runFavour(world);
   runParties(world);
   runUnits(world);
   // Combat, heroes and the economy hook in here (Sim backlog 30 and up).
@@ -860,6 +867,11 @@ export function snapshot(world: World): Snapshot {
       ...(u.summon ? { summon: { ...u.summon } } : {}),
     })),
     bounties: world.bounties.map((b) => ({ ...b, pos: { ...b.pos } })),
+    favour: (world.data.miracles ?? []).map((m) => ({
+      pantheon: m.pantheon,
+      value: world.favour[m.pantheon] ?? 0,
+      max: world.tuning.favour.max,
+    })),
     graves: world.graves.map((g) => ({ ...g, pos: { ...g.pos } })),
     rivals: rivalPairs(world),
     map: { lean: [...world.mapLean], boss: world.bossLair },
