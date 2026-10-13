@@ -131,7 +131,7 @@ export function buyItem(world: World, unit: UnitState, id: string, shopTier: num
     case 'potion':
       if (items.potions >= tierValue(world.tuning.hero.potionMax, shopTier, 2)) return 0;
       items.potions++;
-      items.potionId = item.id;
+      (items.flasks ??= []).push(item.id);
       break;
     case 'charm':
       return 0;

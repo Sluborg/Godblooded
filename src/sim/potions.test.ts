@@ -32,13 +32,18 @@ const data: GameData = {
 
 type W = ReturnType<typeof createWorld>;
 
-function setup(frac: number, trait: UnitState['trait'] = null, potions = 1, potionId = 'healing') {
+function setup(
+  frac: number,
+  trait: UnitState['trait'] = null,
+  potions = 1,
+  flasks: string[] = ['healing'],
+) {
   const w = createWorld(1, data);
   const id = spawnHero(w, 'knight', { x: 500, y: 500 });
   const h = w.units.find((u) => u.id === id) as UnitState;
   h.trait = trait;
   h.hp = Math.floor(h.maxHp * frac);
-  h.items = { weapon: 0, armour: 0, potions, charm: null, potionId };
+  h.items = { weapon: 0, armour: 0, potions, charm: null, flasks };
   const rid = w.nextId++;
   const rat: UnitState = {
     id: rid,
@@ -93,7 +98,7 @@ describe('potions', () => {
   });
 
   it('a greater potion heals 70%, capped at the room left (a hero below flee runs instead)', () => {
-    const near = setup(0.35, null, 1, 'greater');
+    const near = setup(0.35, null, 1, ['greater']);
     const d2 = drank(run(near.w, 1000));
     expect(d2[0].amount).toBeLessThan(Math.round(near.h.maxHp * 0.7));
     expect(near.h.hp).toBeLessThanOrEqual(near.h.maxHp);
@@ -103,9 +108,17 @@ describe('potions', () => {
     expect(fleeing.h.mode).not.toBe('explore');
   });
 
+  it('keeps small potions apart from greater ones: the strongest goes first', () => {
+    const { w, h } = setup(0.35, null, 2, ['healing', 'greater']);
+    const d = drank(run(w, 800));
+    expect(d[0].amount).toBeGreaterThan(Math.round(h.maxHp * 0.4));
+    expect(h.items?.flasks).toEqual(['healing']);
+    expect(h.items?.potions).toBe(1);
+  });
+
   it('does not drink above the threshold, with no potion, or out of a fight', () => {
     expect(drank(run(setup(0.6).w, 1500))).toHaveLength(0);
-    expect(drank(run(setup(0.35, null, 0).w, 1500))).toHaveLength(0);
+    expect(drank(run(setup(0.35, null, 0, []).w, 1500))).toHaveLength(0);
     const quiet = setup(0.35);
     quiet.rat.pos = { x: 3000, y: 3000 };
     expect(drank(run(quiet.w, 1500))).toHaveLength(0);

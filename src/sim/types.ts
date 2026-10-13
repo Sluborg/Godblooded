@@ -213,8 +213,9 @@ export interface HeroItems {
   weapon: number;
   armour: number;
   potions: number;
-  // The potion row they came from (the strongest bought; drinking reads its heal).
-  potionId?: string;
+  // The potions carried, by item id (so small and greater ones keep their own heal). Its
+  // length is `potions`; missing means that many plain 40% potions.
+  flasks?: string[];
   charm: string | null;
 }
 
