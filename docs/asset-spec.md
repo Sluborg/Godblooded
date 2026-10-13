@@ -131,6 +131,10 @@ row.sliceBottom)`. The validator checks that all four are present together and l
 
 Silhouette must change between tiers (not only colour), so a tier reads at phone size.
 
+**A path picture is a natural evolution of the god's tier-1 child** (Stefan 2026-10-13): the
+same face, hair, palette and silhouette as `hero_<god>_t1_front`, adding gear and effects; tier
+3 is more of the same. Never a different person.
+
 Heroes and buildings get a picture per tier. **Monsters have tier-1 pictures only**: the game
 shows a tougher monster by colour (tint) in code.
 
