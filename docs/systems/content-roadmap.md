@@ -26,7 +26,7 @@ milestone table in step. It places every spec in `docs/systems/` on milestones M
 | --------- | -------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
 | M2        | Aesir: Odin, Thor, Loki, Freyja; 8 paths; 8 skills at tier 2; 4 passives                                                                     | god tier 1 and path tier 2 (batch 70, queued) |
 | M3        | Greek (Athena, Ares, Apollo, Poseidon) and Egyptian (Horus, Anubis, Sekhmet, Isis), 16 paths and skills, 8 passives; tier 3 for all 24 paths | 8 god tier 1, 16 path tier 2, 24 path tier 3  |
-| M4        | tier 3 skill upgrades polished, god's favour cards                                                                                           | none                                          |
+| M4        | tier 3 skill upgrades polished (favour cards ship in M3)                                                                                     | none                                          |
 
 ### Monsters and bosses (`monsters-and-bosses.md`)
 
@@ -38,10 +38,10 @@ milestone table in step. It places every spec in `docs/systems/` on milestones M
 
 ### Buildings (`buildings.md`)
 
-| Milestone | Content                                                                                              | Art needed                                 |
-| --------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------ |
-| M2        | town hall, Aesir temple, market, smithy, shrine, tower; tier 1 and 2; the building card with upgrade | tier 2 (batch 80, queued)                  |
-| M3        | Greek and Egyptian temples, Hearth Hall, town hall tiers, tier 3, ruins                              | tier 3 all, Hearth Hall x3, ruin, scaffold |
+| Milestone | Content                                                                                                                  | Art needed                                 |
+| --------- | ------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------ |
+| M2        | Aesir temple, market, smithy, shrine, tower at tier 1 and 2 (the town hall stays tier 1); the building card with upgrade | tier 2 (batch 80, queued)                  |
+| M3        | Greek and Egyptian temples, Hearth Hall, town hall tiers, tier 3, ruins                                                  | tier 3 all, Hearth Hall x3, ruin, scaffold |
 
 ### Cards (`progression.md`)
 
@@ -63,15 +63,15 @@ milestone table in step. It places every spec in `docs/systems/` on milestones M
 Pillar 1 is "watching is the fun". M2 is fun when a 15-minute run passes these checks. The
 first five are Sim bot numbers (new run stats); the last two are Stefan's judgment.
 
-| Check                       | Target                                                                 | Measured by                      |
-| --------------------------- | ---------------------------------------------------------------------- | -------------------------------- |
-| Skills in fights            | a skill cast in at least 60% of fights after 6:00                      | casts / fights (Sim run stats)   |
-| Decisions                   | at least one player decision per minute (build, upgrade, bounty, card) | bot decision log                 |
-| Quiet stretches             | no 60 s with no fight, no level-up and no raid in view                 | longest quiet gap                |
-| Damage types read           | at least 2 types in most fights after tier 2                           | hits by type                     |
-| Gear shows                  | average weapon or armour level 1+ by 8:00                              | run stats (`items-and-shops.md`) |
-| A hero to remember          | after a run, Stefan can name one hero and what it did                  | Stefan                           |
-| Bounties feel like steering | placing a flag visibly changes who goes where                          | Stefan                           |
+| Check                       | Target                                                                 | Measured by                                      |
+| --------------------------- | ---------------------------------------------------------------------- | ------------------------------------------------ |
+| Skills in fights            | a skill cast in at least 60% of fights after 6:00                      | share of fights with a cast (per-fight record)   |
+| Decisions                   | at least one player decision per minute (build, upgrade, bounty, card) | bot decision log                                 |
+| Quiet stretches             | no 60 s with no fight, no level-up and no raid in view                 | longest quiet gap                                |
+| Damage types read           | at least 2 types in most fights after tier 2                           | share of fights with 2+ types (per-fight record) |
+| Gear shows                  | average weapon or armour level 1+ by 8:00                              | run stats (`items-and-shops.md`)                 |
+| A hero to remember          | after a run, Stefan can name one hero and what it did                  | Stefan                                           |
+| Bounties feel like steering | placing a flag visibly changes who goes where                          | Stefan                                           |
 
 If M2 fails the last two checks, M3 waits; Design proposes the fix (most likely more
 personality on screen: speech bubbles, rivalries, the coward fleeing visibly).
@@ -94,9 +94,9 @@ is fun.
 
 ### Sim
 
-| Order | Row                                                                                                  |
-| ----- | ---------------------------------------------------------------------------------------------------- |
-| 10    | Run stats for the fun checks: casts per fight, decisions per minute, longest quiet gap, hits by type |
+| Order | Row                                                                                                                                                                                                                                              |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 10    | Run stats for the fun checks: a record per fight (fight boundary from `combat.md`: start, end, any skill cast, set of damage types), decisions per minute, longest quiet gap; the report gives the share of fights with a cast and with 2+ types |
 
 ## OPEN (Stefan decides)
 
