@@ -34,7 +34,7 @@ export function summonStats(world: World, unit: UnitState): Stats | undefined {
   const owner = sm && world.units.find((u) => u.id === sm.owner);
   if (!sm || !def || !owner) return undefined;
   if (def.fromDead) {
-    const mon = world.data.monsters?.find((m) => m.id === unit.type);
+    const mon = world.data.monsters?.find((m) => m.id === sm.monster);
     if (!mon) return undefined;
     const mult = tierValue(world.tuning.lair.statMult, unit.tier, 1) * def.fromDead.share;
     return {
@@ -86,7 +86,8 @@ export function spawnSummons(
     let hp: number;
     if (corpse) {
       const mon = world.data.monsters?.find((m) => m.id === corpse.type);
-      if (!mon) continue;
+      // A boss does not rise (its tag and immunities would come with it).
+      if (!mon || mon.boss || mon.tags?.includes('boss')) continue;
       const mult =
         tierValue(world.tuning.lair.statMult, corpse.tier, 1) * (def.fromDead?.share ?? 1);
       hp = monsterHp({ ...mon, attrs: scaleAttrs(mon.attrs, mult) });
@@ -97,7 +98,7 @@ export function spawnSummons(
     world.units.push({
       id,
       kind: 'summon',
-      type: corpse ? corpse.type : def.id,
+      type: def.id,
       tier: corpse ? corpse.tier : 1,
       god: owner.god,
       path: null,
@@ -117,6 +118,7 @@ export function spawnSummons(
         def: def.id,
         until: eff.s !== undefined ? world.timeMs + eff.s * 1000 : null,
         src,
+        ...(corpse ? { monster: corpse.type } : {}),
       },
     });
     world.unitRuntime.set(id, {

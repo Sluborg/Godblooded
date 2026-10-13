@@ -401,7 +401,9 @@ export function resolve(
   const touched = new Set<number>();
   for (const effect of effects) {
     if (effect.kind === 'summon') {
-      const dead = deadNear(world, hero, point, 200, effect.count ?? 1);
+      // Only a thrall uses up the party's recent kills.
+      const fromDead = !!world.data.summons?.find((s) => s.id === effect.summon)?.fromDead;
+      const dead = fromDead ? deadNear(world, hero, point, 200, effect.count ?? 1) : [];
       spawnSummons(world, hero, effect, point, def.id, dead);
       continue;
     }

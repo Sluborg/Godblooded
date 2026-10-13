@@ -181,8 +181,25 @@ describe('summons', () => {
     run(w, 800);
     const t = summonsOf(w, 'thrall');
     expect(t).toHaveLength(1);
-    expect(t[0].type).toBe('rat');
+    expect(t[0].type).toBe('thrall');
+    expect(t[0].summon?.monster).toBe('rat');
     expect(w.recentKills).toHaveLength(0);
+  });
+
+  it('a decoy cast leaves the recent kills for the kill triggers', () => {
+    const w = createWorld(1, mkData([call('decoy')]));
+    const h = hero(w);
+    w.recentKills.push({
+      pos: { x: 540, y: 500 },
+      timeMs: w.timeMs,
+      by: h.id,
+      type: 'rat',
+      tier: 1,
+    });
+    monster(w, 560, 500);
+    run(w, 800);
+    expect(summonsOf(w, 'decoy')).toHaveLength(1);
+    expect(w.recentKills).toHaveLength(1);
   });
 
   it('no recent kill, no thrall', () => {

@@ -799,7 +799,8 @@ export interface UnitState {
   // Heroes: gear carried (absent: nothing). Monsters never have any.
   items?: HeroItems;
   // Summons: who called it, from which row, and when it ends (null: until it dies).
-  summon?: { owner: number; def: string; until: number | null; src: string };
+  // `monster` is the dead monster a thrall rose from (its stats); `type` stays the row id for art.
+  summon?: { owner: number; def: string; until: number | null; src: string; monster?: string };
   // Unit being attacked, if any (Scene lunges toward it).
   target: number | null;
   // Knocked out (heroes only, monsters are removed). Out of the fight until revived.
