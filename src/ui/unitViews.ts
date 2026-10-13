@@ -25,14 +25,13 @@ import { RIDER_LOOK, riderDurationMs } from './riderLook';
 import { damageLook, MAX_FLOATS, typeTint, type FloatLook, type HitInfo } from './damageLook';
 import { getSettings } from './settings';
 import { heroLabel, partyColor, partyRole, type PartyRole } from './partyLook';
+import { SpeechLimit } from './speechLimit';
 import { isSpeechEvent, pickLine, type SpeechKind } from './speechLines';
 import { buildHeal, buildStrike, FxLayer, type Vec } from './strikeFx';
 import { ART_NOMINAL_PX, PLACEHOLDER, UNIT_HEIGHT, artCandidates, baseType } from './unitLook';
 
 // Speech bubbles: how long one stays, the most on screen at once, and the quiet time per unit.
 const BUBBLE_MS = 2200;
-const MAX_BUBBLES = 4;
-const UNIT_COOLDOWN_MS = 2500;
 // How far ahead of the impact the windup is allowed to start when the sim gives no warning:
 // the `hit` event arrives at impact, so the windup is squeezed into this (docs/api: Scene 70).
 const DEFAULT_LEAD_S = 0.09;
@@ -124,7 +123,6 @@ export class UnitView {
   private readonly hue: number;
   private readonly unitId: number;
   spoken = 0;
-  lastSpokeAt = -Infinity;
 
   // motion state
   private x: number;
@@ -554,6 +552,9 @@ export class UnitView {
   // Walk dust comes from the foot that just landed: one or two small puffs, the side
   // alternating with the step (the same parity as the step tilt).
   private stepDust(ctx: FrameCtx): void {
+    // Small monsters wander around their lair all day: their step puffs piled up into grey balls
+    // beside it. Only heroes and tier 3 brutes raise dust.
+    if (!this.isHero && this.tierNow < 3) return;
     const side = Math.floor(this.stepT) % 2 ? 1 : -1;
     const k = 0.4 * this.look.scale;
     ctx.fx.dust(this.x + side * this.footOffset(), this.y, k);
@@ -868,15 +869,13 @@ export class UnitViews {
     this.fx.update(dtS);
   }
 
-  // Heroes only, rate limited: at most MAX_BUBBLES at once, one per unit every few seconds.
+  private speech = new SpeechLimit();
+
+  // Heroes only, rationed by SpeechLimit (one bark in town per few seconds, one per hero per 30 s).
   private onSpeech(e: Extract<SimEvent, { kind: SpeechKind }>, timeMs: number): void {
     const view = this.views.get(e.unit);
     if (!view || !view.isHero) return;
-    if (timeMs - view.lastSpokeAt < UNIT_COOLDOWN_MS) return;
-    let live = 0;
-    for (const v of this.views.values()) if (v.hasBubble) live++;
-    if (live >= MAX_BUBBLES && !view.hasBubble) return;
-    view.lastSpokeAt = timeMs;
+    if (!this.speech.allow(e.unit, timeMs)) return;
     view.say(pickLine(e.kind, e.unit, view.spoken++));
   }
 

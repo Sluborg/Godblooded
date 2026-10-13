@@ -41,16 +41,16 @@ picture: argue, revenge, avenged, partyFormed, bountyClaimed.
 
 ## 2. Fix 1: show intent
 
-| Intent  | When                            | Icon over the party banner | Speech (one in three) |
-| ------- | ------------------------------- | -------------------------- | --------------------- |
-| flag    | heading for a bounty            | coin over a flag           | "Gold!" / trait line  |
-| lair    | heading for or attacking a lair | crossed swords             | "To the lair!"        |
-| revenge | under an oath                   | red skull                  | "For {name}!"         |
-| explore | walking to an explore point     | compass                    | none                  |
-| retreat | the party returns hurt          | broken shield              | "Fall back!"          |
-| shop    | going to a shop                 | coin bag                   | none                  |
-| rest    | resting                         | bed (small, dim)           | none                  |
-| defend  | rejoining to defend the town    | tower                      | "The town!"           |
+| Intent  | When                            | Icon over the party banner | Speech (superseded: `barks.md`) |
+| ------- | ------------------------------- | -------------------------- | ------------------------------- |
+| flag    | heading for a bounty            | coin over a flag           | "Gold!" / trait line            |
+| lair    | heading for or attacking a lair | crossed swords             | "To the lair!"                  |
+| revenge | under an oath                   | red skull                  | "For {name}!"                   |
+| explore | walking to an explore point     | compass                    | none                            |
+| retreat | the party returns hurt          | broken shield              | "Fall back!"                    |
+| shop    | going to a shop                 | coin bag                   | none                            |
+| rest    | resting                         | bed (small, dim)           | none                            |
+| defend  | rejoining to defend the town    | tower                      | "The town!"                     |
 
 - **Event** `intent { party, kind, target?, pos? }` whenever the party leader's intent changes;
   the snapshot carries `party.intent` for Scene.
