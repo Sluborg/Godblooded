@@ -1,5 +1,6 @@
 // Ships reviewed uploads into the game: raw file to assets/source/<batch>/<id>.png, keyed and
-// scaled sprite to public/assets/<dir>/<id>.png, manifest row added or replaced. Run
+// scaled sprite to public/assets/<dir>/<id>.png (palette-compressed), manifest row added or
+// replaced. Run
 // `npm run validate:art` afterwards.
 //
 // Usage: node scripts/art/ship.mjs <folder> <batch> [id ...]   (ids limit which files ship)
@@ -14,6 +15,7 @@ import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from
 import { join } from 'node:path';
 import {
   collectUploads,
+  compressPng,
   fitFrame,
   kindOf,
   parseId,
@@ -32,6 +34,7 @@ const LICENSE = "own (ChatGPT, Stefan's account)";
 const manifestPath = 'public/assets/manifest.json';
 const manifest = JSON.parse(readFileSync(manifestPath, 'utf-8'));
 const rows = [];
+const written = [];
 const uploads = collectUploads(dir).filter(
   (u) =>
     !u.test && (u.batch === null || u.batch === batch) && (!only.length || only.includes(u.id)),
@@ -48,6 +51,7 @@ const ship = (id, path, r, strike) => {
   copyFileSync(path, `assets/source/${batch}/${id}.png`);
   const file = `${r.dir}/${id}.png`;
   writePng(`public/assets/${file}`, r.image);
+  written.push(`public/assets/${file}`);
   const { tier, view, part } = parseId(id);
   const pivot = r.pivotX === undefined ? {} : { pivotX: r.pivotX, pivotY: r.pivotY };
   rows.push({
@@ -134,6 +138,7 @@ for (const { id, path } of uploads) {
 for (const u of uploads)
   if (parseId(u.id).part === 'arm' && !byId.has(u.id.replace(/_arm$/, '_body')))
     throw new Error(`${u.id}: its body is not in this batch`);
+for (const f of written) await compressPng(f);
 const ids = new Set(rows.map((r) => r.id));
 manifest.assets = manifest.assets
   .filter((a) => !ids.has(a.id))

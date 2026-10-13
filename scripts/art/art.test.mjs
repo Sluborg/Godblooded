@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
   blank,
   checkRaw,
   collectUploads,
+  compressPng,
   detectKey,
   fitFrame,
   isOpaque,
@@ -15,6 +16,7 @@ import {
   processImage,
   processFrames,
   processPair,
+  readPng,
   writePng,
 } from './lib.mjs';
 import { validateAssets } from './validate.mjs';
@@ -399,6 +401,64 @@ describe('opaque pictures (key art, ground tiles)', () => {
     r.image = processImage(painting(1024, 1024), 'ter_ground_dirt').image; // 256 wide
     write();
     expect(validateAssets(root).errors.join()).toMatch(/key art ships 1280 wide/);
+  });
+});
+
+describe('compression', () => {
+  // A sprite: three flat colours, a soft edge and a transparent surround.
+  function sprite() {
+    const img = blank(64, 64);
+    for (let y = 8; y < 56; y++)
+      for (let x = 8; x < 56; x++) {
+        const c = y < 24 ? [200, 40, 30] : y < 40 ? [30, 60, 180] : [240, 200, 60];
+        img.data.set([...c, x === 8 || x === 55 ? 128 : 255], (y * 64 + x) * 4);
+      }
+    return img;
+  }
+  function shipped(root, img) {
+    mkdirSync(join(root, 'public/assets/units'), { recursive: true });
+    writePng(join(root, 'public/assets/units/mon_troll_t1_front.png'), img);
+    const row = {
+      id: 'mon_troll_t1_front',
+      kind: 'mon',
+      tier: 1,
+      view: 'front',
+      file: 'units/mon_troll_t1_front.png',
+      anchorX: 0.5,
+      anchorY: 1,
+      strike: 'stomp',
+      weaponX: 0.5,
+      weaponY: 0.9,
+      license: 'own',
+      source: 'T1',
+    };
+    writeFileSync(join(root, 'public/assets/manifest.json'), JSON.stringify({ assets: [row] }));
+    return join(root, 'public/assets/units/mon_troll_t1_front.png');
+  }
+
+  it('writes a palette PNG with the same pixels and alpha', async () => {
+    const root = mkdtempSync(join(tmpdir(), 'art-'));
+    const img = sprite();
+    const path = shipped(root, img);
+    const before = readFileSync(path).length;
+    const after = await compressPng(path);
+    const out = readPng(path);
+    expect(out.colorType).toBe(3);
+    expect(after).toBeLessThan(before);
+    // Every visible pixel keeps colour and alpha; fully clear pixels may change their RGB.
+    const clearRgb = (d) => d.map((v, i) => (d[i - (i % 4) + 3] === 0 ? 0 : v));
+    expect(Buffer.compare(clearRgb(out.data), clearRgb(img.data))).toBe(0);
+  });
+
+  it('warns on uncompressed PNGs and enforces the size budget', async () => {
+    const root = mkdtempSync(join(tmpdir(), 'art-'));
+    const path = shipped(root, sprite());
+    const compressWarnings = () =>
+      validateAssets(root).warnings.filter((w) => w.includes('not compressed'));
+    expect(compressWarnings()).toHaveLength(1);
+    await compressPng(path);
+    expect(compressWarnings()).toEqual([]);
+    expect(validateAssets(root, 100).errors.join()).toMatch(/the budget is/);
   });
 });
 
