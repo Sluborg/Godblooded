@@ -13,7 +13,7 @@ import {
   type World,
 } from '../sim/api';
 import { getSettings } from '../ui/settings';
-import { partyColor } from '../ui/partyLook';
+import { heroLabel, partyColor } from '../ui/partyLook';
 import { UnitViews } from '../ui/unitViews';
 import { OFFER_KEY, type LevelUpOffer } from './LevelUpScene';
 import { attachCameraControls } from '../ui/cameraControls';
@@ -121,7 +121,8 @@ export class MapScene extends Phaser.Scene {
         level: party.level,
         size: party.members.length,
         upgrades: [],
-        pathHero: hero?.type ?? 'hero',
+        pathHero: hero ? heroLabel(hero) : 'A hero',
+        pathGod: hero?.god ?? null,
         paths: po.options.flatMap((id) => {
           const p = this.snap.paths.find((x) => x.id === id);
           return p ? [{ id: p.id, god: p.god, name: p.name, pantheon: p.pantheon }] : [];
