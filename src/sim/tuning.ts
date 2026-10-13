@@ -61,6 +61,18 @@ export const DEFAULT_TUNING: Tuning = {
     hpMult: [1, 1.25, 1.5],
     rewardMult: [1, 1.5, 2],
   },
+  building: {
+    maxTier: 3,
+    upgradeCostMult: [1.5, 2.5],
+    hpMult: [1, 1.5, 2],
+    templeRecruitMult: [1, 0.8, 0.6],
+    templeCapAdd: [0, 2, 4],
+    marketTaxMult: [1, 1.25, 1.5],
+    marketStock: [120, 240, 480],
+    towerRange: [300, 360, 420],
+    towerDamage: [8, 14, 22],
+    towerCooldownMs: [2000, 1800, 1600],
+  },
   town: {
     townHallHp: 500,
     buildingHp: 200,
@@ -91,6 +103,7 @@ export function resolveTuning(data: GameData): Tuning {
     party: { ...DEFAULT_TUNING.party, ...t?.party },
     monster: { ...DEFAULT_TUNING.monster, ...t?.monster },
     lair: { ...DEFAULT_TUNING.lair, ...t?.lair },
+    building: { ...DEFAULT_TUNING.building, ...t?.building },
     town: { ...DEFAULT_TUNING.town, ...t?.town },
     bounty: { ...DEFAULT_TUNING.bounty, ...t?.bounty },
   };
