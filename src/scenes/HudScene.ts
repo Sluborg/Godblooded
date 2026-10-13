@@ -3,6 +3,7 @@ import { COLORS, GAME_WIDTH, MIN_TOUCH } from '../config';
 import { GRAYBOX, UPGRADES } from '../data/graybox';
 import { DEFAULT_TUNING, type BuildingState, type CommandResult } from '../sim/api';
 import { buildingEffect, buildingName, nextTierEffect } from '../ui/buildingInfo';
+import { HintDirector } from '../ui/hintDirector';
 import { buildInfo, buildTap, type BuildInfo } from '../ui/buildMenu';
 import { formatClock } from '../ui/endReport';
 import { modeLabel, partyColor } from '../ui/partyLook';
@@ -55,6 +56,8 @@ export class HudScene extends Phaser.Scene {
   private menu: Phaser.GameObjects.GameObject[] = [];
   private menuButtons: { button: Button; cost: number }[] = [];
   private menuRect: Phaser.Geom.Rectangle | null = null;
+  private hints: HintDirector | null = null;
+  private buildMenuOpen = false;
   // Event feed: toasts on the left, positions of lairs and buildings remembered so a destroyed
   // one can still be jumped to.
   private feed = new EventFeed();
@@ -146,6 +149,12 @@ export class HudScene extends Phaser.Scene {
       .setAlpha(0)
       .setDepth(50);
 
+    this.hints?.destroy();
+    this.hints = new HintDirector(
+      this,
+      () => map.cameras.main,
+      (id) => this.hintUiRect(id),
+    );
     const onTap = (tap: MapTap) => this.onMapTap(map, tap);
     const onEvents = (events: readonly SimEvent[]) => this.onSimEvents(map, events);
     map.events.on('mapTapped', onTap);
@@ -153,6 +162,7 @@ export class HudScene extends Phaser.Scene {
     this.events.once('shutdown', () => {
       map.events.off('mapTapped', onTap);
       map.events.off('simEvents', onEvents);
+      this.hints?.destroy();
     });
   }
 
@@ -178,6 +188,19 @@ export class HudScene extends Phaser.Scene {
     this.panel.update((this.scene.get('Map') as MapScene).snapshot);
     const gold = (this.registry.get('gold') as number) ?? 0;
     for (const { button, cost } of this.menuButtons) button.setEnabled(gold >= cost);
+    this.hints?.update((this.scene.get('Map') as MapScene).snapshot, gold);
+  }
+
+  // The screen rectangle of a HUD hint target: a button of the build menu (`build-<type>`).
+  private hintUiRect(id: string): Phaser.Geom.Rectangle | null {
+    if (!this.buildMenuOpen || !id.startsWith('build-')) return null;
+    const i = GRAYBOX.buildings.findIndex((d) => d.id === id.slice(6));
+    return this.menuButtons[i]?.button.rect ?? null;
+  }
+
+  // Called by the Settings screen after a change to the hint settings.
+  refreshHints(): void {
+    this.hints?.refreshSettings();
   }
 
   // True when a screen point is over HUD controls, so the map ignores the press.
@@ -193,6 +216,7 @@ export class HudScene extends Phaser.Scene {
   // line goes to the event feed.
   private onSimEvents(map: MapScene, events: readonly SimEvent[]): void {
     const snap = map.snapshot;
+    this.hints?.events(events);
     const world: FeedWorld = {
       unit: (id) => snap.units.find((u) => u.id === id),
       structure: (id) => this.places.get(id),
@@ -489,6 +513,7 @@ export class HudScene extends Phaser.Scene {
   // Build menu: the first tap on an item shows what it does, the same item tapped again builds it,
   // another item switches the info, a tap outside cancels. Never builds on a single tap.
   private openBuildMenu(map: MapScene, plot: number, selected: string | null): void {
+    if (selected === null) this.hints?.fire('buildMenu');
     const gold = (this.registry.get('gold') as number | undefined) ?? 0;
     const def = GRAYBOX.buildings.find((d) => d.id === selected);
     const info = def
@@ -518,6 +543,7 @@ export class HudScene extends Phaser.Scene {
       })),
       info,
     );
+    this.buildMenuOpen = true;
   }
 
   private openMenu(title: string, options: MenuOption[], info: BuildInfo | null = null): void {
@@ -650,6 +676,7 @@ export class HudScene extends Phaser.Scene {
   }
 
   private closeMenu(): void {
+    this.buildMenuOpen = false;
     this.menu.forEach((o) => o.destroy());
     this.menu = [];
     this.menuButtons = [];
