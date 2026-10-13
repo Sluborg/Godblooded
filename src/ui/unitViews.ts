@@ -708,9 +708,10 @@ export class UnitViews {
       else if (e.kind === 'windup') this.onWindup(e);
       else if (e.kind === 'heal') this.onHeal(e, ctx);
       else if (e.kind === 'tierUp') this.onTierUp(e, paths);
-      else if (e.kind === 'shopped') this.onShopped(e);
       else if (e.kind === 'built') this.onBuilt(e, others);
       else if (isSpeechEvent(e)) this.onSpeech(e, timeMs);
+      // Shopping speaks (above) and also pops its tax in gold.
+      if (e.kind === 'shopped') this.onShopped(e);
     }
     const seen = new Set<number>();
     for (const u of units) {
