@@ -143,6 +143,21 @@ does about 30-40 damage per second, so a boss fight lasts 60-90 s.
   Egyptian, jackal-men, as guards until the boss emerges.
 - **Raids** come from every lair as today; harriers and swarms raid faster (1.5x walk speed).
 
+### How lairs look per tier
+
+A lair keeps its shape on every tier; each tier adds one thing on top, and tier 3 carries the
+skull plate (heroes can die there, `combat.md` section 6).
+
+| Lair        | Tier 1                                            | Tier 2 adds                         | Tier 3 adds                                    |
+| ----------- | ------------------------------------------------- | ----------------------------------- | ---------------------------------------------- |
+| barrow      | a grassy mound with a stone-lined door            | rune stones around it, a cold mist  | a broken longship prow on top, the skull plate |
+| troll-den   | a cave mouth in a rock pile                       | gnawed bones outside, a crude totem | a huge boulder gate, the skull plate           |
+| harpy-roost | a crag with stick nests                           | stolen trinkets in the nests        | a lightning-split peak, the skull plate        |
+| labyrinth   | a stone gateway into a hedge of walls             | bronze bull horns over the gate     | a cracked bull statue, the skull plate         |
+| jackal-camp | tents of hide around a fire                       | a jackal standard                   | a black obelisk, the skull plate               |
+| scarab-pit  | a sand pit with a broken pot                      | beetle mounds around it             | a half-buried gold scarab, the skull plate     |
+| boss lairs  | one look, no tiers (they grow nothing but guards) |                                     |                                                |
+
 ## 5. What the player sees
 
 - **Roles read from motion:** harpies dart in and out, minotaurs paw the ground then charge
@@ -153,6 +168,45 @@ does about 30-40 damage per second, so a boss fight lasts 60-90 s.
   pips on the Hydra, a swallowed hero's portrait shown in a small ring over Apep, a green
   poison tint, a fleeing hero's broken-shield icon after the howl, a stone-grey hero after a
   failed riddle.
+
+### How monsters look (tier 1, 2, 3)
+
+Same rule as the heroes (`paths-and-skills.md` section 6, cartoon units from parts): a monster
+keeps its face, body and palette on every tier; each tier adds **one silhouette change** and
+grows a little (size x1.0, x1.1, x1.2). The **tier colour** (green, yellow, red,
+`docs/game-design.md`) shows on the eyes and the ground ring, never on the whole body, so the
+monster's own palette stays readable.
+
+| Monster      | Tier 1 (keeps on every tier)                             | Tier 2 adds                              | Tier 3 adds                                                |
+| ------------ | -------------------------------------------------------- | ---------------------------------------- | ---------------------------------------------------------- |
+| draugr       | grey-green skin, rusted mail, dented helm, notched sword | a cracked round shield, a tattered cape  | a horned helm, frost on the blade, a cold mist at the feet |
+| troll        | mossy grey skin, huge arms, a tree-branch club           | a stone in the club, a bone necklace     | moss and a small tree on the back, a boulder club          |
+| harpy        | feathered wings, bird legs with talons, wild hair        | longer wing tips, a stolen gold necklace | a feather crest, storm-dark wings with a bright edge       |
+| minotaur     | bull head with horns, bare chest, a big axe              | a bronze nose ring, a leather harness    | gilded horns, a double-headed axe                          |
+| jackal-man   | jackal head, black fur, linen kilt, a short spear        | a bronze collar, a small round shield    | a gold headdress, a khopesh                                |
+| scarab swarm | a knot of black beetles with gold backs                  | a bigger knot, a few flying beetles      | one large gold scarab at the centre                        |
+
+- **Elites** (from lair tier 2, `progression.md`): the same picture with a **gold outline edge**
+  and a bigger health bar; an elite with a skill (lair tier 3) shows the skill's colour in the
+  eyes.
+- **Readable at 0.7x on a phone:** each tier must change the outline (a shield, horns, a
+  crest), not only the colour.
+- **Variants** (`docs/game-design.md`): common monsters get 2-3 swaps of one part (head or
+  weapon) per tier, so a pack never looks cloned.
+
+### How bosses look
+
+Bosses are about 2.5x a hero's height (Fafnir's art sets the size) and never change tier. The
+**telegraph** is the boss's one moving tell; `Signature moves` above gives its timing.
+
+| Boss        | Silhouette                                                  | Palette                   | Telegraph look                                                 | Enraged look                        |
+| ----------- | ----------------------------------------------------------- | ------------------------- | -------------------------------------------------------------- | ----------------------------------- |
+| Fafnir      | a long-necked wyrm on four legs, folded wings, a gold hoard | dark green, gold belly    | head rears back, a red cone on the ground, smoke from the jaws | glowing cracks along the neck       |
+| Jormungandr | a huge serpent rising in coils, a wide fanged head          | sea-green, pale scales    | head lifts, green drops fall, a green ring under the target    | venom drips from the jaws all along |
+| Hydra       | a squat body with three long necks                          | marsh green, yellow eyes  | 3 head pips over the body; a cut neck smokes                   | the necks thrash faster             |
+| Cerberus    | a giant three-headed hound, chain collar                    | black, ember-red eyes     | the three heads lift, a red shock ring spreads                 | fire in the mouths and the collar   |
+| Apep        | a giant coiling serpent, a hooded head                      | black-violet, dark gold   | coils tighten, a dark ring under the target                    | a black haze trailing the coils     |
+| Sphinx      | a lion body with a pharaoh head and folded wings            | sandstone, lapis and gold | a "?" over the chosen hero, then "!" or a stone-grey tint      | the eyes glow gold, the wings open  |
 
 ## 6. Proposed data rows
 

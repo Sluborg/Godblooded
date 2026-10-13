@@ -67,6 +67,31 @@ Heroes inside a destroyed shop or hall are pushed out, unhurt.
   button with its cost (greyed with "needs town hall tier 2" when gated).
 - **Locked plots:** faint outline and a lock that opens with a town hall tier-up.
 
+### How buildings look per tier
+
+A building keeps its footprint and shape; tier 2 adds one piece and finer material, tier 3 one
+more and a small moving detail (smoke, a flag, a glow), so a tier-up is visible at 0.7x. Same
+cartoon-from-parts look as the units; a building is about 3 to 4 heroes wide.
+
+| Building    | Tier 1                                                  | Tier 2 adds                                             | Tier 3 adds                                      |
+| ----------- | ------------------------------------------------------- | ------------------------------------------------------- | ------------------------------------------------ |
+| Town hall   | a timber longhouse with a carved door and a banner      | a stone base, a second banner                           | a watch tower on one end, gold on the roof ridge |
+| Temple      | the pantheon's small shrine (below)                     | a second roof or columns, a brazier                     | a statue of a god, a glow at the door            |
+| Market      | an open stall with a striped awning, crates             | a second stall, hanging lanterns                        | a covered hall, a gold coin sign that turns      |
+| Smithy      | a forge with an anvil outside, a chimney                | a weapon rack, a bigger chimney with sparks             | a stone forge house, a glowing furnace mouth     |
+| Shrine      | a small altar with a healing spring                     | a roof over the altar, candles                          | a white stone shrine, a soft glow over the water |
+| Guard tower | a timber tower with an archer platform                  | a stone base, a roof                                    | a taller stone tower, a flag on top              |
+| Hearth Hall | a long timber hall with a smoking roof, benches outside | a second hearth (two smoke trails), shields on the wall | a carved gable, a great fire pit outside         |
+
+| Temple   | Tier 1 look                                                              |
+| -------- | ------------------------------------------------------------------------ |
+| Aesir    | a small stave temple: dark shingle roof, dragon-head gables, rune stones |
+| Greek    | a small marble temple: four columns, a pediment                          |
+| Egyptian | a small sandstone temple: two pylons, a painted door                     |
+
+- **Ruin:** generic rubble tinted in the old building's colour (section 4).
+- **Scaffold:** the timber scaffold over the old picture while upgrading.
+
 ## 5. Proposed data rows
 
 | Row             | Change                                                                                                                                                                                                                      |
@@ -101,6 +126,7 @@ Heroes inside a destroyed shop or hall are pushed out, unhurt.
 | ----- | ----------------------------------------------------------------------------------- |
 | 10    | `bld_hearth-hall_t1..t3`: a long timber hall with a smoking roof, benches outside   |
 | 20    | `bld_ruin`: generic rubble, tinted in code; `bld_scaffold`: timber scaffold overlay |
+| 30    | Building tier pictures follow "How buildings look per tier" (section 4)             |
 
 ### Lead (data)
 
