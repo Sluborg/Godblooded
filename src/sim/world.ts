@@ -200,6 +200,8 @@ function runTick(world: World): void {
   world.timeMs += TICK_MS;
   runTemples(world);
   runTowers(world);
+  // Tower victims leave now, before the lairs count their monsters or the units act.
+  settleDeaths(world);
   runLairs(world);
   runRaids(world);
   runHeroes(world);
