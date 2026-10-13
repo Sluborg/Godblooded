@@ -65,8 +65,12 @@ describe('save and load', () => {
     expect(snapshot(a).stats.heroesArrived).toBeGreaterThan(2);
   });
 
-  it('survives a pending card pick: the world stays frozen on the same offer', () => {
-    const a = createWorld(3, GRAYBOX);
+  it('survives a pending card pick: the world stays slowed on the same offer', () => {
+    const manual: GameData = {
+      ...GRAYBOX,
+      tuning: { ...GRAYBOX.tuning, party: { autoPick: false, offerSlowdown: 0.3 } },
+    };
+    const a = createWorld(3, manual);
     play(a, 200_000);
     // stop right on a card: deal xp until one is open
     const party = [...a.parties.values()][0];
@@ -74,10 +78,12 @@ describe('save and load', () => {
     shareXp(a, party.members[0], 200);
     const open = [...a.parties.values()].find((p) => p.offer || p.pathOffer);
     expect(open).toBeDefined();
-    const b = roundtrip(a);
+    const b = roundtrip(a, manual);
     const t = b.timeMs;
     step(b, 2_000);
-    expect(b.timeMs).toBe(t);
+    // at the offer slowdown (30%): 600 ms of 2 s
+    expect(b.timeMs - t).toBeLessThan(700);
+    expect(b.timeMs - t).toBeGreaterThan(0);
     const pb = b.parties.get(open?.id ?? 0);
     expect(pb?.offer).toEqual(open?.offer);
     expect(pb?.pathOffer).toEqual(open?.pathOffer);

@@ -66,6 +66,14 @@ export interface PassiveKeys {
   belowHp?: { below: number; stat: BuffStat; amount: number };
   // Healing received multiplier.
   healTakenMult?: number;
+  // Extra potions a hero may carry.
+  potionSlots?: number;
+  // Multiplies skill cooldowns (0.8: 20% shorter).
+  cooldownMult?: number;
+  // Multiplies the radius and range of skills (1.25: 25% more).
+  rangeMult?: number;
+  // Basic strikes carry this rider.
+  rider?: RiderId;
 }
 
 // One effect of a passive: a set of keys and who gets them. `scope` 'self' is the owner only,
@@ -220,11 +228,43 @@ export interface HeroItems {
 }
 
 // One of 3 cards offered when a party levels up. `effect` keys are read by Sim.
+export type CardFamily = 'stats' | 'sustain' | 'nerve' | 'skill' | 'pantheon' | 'favour';
+export type CardRarity = 'common' | 'rare' | 'epic';
+
+// What a party needs for a card to be offered: every key set must hold for some member (tier:
+// some member at that tier or above; caster, healer: some member of such a template).
+export interface CardNeeds {
+  god?: string;
+  path?: string;
+  pantheon?: string;
+  template?: string;
+  tier?: number;
+  caster?: boolean;
+  healer?: boolean;
+}
+
 export interface UpgradeDef {
   id: string;
   name: string;
   text: string;
-  effect: { attr?: Partial<Attributes>; healPct?: number; flee?: number };
+  effect: {
+    attr?: Partial<Attributes>;
+    healPct?: number;
+    flee?: number;
+    // Party-wide keys, the same ones a god passive sets (PassiveKeys), summed over the cards taken.
+    keys?: PassiveKeys;
+  };
+  // Offer rules (docs/systems/progression.md section 2). A card with none of these behaves as
+  // before: common, no needs, offered however often.
+  family?: CardFamily;
+  rarity?: CardRarity;
+  needs?: CardNeeds;
+  // Who offers it and what the party's leader looks for (auto-pick, level-ups.md):
+  // attack, defence, sustain, sight, gold or nerve.
+  god?: string;
+  pickTag?: string;
+  // Times a party may take it: stats cards 3, every other family 1, a card with no family any.
+  stack?: number;
 }
 
 export type TraitId = 'brave' | 'coward' | 'greedy' | 'proud' | 'loyal' | 'vengeful' | 'curious';
@@ -294,6 +334,20 @@ export interface PartyTuning {
   mergeEveryTicks: number;
   xpPerLevel: number;
   offerSize: number;
+  // The party stops levelling here (its XP still counts).
+  maxLevel: number;
+  // The party picks its level-up card itself, by its leader's personality (no pause, no player
+  // choice). Off: the run waits for the player's pick.
+  autoPick: boolean;
+  // While a pick is open (a path card, or an upgrade offer with autoPick off) the run goes at
+  // this share of its speed; 0 freezes it.
+  offerSlowdown: number;
+  // A card matching the leader's trait weighs this many times a plain one in the auto-pick draw.
+  traitPickWeight: number;
+  // The level whose offer is the party's god's favour cards.
+  favourLevel: number;
+  // Rarity weights [common, rare, epic] by party level: 2-3, 4-5, 6 and up.
+  rarity: { low: number[]; mid: number[]; high: number[] };
   bondCap: number;
   baseFlee: number;
   // Rivalries: heroes whose bond is at or below this are rivals (bonds run from -3 up).
@@ -597,6 +651,15 @@ export interface CombatTuning {
   firstStrikeDelay: number;
   // Fire deals this much more to buildings.
   buildingFireMult: number;
+  // A knockout costs a hero this share of the gold it carries.
+  koGoldLoss: number;
+  // A hero knocked out by a boss, or by a monster of a tier 3 lair, dies with this chance, less
+  // deathShrineStep per shrine tier in town and deathHealerStep with a healer alive in its
+  // party, never below deathFloor.
+  bossDeathChance: number;
+  deathShrineStep: number;
+  deathHealerStep: number;
+  deathFloor: number;
 }
 
 export interface Tuning {
@@ -759,6 +822,17 @@ export interface PathState {
   takenBy: number | null;
 }
 
+export interface GraveState {
+  // The slain hero's unit id.
+  id: number;
+  type: string;
+  god: string | null;
+  path: string | null;
+  tier: number;
+  pos: Vec2;
+  timeMs: number;
+}
+
 export interface BountyState {
   id: number;
   pos: Vec2;
@@ -798,11 +872,32 @@ export type SimEvent =
       weak?: boolean;
       resist?: boolean;
     }
-  | { kind: 'knockout'; unit: number; by: number }
+  // `goldLost`: the gold it dropped (absent when none).
+  | { kind: 'knockout'; unit: number; by: number; goldLost?: number }
+  // A hero was killed for good (a boss or tier 3 lair knockout that rolled death). It leaves a
+  // grave at `pos`; `goldLost` as for a knockout.
+  | {
+      kind: 'slain';
+      unit: number;
+      by: number;
+      type: string;
+      god: string | null;
+      pos: Vec2;
+      goldLost?: number;
+    }
   | { kind: 'died'; unit: number; type: string; by: number; bounty: number; xp: number }
   | { kind: 'partyFormed'; party: number; members: number[] }
   | { kind: 'levelUp'; party: number; level: number; offer: string[] }
-  | { kind: 'upgradePicked'; party: number; upgrade: string }
+  // `auto`: the party chose the card itself (tuning.party.autoPick), `hero` its leader.
+  // `god`: the god that offers the card (its own `god`, else the leader's) for "Thor offers: X".
+  | {
+      kind: 'upgradePicked';
+      party: number;
+      upgrade: string;
+      auto?: boolean;
+      hero?: number;
+      god?: string;
+    }
   | { kind: 'tierUp'; unit: number; tier: number; path: string | null }
   | { kind: 'pathOffer'; party: number; hero: number; options: string[] }
   | { kind: 'raid'; lair: number; size: number }
@@ -867,6 +962,8 @@ export interface RunStats {
 // lair destroyed, damage as tie-breaker); heroes come sorted best first.
 export interface HeroReport {
   unit: number;
+  // Killed for good (see `slain`).
+  slain?: boolean;
   type: string;
   god: string | null;
   path: string | null;
@@ -905,6 +1002,8 @@ export interface Snapshot {
   readonly parties: readonly Readonly<PartyState>[];
   readonly paths: readonly Readonly<PathState>[];
   readonly bounties: readonly Readonly<BountyState>[];
+  // Where heroes were slain; the markers stay for the run.
+  readonly graves: readonly Readonly<GraveState>[];
   // Pairs of living heroes who are rivals right now (lower id first).
   readonly rivals: readonly (readonly [number, number])[];
   // This run's map: the pantheons it leans on and the boss lair (null on a fixed map).

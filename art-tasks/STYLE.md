@@ -1,13 +1,18 @@
 # Godblooded house style (every image, every chat)
 
 Apply to every image on top of the batch text, so all chats make art that fits together.
-Stefan's own concept sheets are the look reference: `docs/concept/` (README there). The
-proportions are **chunky** (batch S4, approved).
+Stefan's own concept sheets are the look reference: `docs/concept/` (README there). The look
+below (cartoon, painterly details) is the current direction; older shipped pictures are
+pixel art and get redrawn over time.
 
-- **Look:** detailed **pixel-art** rendering after the concept sheets: crisp pixels, no blur, no
-  painterly soft edges. **Chunky** proportions: about **3.5 to 4 heads tall**, a big head with a
-  readable face, big hands and feet, an **oversized weapon** (and shield where the unit has one),
-  a wide planted stance, a **thick dark outline**. Grim, not cute.
+- **Look (Stefan 2026-10-13, replaces the earlier pixel-art look):** **cartoony with painterly
+  details**. Cartoon shapes: simple rounded forms, about **2.5 heads tall** (a big head with a readable face, a small body),
+  a chunky weapon, a **thick even dark outline** around every shape, crisp clean edges (no blur,
+  no pixel dithering). Painterly finish inside the outline: soft shading, a light rim light,
+  brush texture on wood, fur and fabric, bright highlights on metal. Light from the top left.
+  **Readable at about 30 px tall**: strong colour blocks, no fine detail that vanishes when
+  small. Look reference: `docs/reference/style-test-1.png` and `style-test-2.png` (fetch raw)
+  for shapes, outline and proportions; add the painterly finish on top.
 - **Palette:** gritty and dark: black, deep navy and bronze-gold, worn leather, scars, scratched
   metal. Each Godblood keeps one signature accent from its divine parent (Thor: storm blue-white,
   Bastet: moon violet, ...). Tier 1 has no glow; glow and effects grow with the tier. Monsters
@@ -33,7 +38,7 @@ proportions are **chunky** (batch S4, approved).
   Grip like a real fighter (axe and hammer at the lower end of the handle). The whole weapon is
   inside the picture, never cut off.
 
-- **Shading:** pixel shading, light from the top left. No cast shadow, no shadow ellipse under the
+- **Shading:** soft painterly shading, light from the top left. No cast shadow, no shadow ellipse under the
   feet, no glow outside the object unless the batch asks for a tier-3 aura.
 - **Phone readability:** units show about 60-80 px tall; the silhouette, the weapon and the accent
   colour carry the read.
