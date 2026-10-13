@@ -14,25 +14,29 @@ Review (PR open), Done. A worker takes its top Open row.
 | 40    | Review and merge M1 PRs; when M1 runs end to end, ask Stefan "is it fun to watch?"                         | Doing  |
 | 50    | Gods and paths data: 12 GODS rows, 24 path rows, templates; balance pass (after Sim 110)                   | Done   |
 | 60    | Building tier data (costs, effects per tier) after Sim 130; lair growth tuning after Sim 120; balance pass | Open   |
+| 70    | Map pool data after Sim 150: lair rows per monster, boss lair, pantheon lean; balance pass                 | Open   |
 
 ## Sim
 
-| Order | Item                                                                                                                                 | Status |
-| ----- | ------------------------------------------------------------------------------------------------------------------------------------ | ------ |
-| 10    | `api.ts` + world: `createWorld(seed, data)`, `step(world, dtMs)`, `snapshot()`, `command()`; tick loop                               | Done   |
-| 20    | Units move on the map (simple steering, no pathfinding yet); lairs spawn monsters on a timer                                         | Done   |
-| 30    | Lean real-time combat from the Coda reference math (simplify if needed, log it in decisions)                                         | Done   |
-| 35    | Build plots in the sim: `GameData.plots`, `build` takes a plot, refuses occupied plots; snapshot lists plots                         | Done   |
-| 40    | Heroes: arrive at temples, explore, fight, return to heal and shop (gold flows to the town by tax)                                   | Done   |
-| 45    | Move hero tuning (recruit timer, flee, rest, shop, tax, revive) from `heroes.ts` into `GameData.tuning`; Lead fills the row          | Done   |
-| 50    | Parties: form by traits and bonds, move and fight together, share XP; party level up offers 3 upgrades                               | Done   |
-| 60    | Bounty flags: heroes weigh bounty vs danger by trait; win (last lair) and lose (town hall) conditions                                | Done   |
-| 70    | Headless balance sim (`npm run sim`): 100 seeded runs, report run length, win rate, deaths                                           | Done   |
-| 80    | Hero cap: at most `tuning.hero.maxPerClass` (2) heroes of each class alive; temples skip full classes                                | Done   |
-| 110   | Gods and paths (decision 2026-10-13): `GodDef`, path by god with a template, recruit a god's child, cap 2 per god on different paths | Done   |
-| 120   | Lair growth: lairs tier up over the run (spawn faster, tier 2/3 monsters), tuning in `GameData`                                      | Review |
-| 130   | Building tiers: `upgrade` command, cost per tier, tier effects (temple recruit rate and cap, market stock, tower range and damage)   | Open   |
-| 140   | Run stats for the end screen: per hero kills, gold earned, knockouts, MVP; per run lairs cleared, gold over time                     | Open   |
+| Order | Item                                                                                                                                                         | Status |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------ |
+| 10    | `api.ts` + world: `createWorld(seed, data)`, `step(world, dtMs)`, `snapshot()`, `command()`; tick loop                                                       | Done   |
+| 20    | Units move on the map (simple steering, no pathfinding yet); lairs spawn monsters on a timer                                                                 | Done   |
+| 30    | Lean real-time combat from the Coda reference math (simplify if needed, log it in decisions)                                                                 | Done   |
+| 35    | Build plots in the sim: `GameData.plots`, `build` takes a plot, refuses occupied plots; snapshot lists plots                                                 | Done   |
+| 40    | Heroes: arrive at temples, explore, fight, return to heal and shop (gold flows to the town by tax)                                                           | Done   |
+| 45    | Move hero tuning (recruit timer, flee, rest, shop, tax, revive) from `heroes.ts` into `GameData.tuning`; Lead fills the row                                  | Done   |
+| 50    | Parties: form by traits and bonds, move and fight together, share XP; party level up offers 3 upgrades                                                       | Done   |
+| 60    | Bounty flags: heroes weigh bounty vs danger by trait; win (last lair) and lose (town hall) conditions                                                        | Done   |
+| 70    | Headless balance sim (`npm run sim`): 100 seeded runs, report run length, win rate, deaths                                                                   | Done   |
+| 80    | Hero cap: at most `tuning.hero.maxPerClass` (2) heroes of each class alive; temples skip full classes                                                        | Done   |
+| 110   | Gods and paths (decision 2026-10-13): `GodDef`, path by god with a template, recruit a god's child, cap 2 per god on different paths                         | Done   |
+| 120   | Lair growth: lairs tier up over the run (spawn faster, tier 2/3 monsters), tuning in `GameData`                                                              | Review |
+| 130   | Building tiers: `upgrade` command, cost per tier, tier effects (temple recruit rate and cap, market stock, tower range and damage)                           | Open   |
+| 140   | Run stats for the end screen: per hero kills, gold earned, knockouts, MVP; per run lairs cleared, gold over time                                             | Open   |
+| 150   | Seeded map per run: lair layout from a pool (all 6 monster types), 4-6 lairs, a pantheon lean per run, a boss lair (wyrm) as the win goal; map rules as data | Open   |
+| 160   | Save and load a run: versioned save of the world, migration hook, autosave every 30 s; `loadWorld` for Scene Continue                                        | Open   |
+| 170   | Rivalries: bonds below a threshold make rivals; `argue` events; rivals refuse one party; a vengeful hero hunts what knocked out a friend                     | Open   |
 
 ## Scene
 
@@ -61,6 +65,7 @@ Review (PR open), Done. A worker takes its top Open row.
 | 160   | Juice: damage numbers, screen shake on stomp and boss hits, gold pop on tax, building placement dust                                                                                                      | Open   |
 | 170   | Building panel (after Sim 130): tap a building for info, tier, upgrade button and cost                                                                                                                    | Open   |
 | 180   | End screen v2 (after Sim 140): MVP hero, per-hero stats, gold-over-time sparkline                                                                                                                         | Open   |
+| 190   | Continue after reload (after Sim 160): title Continue loads the autosave; tower shot effect (Sim 130 hit events from buildings)                                                                           | Open   |
 
 ## Art
 
