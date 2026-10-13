@@ -162,6 +162,44 @@ describe('seeded map', () => {
     expect(snap.map).toEqual({ lean: [], boss: null });
   });
 
+  it('keeps the boss beyond minTownDist even when only the corners are that far', () => {
+    // 1000 x 1000 map, hall in the middle, margin 100: corners are ~566 away, 550 is feasible
+    const tight: GameData = {
+      ...data,
+      map: { width: 1000, height: 1000 },
+      townHall: { x: 500, y: 500 },
+      mapRules: {
+        ...(data.mapRules as NonNullable<GameData['mapRules']>),
+        lairs: [2, 2],
+        margin: 100,
+        minTownDist: 550,
+        minLairDist: 100,
+      },
+    };
+    for (let seed = 1; seed <= 30; seed++) {
+      const { sites, bossIndex } = generateMap(seed, tight);
+      expect(dist(sites[bossIndex].pos, tight.townHall)).toBeGreaterThanOrEqual(550);
+    }
+    // infeasible: relaxes to the farthest spot instead of failing
+    const impossible = {
+      ...tight,
+      mapRules: { ...(tight.mapRules as NonNullable<GameData['mapRules']>), minTownDist: 900 },
+    };
+    const { sites, bossIndex } = generateMap(1, impossible);
+    expect(dist(sites[bossIndex].pos, tight.townHall)).toBeGreaterThan(450);
+  });
+
+  it('rejects a pool lair whose monster has no row', () => {
+    const bad = { ...data, lairs: [...(data.lairs ?? []), lair('ghost-den', 'ghost')] };
+    const rules = data.mapRules as NonNullable<GameData['mapRules']>;
+    expect(() =>
+      createWorld(1, {
+        ...bad,
+        mapRules: { ...rules, pool: [...rules.pool, { lair: 'ghost-den', pantheon: 'greek' }] },
+      }),
+    ).toThrow(/unknown monster: ghost/);
+  });
+
   it('rejects rows that name an unknown lair', () => {
     const bad = {
       ...data,

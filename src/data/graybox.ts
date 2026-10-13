@@ -337,7 +337,7 @@ export const MONSTERS: readonly MonsterDef[] = [
 // The barrow is the early fight; the troll den is the final lair (win when it falls).
 export const LAIRS: readonly LairDef[] = [
   { id: 'barrow', monster: 'draugr', spawnS: 10, maxAlive: 6, hp: 3500 },
-  { id: 'troll-den', monster: 'troll', spawnS: 25, maxAlive: 6, hp: 30000 },
+  { id: 'troll-den', monster: 'troll', spawnS: 25, maxAlive: 6, hp: 24000 },
 ];
 
 // Level-up cards; a party is offered 3 different ones. Graybox set: stats, sustain, nerve.

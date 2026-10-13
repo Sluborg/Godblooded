@@ -20,13 +20,15 @@ const BOSS_CANDIDATES = 40;
 export function generateMap(seed: number, data: GameData): GeneratedMap {
   const rules = data.mapRules;
   if (!rules) throw new Error('no mapRules');
-  for (const e of rules.pool) {
-    if (!data.lairs?.some((l) => l.id === e.lair))
-      throw new Error(`map pool names unknown lair: ${e.lair}`);
-  }
-  if (!data.lairs?.some((l) => l.id === rules.boss)) {
-    throw new Error(`map boss names unknown lair: ${rules.boss}`);
-  }
+  const known = (id: string, what: string) => {
+    const lair = data.lairs?.find((l) => l.id === id);
+    if (!lair) throw new Error(`${what} names unknown lair: ${id}`);
+    if (!data.monsters?.some((m) => m.id === lair.monster)) {
+      throw new Error(`${what} lair ${id} names unknown monster: ${lair.monster}`);
+    }
+  };
+  for (const e of rules.pool) known(e.lair, 'map pool');
+  known(rules.boss, 'map boss');
   const rng = makeRng((seed ^ 0x5bd1e995) >>> 0);
   for (let i = 0; i < 4; i++) rng();
 
@@ -94,12 +96,26 @@ const distTo = (a: { x: number; y: number }, b: { x: number; y: number }) =>
   Math.hypot(a.x - b.x, a.y - b.y);
 
 function farthestFromTown(rng: Rng, rules: MapRules, data: GameData) {
-  let best = randomPoint(rng, rules, data);
-  for (let i = 1; i < BOSS_CANDIDATES; i++) {
-    const p = randomPoint(rng, rules, data);
-    if (distTo(p, data.townHall) > distTo(best, data.townHall)) best = p;
-  }
-  return best;
+  const far = (p: { x: number; y: number }) => distTo(p, data.townHall);
+  const farthest = (list: { x: number; y: number }[]) =>
+    list.reduce((best, p) => (far(p) > far(best) ? p : best));
+  const samples = Array.from({ length: BOSS_CANDIDATES }, () => randomPoint(rng, rules, data));
+  const valid = (list: { x: number; y: number }[]) =>
+    list.filter((p) => far(p) >= rules.minTownDist);
+  if (valid(samples).length > 0) return farthest(valid(samples));
+  // The minimum distance only fits near the corners: look harder, corners included.
+  const m = rules.margin;
+  const corners = [
+    { x: m, y: m },
+    { x: data.map.width - m, y: m },
+    { x: m, y: data.map.height - m },
+    { x: data.map.width - m, y: data.map.height - m },
+  ];
+  const more = Array.from({ length: BOSS_CANDIDATES * 5 }, () => randomPoint(rng, rules, data));
+  const pool = [...samples, ...more, ...corners];
+  const ok = valid(pool);
+  // Relaxed only when no spot at all is that far from the town.
+  return farthest(ok.length > 0 ? ok : pool);
 }
 
 // A spot clear of the town and the other lairs; when the map is too crowded for the rules, the

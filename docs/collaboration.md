@@ -1,17 +1,18 @@
 # How the sessions work together
 
-Four Claude Code sessions build Godblooded in parallel, plus ChatGPT chats that draw the art.
+Five Claude Code sessions build Godblooded in parallel, plus ChatGPT chats that draw the art.
 Every session reads this file at the start of every wake.
 
 ## Roles
 
-| Role  | Job                                                                       | Talks to                    |
-| ----- | ------------------------------------------------------------------------- | --------------------------- |
-| Lead  | Design, backlog, reviews and merges every PR, the only contact for Stefan | Stefan, all sessions        |
-| Sim   | The simulation: units, AI, parties, combat, economy, runs. Pure TS, tests | Lead, Scene                 |
-| Scene | Phaser: map, camera, rendering the sim, input, HUD, menus, phone feel     | Lead, Sim, Art              |
-| Art   | Writes ChatGPT batches, checks and ships images, the asset spec           | Lead, Scene, ChatGPT chats  |
-| GPT   | ChatGPT chats, one per art track; fetch `art-tasks/README.md` and draw    | Art (via the art wake bell) |
+| Role   | Job                                                                            | Talks to                    |
+| ------ | ------------------------------------------------------------------------------ | --------------------------- |
+| Lead   | Design, backlog, reviews and merges every PR, the only contact for Stefan      | Stefan, all sessions        |
+| Sim    | The simulation: units, AI, parties, combat, economy, runs. Pure TS, tests      | Lead, Scene                 |
+| Scene  | Phaser: map, camera, rendering the sim, input, HUD, menus, phone feel          | Lead, Sim, Art              |
+| Art    | Writes ChatGPT batches, checks and ships images, the asset spec                | Lead, Scene, ChatGPT chats  |
+| Design | Plans systems and features (combat, skills, items, progression, meta) as specs | Lead                        |
+| GPT    | ChatGPT chats, one per art track; fetch `art-tasks/README.md` and draw         | Art (via the art wake bell) |
 
 Session ids, models and wake bells: `docs/sessions.md`. On your first start, fill in your own
 row there (your id comes from `get_session` with no arguments).
@@ -26,6 +27,7 @@ Only the owner edits. Everyone else asks through the owner's inbox.
 - **Scene:** `src/scenes/`, `src/ui/`, `src/main.ts`, `src/config.ts`, `index.html`.
 - **Art:** `art-tasks/`, `public/assets/`, `assets/source/`, `scripts/art/`,
   `docs/asset-spec.md`, `docs/art-requests.md` (status column; anyone adds rows).
+- **Design:** `docs/systems/` (specs; Lead turns them into backlog rows and data).
 - **Lead also:** `docs/sessions.md`, `docs/inbox/*.md` (see "Talking").
 - **Shared, small careful commits:** `package.json`, `vite.config.ts`, `.github/`.
 

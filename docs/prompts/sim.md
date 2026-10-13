@@ -15,9 +15,7 @@ Combat reference: `docs/game-design.md`, "Combat".
 1. Read `CLAUDE.md`, `docs/collaboration.md`, `docs/game-design.md`, `docs/backlog.md` and your
    inbox.
 2. Call `get_session` (Claude_Code_Remote MCP, no arguments) for your session id.
-3. Create your safety-net Routine: `create_trigger` with no session id (fires into you),
-   `cron_expression: "CRON_TZ=Europe/Stockholm 7 */2 * * *"`, `initiation: "human_request"`,
-   name `safety-net <role>`, prompt as in `docs/collaboration.md`.
+3. No recurring Routines (decision 2026-10-08): Lead wakes you when there is work.
 4. `send_message` to Lead (id in `docs/sessions.md`): `<role> registered: <session id>, model,
 trigger <id>, starting <top backlog row>`. Lead fills your row. Start your top row at once.
    You never push to `main` and never edit inbox, backlog or sessions files.

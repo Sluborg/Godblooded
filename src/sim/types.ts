@@ -195,6 +195,11 @@ export interface BuildingTuning {
   towerCooldownMs: number[];
 }
 
+export interface StatsTuning {
+  // Town gold is sampled this often for the end screen's gold curve (0 turns it off).
+  goldSampleMs: number;
+}
+
 export interface TownTuning {
   townHallHp: number;
   buildingHp: number;
@@ -243,6 +248,7 @@ export interface Tuning {
   monster: MonsterTuning;
   lair: LairTuning;
   building: BuildingTuning;
+  stats: StatsTuning;
   town: TownTuning;
   bounty: BountyTuning;
 }
@@ -267,6 +273,7 @@ export interface GameData {
     monster?: Partial<MonsterTuning>;
     lair?: Partial<LairTuning>;
     building?: Partial<BuildingTuning>;
+    stats?: Partial<StatsTuning>;
     town?: Partial<TownTuning>;
     bounty?: Partial<BountyTuning>;
   };
@@ -432,6 +439,35 @@ export interface RunStats {
   taxCollected: number;
 }
 
+// One hero's line on the end screen. `mvp` marks the best hero of the run (kills, five per
+// lair destroyed, damage as tie-breaker); heroes come sorted best first.
+export interface HeroReport {
+  unit: number;
+  type: string;
+  god: string | null;
+  path: string | null;
+  tier: number;
+  kills: number;
+  lairKills: number;
+  // Gold from monster bounties, lair bounties and bounty flags (not shop spending).
+  goldEarned: number;
+  knockouts: number;
+  damage: number;
+  healing: number;
+  mvp: boolean;
+}
+
+export interface RunReport {
+  outcome: 'won' | 'lost';
+  timeMs: number;
+  mvp: number | null;
+  heroes: HeroReport[];
+  // Lairs destroyed, in order: the lair id and type, when, and the hero that did it.
+  lairsCleared: { lair: number; type: string; timeMs: number; by: number }[];
+  // Town gold over the run, sampled every tuning.stats.goldSampleMs plus the final value.
+  goldHistory: { timeMs: number; gold: number }[];
+}
+
 export interface Snapshot {
   readonly timeMs: number;
   readonly tick: number;
@@ -447,6 +483,9 @@ export interface Snapshot {
   readonly bounties: readonly Readonly<BountyState>[];
   // This run's map: the pantheons it leans on and the boss lair (null on a fixed map).
   readonly map: Readonly<{ lean: string[]; boss: number | null }>;
+  // The end screen numbers once the run is won or lost; null while it is running. Totals for
+  // the run are in `stats`.
+  readonly report: Readonly<RunReport> | null;
   // Events since the previous snapshot() call (speech bubbles, sounds, juice).
   readonly events: readonly SimEvent[];
 }
