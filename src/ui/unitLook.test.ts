@@ -5,6 +5,7 @@ import {
   baseType,
   buildingArtCandidates,
   buildingScale,
+  lairArtCandidates,
   unitArtId,
 } from './unitLook';
 
@@ -44,6 +45,14 @@ describe('artCandidates', () => {
       'hero_thor-hammerborn_t3_front',
     );
   });
+  it('a tier 3 path hero falls back to its tier 2 picture, then god, then template', () => {
+    expect(artCandidates('hero', 'paladin', 3, 'thor-hammerborn', 'thor')).toEqual([
+      'hero_thor-hammerborn_t3_front',
+      'hero_thor-hammerborn_t2_front',
+      'hero_thor_t1_front',
+      'hero_paladin_t1_front',
+    ]);
+  });
   it('a path is ignored at tier 1; monsters ignore god and path', () => {
     expect(artCandidates('hero', 'paladin', 1, 'thor-hammerborn', 'thor')).toEqual([
       'hero_thor_t1_front',
@@ -53,6 +62,13 @@ describe('artCandidates', () => {
       'mon_troll_t2_front',
       'mon_troll_t1_front',
     ]);
+  });
+});
+
+describe('lair art', () => {
+  it('tries the tier, then tier 1', () => {
+    expect(lairArtCandidates('barrow', 1)).toEqual(['bld_lair_barrow_t1']);
+    expect(lairArtCandidates('barrow', 2)).toEqual(['bld_lair_barrow_t2', 'bld_lair_barrow_t1']);
   });
 });
 

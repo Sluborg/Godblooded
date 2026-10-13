@@ -5,13 +5,14 @@ Take the first **Ready** batch of **your track** that is not in the upload log; 
 
 | Batch | Track     | File     | What                                                                | Images | Status |
 | ----- | --------- | -------- | ------------------------------------------------------------------- | ------ | ------ |
-| V1    | monsters  | `V1.md`  | Monster variants: draugr, harpy, jackal-man, minotaur -v2, -v3      | 8      | Ready  |
+| V1    | monsters  | `V1.md`  | Monster variants: draugr, harpy, jackal-man, minotaur -v2, -v3      | 8      | Done   |
 | A1    | heroes    | `A1.md`  | Aesir gods t1 (Odin, Thor, Loki, Freyja) and their 8 paths t2       | 12     | Done   |
+| A2    | heroes    | `A2.md`  | Aesir paths tier 3: the eight paths made divine (M2)                | 8      | Ready  |
 | U1    | ui        | `U1.md`  | Logo and app icon: three options                                    | 6      | Done   |
 | U1B   | ui        | `U1B.md` | Logo option B revised: fixed khopesh, Greek spear, calmer sun, drop | 4      | Ready  |
 | U2    | ui        | `U2.md`  | UI kit: 9-slice panel, buttons (3 states), 9 icons, after U1        | 13     | Done   |
 | U3    | ui        | `U3.md`  | Splash key art: Godbloods facing a monster horde at dusk            | 1      | Done   |
-| U4    | ui        | `U4.md`  | Item icons: sword, focus, armour, 2 potions, 6 charms (after U2)    | 11     | Ready  |
+| U4    | ui        | `U4.md`  | Item icons: sword, focus, armour, 2 potions, 6 charms (after U2)    | 11     | Done   |
 | U5    | ui        | `U5.md`  | Rider icons (5) and status signs (3), after U2                      | 8      | Ready  |
 | U6    | ui        | `U6.md`  | Card frames (iron, bronze, gold), 5 family icons, 3 sigils          | 11     | Ready  |
 | U7    | ui        | `U7.md`  | Omen icons (8), after U2                                            | 8      | Ready  |
@@ -31,4 +32,6 @@ Take the first **Ready** batch of **your track** that is not in the upload log; 
 | B9    | buildings | `B9.md`  | Buildings tier 2: all eight, the three temples included             | 8      | Done   |
 | B10   | buildings | `B10.md` | Monster lairs tier 1: all six types (wyrm nest is the boss)         | 6      | Done   |
 | B11   | buildings | `B11.md` | Ground tiles (5, seamless) and map props (7)                        | 12     | Ready  |
+| B13   | buildings | `B13.md` | Map markers: build plot and bounty flag (M2)                        | 2      | Ready  |
+| B14   | buildings | `B14.md` | Buildings tier 3: all eight, the three temples included (M2)        | 8      | Ready  |
 | B12   | buildings | `B12.md` | Merchant caravan, ruin, scaffold, 3 grave markers                   | 6      | Ready  |

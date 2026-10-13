@@ -257,6 +257,87 @@ export interface StatsTuning {
   goldSampleMs: number;
 }
 
+// Skills (docs/systems/paths-and-skills.md): a hero on a path casts its path's skill on its own.
+// A trigger says when, a shape where, effects what. All numbers are rows, the engine is code.
+export type SkillTrigger =
+  // The cooldown is up and a foe is within `range` (default 300).
+  | { kind: 'ready'; range?: number }
+  // At least `n` foes within `radius` of the skill's centre (the caster, or its foe target);
+  // `angle` (degrees) makes it a cone opening from the caster toward that centre.
+  | { kind: 'crowd'; n: number; radius: number; angle?: number }
+  // At least `n` (default 1) party mates within `radius` are below `below` of max hp.
+  | { kind: 'allyHurt'; below: number; radius: number; n?: number }
+  // The caster is below `below` of max hp, or `n` foes target it. Coward +15 points, brave -15.
+  | { kind: 'selfHurt'; below?: number; n?: number }
+  // A foe is between `min` and `max` away (opens a fight from a distance).
+  | { kind: 'engage'; min: number; max: number }
+  // A monster died within `radius` of the caster in the last 3 s.
+  | { kind: 'kill'; radius: number }
+  // Either holds; the first that does decides the target.
+  | { any: readonly SkillTrigger[] };
+
+export type SkillShape =
+  | { kind: 'single' }
+  | { kind: 'circle'; radius: number }
+  // Opens from the caster toward the centre; `angle` in degrees.
+  | { kind: 'cone'; radius: number; angle: number }
+  // From the caster through the centre, `length` long and `width` wide (default 40).
+  | { kind: 'line'; length: number; width?: number }
+  // The target, then `jumps` times the nearest foe not yet hit within `radius`, each at
+  // `falloff` times the last.
+  | { kind: 'chain'; jumps: number; radius: number; falloff: number };
+
+// When an effect runs. Only 'cast' (the default) exists until statuses and summons arrive.
+export type SkillHook = 'cast' | 'hit' | 'kill' | 'expire' | 'death';
+
+interface EffectBase {
+  // Defaults to 'cast'.
+  on?: SkillHook;
+}
+
+// `mult` x power (a weapon hero's Str, a caster's Int x spellMult) of `type` (default: the
+// caster's own); `mult` 0 applies only the rider; `sure` skips the dodge roll.
+export interface DamageEffect extends EffectBase {
+  kind: 'damage';
+  mult: number;
+  type?: DamageType;
+  rider?: RiderId;
+  sure?: boolean;
+}
+
+// The other effects of the spec join this union with Sim 250.
+export type SkillEffect = DamageEffect;
+
+export interface SkillDef {
+  id: string;
+  // PathDef id.
+  path: string;
+  name: string;
+  trigger: SkillTrigger;
+  cooldownS: number;
+  // Where the shape sits: on the caster, its foe, an ally in need, or the trigger's point.
+  target: 'self' | 'foe' | 'ally' | 'point';
+  shape: SkillShape;
+  effects: readonly SkillEffect[];
+  // Picture ids for Scene (bolt, burst, cone, line, chain, aura, shield, dash, mark, pillar).
+  visual: readonly string[];
+  // Fields that change at tier 3 (replace the field whole).
+  t3?: Partial<Pick<SkillDef, 'trigger' | 'cooldownS' | 'target' | 'shape' | 'effects' | 'visual'>>;
+}
+
+export interface SkillTuning {
+  // A cast's own windup, longer than a basic strike's (Scene shows the glow).
+  castWindupMs: number;
+  // `kill` triggers see monsters that died this recently.
+  killWindowMs: number;
+  // Self-hurt triggers fire this share of max hp earlier for a coward, later for a brave hero.
+  traitNudge: number;
+  // A single-target cast hits its target (or the nearest foe) within this of the cast point.
+  pointReach: number;
+  // One cast in this many carries `say` (Scene shows the skill name as a speech bubble).
+  speechEvery: number;
+}
+
 export type RiderId = 'burn' | 'chill' | 'arc' | 'wither' | 'sear';
 
 // Riders ride on a strike (skills carry them; a basic attack never does). Numbers per
@@ -348,6 +429,7 @@ export interface Tuning {
   building: BuildingTuning;
   boss: BossTuning;
   rider: RiderTuning;
+  skill: SkillTuning;
   save: SaveTuning;
   stats: StatsTuning;
   town: TownTuning;
@@ -366,6 +448,8 @@ export interface GameData {
   upgrades?: readonly UpgradeDef[];
   // Paths of the gods. A god with no path rows tiers up by party level alone.
   paths?: readonly PathDef[];
+  // Path skills, one per path (tier 2, upgraded at tier 3).
+  skills?: readonly SkillDef[];
   // Any subset of the tunable numbers; the rest use DEFAULT_TUNING (src/sim/tuning.ts).
   tuning?: {
     combat?: Partial<CombatTuning>;
@@ -375,6 +459,7 @@ export interface GameData {
     lair?: Partial<LairTuning>;
     building?: Partial<BuildingTuning>;
     rider?: Partial<RiderTuning>;
+    skill?: Partial<SkillTuning>;
     boss?: Partial<BossTuning>;
     save?: Partial<SaveTuning>;
     stats?: Partial<StatsTuning>;
@@ -538,6 +623,18 @@ export type SimEvent =
   | { kind: 'raid'; lair: number; size: number }
   // A rider took hold on `target` (burn, chill, wither; arc and sear show in the hit itself).
   | { kind: 'rider'; target: number; rider: RiderId; by: number }
+  // A hero starts casting a skill; it lands `inMs` later. `say`: Scene shows the skill name.
+  | {
+      kind: 'cast';
+      skill: string;
+      caster: number;
+      target: number | null;
+      point: Vec2;
+      inMs: number;
+      say?: boolean;
+    }
+  // A cast lands on `hits` (unit ids) around `point`.
+  | { kind: 'skill'; skill: string; caster: number; hits: number[]; point: Vec2 }
   | { kind: 'argue'; a: number; b: number }
   | { kind: 'revenge'; hero: number; target: number; victim: number }
   | { kind: 'avenged'; hero: number; target: number }
