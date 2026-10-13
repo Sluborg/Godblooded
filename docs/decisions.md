@@ -164,3 +164,7 @@ grim, scary monsters; wood-and-parchment UI frames; party ring and name label on
 level-up as a pillar of light with a banner. This replaces earlier style notes where they
 differ. Art writes it into `art-tasks/STYLE.md`; Scene into the parts renderer and UI; Stefan
 sees the updated brief before any art is ordered.
+
+Refinements (Stefan, 2026-10-14): colours only slightly muted, keeping most of their saturation.
+Effects grow with the game: subtle early, stronger at tier 2, clearly effectful at tier 3 and
+for bosses and late-run moments (still no screen shake).
