@@ -82,6 +82,9 @@ the pick changes numbers nobody sees. This spec lays out three options and recom
 - **Path offers too:** a pending `pathOffer` slows the run and times out the same way; the
   auto-pick takes the hero's first free path in data order. The upgrade offer opens after it,
   with a fresh timer (today `pickUpgrade` refuses until the path is picked).
+- **Game speed while an offer is open:** the slow-down wins. Scene runs the sim at 0.3 x 1x
+  whatever speed button is set (2x or 4x come back when the offer closes), so the 4500 ms
+  sim timeout is always about 15 s of real time.
 - **Slow-downs do not stack:** option A's 25% runs for its 1 s beat, then the tray holds 30%.
 - **Two parties with offers:** the tray shows the oldest offer, with a "+1" badge for the
   next; each offer has its own timer.
