@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_TUNING } from '../sim/api';
-import type { ItemDef } from '../sim/types';
+import type { ItemDef } from '../sim/api';
 import { buildingEffect, buildingName, nextTierEffect } from './buildingInfo';
 
 describe('buildingInfo', () => {
@@ -48,10 +48,10 @@ describe('buildingInfo', () => {
     ];
     it('the smithy sells up to its tier', () => {
       expect(buildingEffect('smithy', 1, t, items)).toBe(
-        'Sells weapon level 1 for 60, armour level 1 for 50 gold',
+        'Weapons up to level 1 (60 gold), armour up to level 1 (50 gold)',
       );
       expect(buildingEffect('smithy', 2, t, items)).toBe(
-        'Sells weapon level 2 for 150, armour level 2 for 130 gold',
+        'Weapons up to level 2 (60 / 150 gold), armour up to level 2 (50 / 130 gold)',
       );
     });
     it('the market names the potion it sells, not a gold cap', () => {
@@ -66,7 +66,7 @@ describe('buildingInfo', () => {
       expect(buildingEffect('smithy', 1, t, [])).toBe('');
     });
     it('previews the next tier of a shop', () => {
-      expect(nextTierEffect('smithy', 1, t, items)).toContain('weapon level 2');
+      expect(nextTierEffect('smithy', 1, t, items)).toContain('up to level 2');
     });
   });
 });
