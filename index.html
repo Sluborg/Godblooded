@@ -29,6 +29,13 @@
         -webkit-touch-callout: none;
         -webkit-tap-highlight-color: transparent;
       }
+      /* Keep the game out of the notch, the rounded corners and the gesture bar: the canvas is
+         fitted inside the safe area, the rest is the page background. */
+      body {
+        box-sizing: border-box;
+        padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0)
+          env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
+      }
       #game {
         width: 100%;
         height: 100%;

@@ -12,6 +12,72 @@
       "source": "U3"
     },
     {
+      "id": "bld_lair_barrow_t1",
+      "kind": "bld",
+      "tier": 1,
+      "view": null,
+      "file": "buildings/bld_lair_barrow_t1.png",
+      "anchorX": 0.51,
+      "anchorY": 0.996,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "B10"
+    },
+    {
+      "id": "bld_lair_harpy-roost_t1",
+      "kind": "bld",
+      "tier": 1,
+      "view": null,
+      "file": "buildings/bld_lair_harpy-roost_t1.png",
+      "anchorX": 0.482,
+      "anchorY": 0.996,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "B10"
+    },
+    {
+      "id": "bld_lair_jackal-camp_t1",
+      "kind": "bld",
+      "tier": 1,
+      "view": null,
+      "file": "buildings/bld_lair_jackal-camp_t1.png",
+      "anchorX": 0.587,
+      "anchorY": 0.996,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "B10"
+    },
+    {
+      "id": "bld_lair_labyrinth_t1",
+      "kind": "bld",
+      "tier": 1,
+      "view": null,
+      "file": "buildings/bld_lair_labyrinth_t1.png",
+      "anchorX": 0.623,
+      "anchorY": 0.996,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "B10"
+    },
+    {
+      "id": "bld_lair_troll-den_t1",
+      "kind": "bld",
+      "tier": 1,
+      "view": null,
+      "file": "buildings/bld_lair_troll-den_t1.png",
+      "anchorX": 0.54,
+      "anchorY": 0.996,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "B10"
+    },
+    {
+      "id": "bld_lair_wyrm-nest_t1",
+      "kind": "bld",
+      "tier": 1,
+      "view": null,
+      "file": "buildings/bld_lair_wyrm-nest_t1.png",
+      "anchorX": 0.522,
+      "anchorY": 0.996,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "B10"
+    },
+    {
       "id": "bld_market_t1",
       "kind": "bld",
       "tier": 1,
@@ -21,6 +87,17 @@
       "anchorY": 0.995,
       "license": "own (ChatGPT, Stefan's account)",
       "source": "B7"
+    },
+    {
+      "id": "bld_market_t2",
+      "kind": "bld",
+      "tier": 2,
+      "view": null,
+      "file": "buildings/bld_market_t2.png",
+      "anchorX": 0.55,
+      "anchorY": 0.996,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "B9"
     },
     {
       "id": "bld_shrine_t1",
@@ -34,6 +111,17 @@
       "source": "B7"
     },
     {
+      "id": "bld_shrine_t2",
+      "kind": "bld",
+      "tier": 2,
+      "view": null,
+      "file": "buildings/bld_shrine_t2.png",
+      "anchorX": 0.512,
+      "anchorY": 0.997,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "B9"
+    },
+    {
       "id": "bld_smithy_t1",
       "kind": "bld",
       "tier": 1,
@@ -43,6 +131,17 @@
       "anchorY": 0.996,
       "license": "own (ChatGPT, Stefan's account)",
       "source": "B7"
+    },
+    {
+      "id": "bld_smithy_t2",
+      "kind": "bld",
+      "tier": 2,
+      "view": null,
+      "file": "buildings/bld_smithy_t2.png",
+      "anchorX": 0.552,
+      "anchorY": 0.997,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "B9"
     },
     {
       "id": "bld_temple_aesir_t1",
@@ -56,6 +155,17 @@
       "source": "B6"
     },
     {
+      "id": "bld_temple_aesir_t2",
+      "kind": "bld",
+      "tier": 2,
+      "view": null,
+      "file": "buildings/bld_temple_aesir_t2.png",
+      "anchorX": 0.711,
+      "anchorY": 0.997,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "B9"
+    },
+    {
       "id": "bld_temple_egyptian_t1",
       "kind": "bld",
       "tier": 1,
@@ -65,6 +175,17 @@
       "anchorY": 0.996,
       "license": "own (ChatGPT, Stefan's account)",
       "source": "B6"
+    },
+    {
+      "id": "bld_temple_egyptian_t2",
+      "kind": "bld",
+      "tier": 2,
+      "view": null,
+      "file": "buildings/bld_temple_egyptian_t2.png",
+      "anchorX": 0.695,
+      "anchorY": 0.997,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "B9"
     },
     {
       "id": "bld_temple_greek_t1",
@@ -78,6 +199,17 @@
       "source": "B6"
     },
     {
+      "id": "bld_temple_greek_t2",
+      "kind": "bld",
+      "tier": 2,
+      "view": null,
+      "file": "buildings/bld_temple_greek_t2.png",
+      "anchorX": 0.536,
+      "anchorY": 0.997,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "B9"
+    },
+    {
       "id": "bld_tower_t1",
       "kind": "bld",
       "tier": 1,
@@ -89,6 +221,17 @@
       "source": "B7"
     },
     {
+      "id": "bld_tower_t2",
+      "kind": "bld",
+      "tier": 2,
+      "view": null,
+      "file": "buildings/bld_tower_t2.png",
+      "anchorX": 0.587,
+      "anchorY": 0.997,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "B9"
+    },
+    {
       "id": "bld_townhall_t1",
       "kind": "bld",
       "tier": 1,
@@ -98,6 +241,17 @@
       "anchorY": 0.996,
       "license": "own (ChatGPT, Stefan's account)",
       "source": "B7"
+    },
+    {
+      "id": "bld_townhall_t2",
+      "kind": "bld",
+      "tier": 2,
+      "view": null,
+      "file": "buildings/bld_townhall_t2.png",
+      "anchorX": 0.567,
+      "anchorY": 0.997,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "B9"
     },
     {
       "id": "hero_freyja_t1_front",
@@ -424,10 +578,38 @@
       "anchorX": 0.529,
       "anchorY": 0.992,
       "strike": "chop",
-      "weaponX": 0.413,
-      "weaponY": 0.137,
+      "weaponX": 0.739,
+      "weaponY": 0.02,
       "license": "own (ChatGPT, Stefan's account)",
       "source": "B4"
+    },
+    {
+      "id": "mon_draugr-v2_t1_front",
+      "kind": "mon",
+      "tier": 1,
+      "view": "front",
+      "file": "units/mon_draugr-v2_t1_front.png",
+      "anchorX": 0.529,
+      "anchorY": 0.992,
+      "strike": "chop",
+      "weaponX": 0.639,
+      "weaponY": 0.069,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "V1"
+    },
+    {
+      "id": "mon_draugr-v3_t1_front",
+      "kind": "mon",
+      "tier": 1,
+      "view": "front",
+      "file": "units/mon_draugr-v3_t1_front.png",
+      "anchorX": 0.535,
+      "anchorY": 0.992,
+      "strike": "chop",
+      "weaponX": 0.681,
+      "weaponY": 0.036,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "V1"
     },
     {
       "id": "mon_harpy_t1_front",
@@ -444,6 +626,34 @@
       "source": "B4"
     },
     {
+      "id": "mon_harpy-v2_t1_front",
+      "kind": "mon",
+      "tier": 1,
+      "view": "front",
+      "file": "units/mon_harpy-v2_t1_front.png",
+      "anchorX": 0.593,
+      "anchorY": 0.992,
+      "strike": "upward",
+      "weaponX": 0.601,
+      "weaponY": 0.859,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "V1"
+    },
+    {
+      "id": "mon_harpy-v3_t1_front",
+      "kind": "mon",
+      "tier": 1,
+      "view": "front",
+      "file": "units/mon_harpy-v3_t1_front.png",
+      "anchorX": 0.595,
+      "anchorY": 0.992,
+      "strike": "upward",
+      "weaponX": 0.601,
+      "weaponY": 0.859,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "V1"
+    },
+    {
       "id": "mon_jackal-man_t1_front",
       "kind": "mon",
       "tier": 1,
@@ -458,6 +668,34 @@
       "source": "B5"
     },
     {
+      "id": "mon_jackal-man-v2_t1_front",
+      "kind": "mon",
+      "tier": 1,
+      "view": "front",
+      "file": "units/mon_jackal-man-v2_t1_front.png",
+      "anchorX": 0.583,
+      "anchorY": 0.992,
+      "strike": "sweep",
+      "weaponX": 0.055,
+      "weaponY": 0.452,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "V1"
+    },
+    {
+      "id": "mon_jackal-man-v3_t1_front",
+      "kind": "mon",
+      "tier": 1,
+      "view": "front",
+      "file": "units/mon_jackal-man-v3_t1_front.png",
+      "anchorX": 0.587,
+      "anchorY": 0.992,
+      "strike": "sweep",
+      "weaponX": 0.064,
+      "weaponY": 0.409,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "V1"
+    },
+    {
       "id": "mon_minotaur_t1_front",
       "kind": "mon",
       "tier": 1,
@@ -470,6 +708,34 @@
       "weaponY": 0.124,
       "license": "own (ChatGPT, Stefan's account)",
       "source": "B5"
+    },
+    {
+      "id": "mon_minotaur-v2_t1_front",
+      "kind": "mon",
+      "tier": 1,
+      "view": "front",
+      "file": "units/mon_minotaur-v2_t1_front.png",
+      "anchorX": 0.554,
+      "anchorY": 0.992,
+      "strike": "chop",
+      "weaponX": 0.104,
+      "weaponY": 0.126,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "V1"
+    },
+    {
+      "id": "mon_minotaur-v3_t1_front",
+      "kind": "mon",
+      "tier": 1,
+      "view": "front",
+      "file": "units/mon_minotaur-v3_t1_front.png",
+      "anchorX": 0.569,
+      "anchorY": 0.992,
+      "strike": "chop",
+      "weaponX": 0.133,
+      "weaponY": 0.136,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "V1"
     },
     {
       "id": "mon_troll_t1_front",
@@ -642,6 +908,127 @@
       "anchorY": 0.5,
       "license": "own (ChatGPT, Stefan's account)",
       "source": "U2"
+    },
+    {
+      "id": "ui_item_armour",
+      "kind": "ui",
+      "tier": null,
+      "view": null,
+      "file": "ui/ui_item_armour.png",
+      "anchorX": 0.5,
+      "anchorY": 0.5,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "U4"
+    },
+    {
+      "id": "ui_item_charm_bloodstone",
+      "kind": "ui",
+      "tier": null,
+      "view": null,
+      "file": "ui/ui_item_charm_bloodstone.png",
+      "anchorX": 0.5,
+      "anchorY": 0.5,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "U4"
+    },
+    {
+      "id": "ui_item_charm_emberward",
+      "kind": "ui",
+      "tier": null,
+      "view": null,
+      "file": "ui/ui_item_charm_emberward.png",
+      "anchorX": 0.5,
+      "anchorY": 0.5,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "U4"
+    },
+    {
+      "id": "ui_item_charm_foxtail",
+      "kind": "ui",
+      "tier": null,
+      "view": null,
+      "file": "ui/ui_item_charm_foxtail.png",
+      "anchorX": 0.5,
+      "anchorY": 0.5,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "U4"
+    },
+    {
+      "id": "ui_item_charm_graveward",
+      "kind": "ui",
+      "tier": null,
+      "view": null,
+      "file": "ui/ui_item_charm_graveward.png",
+      "anchorX": 0.5,
+      "anchorY": 0.5,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "U4"
+    },
+    {
+      "id": "ui_item_charm_hawkeye",
+      "kind": "ui",
+      "tier": null,
+      "view": null,
+      "file": "ui/ui_item_charm_hawkeye.png",
+      "anchorX": 0.5,
+      "anchorY": 0.5,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "U4"
+    },
+    {
+      "id": "ui_item_charm_wardring",
+      "kind": "ui",
+      "tier": null,
+      "view": null,
+      "file": "ui/ui_item_charm_wardring.png",
+      "anchorX": 0.5,
+      "anchorY": 0.5,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "U4"
+    },
+    {
+      "id": "ui_item_focus",
+      "kind": "ui",
+      "tier": null,
+      "view": null,
+      "file": "ui/ui_item_focus.png",
+      "anchorX": 0.5,
+      "anchorY": 0.5,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "U4"
+    },
+    {
+      "id": "ui_item_potion",
+      "kind": "ui",
+      "tier": null,
+      "view": null,
+      "file": "ui/ui_item_potion.png",
+      "anchorX": 0.5,
+      "anchorY": 0.5,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "U4"
+    },
+    {
+      "id": "ui_item_potion_greater",
+      "kind": "ui",
+      "tier": null,
+      "view": null,
+      "file": "ui/ui_item_potion_greater.png",
+      "anchorX": 0.5,
+      "anchorY": 0.5,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "U4"
+    },
+    {
+      "id": "ui_item_sword",
+      "kind": "ui",
+      "tier": null,
+      "view": null,
+      "file": "ui/ui_item_sword.png",
+      "anchorX": 0.5,
+      "anchorY": 0.5,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "U4"
     },
     {
       "id": "ui_panel",

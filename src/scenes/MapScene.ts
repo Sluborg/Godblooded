@@ -235,11 +235,18 @@ export class MapScene extends Phaser.Scene {
     return command(this.world, { kind: 'pickUpgrade', party, upgrade });
   }
 
-  // Bounty amounts are the HUD's choice; the sim validates and spends.
+  // Upgrade a building to its next tier (the sim checks gold and the tier cap).
   tryUpgrade(building: number): CommandResult {
     return command(this.world, { kind: 'upgrade', building });
   }
 
+  // Pan the camera to a place (an event feed tap).
+  jumpTo(pos: Vec2): void {
+    this.setWatch(false);
+    this.cameras.main.pan(pos.x, pos.y, 450, 'Sine.easeInOut');
+  }
+
+  // Bounty amounts are the HUD's choice; the sim validates and spends.
   tryBounty(pos: Vec2, gold: number): CommandResult {
     return command(this.world, { kind: 'placeBounty', pos, gold });
   }
