@@ -170,30 +170,30 @@ B17), and Scene shows the lair tier in code, with no new art.
 
 ### How monsters look (tier 1, 2, 3)
 
-Monsters have **one tier-1 picture each** (`docs/asset-spec.md`, `docs/game-design.md`); the
-game shows a tougher monster in code:
+Same rule as the heroes (`paths-and-skills.md` section 6, cartoon units from parts): a monster
+keeps its face, body and palette on every tier; each tier adds **one silhouette change** and
+grows a little (size x1.0, x1.1, x1.2). The **tier colour** (green, yellow, red,
+`docs/game-design.md`, Lead 2026-10-13) shows on the eyes and the ground ring, never as a
+whole-sprite tint, so it never clashes with Scene's rider and heal tints.
 
-| Tier | In code                            |
-| ---- | ---------------------------------- |
-| 1    | the picture; a green ring under it |
-| 2    | size x1.1; a yellow ring           |
-| 3    | size x1.2; a red ring              |
+| Monster      | Tier 1 (keeps on every tier)                             | Tier 2 adds                              | Tier 3 adds                                                |
+| ------------ | -------------------------------------------------------- | ---------------------------------------- | ---------------------------------------------------------- |
+| draugr       | grey-green skin, rusted mail, dented helm, notched sword | a cracked round shield, a tattered cape  | a horned helm, frost on the blade, a cold mist at the feet |
+| troll        | mossy grey skin, huge arms, a tree-branch club           | a stone in the club, a bone necklace     | moss and a small tree on the back, a boulder club          |
+| harpy        | feathered wings, bird legs with talons, wild hair        | longer wing tips, a stolen gold necklace | a feather crest, storm-dark wings with a bright edge       |
+| minotaur     | bull head with horns, bare chest, a big axe              | a bronze nose ring, a leather harness    | gilded horns, a double-headed axe                          |
+| jackal-man   | jackal head, black fur, linen kilt, a short spear        | a bronze collar, a small round shield    | a gold headdress, a khopesh                                |
+| scarab swarm | a knot of black beetles with gold backs                  | a bigger knot, a few flying beetles      | one large gold scarab at the centre                        |
 
-- **The ring carries the tier colour**, not a whole-sprite tint, so it never clashes with the
-  rider and heal tints Scene puts on the sprite.
-- **Elites:** a gold outline drawn in code around the sprite, and a bigger health bar; an elite
-  with a skill (lair tier 3) also shows the skill's colour on its ring.
-- **Variants** (tier 1 only, `mon_<type>[-vN]_t1_front`): 2-3 per common monster so a pack never
-  looks cloned. Same pose and palette, one part swapped:
-
-| Monster      | Tier 1 picture                                           | Variant swaps (v2, v3)                    |
-| ------------ | -------------------------------------------------------- | ----------------------------------------- |
-| draugr       | grey-green skin, rusted mail, dented helm, notched sword | horned helm; an axe instead of the sword  |
-| troll        | mossy grey skin, huge arms, a tree-branch club           | a bone necklace; a stone club             |
-| harpy        | feathered wings, bird legs with talons, wild hair        | a feather crest; a stolen gold necklace   |
-| minotaur     | bull head with horns, bare chest, a big axe              | a bronze nose ring; a double-headed axe   |
-| jackal-man   | jackal head, black fur, linen kilt, a short spear        | a khopesh; a bronze collar and shield     |
-| scarab swarm | a knot of black beetles with gold backs                  | (none: one picture, the swarm repeats it) |
+- **Elites** (from lair tier 2, `progression.md`): the same picture with a **gold outline edge**
+  and a bigger health bar; an elite with a skill (lair tier 3) shows the skill's colour in the
+  eyes.
+- **Readable at 0.7x on a phone:** each tier must change the outline (a shield, horns, a
+  crest), not only the colour.
+- **Variants** (`docs/game-design.md`): common monsters get 2-3 swaps of one part (head or
+  weapon), so a pack never looks cloned.
+- **Art contract:** this replaces "monsters have tier-1 pictures only"; Art updates
+  `docs/asset-spec.md` and `STYLE.md` (Lead 2026-10-13).
 
 ### How bosses look
 
