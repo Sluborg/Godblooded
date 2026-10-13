@@ -18,6 +18,7 @@ import {
 import { clearSave, newSeed, readSave, writeSave } from '../ui/saveStore';
 import { getSettings } from '../ui/settings';
 import { heroLabel, partyColor } from '../ui/partyLook';
+import { artCandidates } from '../ui/unitLook';
 import { UnitViews } from '../ui/unitViews';
 import { buildingArtCandidates, buildingScale, lairArtCandidates } from '../ui/unitLook';
 import { ASSETS_KEY, type ManifestAsset } from '../ui/assets';
@@ -34,6 +35,8 @@ const BUILDING_COLORS: Record<string, number> = {
   tower: 0x9a9a9a,
 };
 const BUILDING_SIZE = 96;
+// How long the camera takes to show the levelled party before its cards come up.
+const FOCUS_MS = 700;
 const TARGET_RADIUS = 70;
 const PLOT_SIZE = 120;
 const INTEREST_MAX = 8;
@@ -60,6 +63,8 @@ export class MapScene extends Phaser.Scene {
   private links!: Phaser.GameObjects.Graphics;
   // Party whose level-up cards are open (the sim is frozen until it is picked), or null.
   private offerKey: string | null = null;
+  // The ring on the ground around the party that levelled, while its cards are up.
+  private offerRing: Phaser.GameObjects.Ellipse | null = null;
   // Camera mode: by hand, watching the best fight, or following one hero (until it is gone).
   private cam: 'off' | 'watch' | 'unit' = 'off';
   private followId = 0;
@@ -112,6 +117,7 @@ export class MapScene extends Phaser.Scene {
       blocked: (x, y) => this.registry.get('modal') === true || (this.hud()?.blocks(x, y) ?? false),
     });
     this.offerKey = null;
+    this.offerRing = null;
     this.cam = 'off';
     this.followId = 0;
     this.director.reset();
@@ -190,13 +196,17 @@ export class MapScene extends Phaser.Scene {
         : `up:${party.id}:${party.level}`;
     if (key === this.offerKey) return;
     if (this.offerKey !== null) this.scene.stop('LevelUp');
+    this.offerRing?.destroy();
+    this.offerRing = null;
     this.offerKey = key;
     this.registry.set('modal', key !== null);
     if (!party) return;
     const po = pathParty?.pathOffer;
+    const who = this.partyWho(party, po?.hero ?? null);
+    let offer: LevelUpOffer;
     if (po) {
       const hero = this.snap.units.find((u) => u.id === po.hero);
-      const offer: LevelUpOffer = {
+      offer = {
         party: party.id,
         level: party.level,
         size: party.members.length,
@@ -207,19 +217,75 @@ export class MapScene extends Phaser.Scene {
           const p = this.snap.paths.find((x) => x.id === id);
           return p ? [{ id: p.id, god: p.god, name: p.name, pantheon: p.pantheon }] : [];
         }),
+        ...who,
       };
-      this.registry.set(OFFER_KEY, offer);
-      this.scene.launch('LevelUp');
     } else if (party.offer) {
-      const offer: LevelUpOffer = {
+      offer = {
         party: party.id,
         level: party.level,
         size: party.members.length,
         upgrades: [...party.offer],
+        ...who,
       };
-      this.registry.set(OFFER_KEY, offer);
-      this.scene.launch('LevelUp');
-    }
+    } else return;
+    // Show WHERE first: the camera glides to the party and a ring marks it, and only then do the
+    // cards come up (the sim is frozen meanwhile).
+    this.registry.set(OFFER_KEY, offer);
+    this.focusParty(who.focus, who.color);
+    this.time.delayedCall(getSettings().reducedMotion ? 0 : FOCUS_MS, () => {
+      if (this.offerKey === key) this.scene.launch('LevelUp');
+    });
+  }
+
+  // Who is in the party that levelled: colour, leader, members with their pictures, and where.
+  private partyWho(
+    party: { id: number; members: readonly number[] },
+    picking: number | null,
+  ): Required<Pick<LevelUpOffer, 'color' | 'leader' | 'members' | 'focus'>> {
+    const units = party.members.flatMap((id) => {
+      const u = this.snap.units.find((x) => x.id === id);
+      return u ? [u] : [];
+    });
+    const leader = units[0];
+    const cx = units.length ? units.reduce((s, u) => s + u.pos.x, 0) / units.length : 0;
+    const cy = units.length ? units.reduce((s, u) => s + u.pos.y, 0) / units.length : 0;
+    return {
+      color: partyColor(party.id),
+      leader: leader ? heroLabel(leader) : 'the party',
+      members: units.map((u) => ({
+        id: u.id,
+        label: heroLabel(u),
+        art: artCandidates('hero', u.type, u.tier, u.path, u.god),
+        picking: picking === u.id,
+      })),
+      focus: { x: cx, y: cy },
+    };
+  }
+
+  // Glide the camera to the party and ring it in its colour for as long as the cards are up.
+  private focusParty(at: Vec2, color: number): void {
+    this.setWatch(false);
+    this.offerRing?.destroy();
+    this.cameras.main.pan(
+      at.x,
+      at.y,
+      getSettings().reducedMotion ? 1 : FOCUS_MS - 100,
+      'Sine.easeInOut',
+    );
+    const ring = this.add
+      .ellipse(at.x, at.y, 260, 120, color, 0.18)
+      .setStrokeStyle(8, color, 0.95)
+      .setDepth(999_900);
+    this.offerRing = ring;
+    if (!getSettings().reducedMotion)
+      this.tweens.add({
+        targets: ring,
+        scale: 1.25,
+        alpha: 0.6,
+        duration: 700,
+        yoyo: true,
+        repeat: -1,
+      });
   }
 
   // Sim command entry for the HUD. The sim decides; the result carries the refusal reason.
