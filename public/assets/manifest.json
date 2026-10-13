@@ -1,6 +1,17 @@
 {
   "assets": [
     {
+      "id": "art_splash",
+      "kind": "art",
+      "tier": null,
+      "view": null,
+      "file": "art/art_splash.png",
+      "anchorX": 0.5,
+      "anchorY": 0.5,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "U3"
+    },
+    {
       "id": "bld_market_t1",
       "kind": "bld",
       "tier": 1,
@@ -315,6 +326,165 @@
       "weaponY": 0.321,
       "license": "own (ChatGPT, Stefan's account)",
       "source": "B5"
+    },
+    {
+      "id": "ui_button",
+      "kind": "ui",
+      "tier": null,
+      "view": null,
+      "file": "ui/ui_button.png",
+      "anchorX": 0.5,
+      "anchorY": 0.5,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "U2",
+      "sliceLeft": 26,
+      "sliceRight": 26,
+      "sliceTop": 23,
+      "sliceBottom": 23
+    },
+    {
+      "id": "ui_button_disabled",
+      "kind": "ui",
+      "tier": null,
+      "view": null,
+      "file": "ui/ui_button_disabled.png",
+      "anchorX": 0.5,
+      "anchorY": 0.5,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "U2",
+      "sliceLeft": 26,
+      "sliceRight": 26,
+      "sliceTop": 23,
+      "sliceBottom": 23
+    },
+    {
+      "id": "ui_button_pressed",
+      "kind": "ui",
+      "tier": null,
+      "view": null,
+      "file": "ui/ui_button_pressed.png",
+      "anchorX": 0.5,
+      "anchorY": 0.5,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "U2",
+      "sliceLeft": 26,
+      "sliceRight": 26,
+      "sliceTop": 23,
+      "sliceBottom": 23
+    },
+    {
+      "id": "ui_icon_bounty",
+      "kind": "ui",
+      "tier": null,
+      "view": null,
+      "file": "ui/ui_icon_bounty.png",
+      "anchorX": 0.5,
+      "anchorY": 0.5,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "U2"
+    },
+    {
+      "id": "ui_icon_gold",
+      "kind": "ui",
+      "tier": null,
+      "view": null,
+      "file": "ui/ui_icon_gold.png",
+      "anchorX": 0.5,
+      "anchorY": 0.5,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "U2"
+    },
+    {
+      "id": "ui_icon_menu",
+      "kind": "ui",
+      "tier": null,
+      "view": null,
+      "file": "ui/ui_icon_menu.png",
+      "anchorX": 0.5,
+      "anchorY": 0.5,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "U2"
+    },
+    {
+      "id": "ui_icon_pause",
+      "kind": "ui",
+      "tier": null,
+      "view": null,
+      "file": "ui/ui_icon_pause.png",
+      "anchorX": 0.5,
+      "anchorY": 0.5,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "U2"
+    },
+    {
+      "id": "ui_icon_settings",
+      "kind": "ui",
+      "tier": null,
+      "view": null,
+      "file": "ui/ui_icon_settings.png",
+      "anchorX": 0.5,
+      "anchorY": 0.5,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "U2"
+    },
+    {
+      "id": "ui_icon_speed1",
+      "kind": "ui",
+      "tier": null,
+      "view": null,
+      "file": "ui/ui_icon_speed1.png",
+      "anchorX": 0.5,
+      "anchorY": 0.5,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "U2"
+    },
+    {
+      "id": "ui_icon_speed2",
+      "kind": "ui",
+      "tier": null,
+      "view": null,
+      "file": "ui/ui_icon_speed2.png",
+      "anchorX": 0.5,
+      "anchorY": 0.5,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "U2"
+    },
+    {
+      "id": "ui_icon_speed4",
+      "kind": "ui",
+      "tier": null,
+      "view": null,
+      "file": "ui/ui_icon_speed4.png",
+      "anchorX": 0.5,
+      "anchorY": 0.5,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "U2"
+    },
+    {
+      "id": "ui_icon_upgrade",
+      "kind": "ui",
+      "tier": null,
+      "view": null,
+      "file": "ui/ui_icon_upgrade.png",
+      "anchorX": 0.5,
+      "anchorY": 0.5,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "U2"
+    },
+    {
+      "id": "ui_panel",
+      "kind": "ui",
+      "tier": null,
+      "view": null,
+      "file": "ui/ui_panel.png",
+      "anchorX": 0.5,
+      "anchorY": 0.5,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "U2",
+      "sliceLeft": 36,
+      "sliceRight": 36,
+      "sliceTop": 36,
+      "sliceBottom": 36
     }
   ]
 }

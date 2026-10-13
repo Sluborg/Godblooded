@@ -5,7 +5,15 @@ import { noteFight } from './engage';
 import { runStatuses, slowOf, healMult, type UnitStatus } from './riders';
 import { attackStrike, landStrike } from './strike';
 import { cancelCast, runSkill, tickSkill, type SkillRuntime } from './skills';
-import { swing } from './swing';
+import { swing, type Area } from './swing';
+import {
+  bossNumbers,
+  cleaveStrike,
+  isBoss,
+  runBosses,
+  spawnMonster,
+  type BossRuntime,
+} from './boss';
 import { buildReport, sampleGold, tally, type HeroRecord } from './runstats';
 import {
   attackBuilding,
@@ -43,7 +51,6 @@ import {
 import {
   aggroRange,
   dist,
-  monsterHp,
   scaleAttrs,
   speedOf,
   stepToward,
@@ -78,6 +85,8 @@ interface LairRuntime {
   nextSpawnMs: number;
   // When the lair next goes up a tier (Infinity once at the top or with growth off).
   nextTierMs: number;
+  // The boss of a boss lair has come out (once).
+  bossSpawned?: boolean;
 }
 export interface UnitRuntime {
   // The lair a monster belongs to; null for heroes.
@@ -85,12 +94,14 @@ export interface UnitRuntime {
   // Raiders march on the town instead of wandering near their lair.
   raid?: boolean;
   // A strike in its windup: the target and the time left before it lands.
-  swing?: { target: number; ms: number };
+  swing?: { target: number; ms: number; area?: Area };
   cooldownMs: number;
   target: Vec2 | null;
   idleMs: number;
   // Active riders on this unit (burn, chill, wither).
   status?: UnitStatus;
+  // Set on a boss unit.
+  boss?: BossRuntime;
   // The fight this unit is in runs until here (see engage.ts).
   fightUntilMs?: number;
   // Heroes with a path skill: cooldown and the cast in progress (see skills.ts).
@@ -253,6 +264,7 @@ function runTick(world: World): void {
   runStatuses(world);
   // Burn victims leave now, before heroes flee or units act on a dead unit's turn.
   settleDeaths(world);
+  runBosses(world);
   runLairs(world);
   runRaids(world);
   runHeroes(world);
@@ -287,34 +299,12 @@ function runLairs(world: World): void {
       return r?.lair === lair.id && !r.raid;
     }).length;
     if (alive >= def.maxAlive + tierValue(lt.maxAliveAdd, lair.tier, 0)) continue;
-    const mon = world.data.monsters?.find((m) => m.id === def.monster);
-    if (!mon) continue;
-    const id = world.nextId++;
-    const hp = monsterHp({
-      ...mon,
-      attrs: scaleAttrs(mon.attrs, tierValue(lt.statMult, lair.tier, 1)),
-    });
-    world.units.push({
-      id,
-      kind: 'monster',
-      type: mon.id,
-      tier: lair.tier,
-      god: null,
-      path: null,
-      pos: { ...lair.pos },
-      facing: { x: 0, y: 1 },
-      hp,
-      maxHp: hp,
-      target: null,
-      ko: false,
-      mode: 'wander',
-      party: 0,
-      trait: null,
-      gold: 0,
-      bounty: null,
-    });
-    world.unitRuntime.set(id, { lair: lair.id, cooldownMs: 0, target: null, idleMs: 0 });
-    world.events.push({ kind: 'spawned', unit: id, type: mon.id, lair: lair.id });
+    // A lair whose monster is a boss spawns nothing regular unless it has an escort.
+    const mon = world.data.monsters?.find((m) => m.id === (def.escort ?? def.monster));
+    if (!mon || isBoss(mon)) continue;
+    // The guards of a boss lair stand until the boss comes out; only the enrage call adds more.
+    if (rt.bossSpawned) continue;
+    spawnMonster(world, lair, mon);
   }
 }
 
@@ -334,14 +324,16 @@ export function statsOf(world: World, unit: UnitState): Stats | undefined {
   }
   const mon = world.data.monsters?.find((m) => m.id === unit.type);
   const mult = tierValue(world.tuning.lair.statMult, unit.tier, 1);
+  const bossRt = world.unitRuntime.get(unit.id)?.boss;
   return (
     mon && {
       weapon: mon.weapon,
       attrs: scaleAttrs(mon.attrs, mult),
       armour: Math.round((mon.armour ?? 0) * mult),
-      tags: mon.tags,
+      tags: isBoss(mon) ? [...(mon.tags ?? []), 'boss'] : mon.tags,
       types: mon.types,
       slow: slowOf(world, unit.id),
+      attackMult: bossRt?.enraged ? bossNumbers(world, mon).enrageAttackMult : undefined,
     }
   );
 }
@@ -472,9 +464,28 @@ function fight(world: World, unit: UnitState, rt: UnitRuntime, stats: Stats, foe
     return;
   }
   if (d > 0) unit.facing = { x: (foe.pos.x - unit.pos.x) / d, y: (foe.pos.y - unit.pos.y) / d };
-  swing(world, unit, rt, stats, foe.id, () => {
-    landStrike(world, unit, foe, attackStrike(stats, targetOf(world, foe)));
-  });
+  const mon = rt.boss ? world.data.monsters?.find((m) => m.id === unit.type) : undefined;
+  const boss = mon && rt.boss ? { n: bossNumbers(world, mon), rt: rt.boss } : undefined;
+  // Every cleaveEvery-th strike of a boss is a cleave: long windup, a marked ground area.
+  const cleave = boss && (boss.rt.strikes + 1) % boss.n.cleaveEvery === 0;
+  swing(
+    world,
+    unit,
+    rt,
+    stats,
+    foe.id,
+    (area) => {
+      if (boss) boss.rt.strikes++;
+      if (cleave && area) cleaveStrike(world, unit, foe, stats, area);
+      else landStrike(world, unit, foe, attackStrike(stats, targetOf(world, foe)));
+    },
+    cleave && boss
+      ? {
+          windupMs: boss.n.cleaveWindupMs,
+          area: { x: foe.pos.x, y: foe.pos.y, r: boss.n.cleaveRadius },
+        }
+      : undefined,
+  );
 }
 
 function settleDeaths(world: World): void {
