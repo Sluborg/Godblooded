@@ -55,6 +55,12 @@ export const DEFAULT_TUNING: Tuning = {
     // Party level n needs xpPerLevel * n xp.
     xpPerLevel: 30,
     offerSize: 3,
+    maxLevel: 8,
+    autoPick: true,
+    offerSlowdown: 0.3,
+    traitPickWeight: 3,
+    favourLevel: 7,
+    rarity: { low: [70, 30, 0], mid: [50, 40, 10], high: [30, 50, 20] },
     bondCap: 10,
     // Hp fraction a hero flees at before upgrades and personality.
     baseFlee: 0.3,

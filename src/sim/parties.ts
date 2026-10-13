@@ -1,4 +1,5 @@
 import { armourBonus } from './items';
+import { autoPickCard, leaderOf, offerCards } from './cards';
 import { passiveAttrs } from './passives';
 import { partiesHaveRivals, runRivalries } from './rivalry';
 import { dist, maxHp } from './units';
@@ -115,23 +116,26 @@ export function shareXp(world: World, killer: number, xp: number): void {
     }
   }
   party.xp += xp;
-  while (party.xp >= xpNext(world, party.level) && !party.offer && !party.pathOffer) {
+  while (
+    party.level < tune(world).maxLevel &&
+    party.xp >= xpNext(world, party.level) &&
+    !party.offer &&
+    !party.pathOffer
+  ) {
     party.xp -= xpNext(world, party.level);
     party.level++;
-    const ids = offerIds(world);
-    if (ids.length > 0) party.offer = ids;
+    const ids = offerCards(world, party);
+    if (ids.length > 0 && !tune(world).autoPick) party.offer = ids;
     world.events.push({ kind: 'levelUp', party: party.id, level: party.level, offer: ids });
+    // The party picks for itself, by its leader's personality (no pause, no player choice).
+    if (ids.length > 0 && tune(world).autoPick) {
+      const leader = leaderOf(world, party);
+      const pick = autoPickCard(world, party, ids);
+      const god = world.data.upgrades?.find((u) => u.id === pick)?.god ?? leader?.god ?? undefined;
+      applyUpgrade(world, party, pick, { auto: true, hero: leader?.id, god });
+    }
     settleTiers(world, party);
   }
-}
-
-function offerIds(world: World): string[] {
-  const pool = (world.data.upgrades ?? []).map((u) => u.id);
-  const picked: string[] = [];
-  while (picked.length < tune(world).offerSize && pool.length > 0) {
-    picked.push(...pool.splice(Math.floor(world.rng() * pool.length), 1));
-  }
-  return picked;
 }
 
 const pathDef = (world: World, id: string | null): PathDef | undefined =>
@@ -290,8 +294,19 @@ export function pickUpgrade(
   if (party.pathOffer) return { ok: false, reason: 'pick a path first' };
   if (!party.offer) return { ok: false, reason: 'no pick pending' };
   if (!party.offer.includes(upgrade)) return { ok: false, reason: 'not offered' };
-  const def = world.data.upgrades?.find((u) => u.id === upgrade);
   party.offer = null;
+  applyUpgrade(world, party, upgrade, {});
+  return { ok: true, id: partyId };
+}
+
+// A party takes a card: it joins the party's upgrades, max hp refreshes, healing cards heal.
+function applyUpgrade(
+  world: World,
+  party: Party,
+  upgrade: string,
+  by: { auto?: boolean; hero?: number; god?: string },
+): void {
+  const def = world.data.upgrades?.find((u) => u.id === upgrade);
   party.upgrades.push(upgrade);
   for (const id of party.members) {
     const u = world.units.find((x) => x.id === id);
@@ -301,8 +316,14 @@ export function pickUpgrade(
       u.hp = Math.min(u.maxHp, u.hp + (u.maxHp * def.effect.healPct) / 100);
     }
   }
-  world.events.push({ kind: 'upgradePicked', party: partyId, upgrade });
-  return { ok: true, id: partyId };
+  world.events.push({
+    kind: 'upgradePicked',
+    party: party.id,
+    upgrade,
+    ...(by.auto ? { auto: true } : {}),
+    ...(by.hero !== undefined ? { hero: by.hero } : {}),
+    ...(by.god !== undefined ? { god: by.god } : {}),
+  });
 }
 
 // Fleeing costs trust: the party mates like the runner a little less.
@@ -315,6 +336,17 @@ export function fledParty(world: World, unit: UnitState): void {
 // Level 1 parties that meet while exploring may join up, more likely with a bond or a loyal
 // member. Runs once a second.
 export function runParties(world: World): void {
+  // A save from before auto-pick may hold an open upgrade offer: the party takes it itself.
+  if (tune(world).autoPick) {
+    for (const p of world.parties.values()) {
+      if (!p.offer) continue;
+      const leader = leaderOf(world, p);
+      const pick = autoPickCard(world, p, p.offer);
+      p.offer = null;
+      const god = world.data.upgrades?.find((u) => u.id === pick)?.god ?? leader?.god ?? undefined;
+      applyUpgrade(world, p, pick, { auto: true, hero: leader?.id, god });
+    }
+  }
   if (world.tick % tune(world).mergeEveryTicks !== 0) return;
   runRivalries(world);
   const ids = [...world.parties.keys()].sort((a, b) => a - b);

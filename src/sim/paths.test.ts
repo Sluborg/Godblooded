@@ -66,7 +66,11 @@ const data: GameData = {
       attrs: [{ str: 1 }, { str: 3 }],
     },
   ],
-  tuning: { town: { raidFirstMs: 10_000_000 }, hero: { firstRecruitMs: 10_000_000 } },
+  tuning: {
+    town: { raidFirstMs: 10_000_000 },
+    hero: { firstRecruitMs: 10_000_000 },
+    party: { autoPick: false, offerSlowdown: 0 },
+  },
 };
 
 function setup(builds: number[] = []) {
