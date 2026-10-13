@@ -766,6 +766,22 @@
       "source": "B5"
     },
     {
+      "id": "mus_title",
+      "kind": "mus",
+      "tier": null,
+      "view": null,
+      "file": "audio/mus_title",
+      "loopStartMs": 0,
+      "loopEndMs": 121888,
+      "loopCrossfadeMs": 2000,
+      "bpm": 75,
+      "key": "A minor",
+      "loudnessLufs": -16,
+      "license": "own (Gemini, Stefan's account, 2026-10-13; title \"Throne of Ancient Stone\")",
+      "source": "M1",
+      "note": "ends in a fade: loop with a ~2 s crossfade"
+    },
+    {
       "id": "ui_button",
       "kind": "ui",
       "tier": null,
