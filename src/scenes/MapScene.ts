@@ -156,6 +156,11 @@ export class MapScene extends Phaser.Scene {
   }
 
   // Bounty amounts are the HUD's choice; the sim validates and spends.
+  // Pan the camera to a place (an event feed tap).
+  jumpTo(pos: Vec2): void {
+    this.cameras.main.pan(pos.x, pos.y, 450, 'Sine.easeInOut');
+  }
+
   tryBounty(pos: Vec2, gold: number): CommandResult {
     return command(this.world, { kind: 'placeBounty', pos, gold });
   }

@@ -4,7 +4,8 @@ import { GRAYBOX } from '../data/graybox';
 import type { CommandResult } from '../sim/api';
 import { makeButton, type Button } from '../ui/button';
 import { PartyPanel } from '../ui/partyPanel';
-import type { SimEvent } from '../sim/api';
+import type { SimEvent, Vec2 } from '../sim/api';
+import { describeEvent, EventFeed, type FeedWorld } from '../ui/eventFeed';
 import type { MapScene, MapTap } from './MapScene';
 
 const SPEEDS = [1, 2, 4];
@@ -36,6 +37,13 @@ export class HudScene extends Phaser.Scene {
   private menu: Phaser.GameObjects.GameObject[] = [];
   private menuButtons: { button: Button; cost: number }[] = [];
   private menuRect: Phaser.Geom.Rectangle | null = null;
+  // Event feed: toasts on the left, positions of lairs and buildings remembered so a destroyed
+  // one can still be jumped to.
+  private feed = new EventFeed();
+  private feedKey = '';
+  private feedObjects: Phaser.GameObjects.GameObject[] = [];
+  private feedRects: Phaser.Geom.Rectangle[] = [];
+  private places = new Map<number, Vec2>();
 
   constructor() {
     super('Hud');
@@ -49,6 +57,11 @@ export class HudScene extends Phaser.Scene {
     this.menu = [];
     this.menuButtons = [];
     this.menuRect = null;
+    this.feed = new EventFeed();
+    this.feedKey = '';
+    this.feedObjects = [];
+    this.feedRects = [];
+    this.places = new Map();
     const map = this.scene.get('Map') as MapScene;
     this.add.rectangle(GAME_WIDTH / 2, 36, GAME_WIDTH, 72, 0x000000, 0.45);
     this.goldText = this.add.text(20, 36, '', { ...TEXT, color: '#f2c14e' }).setOrigin(0, 0.5);
@@ -98,7 +111,12 @@ export class HudScene extends Phaser.Scene {
     });
   }
 
-  update(): void {
+  update(_time: number, deltaMs: number): void {
+    const snap = (this.scene.get('Map') as MapScene).snapshot;
+    for (const l of snap.lairs) this.places.set(l.id, l.pos);
+    for (const b of snap.buildings) this.places.set(b.id, b.pos);
+    this.feed.update(deltaMs);
+    this.drawFeed(this.scene.get('Map') as MapScene);
     this.goldText.setText(`Gold ${this.registry.get('gold') ?? 0}`);
     this.clockText.setText(formatClock((this.registry.get('timeMs') as number) ?? 0));
     const status = this.registry.get('status') as string | undefined;
@@ -113,24 +131,74 @@ export class HudScene extends Phaser.Scene {
   blocks(x: number, y: number): boolean {
     if (y < 72 || this.endObjects.length > 0) return true;
     if (this.panel.isOpen && this.panel.rect.contains(x, y)) return true;
+    if (this.feedRects.some((r) => r.contains(x, y))) return true;
     return this.menuRect?.contains(x, y) ?? false;
   }
 
-  // Warnings the player must notice: raids, lost buildings, fallen lairs.
+  // Warnings the player must notice: raids and lost buildings get a banner; everything worth a
+  // line goes to the event feed.
   private onSimEvents(map: MapScene, events: readonly SimEvent[]): void {
+    const snap = map.snapshot;
+    const world: FeedWorld = {
+      unit: (id) => snap.units.find((u) => u.id === id),
+      structure: (id) => this.places.get(id),
+      leader: (partyId) => {
+        const first = snap.parties.find((p) => p.id === partyId)?.members[0];
+        return snap.units.find((u) => u.id === first);
+      },
+      townHall: snap.buildings.find((b) => b.type === 'townhall')?.pos ?? { x: 0, y: 0 },
+    };
     for (const e of events) {
       if (e.kind === 'raid') {
-        const lair = map.snapshot.lairs.find((l) => l.id === e.lair);
+        const lair = snap.lairs.find((l) => l.id === e.lair);
         this.showBanner(
           `RAID! ${e.size} ${lair?.type ?? 'monsters'} march on the town`,
           '#8a1c2bdd',
         );
       } else if (e.kind === 'buildingDestroyed') {
         this.showBanner(`${e.type.replace('_', ' ')} destroyed!`, '#8a1c2bdd');
-      } else if (e.kind === 'lairDestroyed') {
-        this.showBanner(`${e.type} lair destroyed!`, '#2f6b3aee');
       }
+      const spec = describeEvent(e, world);
+      if (spec) this.feed.push(spec);
     }
+  }
+
+  // Redraws the toast stack when it changed: pills on the left under the top bar, each 80 tall
+  // (a touch target); tapping one dismisses it and sends the camera there.
+  private drawFeed(map: MapScene): void {
+    const key = this.feed.toasts.map((t) => t.id).join(',');
+    if (key === this.feedKey) return;
+    this.feedKey = key;
+    this.feedObjects.forEach((o) => o.destroy());
+    this.feedObjects = [];
+    this.feedRects = [];
+    const W = 430;
+    const H = 76;
+    this.feed.toasts.forEach((t, i) => {
+      const x = 16;
+      const y = 84 + i * (H + 8);
+      const bg = this.add
+        .rectangle(
+          x + W / 2,
+          y + H / 2,
+          W,
+          H,
+          Phaser.Display.Color.HexStringToColor(t.color.slice(0, 7)).color,
+          0.9,
+        )
+        .setStrokeStyle(2, COLORS.gold, 0.7)
+        .setInteractive({ useHandCursor: true });
+      const label = this.add
+        .text(x + 14, y + H / 2, t.text, { ...TEXT, fontSize: '22px', wordWrap: { width: W - 28 } })
+        .setOrigin(0, 0.5);
+      bg.on('pointerup', (p: Phaser.Input.Pointer) => {
+        if (p.getDistance() >= 10) return;
+        if (t.pos) map.jumpTo(t.pos);
+        this.feed.dismiss(t.id);
+      });
+      this.feedObjects.push(bg, label);
+      this.feedRects.push(new Phaser.Geom.Rectangle(x, y, W, Math.max(H, MIN_TOUCH)));
+    });
   }
 
   private showBanner(text: string, color: string): void {
