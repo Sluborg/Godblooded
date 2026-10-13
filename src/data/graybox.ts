@@ -1,6 +1,14 @@
 // Graybox content (M1). Lead owns these numbers; Sim reads them. Ids match the art manifest
 // types (`hero_<class>`, `mon_<type>`, `bld_<type>`), so `bld_${id}_t${tier}` finds the sprite.
-import type { ClassDef, GameData, LairDef, MonsterDef, PathDef, UpgradeDef } from '../sim/types';
+import type {
+  ClassDef,
+  GameData,
+  GodDef,
+  LairDef,
+  MonsterDef,
+  PathDef,
+  UpgradeDef,
+} from '../sim/types';
 
 // Derived (Sim): hp = sta * 8 + str * 4, damage = str, attack time = weapon base reduced by dex.
 
@@ -47,14 +55,24 @@ export const CLASSES: readonly ClassDef[] = [
   },
 ];
 
-// Aesir favor paths (docs/game-design.md, "Favor paths"); ids match the art (hero_<id>_t2_front).
+// Bridge until the 12-god data lands: one Aesir god per old class, in the old class order (a
+// child of a god uses that class as its template, so recruiting and balance are unchanged).
+export const GODS: readonly GodDef[] = [
+  { id: 'thor', pantheon: 'aesir', name: 'Thor', template: 'warrior' },
+  { id: 'heimdall', pantheon: 'aesir', name: 'Heimdall', template: 'ranger' },
+  { id: 'odin', pantheon: 'aesir', name: 'Odin', template: 'wizard' },
+  { id: 'tyr', pantheon: 'aesir', name: 'Tyr', template: 'paladin' },
+  { id: 'loki', pantheon: 'aesir', name: 'Loki', template: 'rogue' },
+  { id: 'freyja', pantheon: 'aesir', name: 'Freyja', template: 'healer' },
+];
+
+// Aesir paths (docs/game-design.md, "Favor paths"); ids match the art (hero_<id>_t2_front).
 // Bonus is [tier 2, tier 3 total], kept modest: the tier is the visual reward.
 export const PATHS: readonly PathDef[] = [
   {
     id: 'warrior-thor',
-    class: 'warrior',
-    pantheon: 'aesir',
     god: 'thor',
+    template: 'warrior',
     name: 'Storm Berserker',
     attrs: [
       { str: 1, sta: 1 },
@@ -63,9 +81,8 @@ export const PATHS: readonly PathDef[] = [
   },
   {
     id: 'paladin-tyr',
-    class: 'paladin',
-    pantheon: 'aesir',
     god: 'tyr',
+    template: 'paladin',
     name: 'Oathsworn',
     attrs: [
       { sta: 1, wp: 1 },
@@ -74,9 +91,8 @@ export const PATHS: readonly PathDef[] = [
   },
   {
     id: 'ranger-heimdall',
-    class: 'ranger',
-    pantheon: 'aesir',
     god: 'heimdall',
+    template: 'ranger',
     name: 'Bifrost Warden',
     attrs: [
       { dex: 1, per: 1 },
@@ -85,9 +101,8 @@ export const PATHS: readonly PathDef[] = [
   },
   {
     id: 'rogue-loki',
-    class: 'rogue',
-    pantheon: 'aesir',
     god: 'loki',
+    template: 'rogue',
     name: 'Rune Trickster',
     attrs: [
       { dex: 1, str: 1 },
@@ -96,9 +111,8 @@ export const PATHS: readonly PathDef[] = [
   },
   {
     id: 'wizard-odin',
-    class: 'wizard',
-    pantheon: 'aesir',
     god: 'odin',
+    template: 'wizard',
     name: 'Raven Seer',
     attrs: [
       { str: 1, int: 1 },
@@ -107,9 +121,8 @@ export const PATHS: readonly PathDef[] = [
   },
   {
     id: 'healer-freyja',
-    class: 'healer',
-    pantheon: 'aesir',
     god: 'freyja',
+    template: 'healer',
     name: 'Valkyrie Skald',
     attrs: [
       { int: 1, wp: 1 },
@@ -210,6 +223,7 @@ export const GRAYBOX: GameData = {
     town: { raidFirstMs: 400_000, raidEveryMs: 120_000, raidGrowEveryMs: 240_000 },
   },
   classes: CLASSES,
+  gods: GODS,
   paths: PATHS,
   upgrades: UPGRADES,
   monsters: MONSTERS,

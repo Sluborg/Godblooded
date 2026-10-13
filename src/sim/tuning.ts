@@ -14,7 +14,7 @@ export const DEFAULT_TUNING: Tuning = {
     firstRecruitMs: 5_000,
     recruitMs: 15_000,
     maxPerTemple: 4,
-    maxPerClass: 2,
+    maxPerGod: 2,
     koMs: 10_000,
     // Fraction of max hp a revived hero wakes with.
     reviveHp: 0.25,
