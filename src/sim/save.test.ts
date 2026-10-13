@@ -68,7 +68,7 @@ describe('save and load', () => {
   it('survives a pending card pick: the world stays slowed on the same offer', () => {
     const manual: GameData = {
       ...GRAYBOX,
-      tuning: { ...GRAYBOX.tuning, party: { autoPick: false } },
+      tuning: { ...GRAYBOX.tuning, party: { autoPick: false, offerSlowdown: 0.3 } },
     };
     const a = createWorld(3, manual);
     play(a, 200_000);
