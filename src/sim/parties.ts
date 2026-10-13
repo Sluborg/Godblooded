@@ -63,7 +63,7 @@ function upgradeDefs(world: World, ids: readonly string[]): UpgradeDef[] {
   return out;
 }
 
-// Class attributes plus the party's upgrades and the hero's favor path.
+// Template attributes (the path's from tier 2) plus the party's upgrades and the path bonus.
 export function effectiveAttrs(world: World, unit: UnitState, base: Attributes): Attributes {
   const party = world.parties.get(unit.party);
   const path = unit.tier >= 2 ? pathDef(world, unit.path) : undefined;
@@ -130,47 +130,60 @@ function offerIds(world: World): string[] {
 const pathDef = (world: World, id: string | null): PathDef | undefined =>
   id ? world.data.paths?.find((p) => p.id === id) : undefined;
 
-// Pantheons of the temples built so far (BuildingDef.pantheon, else `temple_<pantheon>`).
+// Pantheon of a building type (BuildingDef.pantheon, else `temple_<pantheon>`), if it has one.
+export function pantheonOf(world: World, type: string): string | undefined {
+  const def = world.data.buildings.find((d) => d.id === type);
+  return def?.pantheon ?? (type.startsWith('temple_') ? type.slice(7) : undefined);
+}
+
+// Pantheons of the temples built so far.
 function builtPantheons(world: World): Set<string> {
   const out = new Set<string>();
   for (const b of world.buildings) {
-    const def = world.data.buildings.find((d) => d.id === b.type);
-    const pantheon = def?.pantheon ?? (b.type.startsWith('temple_') ? b.type.slice(7) : undefined);
+    const pantheon = pantheonOf(world, b.type);
     if (pantheon) out.add(pantheon);
   }
   return out;
 }
+
+const godPantheon = (world: World, god: string): string =>
+  world.data.gods?.find((g) => g.id === god)?.pantheon ?? '';
 
 const pathTaken = (world: World, id: string): number | null =>
   world.units.find((u) => u.kind === 'hero' && u.path === id)?.id ?? null;
 
 export function pathStates(world: World): PathState[] {
   const built = builtPantheons(world);
-  return (world.data.paths ?? []).map((p) => ({
-    id: p.id,
-    class: p.class,
-    pantheon: p.pantheon,
-    god: p.god,
-    name: p.name,
-    available: built.has(p.pantheon),
-    takenBy: pathTaken(world, p.id),
-  }));
+  return (world.data.paths ?? []).map((p) => {
+    const pantheon = godPantheon(world, p.god);
+    return {
+      id: p.id,
+      god: p.god,
+      pantheon,
+      template: p.template,
+      name: p.name,
+      available: built.has(pantheon),
+      takenBy: pathTaken(world, p.id),
+    };
+  });
 }
 
-// Free paths of a class: its pantheon has a temple and no hero holds the path.
-function freePaths(world: World, cls: string): string[] {
-  const built = builtPantheons(world);
+// Paths of the hero's own god that no hero holds. Heroes never leave the world, so a path is
+// held for good by the sibling that took it.
+function freePaths(world: World, god: string | null): string[] {
+  if (!god) return [];
   return (world.data.paths ?? [])
-    .filter((p) => p.class === cls && built.has(p.pantheon) && pathTaken(world, p.id) === null)
+    .filter((p) => p.god === god && pathTaken(world, p.id) === null)
     .map((p) => p.id);
 }
 
-const hasPaths = (world: World, cls: string) => !!world.data.paths?.some((p) => p.class === cls);
+const hasPaths = (world: World, god: string | null) =>
+  !!god && !!world.data.paths?.some((p) => p.god === god);
 
-// The tier a hero holds: by party level, but a class with favor paths needs one to pass tier 1.
+// The tier a hero holds: by party level, but a god with paths needs one taken to pass tier 1.
 function wantedTier(world: World, party: Party, unit: UnitState): number {
   const byLevel = party.level >= 6 ? 3 : party.level >= 3 ? 2 : 1;
-  return unit.path || !hasPaths(world, unit.type) ? byLevel : 1;
+  return unit.path || !hasPaths(world, unit.god) ? byLevel : 1;
 }
 
 function retier(world: World, party: Party): void {
@@ -178,8 +191,10 @@ function retier(world: World, party: Party): void {
     const u = world.units.find((x) => x.id === id);
     if (!u) continue;
     const tier = wantedTier(world, party, u);
-    if (tier === u.tier) continue;
+    const template = (u.tier >= 1 && tier >= 2 && pathDef(world, u.path)?.template) || u.type;
+    if (tier === u.tier && template === u.type) continue;
     u.tier = tier;
+    u.type = template;
     refreshMaxHp(world, u);
     world.events.push({ kind: 'tierUp', unit: u.id, tier, path: u.path });
   }
@@ -189,7 +204,9 @@ function refreshMaxHp(world: World, u: UnitState): void {
   const cls = world.data.classes?.find((c) => c.id === u.type);
   if (!cls) return;
   const newMax = maxHp(effectiveAttrs(world, u, cls.attrs));
-  if (!u.ko) u.hp += newMax - u.maxHp;
+  // A lower max (a path template with fewer hp) must not take a living hero to 0 hp, which
+  // would leave it alive but untargetable: it keeps at least 1 hp.
+  if (!u.ko) u.hp = Math.min(newMax, Math.max(1, u.hp + newMax - u.maxHp));
   u.maxHp = newMax;
 }
 
@@ -204,7 +221,7 @@ function nextPathOffer(world: World, party: Party): void {
     const id = party.pathQueue.shift() as number;
     const hero = world.units.find((u) => u.id === id);
     if (!hero || hero.path) continue;
-    const free = freePaths(world, hero.type);
+    const free = freePaths(world, hero.god);
     if (free.length === 1) takePath(world, party, hero, free[0]);
     else if (free.length > 1) {
       party.pathOffer = { hero: id, options: free };
@@ -213,14 +230,14 @@ function nextPathOffer(world: World, party: Party): void {
   }
 }
 
-// From party level 3: every hero of a class with favor paths and none yet is queued for one
-// (taken at once when exactly one is free, else a card). Heroes with no free path stay tier 1;
-// runParties retries them when a temple goes up.
+// From party level 3: every child of a god with paths and none taken yet is queued for one
+// (taken at once when exactly one is free, else a card). A hero whose god has no free path
+// stays tier 1; runParties retries it every second.
 function settleTiers(world: World, party: Party): void {
   if (party.level >= 3) {
     for (const id of party.members) {
       const u = world.units.find((x) => x.id === id);
-      if (!u || u.path || !hasPaths(world, u.type)) continue;
+      if (!u || u.path || !hasPaths(world, u.god)) continue;
       if (party.pathOffer?.hero === id || party.pathQueue.includes(id)) continue;
       party.pathQueue.push(id);
     }
@@ -245,7 +262,7 @@ export function pickPath(
     nextPathOffer(world, party);
     return { ok: false, reason: 'unknown hero' };
   }
-  if (!freePaths(world, hero.type).includes(path)) {
+  if (!freePaths(world, hero.god).includes(path)) {
     // Taken by another hero since the card opened: deal the hero a fresh card.
     party.pathQueue.unshift(hero.id);
     nextPathOffer(world, party);

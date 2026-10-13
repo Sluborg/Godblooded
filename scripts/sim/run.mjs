@@ -44,7 +44,14 @@ try {
       }
       sim.step(w, DT);
       snap = sim.snapshot(w);
-      if (snap.parties.some((p) => p.offer)) {
+      const pathCard = snap.parties.find((p) => p.pathOffer);
+      if (pathCard) {
+        sim.command(w, {
+          kind: 'pickPath',
+          party: pathCard.id,
+          path: pathCard.pathOffer.options[0],
+        });
+      } else if (snap.parties.some((p) => p.offer)) {
         const p = snap.parties.find((x) => x.offer);
         sim.command(w, { kind: 'pickUpgrade', party: p.id, upgrade: p.offer[0] });
       }

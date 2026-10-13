@@ -9,21 +9,31 @@ export interface Vec2 {
 export interface BuildingDef {
   id: string;
   cost: number;
-  // Temples: the pantheon whose favor paths this building makes available. Missing on an id
-  // like `temple_aesir` means the part after `temple_`.
+  // Temples: the pantheon whose gods' children the temple calls. Missing on an id like
+  // `temple_aesir` means the part after `temple_`.
   pantheon?: string;
 }
 
-// A favor path: the tier 2 and 3 identity a hero of `class` takes from a god of a built
-// temple's pantheon. One hero per path, town-wide.
+// A god: heroes are children of a god, called by a temple of its pantheon. `template` is the
+// ClassDef id (a hidden stats, weapon and strike template) a tier 1 child uses.
+export interface GodDef {
+  id: string;
+  pantheon: string;
+  name: string;
+  template: string;
+}
+
+// A path of a god: the tier 2 and 3 identity a child of `god` takes at party level 3. A hero
+// can only take one of its own god's paths, and a path is held by one hero at a time.
 export interface PathDef {
   id: string;
-  class: string;
-  pantheon: string;
+  // GodDef id.
   god: string;
+  // ClassDef id used from tier 2 on (stats, weapon, strike).
+  template: string;
   name: string;
-  // Attribute bonus on top of the class attributes: [tier 2, tier 3]. The tier 3 entry is the
-  // total bonus at tier 3, not added to the tier 2 one.
+  // Attribute bonus on top of the path template attributes: [tier 2, tier 3]. The tier 3 entry
+  // is the total bonus at tier 3, not added to the tier 2 one.
   attrs: readonly [Partial<Attributes>, Partial<Attributes>];
 }
 
@@ -87,8 +97,8 @@ export interface HeroTuning {
   firstRecruitMs: number;
   recruitMs: number;
   maxPerTemple: number;
-  // Most heroes of one class alive in town (knocked-out ones count); temples skip a full class.
-  maxPerClass: number;
+  // Most children of one god alive in town (knocked-out ones count); temples skip a full god.
+  maxPerGod: number;
   koMs: number;
   reviveHp: number;
   restPerS: number;
@@ -179,9 +189,11 @@ export interface GameData {
   plots?: readonly Vec2[];
   // Optional until src/data and Scene's stub carry rows; missing means no lairs.
   classes?: readonly ClassDef[];
+  // Gods a temple calls children of. Classes are hidden templates the gods and paths point at.
+  gods?: readonly GodDef[];
   monsters?: readonly MonsterDef[];
   upgrades?: readonly UpgradeDef[];
-  // Favor paths. A class with no path rows tiers up by party level alone.
+  // Paths of the gods. A god with no path rows tiers up by party level alone.
   paths?: readonly PathDef[];
   // Any subset of the tunable numbers; the rest use DEFAULT_TUNING (src/sim/tuning.ts).
   tuning?: {
@@ -232,9 +244,14 @@ export interface LairState {
 export interface UnitState {
   id: number;
   kind: 'hero' | 'monster';
+  // Monsters: the monster id. Heroes: the id of the template in use (ClassDef): the god's at
+  // tier 1, the path's from tier 2. Look and strike fall back on it.
   type: string;
   tier: number;
-  // Heroes: the favor path id taken at tier 2, else null.
+  // Heroes: the GodDef id (null only for heroes spawned straight from a template, dev and
+  // tests); monsters null.
+  god: string | null;
+  // Heroes: the path id taken at tier 2, else null.
   path: string | null;
   pos: Vec2;
   // Unit vector of the last move; Scene picks front/back view and mirrors from it.
@@ -269,16 +286,18 @@ export interface PartyState {
   upgrades: string[];
   // Upgrade ids offered right now; the sim waits for pickUpgrade while this is set.
   offer: string[] | null;
-  // A hero with several free favor paths waits for pickPath (one hero at a time). While set,
+  // A hero with several free paths waits for pickPath (one hero at a time). While set,
   // pickUpgrade is refused: the path card comes first.
   pathOffer: { hero: number; options: string[] } | null;
 }
 
 export interface PathState {
   id: string;
-  class: string;
-  pantheon: string;
+  // GodDef id and its pantheon.
   god: string;
+  pantheon: string;
+  // ClassDef id the path uses from tier 2.
+  template: string;
   name: string;
   // A built temple of its pantheon exists.
   available: boolean;
@@ -311,7 +330,7 @@ export type SimEvent =
   | { kind: 'bountyClaimed'; bounty: number; unit: number; gold: number }
   | { kind: 'won' }
   | { kind: 'lost' }
-  | { kind: 'arrived'; unit: number; type: string }
+  | { kind: 'arrived'; unit: number; type: string; god: string | null }
   | { kind: 'fled'; unit: number }
   | { kind: 'revived'; unit: number }
   | { kind: 'shopped'; unit: number; spent: number; tax: number }
