@@ -107,10 +107,9 @@ Heroes inside a destroyed shop or hall are pushed out, unhurt.
 | ----- | ---------------------------------------- |
 | 10    | Building rows and tuning above; 12 plots |
 
-## OPEN (Stefan decides)
+## Decided (Stefan, 2026-10-13)
 
-1. **Town hall tiers gate other buildings** (recommendation), or every building upgrades
-   freely as today?
-2. **Hearth Hall:** add it (recommendation), or keep the building list as it is?
-3. **Ruins and rebuild at half cost** (recommendation), or destroyed buildings vanish as today?
-4. **Walls:** left out on purpose. Want them anyway?
+1. **Town hall tiers gate other buildings.**
+2. **Hearth Hall** is added.
+3. **Ruins stay and rebuild at half cost.**
+4. **Walls:** left out.

@@ -15,8 +15,9 @@ decision 2026-10-04 "Graybox combat").
   Willpower. Monsters carry a weakness and resistance row per type.
 - **Crits are small and come from Perception** (6-12% at tier 1, x1.5). The Coda lean spec
   deferred crits; this adds them because a crit is something the player can _see_.
-- **Heroes are knocked out, never killed**, except by a boss: a boss knockout rolls a death
-  chance that shrines and healers lower.
+- **Heroes are knocked out, never killed**, except by a boss or in a tier 3 lair: those
+  knockouts roll a death chance (20% boss, 10% tier 3 lair) that shrines and healers lower
+  (Stefan, 2026-10-13).
 - **Bosses** are one unit per final lair with a telegraphed area strike, an enrage at half hp
   and immunity to crits; chill slows it at half strength.
 - **Curves are rescaled to graybox numbers** (attributes 2 to 11, not Coda's up to 99): same
@@ -167,11 +168,15 @@ Tags drive holy's sear and later skills: `undead`, `beast`, `giant`, `demon`, `f
   its bond with each party mate drops by 1 at the moment of the knockout (like fleeing today). Enough that the player notices, not
   enough to snowball.
 - **Monsters die** at 0 hp and leave the map; the killing blow's hero gets the bounty (today).
-- **Permadeath, boss only:** a hero knocked out by a boss strike rolls `bossDeathChance` (20%).
-  Each shrine tier in town takes 5 points off; a healer alive in the same party takes 5 more
-  (floor 5%). A slain hero leaves a grave marker, frees its god slot, and the party mourns
+- **Permadeath, bosses and tier 3 lairs:** a hero knocked out by a boss strike rolls
+  `bossDeathChance` (20%); a hero knocked out by a monster of a tier 3 lair, within
+  `lairDeathRange` (400) of that lair, rolls `lairDeathChance` (10%). Each shrine tier in town
+  takes 5 points off; a healer alive in the same party takes 5 more (floor 5% for bosses, 0%
+  for lairs). A slain hero leaves a grave marker, frees its god slot, and the party mourns
   (event for a speech bubble).
-- **Everything else can never kill a hero,** not raids, not lair monsters at tier 3.
+- **Everything else can never kill a hero:** not raids at the town, not lairs below tier 3.
+- **The danger shows:** a tier 3 lair has a skull on its plate, so the player can see where
+  heroes may die.
 
 ## 7. Bosses
 
@@ -212,9 +217,11 @@ Tags drive holy's sear and later skills: `undead`, `beast`, `giant`, `demon`, `f
 | firstStrikeDelay | 0.5   | share of the cycle the slower side waits |
 | koGoldLoss       | 0.25  | share of carried gold lost on knockout   |
 | bossDeathChance  | 0.2   |                                          |
+| lairDeathChance  | 0.1   | knockout by a tier 3 lair's monster      |
+| lairDeathRange   | 400   | from that lair                           |
 | deathShrineStep  | 0.05  | per shrine tier                          |
 | deathHealerStep  | 0.05  | healer alive in the party                |
-| deathFloor       | 0.05  |                                          |
+| deathFloor       | 0.05  | bosses only; the lair chance floors at 0 |
 | buildingFireMult | 1.5   |                                          |
 
 ### Row fields
@@ -244,7 +251,7 @@ dealer (Int 6, no dodge for the target).
 | 50    | Riders (burn, chill, arc, wither, sear) as data, applied only when a strike carries one                                    |
 | 60    | Knockout cost (gold loss, bond -1)                                                                                         |
 | 70    | Boss unit: emerge, cleave, enrage, immunities; lair cannot fall while it lives                                             |
-| 80    | Boss permadeath roll, shrine and healer reductions, `slain` event, god slot freed                                          |
+| 80    | Permadeath roll (boss, tier 3 lair), shrine and healer reductions, `slain` event, god slot freed                           |
 
 ### Scene
 
@@ -270,14 +277,10 @@ dealer (Int 6, no dodge for the target).
 | 10    | Data: armour, `spellMult`, damage types and monster type rows from this spec     |
 | 20    | Balance pass after Sim 10 to 30: Sim bot, target the same 55-75% wins, 15-18 min |
 
-## OPEN (Stefan decides)
+## Decided (Stefan, 2026-10-13)
 
-1. **Crits:** add them now (this spec, small, from Perception) or keep the Coda lean rule of
-   deterministic damage until skills? Recommendation: add them, they are fun to watch.
-2. **Permadeath:** only against bosses at 20% (recommendation), or never, or also on tier 3
-   lairs?
-3. **Knockout cost:** lose 25% carried gold (recommendation), nothing, or a longer timer?
-4. **A fallen Aesir hero:** flavour only (grave marker), or does Valhalla give the party a small
-   boon? Same question for Greek (Elysium) and Egyptian (weighing of the heart) later.
-5. **Damage types per god:** the table in section 3 is a draft. Any god whose element feels
-   wrong (Odin death, Freyja holy, Isis Enchantress lightning)?
+1. **Crits:** added now, from Perception.
+2. **Permadeath:** bosses (20%) and tier 3 lairs (10%), with a grave marker (section 6).
+3. **Knockout cost:** 25% of carried gold.
+4. **A fallen hero:** flavour only (grave marker).
+5. **Damage types per god:** the draft table stands.

@@ -35,7 +35,7 @@ tiers) and on `combat.md`, `paths-and-skills.md` and `items-and-shops.md`.
 
 - **XP** comes from kills and lairs as today (`MonsterDef.xp`, `lairXp`, times the lair tier's
   `rewardMult`). Every member gets the whole amount (shared, not split).
-- **Late recruits** (decision needed, OPEN 2): a new hero may join a party of level 2 or lower
+- **Late recruits** (decided 2026-10-13): a new hero may join a party of level 2 or lower
   with a free slot when they meet. It takes the party's cards at once. From level 3 on, a party
   is closed (today: closed from level 2).
 - **Knocked out members** still share XP from kills made while they are down: a party is one
@@ -201,10 +201,9 @@ The bot reports these times (new run stats), so a balance pass can see which bea
 | 10    | Data: the 30 cards (the 12 favour cards after the passives), lair and elite tuning |
 | 20    | Balance pass against the five beats                                                |
 
-## OPEN (Stefan decides)
+## Decided (Stefan, 2026-10-13)
 
-1. **Level cap 8** with a god's favour at level 7 (recommendation), or no cap?
-2. **Late recruits** joining young parties (recommendation), or parties stay closed after
-   level 1 as today?
-3. **Pressure tier-up:** a lair that knocks out 6 heroes grows early. Fair, or too punishing?
-4. **Elites** at lair tier 2: yes (recommendation) or keep packs uniform?
+1. **Level cap 8** with a god's favour at level 7.
+2. **Late recruits** join parties below level 3.
+3. **Pressure tier-up:** kept (6 knockouts).
+4. **Elites** from lair tier 2.

@@ -13,7 +13,7 @@ chat message to Lead.
 
 | Min  | Do                                                       | Watch for                                            |
 | ---- | -------------------------------------------------------- | ---------------------------------------------------- |
-| 0-1  | Follow the Skald. Build the Aesir temple, then a market. | Do the Skald's lines help, or get in the way?        |
+| 0-1  | Follow the hints. Build the Aesir temple, then a market. | Do the hints help, or get in the way?                |
 | 1-2  | Wait for the first Godblood. Tap it.                     | Can you tell its god and its trait?                  |
 | 2-3  | Put a bounty on a monster near a hero.                   | Who goes for it? Can you guess why (greedy, coward)? |
 | 3-4  | Build a smithy. Let the speed run at 2x if bored.        | Do heroes come to buy? Do you see their gear change? |
@@ -45,7 +45,7 @@ chat message to Lead.
 5. Any minute where nothing happened and you got bored? Which?
 6. Were skills visible (a flash, a chain, a shield)? Yes, no.
 7. Was any button too small or in the wrong place?
-8. The Skald: helpful, annoying, or did not notice?
+8. The hints: helpful, annoying, or did not notice?
 9. One thing you want more of.
 10. One thing to cut.
 

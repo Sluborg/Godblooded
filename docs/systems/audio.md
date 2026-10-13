@@ -10,11 +10,9 @@ early. Follows the manifest rule in `CLAUDE.md`: every asset has a license and a
 - **Sound effects made in code** (a small Web Audio synth with presets as data, like sfxr):
   no files to source, no license question, a few kilobytes. One preset per event, varied by a
   seeded pitch and volume wobble so repeats do not grate.
-- **Music generated on Stefan's account** with an AI music tool, the same way ChatGPT makes the
-  art, logged in the manifest with license and source. One calm and one tension loop per
+- **Music made by Stefan** with an AI music tool from ready prompts (`music-prompts.md`), the
+  same way ChatGPT makes the art, logged in the manifest with license and source. One calm and one tension loop per
   pantheon, crossfaded by danger, plus a title theme, a boss loop and two stings.
-- **Sourcing is Stefan's call (OPEN 1):** the alternatives are CC0 packs (fast, but
-  "downloaded" assets, which the art rule forbids today) or a hired composer.
 - **Phone rules:** audio starts on the first tap (browsers block autoplay), sounds off-screen
   stay quiet, at most 4 copies of one sound at once, music volume and effects volume in
   Settings, everything mutes when the app is in the background.
@@ -152,10 +150,9 @@ source }`.
 | ----- | -------------------------------------------------------- |
 | 10    | `src/data/sfx.ts`: the effect presets in the table above |
 
-## OPEN (Stefan decides)
+## Decided (Stefan, 2026-10-13)
 
-1. **Music source:** AI-generated on your account (recommendation; you confirm the tool's
-   terms allow use in the game), CC0 packs (would need an exception to the "no downloaded
-   assets" rule), or a composer?
-2. **Sound effects made in code** (recommendation), or recorded and generated files?
-3. **Vibration** on Android as an option: yes or skip?
+1. **Music:** Stefan makes it himself with an AI music tool, from the prompts in
+   `music-prompts.md`; logged in the manifest with license and source.
+2. **Sound effects made in code.**
+3. **Vibration:** an Android option, off by default (section 3).

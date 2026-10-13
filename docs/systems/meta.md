@@ -1,22 +1,26 @@
 # Meta: what persists between runs
 
-Design owns this spec. Stefan decides between the options; Lead records the decision in
-`docs/decisions.md` and turns the chosen option into backlog rows. Today nothing persists
+Design owns this spec. Stefan chose option B (decision 2026-10-13); Lead turns it into backlog
+rows. Today nothing persists
 except settings (`src/ui/settings.ts`); the end screen reads `RunReport` (Sim 140).
 
 ## Bottom line
 
-- **Recommendation: option A, unlocks only,** plus two power-free extras: a **Saga** (a hall of
-  the heroes who reached tier 3) and **Trials** (opt-in difficulty after the first win).
-- **Why A:** no permanent power means the balance targets (55-75% wins, 15-18 min) hold on run
-  1 and run 50; unlocks give the next run a goal; and it fits the art order (Aesir first, Greek
-  and Egyptian arrive as rewards, exactly when their art ships).
-- **B (a currency)** retains players longer but adds a shop screen, grind and power creep that
-  fights the balance targets. **C (nothing)** is the cheapest and the weakest pull to play again.
-- **Cost of A:** one small meta save (versioned), one unlock check on the end screen, one hall
-  screen. About 6 PRs across Sim, Scene and Lead.
+- **Stefan decided (2026-10-13): option B.** A currency, **Ichor**, is earned every run (won or
+  lost) and spent at the **Altar** in the hall on permanent upgrades. Content still unlocks by
+  goals, as in option A, so the art order holds (Aesir first, Greek and Egyptian as rewards).
+- **The Altar** has 10 upgrades, 1 to 3 ranks each, about 1700 Ichor in all: roughly 25 runs to
+  fill. Each rank is small (start gold, cheaper temples, faster wake-ups); the strongest is a
+  fourth card in party offers.
+- **Power creep is capped:** a full Altar is worth about +15% run strength. Balance measures
+  the win-rate target at half the Altar bought, and Trials take the edge back after the first
+  win.
+- **Saga and Trials stay** (recommendations): a hall of tier 3 heroes, and opt-in difficulty
+  after the first win.
+- **Cost:** one meta save (versioned), the Altar tab in the hall, Ichor on the end screen,
+  upgrades applied at `createWorld`. About 8 PRs across Sim, Scene, Balance and Lead.
 
-## 1. The three options
+## 1. The three options (decided: B)
 
 | Option         | Persists                                            | For                                                                   | Against                                                                                             |
 | -------------- | --------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
@@ -24,15 +28,45 @@ except settings (`src/ui/settings.ts`); the end screen reads `RunReport` (Sim 14
 | B Currency     | a currency ("Ichor") spent on upgrades and unlocks  | strong retention; every run pays something, even a loss               | power creep (start gold, cheaper temples) breaks the fixed targets; a shop screen; grind on a phone |
 | C Nothing      | nothing; all content from the start                 | simplest; every run fair; no save to break                            | no pull to the next run; the 3 pantheons are all there on run 1, which overwhelms                   |
 
-### What B would look like (for comparison)
+## 2. Ichor and the Altar
 
-- Earn Ichor per run: 10 per lair cleared, 5 per hero reaching tier 3, 30 for a win.
-- Spend on: unlocks (as A), plus permanent boosts: +50 start gold (3 ranks), temples 10%
-  cheaper (2 ranks), a fourth card in party offers (more for the party to pick from).
-- Balance needs a moving target: the bot must assume a "typical" Ichor level, or runs get
-  easier the longer one plays.
+### Earning
 
-## 2. Option A in detail (recommended)
+| Source                     | Ichor | Typical run                       |
+| -------------------------- | ----- | --------------------------------- |
+| each lair cleared          | 10    | a loss: 2 lairs, a win: 3 or more |
+| each hero reaching tier 3  | 5     | 1 to 3                            |
+| each full minute survived  | 1     | 10 to 18                          |
+| the boss slain (a win)     | 30    |                                   |
+| a Trial won with (per one) | 10    | after the first win only          |
+
+- A typical loss pays about 35, a typical win about 90. The end screen counts it up line by
+  line ("Lair cleared +10").
+
+### The Altar (permanent upgrades)
+
+| Order | Id              | Name                    | Effect per rank                               | Ranks | Cost per rank |
+| ----- | --------------- | ----------------------- | --------------------------------------------- | ----- | ------------- |
+| 10    | war-chest       | War Chest               | +50 start gold                                | 3     | 40, 80, 120   |
+| 20    | devout-masons   | Devout Masons           | temples 10% cheaper                           | 2     | 60, 120       |
+| 30    | open-hands      | Open Hands              | market and smithy 10% cheaper                 | 2     | 50, 100       |
+| 40    | bounty-ledger   | Bounty Ledger           | bounty flags cost 10% less gold               | 2     | 40, 80        |
+| 50    | hearth-fire     | Hearth Fire             | knocked out heroes wake 15% sooner            | 2     | 50, 100       |
+| 60    | deep-roots      | Deep Roots              | town hall +20% hp                             | 2     | 60, 120       |
+| 70    | watchful-eyes   | Watchful Eyes           | raid warnings come 5 s earlier                | 2     | 40, 80        |
+| 80    | seasoned-blood  | Seasoned Blood          | the first party of each run starts with 15 XP | 1     | 150           |
+| 90    | favoured-temple | Favoured (per pantheon) | that pantheon's temple recruits 15% faster    | 1     | 80 each       |
+| 100   | fourth-card     | The Fourth Card         | party level-up offers show 4 cards            | 1     | 200           |
+
+- Total about 1700 Ichor (Favoured counted for all three pantheons). A rank needs the one
+  before it; Favoured needs its pantheon unlocked.
+- **Return to the gods:** a free full refund at the Altar, any time outside a run, so a player
+  can try other builds.
+- **Balance:** each row is a tuning override applied at `createWorld`. The bot reports the
+  win rate at three Altar levels (none, half, full); the 55-75% target holds at half, full stays
+  at or below 85%.
+
+## 3. Unlocks, Saga and Trials
 
 ### Unlocks
 
@@ -79,21 +113,23 @@ in-run omens of `events.md`). Each trial won with is marked on the hall.
 | 40    | Hungry Gods   | boss death chance doubled    |
 | 50    | Lean Years    | start with half the gold     |
 
-## 3. Save
+## 4. Save
 
-- One localStorage key, `godblooded.meta`, JSON: `{ version: 1, runs, wins, unlocks: string[],
-trialsWon: string[], saga: SagaEntry[] }`.
+- One localStorage key, `godblooded.meta`, JSON: `{ version: 1, runs, wins, ichor, altar:
+Record<string, number>, unlocks: string[], trialsWon: string[], saga: SagaEntry[], lastBoss?:
+string }` (`lastBoss` keeps the boss pick from repeating, `monsters-and-bosses.md`).
 - Versioned per `CLAUDE.md`: a shape change bumps `version` and adds a migration. A missing or
   broken save starts fresh (it never blocks play).
 - A dev flag (settings) unlocks everything, for testing and for Stefan.
 
-## 4. Who builds what (option A)
+## 5. Who builds what
 
 ### Sim
 
 | Order | Row                                                                                                    |
 | ----- | ------------------------------------------------------------------------------------------------------ |
 | 10    | `meta.ts`, pure: unlock rules over a `RunReport` and meta state; `GameData` filtered by unlocks; tests |
+| 15    | Ichor earned from a `RunReport`; Altar ranks as tuning overrides at `createWorld`; tests               |
 | 20    | Trials as tuning overrides applied at `createWorld`                                                    |
 | 30    | Run report: Saga entries (tier 3 heroes) and the fields the conditions read                            |
 | 40    | Hero names: seeded pick from the pantheon's name list on arrival, `name` in the snapshot               |
@@ -103,7 +139,8 @@ trialsWon: string[], saga: SagaEntry[] }`.
 | Order | Row                                                                                  |
 | ----- | ------------------------------------------------------------------------------------ |
 | 10    | Meta save: load, migrate, write after each run; dev flag in settings                 |
-| 20    | End screen: new unlock cards                                                         |
+| 20    | End screen: Ichor count-up and new unlock cards                                      |
+| 25    | Altar tab in the hall: rows, ranks, costs, buy, Return to the gods                   |
 | 30    | Hall screen: pantheons, buildings and cards (locked greyed with condition), Saga tab |
 | 40    | Trial picker before a run (after the first win)                                      |
 
@@ -112,6 +149,7 @@ trialsWon: string[], saga: SagaEntry[] }`.
 | Order | Row                                            |
 | ----- | ---------------------------------------------- |
 | 10    | Data: unlock rows and Trial rows               |
+| 15    | Data: Ichor sources and the 10 Altar rows      |
 | 20    | Data: a name list per pantheon (about 30 each) |
 
 ### Art
@@ -119,10 +157,11 @@ trialsWon: string[], saga: SagaEntry[] }`.
 | Order | Row                                                            |
 | ----- | -------------------------------------------------------------- |
 | 10    | Hall backdrop and 5 Trial icons in the UI kit style (after U2) |
+| 20    | Ichor icon and 10 Altar upgrade icons                          |
 
-## OPEN (Stefan decides)
+## Decided (Stefan, 2026-10-13)
 
-1. **A, B or C?** Recommendation: A (unlocks only) with Saga and Trials.
-2. If A: start with **Aesir only** (recommendation) or all three pantheons from run 1?
-3. **Saga:** keep (recommendation) or skip?
-4. **Trials:** keep as the post-win goal (recommendation) or add later?
+1. **Option B:** Ichor and the Altar, with goal unlocks as in A.
+2. **Aesir only** at the start; Greek and Egyptian unlock by goals.
+3. **Saga:** kept.
+4. **Trials:** kept as the post-win goal.
