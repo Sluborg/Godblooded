@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { COLORS, MIN_TOUCH } from '../config';
 import { ASSETS_KEY, type ManifestAsset } from './assets';
 import { BUTTON_COLORS, buttonState, type ButtonState } from './buttonStyle';
+import { addIcon } from './icons';
 import { nineSliceArgs } from './nineSlice';
 
 export interface Button {
@@ -35,6 +36,12 @@ function drawButton(
   );
 }
 
+export interface ButtonOptions {
+  // A kit icon id (`ui_icon_menu`): shown left of the label, or instead of it with `iconOnly`.
+  icon?: string;
+  iconOnly?: boolean;
+}
+
 // A touch button centered on (x, y). Height and width are raised to MIN_TOUCH if smaller.
 // `rect` is its screen-space hit area, so scenes can keep taps from reaching the map below.
 // Uses the UI kit pictures (`ui_button`, `ui_button_pressed`, `ui_button_disabled`) when the
@@ -47,6 +54,7 @@ export function makeButton(
   h: number,
   label: string,
   onTap: () => void,
+  opts: ButtonOptions = {},
 ): Button {
   w = Math.max(w, MIN_TOUCH);
   h = Math.max(h, MIN_TOUCH);
@@ -80,10 +88,22 @@ export function makeButton(
     })
     .setOrigin(0.5)
     .setShadow(0, 2, '#000000', 3, false, true);
+  // The icon, when the picture exists: beside the label, or alone when asked.
+  const icon = opts.icon ? addIcon(scene, opts.icon, 0, 0, Math.min(h - 24, 48)) : null;
+  if (icon) {
+    if (opts.iconOnly || label === '') text.setVisible(false);
+    else {
+      const gap = 10;
+      const total = icon.displayWidth + gap + text.width;
+      icon.x = -total / 2 + icon.displayWidth / 2;
+      text.x = total / 2 - text.width / 2;
+    }
+  }
   const hit = scene.add.rectangle(0, 0, w, h, 0x000000, 0).setInteractive({ useHandCursor: true });
   const container = scene.add.container(x, y, [
     (art ?? g) as Phaser.GameObjects.GameObject,
     text,
+    ...(icon ? [icon] : []),
     hit,
   ]);
 

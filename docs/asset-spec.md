@@ -70,7 +70,7 @@ Each variant is a full manifest row with its own measured weapon point.
   units line up in game.
 - **Buildings:** 3/4 top-down view, the building's base centred, about 85% of the canvas width.
 - **Shipped** (`scripts/art/ship.mjs`): keyed to alpha, specks dropped, trimmed to the object
-  plus a 2 px margin, PNG RGBA. Scaled **by the canvas, not by the object**, so relative size
+  plus a 2 px margin, palette PNG with alpha (see Pipeline). Scaled **by the canvas, not by the object**, so relative size
   survives (a tier-3 silhouette stays bigger than tier 1). Size between types (troll vs draugr)
   is a per-type scale in code, not in the art:
   - units: a figure at the nominal 75% of canvas height becomes 256 px tall (`public/assets/units/`)
@@ -175,13 +175,14 @@ shows a tougher monster by colour (tint) in code.
 
 ## Pipeline (Art)
 
-| Step  | Command                                         | Does                                              |
-| ----- | ----------------------------------------------- | ------------------------------------------------- |
-| Check | `npm run art:check -- <folder> --sheet out.png` | canvas, flat key, framing; contact sheet + anchor |
-| Look  | open the contact sheet                          | style, consistency, readable at phone size        |
-| Point | write `<folder>/points.json`                    | per unit still: strike, weapon point(s) in raw px |
-| Ship  | `npm run art:ship -- <folder> <B#/R#> [id ...]` | raw to source, sprite to game, manifest rows      |
-| Gate  | `npm run validate:art`                          | manifest and PNGs against this spec               |
+| Step   | Command                                         | Does                                              |
+| ------ | ----------------------------------------------- | ------------------------------------------------- |
+| Check  | `npm run art:check -- <folder> --sheet out.png` | canvas, flat key, framing; contact sheet + anchor |
+| Look   | open the contact sheet                          | style, consistency, readable at phone size        |
+| Point  | write `<folder>/points.json`                    | per unit still: strike, weapon point(s) in raw px |
+| Ship   | `npm run art:ship -- <folder> <B#/R#> [id ...]` | raw to source, sprite to game, manifest rows      |
+| Shrink | `npm run art:compress` (ship does it already)   | palette PNG, about a third of the size            |
+| Gate   | `npm run validate:art`                          | manifest and PNGs against this spec               |
 
 `points.json` maps each unit still to `{ "strike": "chop", "weapon": [x, y] }` (plus
 `"weapon2": [x, y]` for `double`), in pixels of the raw upload. Ship converts them to the
@@ -190,6 +191,10 @@ them again. A unit still without an entry does not ship. `"fit": true` on an ent
 upload ChatGPT framed too big or off-centre to the spec framing first (figure 75% of the canvas
 height, feet at 88%, centred), so every unit ships at the same scale; the kept source stays the
 untouched upload and the points stay in its pixels.
+
+Shipped PNGs are palette PNGs (up to 256 colours with alpha, no dithering), written by ship and
+`art:compress`. The PWA precaches every shipped PNG, so the validator caps their total at 12 MB (Lead 2026-10-13)
+and warns on any PNG still in plain RGBA. The raw uploads in `assets/source/` stay untouched.
 
 Uploads may be named `<batch>--<id>.png` (Drive), `<id>.png` (`art-inbox` branch) or base64
 `<id>.png.b64[.001]` (decoded automatically).
