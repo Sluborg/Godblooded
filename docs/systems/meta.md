@@ -37,7 +37,7 @@ except settings (`src/ui/settings.ts`); the end screen reads `RunReport` (Sim 14
 ### Unlocks
 
 Run 1 starts with: the Aesir temple and its 4 gods, market, shrine, guard tower, the graybox
-cards (stats, sustain, nerve) and one map.
+cards (stats, sustain, nerve) and the standard seeded map (Sim 150).
 
 | Order | Unlock                         | Condition (from the run report)            |
 | ----- | ------------------------------ | ------------------------------------------ |
@@ -49,7 +49,7 @@ cards (stats, sustain, nerve) and one map.
 | 60    | Charms (market tier 2 stock)   | a hero buys level 2 gear                   |
 | 70    | God's favour cards             | a party reaches level 7                    |
 | 80    | Omens                          | win once                                   |
-| 90    | Second map (later spec)        | win with all three temples built           |
+| 90    | Large maps, more lairs (later) | win with all three temples built           |
 
 - Every unlock is a row; the conditions read only `RunReport` and run stats, so Sim can test
   them without Phaser.
