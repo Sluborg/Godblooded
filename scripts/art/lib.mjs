@@ -18,7 +18,7 @@ export function writePng(path, { width, height, data }) {
 }
 
 // Shrinks a shipped PNG in place: up to 256 palette colours with alpha, no dithering (crisp
-// pixels stay crisp). Pixel art loses nothing visible; files drop to about a third.
+// pixels stay crisp). Lossy but visually close (soft gradients may step); files drop to about a third.
 export async function compressPng(path) {
   const out = await sharp(readFileSync(path))
     .png({ palette: true, colors: 256, dither: 0, effort: 10, compressionLevel: 9 })

@@ -70,7 +70,7 @@ Each variant is a full manifest row with its own measured weapon point.
   units line up in game.
 - **Buildings:** 3/4 top-down view, the building's base centred, about 85% of the canvas width.
 - **Shipped** (`scripts/art/ship.mjs`): keyed to alpha, specks dropped, trimmed to the object
-  plus a 2 px margin, PNG RGBA. Scaled **by the canvas, not by the object**, so relative size
+  plus a 2 px margin, palette PNG with alpha (see Pipeline). Scaled **by the canvas, not by the object**, so relative size
   survives (a tier-3 silhouette stays bigger than tier 1). Size between types (troll vs draugr)
   is a per-type scale in code, not in the art:
   - units: a figure at the nominal 75% of canvas height becomes 256 px tall (`public/assets/units/`)
