@@ -19,11 +19,15 @@ export interface BuildingDef {
 
 // A god: heroes are children of a god, called by a temple of its pantheon. `template` is the
 // ClassDef id (a hidden stats, weapon and strike template) a tier 1 child uses.
+export type DamageType = 'physical' | 'fire' | 'frost' | 'lightning' | 'death' | 'holy';
+
 export interface GodDef {
   id: string;
   pantheon: string;
   name: string;
   template: string;
+  // The type a caster child of this god strikes with at tier 1 (weapon templates are physical).
+  damageType?: DamageType;
 }
 
 // A path of a god: the tier 2 and 3 identity a child of `god` takes at party level 3. A hero
@@ -35,6 +39,8 @@ export interface PathDef {
   // ClassDef id used from tier 2 on (stats, weapon, strike).
   template: string;
   name: string;
+  // The type a caster on this path strikes with (tier 2 and 3).
+  damageType?: DamageType;
   // Attribute bonus on top of the path template attributes: [tier 2, tier 3]. The tier 3 entry
   // is the total bonus at tier 3, not added to the tier 2 one.
   attrs: readonly [Partial<Attributes>, Partial<Attributes>];
@@ -60,6 +66,10 @@ export interface MonsterDef {
   xp: number;
   // Flat armour (scaled by lair tier like the attributes); missing means 0.
   armour?: number;
+  // Tags for rules like holy's sear: undead, beast, giant, demon, flyer, boss.
+  tags?: readonly string[];
+  // Damage type to multiplier: weak 1.5, resist 0.5, immune 0. Missing types are 1.
+  types?: Partial<Record<DamageType, number>>;
 }
 
 export interface LairDef {
@@ -271,6 +281,8 @@ export interface CombatTuning {
   resistK: number;
   // A crit multiplies the strike (1 = crits off in effect).
   critMult: number;
+  // Fire deals this much more to buildings.
+  buildingFireMult: number;
 }
 
 export interface Tuning {
@@ -439,8 +451,13 @@ export type SimEvent =
       target: number;
       damage: number;
       dodged: boolean;
+      // Damage type of the strike ('physical', 'fire', ...; 'magic' for an untyped spell).
+      type: string;
       // A critical strike (absent when it was not).
       crit?: boolean;
+      // The target's type row made it x1.5 or more (weak) or less than x1 (resist).
+      weak?: boolean;
+      resist?: boolean;
     }
   | { kind: 'knockout'; unit: number; by: number }
   | { kind: 'died'; unit: number; type: string; by: number; bounty: number; xp: number }

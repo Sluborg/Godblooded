@@ -1,7 +1,7 @@
 import { avenge, revengeTarget, rivalPairs, vowRevenge } from './rivalry';
 import { runAutosave } from './save';
 import { generateMap } from './mapgen';
-import { attackStrike, resolveStrike } from './strike';
+import { attackStrike, hitEvent, resolveStrike } from './strike';
 import { swing } from './swing';
 import { buildReport, sampleGold, tally, type HeroRecord } from './runstats';
 import {
@@ -312,6 +312,7 @@ function statsOf(world: World, unit: UnitState): Stats | undefined {
         attrs: effectiveAttrs(world, unit, cls.attrs),
         armour: cls.armour,
         spellMult: cls.spellMult,
+        damageType: cls.spellMult === undefined ? undefined : heroDamageType(world, unit),
       }
     );
   }
@@ -322,14 +323,22 @@ function statsOf(world: World, unit: UnitState): Stats | undefined {
       weapon: mon.weapon,
       attrs: scaleAttrs(mon.attrs, mult),
       armour: Math.round((mon.armour ?? 0) * mult),
+      tags: mon.tags,
+      types: mon.types,
     }
   );
+}
+
+// A caster hero strikes with its path's type, else its god's (weapon templates are physical).
+function heroDamageType(world: World, unit: UnitState): string | undefined {
+  const path = unit.path ? world.data.paths?.find((p) => p.id === unit.path) : undefined;
+  return path?.damageType ?? world.data.gods?.find((g) => g.id === unit.god)?.damageType;
 }
 
 // What a strike needs to know about a unit it hits.
 export function targetOf(world: World, unit: UnitState) {
   const st = statsOf(world, unit);
-  return st && { attrs: st.attrs, armour: st.armour };
+  return st && { attrs: st.attrs, armour: st.armour, types: st.types, tags: st.tags };
 }
 
 function runUnits(world: World): void {
@@ -434,22 +443,11 @@ function fight(world: World, unit: UnitState, rt: UnitRuntime, stats: Stats, foe
   }
   if (d > 0) unit.facing = { x: (foe.pos.x - unit.pos.x) / d, y: (foe.pos.y - unit.pos.y) / d };
   swing(world, unit, rt, stats, foe.id, () => {
-    const foeStats = statsOf(world, foe);
-    const hit = resolveStrike(
-      world,
-      attackStrike(stats, foeStats && { attrs: foeStats.attrs, armour: foeStats.armour }),
-    );
-    const { dodged, damage: dmg } = hit;
+    const hit = resolveStrike(world, attackStrike(stats, targetOf(world, foe)));
+    const { damage: dmg } = hit;
     foe.hp -= dmg;
     tally(world, unit.id, 'damage', dmg);
-    world.events.push({
-      kind: 'hit',
-      attacker: unit.id,
-      target: foe.id,
-      damage: dmg,
-      dodged,
-      ...(hit.crit ? { crit: true } : {}),
-    });
+    world.events.push(hitEvent(unit.id, foe.id, hit));
     if (foe.hp <= 0) {
       foe.hp = 0;
       world.pendingDeaths.push({ victim: foe.id, by: unit.id });
