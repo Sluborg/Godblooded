@@ -1,5 +1,5 @@
 import { GRAYBOX } from '../data/graybox';
-import type { GodDef, PathDef } from '../sim/types';
+import type { GodDef, PathDef } from '../sim/api';
 import { getSettings, type PaletteId } from './settings';
 import type { TraitId, UnitMode } from '../sim/api';
 

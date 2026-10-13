@@ -699,6 +699,15 @@ export interface CombatTuning {
   firstStrikeDelay: number;
   // Fire deals this much more to buildings.
   buildingFireMult: number;
+  // A knockout costs a hero this share of the gold it carries.
+  koGoldLoss: number;
+  // A hero knocked out by a boss, or by a monster of a tier 3 lair, dies with this chance, less
+  // deathShrineStep per shrine tier in town and deathHealerStep with a healer alive in its
+  // party, never below deathFloor.
+  bossDeathChance: number;
+  deathShrineStep: number;
+  deathHealerStep: number;
+  deathFloor: number;
 }
 
 export interface Tuning {
@@ -861,6 +870,17 @@ export interface PathState {
   takenBy: number | null;
 }
 
+export interface GraveState {
+  // The slain hero's unit id.
+  id: number;
+  type: string;
+  god: string | null;
+  path: string | null;
+  tier: number;
+  pos: Vec2;
+  timeMs: number;
+}
+
 export interface BountyState {
   id: number;
   pos: Vec2;
@@ -900,7 +920,19 @@ export type SimEvent =
       weak?: boolean;
       resist?: boolean;
     }
-  | { kind: 'knockout'; unit: number; by: number }
+  // `goldLost`: the gold it dropped (absent when none).
+  | { kind: 'knockout'; unit: number; by: number; goldLost?: number }
+  // A hero was killed for good (a boss or tier 3 lair knockout that rolled death). It leaves a
+  // grave at `pos`; `goldLost` as for a knockout.
+  | {
+      kind: 'slain';
+      unit: number;
+      by: number;
+      type: string;
+      god: string | null;
+      pos: Vec2;
+      goldLost?: number;
+    }
   | { kind: 'died'; unit: number; type: string; by: number; bounty: number; xp: number }
   | { kind: 'partyFormed'; party: number; members: number[] }
   | { kind: 'levelUp'; party: number; level: number; offer: string[] }
@@ -983,6 +1015,8 @@ export interface RunStats {
 // lair destroyed, damage as tie-breaker); heroes come sorted best first.
 export interface HeroReport {
   unit: number;
+  // Killed for good (see `slain`).
+  slain?: boolean;
   type: string;
   god: string | null;
   path: string | null;
@@ -1021,6 +1055,8 @@ export interface Snapshot {
   readonly parties: readonly Readonly<PartyState>[];
   readonly paths: readonly Readonly<PathState>[];
   readonly bounties: readonly Readonly<BountyState>[];
+  // Where heroes were slain; the markers stay for the run.
+  readonly graves: readonly Readonly<GraveState>[];
   // Pairs of living heroes who are rivals right now (lower id first).
   readonly rivals: readonly (readonly [number, number])[];
   // This run's map: the pantheons it leans on and the boss lair (null on a fixed map).

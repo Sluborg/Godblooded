@@ -7,7 +7,7 @@ import { formatClock } from '../ui/endReport';
 import { modeLabel, partyColor } from '../ui/partyLook';
 import { buildRoster, paginate } from '../ui/roster';
 import { makePanel } from '../ui/panel';
-import { pickToast } from '../ui/levelUpLook';
+import { autoPickToast, pickToast } from '../ui/levelUpLook';
 import { heroLabel } from '../ui/partyLook';
 import { makeButton, type Button } from '../ui/button';
 import { addIcon } from '../ui/icons';
@@ -199,7 +199,9 @@ export class HudScene extends Phaser.Scene {
       },
       townHall: snap.buildings.find((b) => b.type === 'townhall')?.pos ?? { x: 0, y: 0 },
     };
+    const levels = new Map<number, number>();
     for (const e of events) {
+      if (e.kind === 'levelUp') levels.set(e.party, e.level);
       if (e.kind === 'raid') {
         const lair = snap.lairs.find((l) => l.id === e.lair);
         this.showBanner(
@@ -215,7 +217,13 @@ export class HudScene extends Phaser.Scene {
         const lead = map.snapshot.units.find((u) => u.id === party?.members[0]);
         const name =
           (GRAYBOX.upgrades ?? UPGRADES).find((u) => u.id === e.upgrade)?.name ?? e.upgrade;
-        this.showToast(pickToast(lead ? heroLabel(lead) : `Party ${e.party}`, name));
+        const who = lead ? heroLabel(lead) : `Party ${e.party}`;
+        // A party that chose itself says which level it reached; a manual pick keeps its short toast.
+        this.showToast(
+          e.auto && party
+            ? autoPickToast(who, levels.get(e.party) ?? party.level, name)
+            : pickToast(who, name),
+        );
       } else if (e.kind === 'buildingDestroyed') {
         this.showBanner(`${e.type.replace('_', ' ')} destroyed!`, '#8a1c2bdd');
       }
