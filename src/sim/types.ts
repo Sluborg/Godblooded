@@ -213,6 +213,8 @@ export interface HeroItems {
   weapon: number;
   armour: number;
   potions: number;
+  // The potion row they came from (the strongest bought; drinking reads its heal).
+  potionId?: string;
   charm: string | null;
 }
 
@@ -264,6 +266,11 @@ export interface HeroTuning {
   shrineMult: number;
   shopMinGold: number;
   spendShare: number;
+  // Spend share of a greedy (hoards) and a proud (wants the best) hero, when item rows exist.
+  greedySpend: number;
+  proudSpend: number;
+  // Potions a hero may carry, by market tier.
+  potionMax: number[];
   taxRate: number;
   arrive: number;
   lairSearchRadius: number;
@@ -332,6 +339,8 @@ export interface BuildingTuning {
   templeCapAdd: number[];
   // Markets: multiplies the tax rate, and caps the gold one visit can spend (the stock).
   marketTaxMult: number[];
+  // Tax multiplier by shop tier for item purchases (smithy and market).
+  shopTaxMult: number[];
   marketStock: number[];
   // Towers shoot the nearest monster in range: range in world units, flat damage per shot,
   // and the time between shots.
@@ -811,7 +820,8 @@ export type SimEvent =
   | { kind: 'arrived'; unit: number; type: string; god: string | null }
   | { kind: 'fled'; unit: number }
   | { kind: 'revived'; unit: number }
-  | { kind: 'shopped'; unit: number; spent: number; tax: number }
+  // `item`: the item id of one purchase (absent for the plain market spend without item rows).
+  | { kind: 'shopped'; unit: number; spent: number; tax: number; item?: string }
   | { kind: 'bountyPlaced'; bounty: number; gold: number };
 
 export type Command =

@@ -32,6 +32,9 @@ export const DEFAULT_TUNING: Tuning = {
     shrineMult: 3,
     shopMinGold: 20,
     spendShare: 0.6,
+    greedySpend: 0.35,
+    proudSpend: 0.8,
+    potionMax: [2, 2, 3],
     // Share of what heroes spend that the town collects.
     taxRate: 0.5,
     // How close counts as arrived, in world units.
@@ -82,6 +85,7 @@ export const DEFAULT_TUNING: Tuning = {
     templeRecruitMult: [1, 0.8, 0.6],
     templeCapAdd: [0, 2, 4],
     marketTaxMult: [1, 1.25, 1.5],
+    shopTaxMult: [1, 1.25, 1.5],
     marketStock: [120, 240, 480],
     towerRange: [300, 360, 420],
     towerDamage: [8, 14, 22],
