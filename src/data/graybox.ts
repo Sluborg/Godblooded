@@ -387,26 +387,32 @@ export const MONSTERS: readonly MonsterDef[] = [
     tags: ['beast', 'giant'],
     types: { frost: 1.5, physical: 0.75 },
   },
+  // Fafnir (monsters-and-bosses.md section 3). Balance pass: hp 1200 and Str 14 (spec 2400 and 22)
+  // for the graybox parties, which are weaker than the spec's four tier 3 heroes.
   {
     id: 'wyrm',
-    attrs: { str: 10, dex: 3, sta: 12, cha: 1, per: 4, int: 2, wp: 8 },
-    weapon: { baseAttackS: 2.6, range: 70 },
-    bounty: 120,
-    xp: 100,
+    attrs: { str: 14, dex: 3, sta: 12, cha: 1, per: 4, int: 2, wp: 8 },
+    weapon: { baseAttackS: 2.0, range: 70 },
+    bounty: 400,
+    xp: 300,
     armour: 7,
     tags: ['boss'],
+    boss: {},
+    hp: 1200,
     types: { frost: 1.5, fire: 0.5, physical: 0.75 },
   },
 ];
 
-// The barrow is the early fight; the troll den is the final lair (win when it falls).
+// Lairs from docs/systems/monsters-and-bosses.md section 4; the wyrm nest is the boss lair (the
+// run is won when it falls) and spawns draugr guards. Balance pass (Lead 80): big lairs 6000 hp
+// and the nest 3500 hp (spec 9000 and 16000) keep the median run at 15-18 min.
 export const LAIRS: readonly LairDef[] = [
   { id: 'barrow', monster: 'draugr', spawnS: 10, maxAlive: 6, hp: 3500 },
-  { id: 'troll-den', monster: 'troll', spawnS: 25, maxAlive: 6, hp: 24000 },
-  { id: 'harpy-roost', monster: 'harpy', spawnS: 11, maxAlive: 6, hp: 4000 },
-  { id: 'jackal-camp', monster: 'jackal-man', spawnS: 13, maxAlive: 6, hp: 6000 },
-  { id: 'labyrinth', monster: 'minotaur', spawnS: 24, maxAlive: 5, hp: 18000 },
-  { id: 'wyrm-nest', monster: 'wyrm', spawnS: 60, maxAlive: 1, hp: 12000 },
+  { id: 'troll-den', monster: 'troll', spawnS: 25, maxAlive: 4, hp: 6000 },
+  { id: 'harpy-roost', monster: 'harpy', spawnS: 9, maxAlive: 6, hp: 3000 },
+  { id: 'jackal-camp', monster: 'jackal-man', spawnS: 10, maxAlive: 6, hp: 3500 },
+  { id: 'labyrinth', monster: 'minotaur', spawnS: 24, maxAlive: 4, hp: 6000 },
+  { id: 'wyrm-nest', monster: 'wyrm', spawnS: 30, maxAlive: 3, hp: 3500, escort: 'draugr' },
 ];
 
 // Level-up cards; a party is offered 3 different ones. Graybox set: stats, sustain, nerve.
@@ -471,11 +477,11 @@ export const GRAYBOX: GameData = {
   startGold: 300,
   map: { width: 2400, height: 1600 },
   townHall: { x: 1200, y: 800 },
-  // Balance pass 1 (npm run sim, 100 runs, simple bot): win rate 62%, median run 15.2 min,
-  // about 17 knockouts per run. Unset keys use DEFAULT_TUNING in src/sim/tuning.ts.
+  // Balance pass (Lead 80, npm run sim, 300 runs, seeds 1, 1001, 2001): win rate 60-65%, median
+  // run 17 min, timeouts 2%, about 24 knockouts per run. Unset keys use DEFAULT_TUNING.
   tuning: {
     hero: { maxPerTemple: 7, recruitMs: 22_000 },
-    town: { raidFirstMs: 420_000, raidEveryMs: 210_000, raidGrowEveryMs: 480_000, raidSize: 1 },
+    town: { raidFirstMs: 420_000, raidEveryMs: 180_000, raidGrowEveryMs: 240_000, raidSize: 1 },
   },
   classes: CLASSES,
   gods: GODS,
