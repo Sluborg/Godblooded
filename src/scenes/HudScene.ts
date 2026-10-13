@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { COLORS, GAME_WIDTH, MIN_TOUCH } from '../config';
 import { GRAYBOX } from '../data/graybox';
 import type { CommandResult } from '../sim/api';
+import { makePanel } from '../ui/panel';
 import { makeButton, type Button } from '../ui/button';
 import { PartyPanel } from '../ui/partyPanel';
 import type { SimEvent } from '../sim/api';
@@ -237,9 +238,7 @@ export class HudScene extends Phaser.Scene {
     const cx = GAME_WIDTH / 2;
     const cy = 720 - h / 2 - 12;
     this.menuRect = new Phaser.Geom.Rectangle(cx - w / 2, cy - h / 2, w, h);
-    const panel = this.add
-      .rectangle(cx, cy, w, h, 0x120d09, 0.92)
-      .setStrokeStyle(3, COLORS.gold, 0.8);
+    const panel = makePanel(this, cx, cy, w, h, 0.92);
     const heading = this.add
       .text(cx, cy - h / 2 + 24, title, { ...TEXT, fontSize: '24px', color: COLORS.textMuted })
       .setOrigin(0.5);
