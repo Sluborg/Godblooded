@@ -212,7 +212,7 @@ describe('bull rush', () => {
     const h = hero(w, 700);
     h.mode = 'explore';
     monster(w, 'minotaur', 500);
-    const ev = run(w, 1500);
+    const ev = run(w, 2500);
     const hit = ev.find((e) => e.kind === 'hit' && e.target === h.id);
     return hit && 'dodged' in hit ? hit.dodged : undefined;
   };

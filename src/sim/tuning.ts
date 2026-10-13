@@ -170,7 +170,8 @@ export const DEFAULT_TUNING: Tuning = {
     chargeSpeedMult: 3,
     chargeMult: 2,
     chargeKnockback: 60,
-    chargeCooldownMs: 8_000,
+    chargeResetMs: 5_000,
+    chargeWindupMs: 600,
     buildingMult: 2,
     packBonus: 0.1,
     packRadius: 100,
@@ -201,8 +202,8 @@ export const DEFAULT_TUNING: Tuning = {
     defendRange: 300,
     raidWarnMs: 15_000,
     towerWarnAddMs: 5_000,
-    // Off by default: it adds a raid per tier-up (Lead's balance pass decides).
-    raidOnTierUp: false,
+    // On (Stefan kept raids after a lair tier-up); it adds raids, Balance retunes.
+    raidOnTierUp: true,
     raidBeatenGold: 20,
   },
   bounty: {

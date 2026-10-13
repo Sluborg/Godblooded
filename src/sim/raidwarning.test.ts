@@ -89,10 +89,10 @@ describe('raid after a lair tier-up', () => {
     expect(w.units.filter((u) => w.unitRuntime.get(u.id)?.raidId === warn.raid)).toHaveLength(2);
   });
 
-  it('is off by default', () => {
+  it('can be switched off', () => {
     const w = createWorld(
       1,
-      mk({ raidFirstMs: 10_000_000 }, { tierUpEveryMs: 20_000, maxTier: 2 }),
+      mk({ raidFirstMs: 10_000_000, raidOnTierUp: false }, { tierUpEveryMs: 20_000, maxTier: 2 }),
     );
     expect(of(run(w, 40_000), 'raid')).toHaveLength(0);
   });
