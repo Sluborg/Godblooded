@@ -1,5 +1,6 @@
 import { resolveStrike, hitEvent, type StrikeOut } from './strike';
 import { takeDamage } from './effects';
+import { passiveHealTaken } from './passives';
 import { tally } from './runstats';
 import { dist } from './units';
 import type { UnitRuntime, World } from './world';
@@ -139,5 +140,7 @@ export function slowOf(world: World, id: number): number {
 // Healing on a withered unit is cut.
 export function healMult(world: World, id: number): number {
   const w = world.unitRuntime.get(id)?.status?.wither;
-  return w && world.timeMs < w.untilMs ? world.tuning.rider.witherHealMult : 1;
+  const unit = world.units.find((u) => u.id === id);
+  const passive = unit ? passiveHealTaken(world, unit) : 1;
+  return (w && world.timeMs < w.untilMs ? world.tuning.rider.witherHealMult : 1) * passive;
 }

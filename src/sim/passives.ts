@@ -1,0 +1,116 @@
+import { dist } from './units';
+import type { World } from './world';
+import type { Attributes, BuffStat, PassiveDef, PassiveKeys, UnitState } from './types';
+
+// God passives (Sim 260, docs/systems/paths-and-skills.md section 5). A passive is a set of keys
+// on GodDef; each key is implemented once, where its rule lives (stats, strikes, resting,
+// knockouts, aggro, first strike). This module finds which passives apply to a unit and folds
+// the numeric keys.
+
+// The passives that apply to a hero: its own, and the party passives of living party mates in
+// range. One per passive id.
+export function passivesFor(world: World, unit: UnitState): PassiveDef[] {
+  if (unit.kind !== 'hero' || !world.data.gods?.some((g) => g.passive)) return [];
+  const out = new Map<string, PassiveDef>();
+  const own = passiveOf(world, unit);
+  if (own) out.set(own.id, own);
+  if (unit.party !== 0) {
+    for (const id of world.parties.get(unit.party)?.members ?? []) {
+      if (id === unit.id) continue;
+      const mate = world.units.find((u) => u.id === id);
+      const def = mate && !mate.ko && mate.hp > 0 ? passiveOf(world, mate) : undefined;
+      if (def && def.scope === 'party' && dist(mate!.pos, unit.pos) <= (def.range ?? Infinity)) {
+        out.set(def.id, def);
+      }
+    }
+  }
+  return [...out.values()];
+}
+
+function passiveOf(world: World, hero: UnitState): PassiveDef | undefined {
+  return world.data.gods?.find((g) => g.id === hero.god)?.passive;
+}
+
+// Folds one numeric key over the unit's passives.
+function sum(world: World, unit: UnitState, pick: (k: PassiveKeys) => number | undefined): number {
+  let total = 0;
+  for (const p of passivesFor(world, unit)) total += pick(p.keys) ?? 0;
+  return total;
+}
+
+function product(
+  world: World,
+  unit: UnitState,
+  pick: (k: PassiveKeys) => number | undefined,
+): number {
+  let total = 1;
+  for (const p of passivesFor(world, unit)) total *= pick(p.keys) ?? 1;
+  return total;
+}
+
+export function passiveAttrs(world: World, unit: UnitState): Partial<Attributes> | undefined {
+  let out: Partial<Attributes> | undefined;
+  for (const p of passivesFor(world, unit)) {
+    for (const k of Object.keys(p.keys.attr ?? {}) as (keyof Attributes)[]) {
+      out ??= {};
+      out[k] = (out[k] ?? 0) + (p.keys.attr?.[k] ?? 0);
+    }
+  }
+  return out;
+}
+
+export const passiveArmour = (world: World, unit: UnitState) => sum(world, unit, (k) => k.armour);
+export const passiveRestMult = (world: World, unit: UnitState) =>
+  product(world, unit, (k) => k.restMult);
+export const passiveKoMult = (world: World, unit: UnitState) =>
+  product(world, unit, (k) => k.koMult);
+export const passiveAggroMult = (world: World, unit: UnitState) =>
+  product(world, unit, (k) => k.aggroMult);
+export const passiveHealTaken = (world: World, unit: UnitState) =>
+  product(world, unit, (k) => k.healTakenMult);
+
+export function hasPassive(
+  world: World,
+  unit: UnitState,
+  key: 'firstStrike' | 'firstHitMisses',
+): boolean {
+  return passivesFor(world, unit).some((p) => p.keys[key]);
+}
+
+// Damage multiplier of the attacker's passives against a target's tags.
+export function passiveVsTags(
+  world: World,
+  unit: UnitState,
+  tags: readonly string[] | undefined,
+): number {
+  let mult = 1;
+  for (const p of passivesFor(world, unit)) {
+    for (const t of tags ?? []) mult *= p.keys.vsTag?.[t] ?? 1;
+  }
+  return mult;
+}
+
+// The buff-stat share of a unit's passives: flat dodge and crit, a stack per kill this fight,
+// and a buff while below a share of max hp. Folded into buffOf (effects.ts).
+export function passiveBuff(world: World, unit: UnitState, stat: BuffStat): number {
+  let total = 0;
+  const kills = world.unitRuntime.get(unit.id)?.fight?.kills ?? 0;
+  for (const p of passivesFor(world, unit)) {
+    const k = p.keys;
+    if (stat === 'dodge') total += k.dodge ?? 0;
+    if (stat === 'crit') total += k.crit ?? 0;
+    if (k.onKillStack?.stat === stat) {
+      total += k.onKillStack.per * Math.min(kills, k.onKillStack.max);
+    }
+    if (k.belowHp?.stat === stat && unit.hp / unit.maxHp < k.belowHp.below) {
+      total += k.belowHp.amount;
+    }
+  }
+  return total;
+}
+
+// The first `everyNth` rule among the unit's passives, if any.
+export function everyNthOf(world: World, unit: UnitState): PassiveKeys['everyNth'] {
+  for (const p of passivesFor(world, unit)) if (p.keys.everyNth) return p.keys.everyNth;
+  return undefined;
+}

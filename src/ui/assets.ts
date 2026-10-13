@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import type { Strike } from '../data/looks';
 import { isSplashAsset } from './assetPriority';
+import { DIAG_KEY, type ArtDiag } from './artDiag';
 
 export interface ManifestAsset {
   id: string;
@@ -38,20 +39,47 @@ export function loadManifest(scene: Phaser.Scene, done: () => void, hooks: LoadH
   const rows = new Map<string, ManifestAsset>();
   scene.registry.set(ASSETS_KEY, rows);
   scene.load.setBaseURL(base);
+  // Counts for the corner report: failures as they happen, the loaded total when each batch ends.
+  const glr = scene.game.renderer as Phaser.Renderer.WebGL.WebGLRenderer;
+  const gl = glr.gl as WebGLRenderingContext | undefined;
+  const diag: ArtDiag = {
+    expected: 0,
+    loaded: 0,
+    failed: 0,
+    firstError: null,
+    renderer: scene.game.config.renderType === Phaser.CANVAS ? 'CANVAS' : 'WEBGL',
+    maxTexture: gl ? Number(gl.getParameter(gl.MAX_TEXTURE_SIZE)) : 0,
+  };
+  scene.registry.set(DIAG_KEY, diag);
+  scene.load.on(Phaser.Loader.Events.FILE_LOAD_ERROR, (file: Phaser.Loader.File) => {
+    diag.failed++;
+    const status = (file.xhrLoader as XMLHttpRequest | undefined)?.status ?? 0;
+    diag.firstError ??= `${file.src} ${status}`;
+  });
+  const count = (): void => {
+    diag.loaded = [...rows.keys()].filter((id) => scene.textures.exists(id)).length;
+    // The renderer actually in use (AUTO may have fallen back to canvas).
+    diag.renderer = scene.game.renderer.type === Phaser.CANVAS ? 'CANVAS' : 'WEBGL';
+  };
   scene.load.json('manifest', 'assets/manifest.json');
   scene.load.once(Phaser.Loader.Events.COMPLETE, () => {
     const assets = ((scene.cache.json.get('manifest') as { assets?: ManifestAsset[] } | null)
       ?.assets ?? []) as ManifestAsset[];
     for (const a of assets) rows.set(a.id, a);
+    diag.expected = assets.length;
     const splash = assets.filter((a) => isSplashAsset(a.id));
     const rest = assets.filter((a) => !isSplashAsset(a.id));
     const loadRest = () => {
       hooks.onSplashReady?.();
-      if (rest.length === 0) return done();
+      if (rest.length === 0) {
+        count();
+        return done();
+      }
       scene.load.on(Phaser.Loader.Events.PROGRESS, (p: number) => hooks.onProgress?.(p));
       for (const a of rest) scene.load.image(a.id, `assets/${a.file}`);
       scene.load.once(Phaser.Loader.Events.COMPLETE, () => {
         hooks.onProgress?.(1);
+        count();
         done();
       });
       scene.load.start();
