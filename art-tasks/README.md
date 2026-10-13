@@ -37,22 +37,33 @@ proportions, colours), changing only what the batch asks.
 ## Wake-ups
 
 The draft pull request **Godblooded art wake** (https://github.com/Sluborg/Godblooded/pull/3,
-branch `art-wake`) is the bell. Art pushes a
-commit to it when there is new work; `art-wake/TRACKS.md` on that branch lists the tracks with
-work. Watch that pull request (opened, reopened, new commits). When it fires: read
-`art-wake/TRACKS.md`; if your track is listed, do "run all". If not, do nothing.
+branch `art-wake`) is the bell. Art pushes a commit to it when there is new work;
+`art-wake/TRACKS.md` on that branch lists the tracks with new work.
 
-**No double work:** there is exactly **one chat per track**, so every claim of your track is
-yours. When you start a batch, append `<batch> | <date time> | <track> | started` to
-`art-inbox/STATUS.md`.
+**The watch (every run costs Stefan's usage, so keep it narrow):**
+
+- Watch **only pull request #3**, and **only new commits** on it. Not comments, reviews, checks
+  or merges, and **never the whole repository** (the repo has many pull requests a day; each
+  event would start a run). If your watch cannot be limited to pull request #3, do not create
+  it: tell Stefan instead.
+- When it fires, read **only** `art-wake/TRACKS.md` first. If your track is not listed, stop at
+  once: no other reads, no report.
+- If your track is listed: read the upload log. If the next batch of your track has a `started`
+  line from the **last 90 minutes** and no `uploaded` line, a run is already working on it: stop.
+  Otherwise do "run all".
+
+**No double work:** there is exactly **one chat per track**. When you start a batch, append
+`<batch> | <date time> | <track> | started` to `art-inbox/STATUS.md`.
 
 - A batch with an `uploaded` line is done: skip it.
-- A batch of **your track** with a `started` line but no `uploaded` line is **yours** (a wake-up
-  and a command from Stefan can both start the same chat, seconds apart): continue it, do not
-  stop, do not add a second claim.
+- A batch of your track with a `started` line **older than 90 minutes** and no `uploaded` line
+  was interrupted (for example by a usage limit): continue it, skipping items already in the
+  Drive folder.
+- **Upload each image as soon as it is made**, not at the end of the batch, so nothing is lost
+  if a run stops halfway. Write the `uploaded` log line when the whole batch is in.
 - If writing the log fails with a conflict (HTTP 409), fetch the file again, check whether your
   line is already there, and append it once if not. Never stop because of a conflict.
-- If Stefan's command and a wake-up overlap, follow Stefan's command and make each image once.
+- A direct command from Stefan always runs, even inside the 90 minutes; make each image once.
 
 ## Commands from Stefan
 
@@ -67,7 +78,8 @@ yours. When you start a batch, append `<batch> | <date time> | <track> | started
 - **"run all"**: repeat "next" until nothing is left for your track, then report once. Stop and
   report if an upload fails.
 - **"status"**: what you made in this chat and what is left for your track.
-- **"watch"**: set up the wake-up watch now, if this chat has none.
+- **"watch"**: set up the wake-up watch now (see "Wake-ups": pull request #3, new commits
+  only), replacing any older watch of this chat.
 
 ## Delivering
 

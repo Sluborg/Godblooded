@@ -37,7 +37,8 @@ export const KINDS = {
     anchor: 'feet',
   },
   bld: {
-    re: /^bld_[a-z]+(-[a-z]+)*(_[a-z]+(-[a-z]+)*)?_t[1-3]$/,
+    // Tier optional: untiered pieces such as bld_ruin, bld_scaffold, bld_caravan.
+    re: /^bld_[a-z]+(-[a-z]+)*(_[a-z]+(-[a-z]+)*)?(_t[1-3])?$/,
     dir: 'buildings',
     nominal: { axis: 'width', share: 0.85, px: 512 },
     anchor: 'feet',

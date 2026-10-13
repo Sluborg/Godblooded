@@ -1,6 +1,9 @@
 import { avenge, revengeTarget, rivalPairs, vowRevenge } from './rivalry';
 import { runAutosave } from './save';
 import { generateMap } from './mapgen';
+import { noteFight } from './engage';
+import { runStatuses, slowOf, healMult, type UnitStatus } from './riders';
+import { attackStrike, landStrike } from './strike';
 import { swing } from './swing';
 import { buildReport, sampleGold, tally, type HeroRecord } from './runstats';
 import {
@@ -38,12 +41,10 @@ import {
 } from './heroes';
 import {
   aggroRange,
-  damage,
   dist,
-  dodgeChance,
   monsterHp,
   scaleAttrs,
-  speed,
+  speedOf,
   stepToward,
   tierValue,
   TICK_MS,
@@ -87,6 +88,10 @@ export interface UnitRuntime {
   cooldownMs: number;
   target: Vec2 | null;
   idleMs: number;
+  // Active riders on this unit (burn, chill, wither).
+  status?: UnitStatus;
+  // The fight this unit is in runs until here (see engage.ts).
+  fightUntilMs?: number;
 }
 
 export interface World {
@@ -239,6 +244,9 @@ function runTick(world: World): void {
   runTowers(world);
   // Tower victims leave now, before the lairs count their monsters or the units act.
   settleDeaths(world);
+  runStatuses(world);
+  // Burn victims leave now, before heroes flee or units act on a dead unit's turn.
+  settleDeaths(world);
   runLairs(world);
   runRaids(world);
   runHeroes(world);
@@ -307,15 +315,41 @@ function runLairs(world: World): void {
 function statsOf(world: World, unit: UnitState): Stats | undefined {
   if (unit.kind === 'hero') {
     const cls = world.data.classes?.find((c) => c.id === unit.type);
-    return cls && { weapon: cls.weapon, attrs: effectiveAttrs(world, unit, cls.attrs) };
+    return (
+      cls && {
+        weapon: cls.weapon,
+        attrs: effectiveAttrs(world, unit, cls.attrs),
+        armour: cls.armour,
+        spellMult: cls.spellMult,
+        slow: slowOf(world, unit.id),
+        damageType: cls.spellMult === undefined ? undefined : heroDamageType(world, unit),
+      }
+    );
   }
   const mon = world.data.monsters?.find((m) => m.id === unit.type);
+  const mult = tierValue(world.tuning.lair.statMult, unit.tier, 1);
   return (
     mon && {
       weapon: mon.weapon,
-      attrs: scaleAttrs(mon.attrs, tierValue(world.tuning.lair.statMult, unit.tier, 1)),
+      attrs: scaleAttrs(mon.attrs, mult),
+      armour: Math.round((mon.armour ?? 0) * mult),
+      tags: mon.tags,
+      types: mon.types,
+      slow: slowOf(world, unit.id),
     }
   );
+}
+
+// A caster hero strikes with its path's type, else its god's (weapon templates are physical).
+function heroDamageType(world: World, unit: UnitState): string | undefined {
+  const path = unit.path ? world.data.paths?.find((p) => p.id === unit.path) : undefined;
+  return path?.damageType ?? world.data.gods?.find((g) => g.id === unit.god)?.damageType;
+}
+
+// What a strike needs to know about a unit it hits.
+export function targetOf(world: World, unit: UnitState) {
+  const st = statsOf(world, unit);
+  return st && { attrs: st.attrs, armour: st.armour, types: st.types, tags: st.tags };
 }
 
 function runUnits(world: World): void {
@@ -339,6 +373,7 @@ function runUnits(world: World): void {
     if (ally) {
       heal(world, unit, rt, stats, ally);
     } else if (foe) {
+      noteFight(world, rt, stats, world.unitRuntime.get(foe.id), statsOf(world, foe));
       fight(world, unit, rt, stats, foe);
     } else if (unit.kind === 'hero') {
       // A hero under oath goes for its monster, not for a lair on the way.
@@ -401,7 +436,9 @@ function heal(world: World, unit: UnitState, rt: UnitRuntime, stats: Stats, ally
   const d = dist(unit.pos, ally.pos);
   if (d > 0) unit.facing = { x: (ally.pos.x - unit.pos.x) / d, y: (ally.pos.y - unit.pos.y) / d };
   swing(world, unit, rt, stats, ally.id, () => {
-    const gain = Math.round(world.tuning.combat.healPower * (stats.attrs.int + stats.attrs.wp));
+    const gain = Math.round(
+      world.tuning.combat.healPower * (stats.attrs.int + stats.attrs.wp) * healMult(world, ally.id),
+    );
     const amount = Math.min(gain, ally.maxHp - ally.hp);
     if (amount <= 0 || ally.ko) return;
     ally.hp += amount;
@@ -414,22 +451,13 @@ function fight(world: World, unit: UnitState, rt: UnitRuntime, stats: Stats, foe
   const d = dist(unit.pos, foe.pos);
   if (d > stats.weapon.range) {
     rt.swing = undefined;
-    const dir = stepToward(unit.pos, foe.pos, (speed(stats.attrs) * TICK_MS) / 1000);
+    const dir = stepToward(unit.pos, foe.pos, (speedOf(stats) * TICK_MS) / 1000);
     if (dir.x !== 0 || dir.y !== 0) unit.facing = dir;
     return;
   }
   if (d > 0) unit.facing = { x: (foe.pos.x - unit.pos.x) / d, y: (foe.pos.y - unit.pos.y) / d };
   swing(world, unit, rt, stats, foe.id, () => {
-    const foeStats = statsOf(world, foe);
-    const dodged = !!foeStats && world.rng() < dodgeChance(foeStats.attrs);
-    const dmg = dodged ? 0 : damage(stats.attrs);
-    foe.hp -= dmg;
-    tally(world, unit.id, 'damage', dmg);
-    world.events.push({ kind: 'hit', attacker: unit.id, target: foe.id, damage: dmg, dodged });
-    if (foe.hp <= 0) {
-      foe.hp = 0;
-      world.pendingDeaths.push({ victim: foe.id, by: unit.id });
-    }
+    landStrike(world, unit, foe, attackStrike(stats, targetOf(world, foe)));
   });
 }
 
@@ -474,7 +502,7 @@ function wander(world: World, unit: UnitState, rt: UnitRuntime, stats: Stats, ho
     if (rt.idleMs > 0) return;
     rt.target = wanderPoint(world, home);
   }
-  const dir = stepToward(unit.pos, rt.target, (speed(stats.attrs) * TICK_MS) / 1000);
+  const dir = stepToward(unit.pos, rt.target, (speedOf(stats) * TICK_MS) / 1000);
   if (dir.x !== 0 || dir.y !== 0) unit.facing = dir;
   if (unit.pos.x === rt.target.x && unit.pos.y === rt.target.y) {
     const tm = world.tuning.monster;
