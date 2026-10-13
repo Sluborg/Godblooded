@@ -26,6 +26,7 @@ import {
   attackLair,
   nearestBuilding,
   pickLair,
+  planTierRaid,
   runRaids,
   runTowers,
   upgradeBuilding,
@@ -102,6 +103,8 @@ export interface UnitRuntime {
   lair: number | null;
   // Raiders march on the town instead of wandering near their lair.
   raid?: boolean;
+  // The raid it belongs to (a raid is beaten when none of its raiders is left).
+  raidId?: number;
   // A strike in its windup: the target and the time left before it lands.
   swing?: { target: number; ms: number; area?: Area };
   cooldownMs: number;
@@ -154,6 +157,10 @@ export interface World {
   // Monsters that died lately, for `kill` skill triggers.
   recentKills: { pos: Vec2; timeMs: number; by: number }[];
   nextRaidMs: number;
+  // Raids announced and still to arrive, the timed raid already planned for, and raids on the way.
+  raidPlans: { id: number; atMs: number; lair: number; size: number; early: boolean }[];
+  raidPlannedFor: number;
+  raidActive: number[];
   stats: RunStats;
   bounties: BountyState[];
   // Generated map: the boss lair that wins the run and the pantheons the map leans on.
@@ -194,6 +201,9 @@ export function createWorld(seed: number, data: GameData): World {
     graves: [],
     recentKills: [],
     nextRaidMs: 0,
+    raidPlans: [],
+    raidPlannedFor: -1,
+    raidActive: [],
     stats: {
       monstersKilled: 0,
       lairsDestroyed: 0,
@@ -336,6 +346,7 @@ function tierUpLair(
     tier: lair.tier,
     ...(pressure ? { pressure: true } : {}),
   });
+  planTierRaid(world, lair);
 }
 
 function runLairs(world: World): void {

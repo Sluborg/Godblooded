@@ -152,6 +152,10 @@ export const DEFAULT_TUNING: Tuning = {
     raidLairs: 1,
     raidGrowEveryMs: 300_000,
     defendHp: 0.5,
+    raidWarnMs: 15_000,
+    towerWarnAddMs: 5_000,
+    raidOnTierUp: true,
+    raidBeatenGold: 20,
   },
   bounty: {
     dangerRadius: 250,
