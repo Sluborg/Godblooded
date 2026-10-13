@@ -7,6 +7,7 @@ import { armourBonus, weaponPower } from './items';
 import { passiveRider } from './passives';
 import { everyNthOf, passiveAggroMult, passiveArmour } from './passives';
 import { noteFight } from './engage';
+import { runQuirks, scavenge, stolenBy } from './quirks';
 import {
   aliveMult,
   halfAttrs,
@@ -120,6 +121,10 @@ export interface UnitRuntime {
   charge?: { dir: Vec2; ms: number };
   chargeCdMs?: number;
   half?: boolean;
+  // Quirks: regrowth paused until this time (ms), hp not yet whole, gold snatched so far.
+  regenStopMs?: number;
+  regenAcc?: number;
+  stolen?: number;
   // A strike in its windup: the target and the time left before it lands.
   swing?: { target: number; ms: number; area?: Area };
   cooldownMs: number;
@@ -334,6 +339,7 @@ function runTick(world: World): void {
   runHeroes(world);
   runSummonUpkeep(world);
   runBounties(world);
+  runQuirks(world);
   runParties(world);
   runUnits(world);
   // Combat, heroes and the economy hook in here (Sim backlog 30 and up).
@@ -689,7 +695,7 @@ function settleDeaths(world: World): void {
         slainIds.add(unit.id);
       } else {
         unit.ko = true;
-        heroKnockedOut(world, unit);
+        heroKnockedOut(world, unit, by);
         world.events.push({
           kind: 'knockout',
           unit: unit.id,
@@ -702,6 +708,7 @@ function settleDeaths(world: World): void {
       const lrt =
         lairId === null || lairId === undefined ? undefined : world.lairRuntime.get(lairId);
       if (lrt) lrt.kos = (lrt.kos ?? 0) + 1;
+      scavenge(world, by);
       vowRevenge(world, unit, by);
     } else {
       const mon = world.data.monsters?.find((m) => m.id === unit.type);
@@ -728,7 +735,7 @@ function settleDeaths(world: World): void {
       tally(world, by, 'kills');
       const krt = world.unitRuntime.get(by);
       if (krt?.fight) krt.fight.kills++;
-      payBounty(world, by, bounty);
+      payBounty(world, by, bounty + stolenBy(world, unit.id));
       shareXp(world, by, xp);
       splitSwarm(world, unit, mrt);
     }

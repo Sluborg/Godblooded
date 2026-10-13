@@ -140,6 +140,22 @@ export interface MonsterDef {
   hp?: number;
   // How it behaves (docs/systems/monsters-and-bosses.md section 1); missing is a brute.
   role?: MonsterRole;
+  // One always-on trick (docs/systems/monsters-and-bosses.md, Monster quirks).
+  quirk?: MonsterQuirk;
+}
+
+export interface MonsterQuirk {
+  // Regrowth: heals pctS of max hp per second; a hit of type `stopOnType` stops it for stopS.
+  regen?: { pctS: number; stopOnType?: DamageType; stopS?: number };
+  // Snatch: a landed strike steals this much gold from a hero; the hero that kills it gets it.
+  stealGold?: number;
+  // Grave-cold: a hero it knocks out wakes this many times slower (1.5: 50% slower).
+  koMult?: number;
+  // Scavenger: it and its pack mates within packRadius of the fallen heal this share of max hp
+  // when it knocks a hero out.
+  healOnKo?: number;
+  // Bull rush: its charge cannot be dodged.
+  chargeSure?: boolean;
 }
 
 export type MonsterRole = 'brute' | 'harrier' | 'charger' | 'pack' | 'swarm';
@@ -1029,6 +1045,8 @@ export type SimEvent =
   | { kind: 'charge'; unit: number; to: Vec2 }
   // A swarm splits into two halves.
   | { kind: 'split'; unit: number; into: number[] }
+  // A monster snatched gold from a hero.
+  | { kind: 'stolen'; thief: number; victim: number; gold: number }
   // A rider took hold on `target` (burn, chill, wither; arc and sear show in the hit itself).
   | { kind: 'rider'; target: number; rider: RiderId; by: number }
   // A hero starts casting a skill; it lands `inMs` later. `say`: Scene shows the skill name.

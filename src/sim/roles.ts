@@ -1,3 +1,4 @@
+import { quirkOf } from './quirks';
 import { landStrike, attackStrike } from './strike';
 import { dist, scaleAttrs, speedOf, stepToward, TICK_MS, type Stats } from './units';
 import { targetOf, type UnitRuntime, type World } from './world';
@@ -152,6 +153,7 @@ function chargerTurn(
     landStrike(world, unit, hit, {
       ...attackStrike(stats, targetOf(world, hit)),
       skillMult: t.chargeMult,
+      ...(quirkOf(world, unit)?.chargeSure ? { canDodge: false } : {}),
     });
     const d = dist(unit.pos, hit.pos) || 1;
     const { width, height } = world.data.map;
