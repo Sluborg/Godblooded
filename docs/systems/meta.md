@@ -118,7 +118,7 @@ in-run omens of `events.md`). Each trial won with is marked on the hall.
 - One localStorage key, `godblooded.meta`, JSON: `{ version: 1, runs, wins, ambrosia, altar:
 Record<string, number>, unlocks: string[], trialsWon: string[], saga: SagaEntry[], nextSeed: number, lean: string, hintsSeen:
 string[], hintsOn: boolean, lastBoss?:
-string }` (`nextSeed` and `lean`, the pantheon chosen at the Altar, `meta-ui.md`; `hintsSeen` and `hintsOn` from
+string }` (`nextSeed`, and `lean`, the one pantheon chosen at the Altar, first in mapgen's lean list, `meta-ui.md`; `hintsSeen` and `hintsOn` from
   `onboarding.md`; `lastBoss` keeps the boss pick from
   repeating, `monsters-and-bosses.md`).
 - Versioned per `CLAUDE.md`: a shape change bumps `version` and adds a migration. A missing or
