@@ -3,10 +3,12 @@ import { COLORS, GAME_WIDTH, MIN_TOUCH } from '../config';
 import { GRAYBOX } from '../data/graybox';
 import { DEFAULT_TUNING, type BuildingState, type CommandResult } from '../sim/api';
 import { buildingEffect, buildingName, nextTierEffect } from '../ui/buildingInfo';
+import { formatClock } from '../ui/endReport';
 import { makePanel } from '../ui/panel';
 import { makeButton, type Button } from '../ui/button';
 import { PartyPanel } from '../ui/partyPanel';
-import type { SimEvent } from '../sim/api';
+import type { SimEvent, Vec2 } from '../sim/api';
+import { describeEvent, EventFeed, type FeedWorld } from '../ui/eventFeed';
 import type { MapScene, MapTap } from './MapScene';
 
 const SPEEDS = [1, 2, 4];
@@ -19,11 +21,6 @@ interface MenuOption {
 }
 const TEXT = { fontFamily: 'Georgia, serif', fontSize: '30px', color: COLORS.text };
 
-function formatClock(ms: number): string {
-  const s = Math.floor(ms / 1000);
-  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
-}
-
 // Screen-space overlay on top of MapScene: gold, run clock, speed buttons, build menu.
 // It reads the numbers MapScene publishes in the registry and sends build commands back
 // through MapScene.tryBuild; it holds no rules.
@@ -33,12 +30,19 @@ export class HudScene extends Phaser.Scene {
   private toast!: Phaser.GameObjects.Text;
   private banner!: Phaser.GameObjects.Text;
   private panel!: PartyPanel;
-  private endObjects: Phaser.GameObjects.GameObject[] = [];
+  private ended = false;
   private speedButtons: Button[] = [];
   private watchBtn: Button | null = null;
   private menu: Phaser.GameObjects.GameObject[] = [];
   private menuButtons: { button: Button; cost: number }[] = [];
   private menuRect: Phaser.Geom.Rectangle | null = null;
+  // Event feed: toasts on the left, positions of lairs and buildings remembered so a destroyed
+  // one can still be jumped to.
+  private feed = new EventFeed();
+  private feedKey = '';
+  private feedObjects: Phaser.GameObjects.GameObject[] = [];
+  private feedRects: Phaser.Geom.Rectangle[] = [];
+  private places = new Map<number, Vec2>();
 
   constructor() {
     super('Hud');
@@ -47,11 +51,16 @@ export class HudScene extends Phaser.Scene {
   create(): void {
     // Scene instances are reused on restart: drop state that pointed at the old display list.
     this.panel = new PartyPanel(this);
-    this.endObjects = [];
+    this.ended = false;
     this.speedButtons = [];
     this.menu = [];
     this.menuButtons = [];
     this.menuRect = null;
+    this.feed = new EventFeed();
+    this.feedKey = '';
+    this.feedObjects = [];
+    this.feedRects = [];
+    this.places = new Map();
     const map = this.scene.get('Map') as MapScene;
     this.add.rectangle(GAME_WIDTH / 2, 36, GAME_WIDTH, 72, 0x000000, 0.45);
     this.goldText = this.add.text(20, 36, '', { ...TEXT, color: '#f2c14e' }).setOrigin(0, 0.5);
@@ -105,13 +114,18 @@ export class HudScene extends Phaser.Scene {
     });
   }
 
-  update(): void {
+  update(_time: number, deltaMs: number): void {
     this.watchBtn?.setActive(this.registry.get('camMode') === 'watch');
+    const snap = (this.scene.get('Map') as MapScene).snapshot;
+    for (const l of snap.lairs) this.places.set(l.id, l.pos);
+    for (const b of snap.buildings) this.places.set(b.id, b.pos);
+    // Toasts wait while the pause menu is up and are not redrawn over the end screen.
+    if (!this.scene.isPaused('Map')) this.feed.update(deltaMs);
+    this.drawFeed(this.scene.get('Map') as MapScene);
     this.goldText.setText(`Gold ${this.registry.get('gold') ?? 0}`);
     this.clockText.setText(formatClock((this.registry.get('timeMs') as number) ?? 0));
     const status = this.registry.get('status') as string | undefined;
-    if ((status === 'won' || status === 'lost') && this.endObjects.length === 0)
-      this.showEnd(status);
+    if ((status === 'won' || status === 'lost') && !this.ended) this.showEnd();
     this.panel.update((this.scene.get('Map') as MapScene).snapshot);
     const gold = (this.registry.get('gold') as number) ?? 0;
     for (const { button, cost } of this.menuButtons) button.setEnabled(gold >= cost);
@@ -119,26 +133,76 @@ export class HudScene extends Phaser.Scene {
 
   // True when a screen point is over HUD controls, so the map ignores the press.
   blocks(x: number, y: number): boolean {
-    if (y < 72 || this.endObjects.length > 0) return true;
+    if (y < 72 || this.ended) return true;
     if (this.panel.isOpen && this.panel.rect.contains(x, y)) return true;
+    if (this.feedRects.some((r) => r.contains(x, y))) return true;
     return this.menuRect?.contains(x, y) ?? false;
   }
 
-  // Warnings the player must notice: raids, lost buildings, fallen lairs.
+  // Warnings the player must notice: raids and lost buildings get a banner; everything worth a
+  // line goes to the event feed.
   private onSimEvents(map: MapScene, events: readonly SimEvent[]): void {
+    const snap = map.snapshot;
+    const world: FeedWorld = {
+      unit: (id) => snap.units.find((u) => u.id === id),
+      structure: (id) => this.places.get(id),
+      leader: (partyId) => {
+        const first = snap.parties.find((p) => p.id === partyId)?.members[0];
+        return snap.units.find((u) => u.id === first);
+      },
+      townHall: snap.buildings.find((b) => b.type === 'townhall')?.pos ?? { x: 0, y: 0 },
+    };
     for (const e of events) {
       if (e.kind === 'raid') {
-        const lair = map.snapshot.lairs.find((l) => l.id === e.lair);
+        const lair = snap.lairs.find((l) => l.id === e.lair);
         this.showBanner(
           `RAID! ${e.size} ${lair?.type ?? 'monsters'} march on the town`,
           '#8a1c2bdd',
         );
       } else if (e.kind === 'buildingDestroyed') {
         this.showBanner(`${e.type.replace('_', ' ')} destroyed!`, '#8a1c2bdd');
-      } else if (e.kind === 'lairDestroyed') {
-        this.showBanner(`${e.type} lair destroyed!`, '#2f6b3aee');
       }
+      const spec = describeEvent(e, world);
+      if (spec) this.feed.push(spec);
     }
+  }
+
+  // Redraws the toast stack when it changed: pills on the left under the top bar, each 80 tall
+  // (a touch target); tapping one dismisses it and sends the camera there.
+  private drawFeed(map: MapScene): void {
+    const key = this.ended ? '' : this.feed.toasts.map((t) => t.id).join(',');
+    if (key === this.feedKey) return;
+    this.feedKey = key;
+    this.feedObjects.forEach((o) => o.destroy());
+    this.feedObjects = [];
+    this.feedRects = [];
+    const W = 430;
+    const H = MIN_TOUCH;
+    (this.ended ? [] : this.feed.toasts).forEach((t, i) => {
+      const x = 16;
+      const y = 84 + i * (H + 8);
+      const bg = this.add
+        .rectangle(
+          x + W / 2,
+          y + H / 2,
+          W,
+          H,
+          Phaser.Display.Color.HexStringToColor(t.color.slice(0, 7)).color,
+          0.9,
+        )
+        .setStrokeStyle(2, COLORS.gold, 0.7)
+        .setInteractive({ useHandCursor: true });
+      const label = this.add
+        .text(x + 14, y + H / 2, t.text, { ...TEXT, fontSize: '22px', wordWrap: { width: W - 28 } })
+        .setOrigin(0, 0.5);
+      bg.on('pointerup', (p: Phaser.Input.Pointer) => {
+        if (p.getDistance() >= 10) return;
+        if (t.pos) map.jumpTo(t.pos);
+        this.feed.dismiss(t.id);
+      });
+      this.feedObjects.push(bg, label);
+      this.feedRects.push(new Phaser.Geom.Rectangle(x, y, W, H));
+    });
   }
 
   private showBanner(text: string, color: string): void {
@@ -147,49 +211,12 @@ export class HudScene extends Phaser.Scene {
     this.tweens.add({ targets: this.banner, alpha: 0, delay: 3000, duration: 500 });
   }
 
-  // End screen: the sim reports 'won' or 'lost' and has stopped; show the summary and a way
-  // to start over.
-  private showEnd(status: 'won' | 'lost'): void {
+  // The sim reports 'won' or 'lost' and has stopped: the End scene shows the report.
+  private showEnd(): void {
     this.closeMenu();
-    const cx = GAME_WIDTH / 2;
-    const dim = this.add.rectangle(cx, 360, GAME_WIDTH, 720, 0x000000, 0.6).setInteractive();
-    const title = this.add
-      .text(cx, 200, status === 'won' ? 'VICTORY' : 'TOWN LOST', {
-        ...TEXT,
-        fontSize: '84px',
-        color: status === 'won' ? '#f2c14e' : '#d9534f',
-      })
-      .setOrigin(0.5);
-    const time = formatClock((this.registry.get('timeMs') as number) ?? 0);
-    const summary = this.add
-      .text(cx, 300, `Run time ${time}   Gold ${this.registry.get('gold') ?? 0}`, TEXT)
-      .setOrigin(0.5);
-    const st = (this.scene.get('Map') as MapScene).snapshot.stats;
-    const stats: [string, number][] = [
-      ['Monsters slain', st.monstersKilled],
-      ['Lairs destroyed', st.lairsDestroyed],
-      ['Heroes arrived', st.heroesArrived],
-      ['Knockouts', st.knockouts],
-      ['Buildings lost', st.buildingsLost],
-      ['Tax collected', Math.floor(st.taxCollected)],
-    ];
-    const statObjects = stats.map(([label, value], i) =>
-      this.add
-        .text(cx - 360 + (i % 3) * 360, 400 + Math.floor(i / 3) * 44, `${label} ${value}`, {
-          ...TEXT,
-          fontSize: '26px',
-          color: COLORS.textMuted,
-        })
-        .setOrigin(0, 0.5),
-    );
-    const again = makeButton(this, cx, 560, 300, 100, 'Play again', () => this.playAgain());
-    this.endObjects = [dim, title, summary, ...statObjects, again.container];
-  }
-
-  // A new run: stop the HUD and restart the map, which launches a fresh HUD.
-  private playAgain(): void {
-    this.scene.stop();
-    this.scene.get('Map').scene.restart();
+    this.ended = true;
+    this.registry.set('modal', true);
+    this.scene.launch('End');
   }
 
   // Freeze the map and open the pause menu over it.

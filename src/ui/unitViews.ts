@@ -19,6 +19,7 @@ import {
   type Strike,
 } from './motionPose';
 import { pickVariant, rotateHue, sizeJitter, tierStyle } from './monsterLook';
+import { damageLook, MAX_FLOATS, typeTint, type FloatLook, type HitInfo } from './damageLook';
 import { getSettings } from './settings';
 import { heroLabel, partyColor, partyRole, type PartyRole } from './partyLook';
 import { isSpeechEvent, pickLine, type SpeechKind } from './speechLines';
@@ -60,6 +61,7 @@ interface Attack {
   targetId: number;
   damage: number;
   dodged: boolean;
+  info?: HitInfo;
   // A heal cast: the amount (null for a strike). It lands as a beam, not a blow.
   heal: number | null;
   // Started by a sim `windup` event: waits for the matching `hit` (which carries the damage) and
@@ -79,7 +81,16 @@ interface FrameCtx {
   // Chest of a unit, building or lair by sim id, if it is on the map.
   chestOf: (id: number) => Vec | undefined;
   // Receives the visual side of a landed strike (flash, knockback, number).
-  hurt: (targetId: number, fromX: number, power: number, damage: number, dodged: boolean) => void;
+  hurt: (
+    targetId: number,
+    fromX: number,
+    power: number,
+    damage: number,
+    dodged: boolean,
+    info?: HitInfo,
+    // The second blow of a double strike: it animates but shows no number of its own.
+    silent?: boolean,
+  ) => void;
   // Receives the visual side of a landed heal (green tint, sparkles, number).
   healed: (targetId: number, amount: number) => void;
 }
@@ -101,6 +112,8 @@ export class UnitView {
   private readonly pennant: Phaser.GameObjects.Graphics;
   private readonly label: Phaser.GameObjects.Text;
   private ringKey = '';
+  // The tier last seen in the snapshot (a tier 3 monster is a boss-sized threat: its hits shake).
+  tierNow = 1;
   private bubble: Phaser.GameObjects.Container | null = null;
   readonly isHero: boolean;
   readonly look: UnitLook;
@@ -280,15 +293,16 @@ export class UnitView {
   // A `hit` from the sim. With a windup under way for this target it supplies the damage;
   // otherwise (older sim, no windup event) the swing is played now with the windup squeezed to
   // what fits before the impact.
-  landHit(targetId: number, damage: number, dodged: boolean): void {
+  landHit(targetId: number, damage: number, dodged: boolean, info?: HitInfo): void {
     const a = this.attack;
     if (a?.awaitingHit && a.targetId === targetId) {
       a.awaitingHit = false;
       a.damage = damage;
       a.dodged = dodged;
+      a.info = info;
       return;
     }
-    this.startAttack(targetId, damage, dodged, null, false);
+    this.startAttack(targetId, damage, dodged, null, false, info);
   }
 
   // A `heal` from the sim: the cast lands now. A windup under way for this target is released;
@@ -310,6 +324,7 @@ export class UnitView {
     dodged: boolean,
     leadS: number | null,
     awaitingHit: boolean,
+    info?: HitInfo,
   ): void {
     if (this.koK > 0 || this.dying) return;
     const strike = this.strikeKind();
@@ -320,6 +335,7 @@ export class UnitView {
       targetId,
       damage,
       dodged,
+      info,
       heal: null,
       awaitingHit,
       leadS: leadS ?? DEFAULT_LEAD_S,
@@ -377,6 +393,7 @@ export class UnitView {
   // ---------- per frame ----------
 
   update(u: UnitState, ctx: FrameCtx, role: PartyRole = 'solo'): void {
+    this.tierNow = u.tier;
     this.applyArt(u);
     if (u.kind === 'hero') {
       this.label.setText(heroLabel(u));
@@ -511,6 +528,7 @@ export class UnitView {
       cross: a.cross,
       reach: UNIT_HEIGHT * (this.look.footprint + 0.25),
       foot: this.footOffset(),
+      tint: typeTint(a.info?.type) ?? undefined,
     });
     ctx.fx.add(r.effects);
     if (r.smash) {
@@ -519,7 +537,7 @@ export class UnitView {
       ctx.shake();
     }
     const heavy = a.strike === 'smash' || a.strike === 'stomp';
-    ctx.hurt(a.targetId, this.x, heavy ? 2 : 1, n === 0 ? a.damage : 0, a.dodged);
+    ctx.hurt(a.targetId, this.x, heavy ? 2 : 1, n === 0 ? a.damage : 0, a.dodged, a.info, n !== 0);
   }
 
   private applyPose(p: Pose, alpha: number): void {
@@ -683,12 +701,13 @@ export class UnitViews {
         const p = others(id);
         return p ? { x: p.x, y: p.y - 40 } : undefined;
       },
-      hurt: (targetId, fromX, power, damage, dodged) => {
+      hurt: (targetId, fromX, power, damage, dodged, info, silent) => {
         const t = this.views.get(targetId) ?? this.dying.get(targetId);
         if (!t) return;
         t.receiveHit(fromX, power, dodged, this.fx);
-        if (!dodged && damage > 0)
-          this.floatText(t.container.x, t.container.y - t.height - 10, `${damage}`);
+        // The number: type colour, crit, miss, weak or resisted (damageLook).
+        const look = silent ? null : damageLook(damage, dodged, info);
+        if (look) this.floatNumber(t.container.x, t.container.y - t.height - 10, look);
       },
       healed: (targetId, amount) => {
         const t = this.views.get(targetId) ?? this.dying.get(targetId);
@@ -705,7 +724,10 @@ export class UnitViews {
       else if (e.kind === 'windup') this.onWindup(e);
       else if (e.kind === 'heal') this.onHeal(e, ctx);
       else if (e.kind === 'tierUp') this.onTierUp(e, paths);
+      else if (e.kind === 'built') this.onBuilt(e, others);
       else if (isSpeechEvent(e)) this.onSpeech(e, timeMs);
+      // Shopping speaks (above) and also pops its tax in gold.
+      if (e.kind === 'shopped') this.onShopped(e);
     }
     const seen = new Set<number>();
     for (const u of units) {
@@ -752,12 +774,17 @@ export class UnitViews {
     ctx: FrameCtx,
     others: (id: number) => Vec2 | undefined,
   ): void {
+    const info: HitInfo = { type: e.type, crit: e.crit, weak: e.weak, resist: e.resist };
     const attacker = this.views.get(e.attacker);
-    if (attacker) return attacker.landHit(e.target, e.damage, e.dodged);
+    if (attacker) {
+      // A big monster's blow shakes the screen a little.
+      if (!attacker.isHero && attacker.tierNow >= 3 && !e.dodged && e.damage > 0) ctx.shake();
+      return attacker.landHit(e.target, e.damage, e.dodged, info);
+    }
     // No unit view: a tower (or other building) shooting. An arrow flies from its top to the
     // target and the hit lands at once, knocked back away from the tower.
     const from = others(e.attacker);
-    if (!from) return ctx.hurt(e.target, Number.NaN, 1, e.damage, e.dodged);
+    if (!from) return ctx.hurt(e.target, Number.NaN, 1, e.damage, e.dodged, info);
     const top = { x: from.x, y: from.y - TOWER_MUZZLE_Y };
     const to = ctx.chestOf(e.target) ?? top;
     const dist = Math.hypot(to.x - top.x, to.y - top.y);
@@ -773,7 +800,7 @@ export class UnitViews {
       },
     ]);
     this.fx.sparks(top.x, top.y, [255, 225, 160], 4);
-    ctx.hurt(e.target, from.x, 1, e.damage, e.dodged);
+    ctx.hurt(e.target, from.x, 1, e.damage, e.dodged, info);
   }
 
   private onTierUp(
@@ -782,6 +809,30 @@ export class UnitViews {
   ): void {
     const name = paths.find((p) => p.id === e.path)?.name;
     this.views.get(e.unit)?.evolve(this.fx, name ?? `Tier ${e.tier}!`);
+  }
+
+  // A hero spent gold at the market: the town's tax pops out in gold with a few sparkles.
+  private onShopped(e: Extract<SimEvent, { kind: 'shopped' }>): void {
+    const v = this.views.get(e.unit);
+    if (!v || e.tax <= 0) return;
+    this.floatText(
+      v.container.x,
+      v.container.y - v.height - 28,
+      `+${Math.round(e.tax)}g`,
+      '#f2c14e',
+    );
+    this.fx.sparkle(v.container.x, v.container.y - v.height * 0.5, 8, GOLD_SPARKS);
+  }
+
+  // A building went up: a cloud of dust and a few chips at its feet.
+  private onBuilt(
+    e: Extract<SimEvent, { kind: 'built' }>,
+    others: (id: number) => Vec2 | undefined,
+  ): void {
+    const p = others(e.building);
+    if (!p) return;
+    for (let i = 0; i < 4; i++) this.fx.dust(p.x + (i - 1.5) * 34, p.y, 1.8);
+    this.fx.sparks(p.x, p.y - 10, [190, 160, 110], 10);
   }
 
   private onHeal(e: Extract<SimEvent, { kind: 'heal' }>, ctx: FrameCtx): void {
@@ -794,11 +845,35 @@ export class UnitViews {
     this.views.get(e.attacker)?.beginWindup(e.target, e.inMs / 1000);
   }
 
-  private floatText(x: number, y: number, text: string, color = '#ffd9d9'): void {
+  // Floating numbers on screen, oldest first (a number and its tag count as one); past MAX_FLOATS
+  // the oldest is dropped at once.
+  private floats: { n: Phaser.GameObjects.Text; tag: Phaser.GameObjects.Text | null }[] = [];
+
+  private floatNumber(x: number, y: number, look: FloatLook): void {
+    const n = this.floatText(x, y, look.text, look.color, look.fontSize);
+    const tag = look.tag
+      ? this.floatText(x, y + look.fontSize * 0.9, look.tag, '#ffcf8a', 16)
+      : null;
+    this.floats = this.floats.filter((f) => f.n.active);
+    this.floats.push({ n, tag });
+    while (this.floats.length > MAX_FLOATS) {
+      const old = this.floats.shift();
+      old?.n.destroy();
+      old?.tag?.destroy();
+    }
+  }
+
+  private floatText(
+    x: number,
+    y: number,
+    text: string,
+    color = '#ffd9d9',
+    fontSize = 26,
+  ): Phaser.GameObjects.Text {
     const t = this.scene.add
       .text(x, y, text, {
         fontFamily: 'Georgia, serif',
-        fontSize: '26px',
+        fontSize: `${fontSize}px`,
         color,
         stroke: '#000000',
         strokeThickness: 4,
@@ -812,5 +887,6 @@ export class UnitViews {
       duration: 700,
       onComplete: () => t.destroy(),
     });
+    return t;
   }
 }

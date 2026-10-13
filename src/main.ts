@@ -1,8 +1,10 @@
 import Phaser from 'phaser';
+import { initInstall } from './ui/install';
 import { registerSW } from 'virtual:pwa-register';
 import { COLORS, GAME_HEIGHT, GAME_WIDTH } from './config';
 import { BootScene } from './scenes/BootScene';
 import { HudScene } from './scenes/HudScene';
+import { EndScene } from './scenes/EndScene';
 import { PauseScene } from './scenes/PauseScene';
 import { SettingsScene } from './scenes/SettingsScene';
 import { TitleScene } from './scenes/TitleScene';
@@ -16,6 +18,8 @@ registerSW({
     if (registration) setInterval(() => registration.update(), 60 * 60 * 1000);
   },
 });
+
+initInstall();
 
 // Block pinch zoom, double-tap zoom and page scroll.
 const prevent = (e: Event) => e.preventDefault();
@@ -36,7 +40,16 @@ const game = new Phaser.Game({
     height: GAME_HEIGHT,
   },
   input: { activePointers: 2 },
-  scene: [BootScene, TitleScene, MapScene, HudScene, LevelUpScene, PauseScene, SettingsScene],
+  scene: [
+    BootScene,
+    TitleScene,
+    MapScene,
+    HudScene,
+    LevelUpScene,
+    EndScene,
+    PauseScene,
+    SettingsScene,
+  ],
 });
 
 // Test hook: with ?debug in the URL the game object is reachable from the console and from
