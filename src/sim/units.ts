@@ -8,6 +8,10 @@ export const TICK_MS = 50;
 export interface Stats {
   attrs: Attributes;
   weapon: { baseAttackS: number; range: number };
+  // Flat armour against physical strikes (0 when missing).
+  armour?: number;
+  // A caster's strike is a spell of Int times this (see ClassDef.spellMult).
+  spellMult?: number;
 }
 
 // Graybox derivations from the Coda combat reference (Lead's numbers stay attributes only).

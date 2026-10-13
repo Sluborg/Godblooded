@@ -1,4 +1,4 @@
-import { armourPct, critChance, dodgeChance } from './units';
+import { armourPct, critChance, dodgeChance, resistPct, type Stats } from './units';
 import type { World } from './world';
 import type { Attributes } from './types';
 
@@ -22,6 +22,8 @@ export interface StrikeIn {
   canDodge?: boolean;
   // Tower bolts cannot crit.
   canCrit?: boolean;
+  // A spell: it cannot be dodged and is resisted by the target's Willpower, not its armour.
+  spell?: boolean;
 }
 
 export interface StrikeOut {
@@ -34,7 +36,12 @@ export interface StrikeOut {
 export function resolveStrike(world: World, s: StrikeIn): StrikeOut {
   const t = world.tuning.combat;
   // 10 dodge
-  if (s.canDodge !== false && s.target && world.rng() < dodgeChance(s.target.attrs, t.dodgeK)) {
+  if (
+    !s.spell &&
+    s.canDodge !== false &&
+    s.target &&
+    world.rng() < dodgeChance(s.target.attrs, t.dodgeK)
+  ) {
     return { dodged: true, crit: false, damage: 0 };
   }
   // 20 power, 30 skill multiplier
@@ -43,8 +50,30 @@ export function resolveStrike(world: World, s: StrikeIn): StrikeOut {
   const crit = s.canCrit !== false && world.rng() < critChance(s.attrs, t.critK);
   if (crit) dmg *= t.critMult;
   // 50 type multiplier: every strike is physical until damage types arrive
-  // 60 mitigation: armour takes its share off a physical strike
-  if (s.target) dmg *= 1 - armourPct(s.target.armour ?? 0, t.armourK);
+  // 60 mitigation: armour takes its share off a physical strike, Willpower off a spell
+  if (s.target) {
+    dmg *= s.spell
+      ? 1 - resistPct(s.target.attrs.wp, t.resistK)
+      : 1 - armourPct(s.target.armour ?? 0, t.armourK);
+  }
   // 70 round
   return { dodged: false, crit, damage: Math.max(1, Math.round(dmg)) };
+}
+
+// What a unit's basic attack is made of: a weapon strike (Str, dodgeable, armoured) or, for a
+// caster, a spell (Int times spellMult, undodgeable, resisted by Willpower). Buildings and lairs
+// have no `target`: they dodge and mitigate nothing.
+export function attackStrike(
+  stats: Stats,
+  target?: { attrs: Attributes; armour?: number },
+): StrikeIn {
+  if (stats.spellMult !== undefined) {
+    return {
+      attrs: stats.attrs,
+      power: Math.max(1, stats.attrs.int * stats.spellMult),
+      spell: true,
+      target,
+    };
+  }
+  return { attrs: stats.attrs, target, canDodge: target !== undefined };
 }

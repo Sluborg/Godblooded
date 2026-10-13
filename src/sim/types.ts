@@ -58,6 +58,8 @@ export interface MonsterDef {
   weapon: { baseAttackS: number; range: number };
   bounty: number;
   xp: number;
+  // Flat armour (scaled by lair tier like the attributes); missing means 0.
+  armour?: number;
 }
 
 export interface LairDef {
@@ -78,6 +80,11 @@ export interface ClassDef {
   startGold: number;
   // A healer casts a heal on a hurt party mate in range instead of attacking.
   heals?: boolean;
+  // Flat armour: takes a share off physical strikes (curve in tuning.combat.armourK).
+  armour?: number;
+  // Casters (wizard 0.8, healer 0.5): the strike is a spell, power Int times this, it cannot be
+  // dodged and it is resisted by Willpower, not armour. Missing: a weapon strike.
+  spellMult?: number;
 }
 
 // One of 3 cards offered when a party levels up. `effect` keys are read by Sim.
