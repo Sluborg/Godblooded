@@ -27,6 +27,7 @@ import { getSettings } from './settings';
 import { heroLabel, partyColor, partyRole, type PartyRole } from './partyLook';
 import { SpeechLimit } from './speechLimit';
 import { cardColor } from './levelUpLook';
+import { summonName } from './summonLook';
 import { BARK_META, barkRoll, isSpeechEvent, pickLine, type SpeechKind } from './speechLines';
 import { buildHeal, buildStrike, FxLayer, type Vec } from './strikeFx';
 import { ART_NOMINAL_PX, PLACEHOLDER, UNIT_HEIGHT, artCandidates, baseType } from './unitLook';
@@ -121,6 +122,8 @@ export class UnitView {
   tierNow = 1;
   private bubble: Phaser.GameObjects.Container | null = null;
   readonly isHero: boolean;
+  // On the heroes' side: a hero or a summon (a decoy, falcon or thrall a skill called).
+  readonly friendly: boolean;
   readonly look: UnitLook;
   // Monster tier hue shift in degrees (0 for heroes and tier 1) and its stable variant roll.
   private readonly hue: number;
@@ -175,6 +178,7 @@ export class UnitView {
       scale: look.scale * tier.scale * (u.kind === 'monster' ? sizeJitter(u.id) : 1),
     };
     this.isHero = u.kind === 'hero';
+    this.friendly = u.kind !== 'monster';
     this.x = u.pos.x;
     this.y = u.pos.y;
     this.face = u.facing.x < 0 ? -1 : 1;
@@ -188,11 +192,16 @@ export class UnitView {
       .setStrokeStyle(3, 0x000000, 0.6);
     this.nose = scene.add.triangle(w * 0.3, -h * 0.62, 0, -9, 0, 9, 16, 0, 0xffffff, 0.9);
     this.label = scene.add
-      .text(0, -UNIT_HEIGHT * this.look.scale - 6, u.kind === 'hero' ? heroLabel(u) : u.type, {
-        fontFamily: 'Georgia, serif',
-        fontSize: '16px',
-        color: '#f4ead5',
-      })
+      .text(
+        0,
+        -UNIT_HEIGHT * this.look.scale - 6,
+        u.kind === 'hero' ? heroLabel(u) : summonName(u),
+        {
+          fontFamily: 'Georgia, serif',
+          fontSize: '16px',
+          color: '#f4ead5',
+        },
+      )
       .setOrigin(0.5, 1);
     this.body = scene.add.container(0, 0, [this.capsule, this.nose]);
     this.bar = scene.add.graphics();
@@ -248,7 +257,9 @@ export class UnitView {
         ? pickVariant(u.type, this.unitId, (t) =>
             artCandidates(u.kind, t, u.tier).some((c) => this.scene.textures.exists(c)),
           )
-        : u.type;
+        : u.kind === 'summon'
+          ? (u.summon?.def ?? u.type)
+          : u.type;
     const id =
       artCandidates(u.kind, type, u.tier, u.path, u.god).find((c) =>
         this.scene.textures.exists(c),
@@ -283,7 +294,7 @@ export class UnitView {
       // no preFX and keeps the base colours).
       if (this.hue !== 0) this.sprite.preFX?.addColorMatrix().hue(this.hue);
       // Monsters are a touch darker than heroes so the two read apart at a glance.
-      if (!this.isHero) this.sprite.setTint(0xcdbfbf);
+      if (!this.friendly) this.sprite.setTint(0xcdbfbf);
       this.body.addAt(this.sprite, 0);
       this.body.add(this.flash);
     }
@@ -699,6 +710,15 @@ export class UnitView {
       this.badge.setVisible(false);
       return;
     }
+    if (u.kind === 'summon') {
+      // A summon fights for the party: a small friendly teal ring, its name, no party badge.
+      this.ring.fillStyle(0x7fe0b0, 0.2).fillEllipse(0, -4, 56, 21);
+      this.ring.lineStyle(3, 0x7fe0b0, 0.95).strokeEllipse(0, -4, 56, 21);
+      if (selected) this.ring.lineStyle(3, 0xffffff, 0.95).strokeEllipse(0, -4, 70, 28);
+      this.badge.setVisible(false);
+      this.label.setVisible(true);
+      return;
+    }
     const inParty = role !== 'solo';
     this.badge.setVisible(inParty);
     if (inParty) {
@@ -746,7 +766,7 @@ export class UnitView {
     const y = -this.h - 22;
     this.bar.fillStyle(0x000000, 0.6).fillRect(-w / 2, y, w, 8);
     this.bar
-      .fillStyle(u.kind === 'hero' ? 0x6fcf6f : 0xcf4f4f, 1)
+      .fillStyle(u.kind !== 'monster' ? 0x6fcf6f : 0xcf4f4f, 1)
       .fillRect(-w / 2, y, (w * Math.max(0, u.hp)) / u.maxHp, 8);
   }
 
@@ -963,7 +983,7 @@ export class UnitViews {
     const attacker = this.views.get(e.attacker);
     if (attacker) {
       // A big monster's blow shakes the screen a little.
-      if (!attacker.isHero && attacker.tierNow >= 3 && !e.dodged && e.damage > 0) ctx.shake();
+      if (!attacker.friendly && attacker.tierNow >= 3 && !e.dodged && e.damage > 0) ctx.shake();
       return attacker.landHit(e.target, e.damage, e.dodged, info);
     }
     // No unit view: a tower (or other building) shooting. An arrow flies from its top to the
