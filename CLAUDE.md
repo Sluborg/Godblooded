@@ -51,16 +51,23 @@ docs/         design, collaboration, inboxes, requests, sessions
 
 ## Git
 
-- Work on a branch, open a PR to `main`. CI (lint, format, test, build) must be green.
+- Work on a branch, open a **draft** PR to `main`. CI (lint, format, test, build) runs on drafts
+  and must be green.
+- **Never open a non-draft PR and never mark a PR ready for review.** Both start a Codex review
+  automatically, which spends Stefan's ChatGPT quota (Stefan, 2026-10-13). This holds for every
+  session, Lead included.
+- **Codex: manual only.** Lead decides which PRs get `@codex review` and comments it; the author
+  fixes the findings.
 - Self-review the diff before the PR (`code-review` skill).
-- **Codex: manual only** (Stefan, 2026-10-13). Automatic review is off; it shares Stefan's ChatGPT
-  quota. Lead decides which PRs get `@codex review` and comments it; the author fixes the findings.
-- **Lead merges.** Workers never merge their own PRs. Lead never merges red CI.
+- **Integrator lands PRs** (delegated by Lead). Workers never merge their own. Never land red CI.
+  A draft is marked ready only right before it is merged, once CI is green and Review is clear.
+- Stacked work: base every PR on `main`; if a branch builds on another, say "stacked on #N" in
+  the title and Lead lands them in order.
 - `main` deploys to https://sluborg.github.io/Godblooded/ automatically.
 - Small PRs, one topic each, conventional commit messages.
 
 ## Hard stops
 
-- No commits straight to `main` (except Lead's docs-only commits).
+- No commits straight to `main`, except Lead's docs-only commits.
 - No editing another role's files; no merging red CI; no breaking saves.
 - Never claim done without running the checks. Never invent APIs; if unsure, say so.

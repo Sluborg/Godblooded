@@ -6,6 +6,7 @@ export type { SaveGame } from './save';
 export type { World } from './world';
 export type {
   BountyState,
+  BossTuning,
   BountyTuning,
   BuildingDef,
   BuildingTuning,
@@ -32,6 +33,8 @@ export type {
   PathState,
   PartyTuning,
   PlotState,
+  RiderId,
+  RiderTuning,
   RunReport,
   RunStats,
   SaveTuning,

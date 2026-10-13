@@ -70,6 +70,28 @@ export interface MonsterDef {
   tags?: readonly string[];
   // Damage type to multiplier: weak 1.5, resist 0.5, immune 0. Missing types are 1.
   types?: Partial<Record<DamageType, number>>;
+  // A boss: one unit per final lair (docs/systems/combat.md section 7). The object overrides
+  // tuning.boss for this boss; `{}` takes the defaults.
+  boss?: Partial<BossTuning>;
+  // Boss only: its own hit points instead of Sta * 8 + Str * 4 (scaled by lair tier).
+  hp?: number;
+}
+
+// Boss numbers. Defaults in tuning.boss; a MonsterDef.boss row can override any of them.
+export interface BossTuning {
+  // The boss comes out of its lair when the lair is below this share of its hp.
+  emergeBelow: number;
+  // Every cleaveEvery-th strike is a cleave: a long windup with a ground marker, cannot be
+  // dodged, and it hits every hero within cleaveRadius of the target for cleaveShare of the hit.
+  cleaveEvery: number;
+  cleaveRadius: number;
+  cleaveShare: number;
+  cleaveWindupMs: number;
+  // At this share of its hp the boss enrages: its attack time is multiplied by
+  // enrageAttackMult and it calls enrageCalls monsters (LairDef.escort) from its lair.
+  enrageAt: number;
+  enrageAttackMult: number;
+  enrageCalls: number;
 }
 
 export interface LairDef {
@@ -79,6 +101,9 @@ export interface LairDef {
   spawnS: number;
   maxAlive: number;
   hp: number;
+  // The monster that spawns from this lair when `monster` is a boss (and that a boss calls when
+  // it enrages). A lair whose monster is a boss spawns nothing regular without it.
+  escort?: string;
 }
 
 export interface ClassDef {
@@ -232,6 +257,29 @@ export interface StatsTuning {
   goldSampleMs: number;
 }
 
+export type RiderId = 'burn' | 'chill' | 'arc' | 'wither' | 'sear';
+
+// Riders ride on a strike (skills carry them; a basic attack never does). Numbers per
+// docs/systems/combat.md section 3.
+export interface RiderTuning {
+  // burn (fire): `ticks` more hits, `everyMs` apart, each `share` of the hit that lit it.
+  burnTicks: number;
+  burnShare: number;
+  burnEveryMs: number;
+  // chill (frost): move and attack `chillSlow` slower for `chillMs`; bosses take chillBossMult of it.
+  chillSlow: number;
+  chillMs: number;
+  chillBossMult: number;
+  // arc (lightning): jumps to the nearest other foe within `arcRadius` for `arcShare` of the hit.
+  arcRadius: number;
+  arcShare: number;
+  // wither (death): healing on the target is multiplied by `witherHealMult` for `witherMs`.
+  witherHealMult: number;
+  witherMs: number;
+  // sear (holy): against undead and demons a weak row's bonus is multiplied by this (0.5 -> 1.0).
+  searBonusMult: number;
+}
+
 export interface TownTuning {
   townHallHp: number;
   buildingHp: number;
@@ -283,6 +331,10 @@ export interface CombatTuning {
   resistK: number;
   // A crit multiplies the strike (1 = crits off in effect).
   critMult: number;
+  // A fight ends once a unit has had no foe for this long; a new one starts a first strike.
+  fightGapMs: number;
+  // The side with the lower Dex + Per waits this share of its attack cycle before its first strike.
+  firstStrikeDelay: number;
   // Fire deals this much more to buildings.
   buildingFireMult: number;
 }
@@ -294,6 +346,8 @@ export interface Tuning {
   monster: MonsterTuning;
   lair: LairTuning;
   building: BuildingTuning;
+  boss: BossTuning;
+  rider: RiderTuning;
   save: SaveTuning;
   stats: StatsTuning;
   town: TownTuning;
@@ -320,6 +374,8 @@ export interface GameData {
     monster?: Partial<MonsterTuning>;
     lair?: Partial<LairTuning>;
     building?: Partial<BuildingTuning>;
+    rider?: Partial<RiderTuning>;
+    boss?: Partial<BossTuning>;
     save?: Partial<SaveTuning>;
     stats?: Partial<StatsTuning>;
     town?: Partial<TownTuning>;
@@ -445,7 +501,16 @@ export type SimEvent =
   | { kind: 'built'; building: number; type: string }
   | { kind: 'upgraded'; building: number; type: string; tier: number }
   | { kind: 'spawned'; unit: number; type: string; lair: number }
-  | { kind: 'windup'; attacker: number; target: number; inMs: number }
+  | {
+      kind: 'windup';
+      attacker: number;
+      target: number;
+      inMs: number;
+      // A cleave: the ground marker Scene draws until the strike lands.
+      area?: { x: number; y: number; r: number };
+    }
+  | { kind: 'bossEmerged'; unit: number; lair: number }
+  | { kind: 'enraged'; unit: number }
   | { kind: 'heal'; healer: number; target: number; amount: number }
   | {
       kind: 'hit';
@@ -457,6 +522,8 @@ export type SimEvent =
       type: string;
       // A critical strike (absent when it was not).
       crit?: boolean;
+      // A burn tick rather than a strike.
+      tick?: boolean;
       // The target's type row made it x1.5 or more (weak) or less than x1 (resist).
       weak?: boolean;
       resist?: boolean;
@@ -469,6 +536,8 @@ export type SimEvent =
   | { kind: 'tierUp'; unit: number; tier: number; path: string | null }
   | { kind: 'pathOffer'; party: number; hero: number; options: string[] }
   | { kind: 'raid'; lair: number; size: number }
+  // A rider took hold on `target` (burn, chill, wither; arc and sear show in the hit itself).
+  | { kind: 'rider'; target: number; rider: RiderId; by: number }
   | { kind: 'argue'; a: number; b: number }
   | { kind: 'revenge'; hero: number; target: number; victim: number }
   | { kind: 'avenged'; hero: number; target: number }

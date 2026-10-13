@@ -2,7 +2,7 @@ import {
   dist,
   maxHp,
   scaleAttrs,
-  speed,
+  speedOf,
   stepToward,
   tierValue,
   TICK_MS,
@@ -12,6 +12,7 @@ import { shareXp } from './parties';
 import { earn, tally } from './runstats';
 import { attackStrike, hitEvent, resolveStrike } from './strike';
 import { swing } from './swing';
+import { lairProtected } from './boss';
 import { targetOf, type UnitRuntime, type World } from './world';
 import type { BuildingCore, CommandResult, LairState, UnitState, Vec2 } from './types';
 
@@ -37,7 +38,7 @@ export function nearestBuilding(world: World, from: Vec2): BuildingCore | undefi
 function approach(unit: UnitState, stats: Stats, to: Vec2): boolean {
   const d = dist(unit.pos, to);
   if (d > stats.weapon.range) {
-    const dir = stepToward(unit.pos, to, (speed(stats.attrs) * TICK_MS) / 1000);
+    const dir = stepToward(unit.pos, to, (speedOf(stats) * TICK_MS) / 1000);
     if (dir.x !== 0 || dir.y !== 0) unit.facing = dir;
     return false;
   }
@@ -108,6 +109,8 @@ export function attackLair(
     lair.hp -= dmg;
     tally(world, unit.id, 'damage', dmg);
     world.events.push(hitEvent(unit.id, lair.id, hit));
+    // A boss lair cannot fall while its boss lives, or before the boss has come out.
+    if (lair.hp <= 0 && lairProtected(world, lair.id)) lair.hp = 1;
     if (lair.hp > 0) return;
     const tm = world.tuning.monster;
     world.lairs = world.lairs.filter((l) => l.id !== lair.id);
@@ -150,8 +153,9 @@ export function runRaids(world: World): void {
   }
   for (const lair of sending) {
     const def = world.data.lairs?.find((l) => l.id === lair.type);
-    const mon = world.data.monsters?.find((m) => m.id === def?.monster);
-    if (!def || !mon) continue;
+    // A boss lair raids with its escort, never with clones of the boss.
+    const mon = world.data.monsters?.find((m) => m.id === (def?.escort ?? def?.monster));
+    if (!def || !mon || mon.boss) continue;
     for (let i = 0; i < size; i++) {
       const id = world.nextId++;
       const hp = maxHp(scaleAttrs(mon.attrs, tierValue(world.tuning.lair.statMult, lair.tier, 1)));
