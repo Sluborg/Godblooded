@@ -178,6 +178,19 @@ describe('paths of the gods', () => {
     expect(hero(w, hammer).maxHp - at2).toBe(2 * 8 + (strNow - strAt2) * 4);
   });
 
+  it('a hurt hero never drops to 0 hp when its path template has a lower max hp', () => {
+    const w = setup();
+    const id = spawnHero(w, 'thor', { x: 300, y: 300 });
+    toLevel(w, id, 2);
+    hero(w, id).hp = 5;
+    const before = hero(w, id).maxHp;
+    levelUp(w, id);
+    command(w, { kind: 'pickPath', party: hero(w, id).party, path: 'thor-storm' });
+    expect(hero(w, id).maxHp).toBeLessThan(before);
+    expect(hero(w, id).hp).toBe(1);
+    expect(hero(w, id).ko).toBe(false);
+  });
+
   it('the path card comes before the upgrade card and freezes the world', () => {
     const w = setup();
     const id = spawnHero(w, 'thor', { x: 300, y: 300 });
