@@ -92,3 +92,5 @@ B4 measurements supplement: draugr1566413 bytes height87.7%/lowest91.3%; troll17
 B7 | 2026-10-05T05:45:55.456Z | buildings | bld_townhall_t1, bld_market_t1, bld_smithy_t1, bld_shrine_t1, bld_tower_t1 | uploaded
 
 A1 | 2026-10-05T06:31:44Z | heroes | started
+
+V1 | 2026-10-13T17:46:33.551Z | monsters | started
