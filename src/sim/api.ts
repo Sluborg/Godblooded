@@ -32,6 +32,8 @@ export type {
   PathState,
   PartyTuning,
   PlotState,
+  RiderId,
+  RiderTuning,
   RunReport,
   RunStats,
   SaveTuning,
