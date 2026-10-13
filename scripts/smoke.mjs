@@ -98,6 +98,7 @@ try {
         monsters: s.units.filter((u) => u.kind === 'monster').length,
         parties: s.parties.length,
         levelUp: g.scene.isActive('LevelUp'),
+        pathCards: Boolean(g.registry.get('offer')?.paths),
       };
     });
 
@@ -160,7 +161,8 @@ try {
       );
       break;
     }
-    if (s.levelUp) await tap(await designToScreen([260, 400]));
+    // Upgrade cards are three wide (first at x 260); path cards are two (first at x 450).
+    if (s.levelUp) await tap(await designToScreen([s.pathCards ? 450 : 260, 400]));
     if (s.timeMs >= nextShot) {
       await page.screenshot({ path: `${OUT}/${String(nextShot / 1000).padStart(3, '0')}s.png` });
       nextShot += SHOT_EVERY_MS;
