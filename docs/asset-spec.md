@@ -92,6 +92,41 @@ feet as anchor for both, and on the arm row `pivotX`/`pivotY` (0..1 of the image
 shoulder, found as the top of the band where the arm touches the body. Rotate the arm sprite
 around that point.
 
+## Parts sheets (units from parts, agreed with Scene 2026-10-13; not shipping yet)
+
+Heroes and monsters are drawn by code from parts (Scene, `src/ui/parts/`). Art can replace a
+vector part with a picture; the vector part stays the fallback. Effects (lightning, fire, glow,
+ravens, trails) stay in code, never in the images. No back view: one side, facing right,
+mirrored by code.
+
+**Upload:** one square **parts sheet** per look (a god child at tier 1, each path at tier 2 and
+3, each monster tier), a **5 x 2 grid**, flat magenta between the cells, every part tightly
+inside its own cell, all parts at **the same scale**. Cell order, left to right, top row first:
+
+| Row | Cells                                                                                                                   |
+| --- | ----------------------------------------------------------------------------------------------------------------------- |
+| 1   | body (torso with clothing) · head (face; a beard is part of the head) · headgear (hair, hood or helmet) · cape · weapon |
+| 2   | front foot · back foot · front hand · back hand · shield (empty if none)                                                |
+
+**Ship:** the sheet is keyed to alpha and shipped as one image with a rectangle per cell (each
+cell up to about 192 px, the assembled unit at most about 350 px tall) and these **pivots**, as
+fractions (0..1, x right, y down) of the part's rectangle, in its manifest row:
+
+| Part     | Pivots                                                           |
+| -------- | ---------------------------------------------------------------- |
+| body     | neck, hip, shoulder_front, shoulder_back                         |
+| head     | neck (bottom of the skull)                                       |
+| headgear | brow (where it sits on the head)                                 |
+| cape     | shoulder (the hem end is free; code sways it)                    |
+| foot     | ground point under the ankle (one image per foot, so it strides) |
+| hand     | wrist                                                            |
+| weapon   | grip, plus the tip direction at rest as an angle in degrees      |
+| shield   | strap (held in the back hand)                                    |
+
+The row also states `pxPerUnit`: picture pixels per drawing unit (a standard hero is 44 units
+from head to feet; 6 to 8 px per unit). The id scheme, the manifest fields and the pipeline step
+land with the first parts batch, after Stefan's style verdict.
+
 ## Opaque pictures: key art and ground tiles
 
 Two kinds are **full pictures** with no key colour, opaque edge to edge; the pipeline ships the
