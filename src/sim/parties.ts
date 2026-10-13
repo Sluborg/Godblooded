@@ -1,5 +1,5 @@
 import { armourBonus } from './items';
-import { autoPickCard, offerCards } from './cards';
+import { autoPickCard, leaderOf, offerCards } from './cards';
 import { passiveAttrs } from './passives';
 import { partiesHaveRivals, runRivalries } from './rivalry';
 import { dist, maxHp } from './units';
@@ -129,8 +129,10 @@ export function shareXp(world: World, killer: number, xp: number): void {
     world.events.push({ kind: 'levelUp', party: party.id, level: party.level, offer: ids });
     // The party picks for itself, by its leader's personality (no pause, no player choice).
     if (ids.length > 0 && tune(world).autoPick) {
-      const leader = world.units.find((u) => u.id === party.members[0]);
-      applyUpgrade(world, party, autoPickCard(world, party, ids), { auto: true, hero: leader?.id });
+      const leader = leaderOf(world, party);
+      const pick = autoPickCard(world, party, ids);
+      const god = world.data.upgrades?.find((u) => u.id === pick)?.god ?? leader?.god ?? undefined;
+      applyUpgrade(world, party, pick, { auto: true, hero: leader?.id, god });
     }
     settleTiers(world, party);
   }
@@ -302,7 +304,7 @@ function applyUpgrade(
   world: World,
   party: Party,
   upgrade: string,
-  by: { auto?: boolean; hero?: number },
+  by: { auto?: boolean; hero?: number; god?: string },
 ): void {
   const def = world.data.upgrades?.find((u) => u.id === upgrade);
   party.upgrades.push(upgrade);
@@ -320,6 +322,7 @@ function applyUpgrade(
     upgrade,
     ...(by.auto ? { auto: true } : {}),
     ...(by.hero !== undefined ? { hero: by.hero } : {}),
+    ...(by.god !== undefined ? { god: by.god } : {}),
   });
 }
 

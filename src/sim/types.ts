@@ -244,7 +244,7 @@ export interface UpgradeDef {
   family?: CardFamily;
   rarity?: CardRarity;
   needs?: CardNeeds;
-  // Who offers it and what the party's leader looks for (auto-pick, level-ups.md section 4):
+  // Who offers it and what the party's leader looks for (auto-pick, level-ups.md):
   // attack, defence, sustain, sight, gold or nerve.
   god?: string;
   pickTag?: string;
@@ -314,6 +314,8 @@ export interface PartyTuning {
   // The party picks its level-up card itself, by its leader's personality (no pause, no player
   // choice). Off: the run waits for the player's pick.
   autoPick: boolean;
+  // A card matching the leader's trait weighs this many times a plain one in the auto-pick draw.
+  traitPickWeight: number;
   // The level whose offer is the party's god's favour cards.
   favourLevel: number;
   // Rarity weights [common, rare, epic] by party level: 2-3, 4-5, 6 and up.
@@ -821,7 +823,15 @@ export type SimEvent =
   | { kind: 'partyFormed'; party: number; members: number[] }
   | { kind: 'levelUp'; party: number; level: number; offer: string[] }
   // `auto`: the party chose the card itself (tuning.party.autoPick), `hero` its leader.
-  | { kind: 'upgradePicked'; party: number; upgrade: string; auto?: boolean; hero?: number }
+  // `god`: the god that offers the card (its own `god`, else the leader's) for "Thor offers: X".
+  | {
+      kind: 'upgradePicked';
+      party: number;
+      upgrade: string;
+      auto?: boolean;
+      hero?: number;
+      god?: string;
+    }
   | { kind: 'tierUp'; unit: number; tier: number; path: string | null }
   | { kind: 'pathOffer'; party: number; hero: number; options: string[] }
   | { kind: 'raid'; lair: number; size: number }
