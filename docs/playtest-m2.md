@@ -1,52 +1,77 @@
-# M2 playtest (10 minutes, phone)
+# M2 fun check (3 short runs, phone)
 
-For Stefan, when M2 "Aesir, alive" is live. Design wrote it; it maps to the 7 fun checks in
-`docs/systems/content-roadmap.md`. Play once, then answer the questions at the end in one
-chat message to Lead.
+For Stefan, when M2 "Aesir, alive" is live (`docs/systems/m2-plan.md`, step 9). Design owns it
+(Lead row: the M2 fun check script). It checks the fun gate in `m2-plan.md` section 4. Three
+runs, about 25 minutes in all; then one chat message to Lead.
+
+## Bottom line
+
+- **Run 1, Watch (8 min, 1x):** follow the hints, build, place no bounties. Is it fun to watch?
+- **Run 2, Steer (8 min, 1x):** bounties all the time, read every level-up. Do you steer?
+- **Run 3, To the end (4x after minute 3):** play until you win or fall. Does it hold up late?
+- **After:** answer 6 questions, send 2 screenshots (run 3's end screen, and one moment you liked).
+- **We read alongside:** the end screen, plus a bot run of the same build (section 4).
 
 ## Before you start
 
-- Phone in landscape, sound on, game at https://sluborg.github.io/Godblooded/
-- New run, speed 1x. Do not read this during play: glance at the next minute only.
+- Phone in landscape, sound on, https://sluborg.github.io/Godblooded/ (reload once to get the
+  newest build).
+- Each run is a new run from the Title. Keep this page closed while you play.
 
-## Minute by minute
+## 1. Run 1: Watch (8 minutes, 1x)
 
-| Min  | Do                                                       | Watch for                                            |
-| ---- | -------------------------------------------------------- | ---------------------------------------------------- |
-| 0-1  | Follow the hints. Build the Aesir temple, then a market. | Do the hints help, or get in the way?                |
-| 1-2  | Wait for the first Godblood. Tap it.                     | Can you tell its god and its trait?                  |
-| 2-3  | Put a bounty on a monster near a hero.                   | Who goes for it? Can you guess why (greedy, coward)? |
-| 3-4  | Build a smithy. Let the speed run at 2x if bored.        | Do heroes come to buy? Do you see their gear change? |
-| 4-5  | Watch the first party form and fight.                    | Do you see damage colours and skill moments?         |
-| 5-6  | First level-up: pick a card, then a path.                | Is the choice hard in a good way?                    |
-| 6-7  | Tap a building and upgrade it.                           | Is it clear what the upgrade gives?                  |
-| 7-8  | Watch the first raid warning and the raid.               | Did the warning give you time to react?              |
-| 8-9  | Place one more bounty on a lair.                         | Does a party head for it? How long until they go?    |
-| 9-10 | Just watch. Do nothing.                                  | Is it still fun when you do nothing for a minute?    |
+| Min | Do                                                     | Notice                                            |
+| --- | ------------------------------------------------------ | ------------------------------------------------- |
+| 0-3 | Follow the hints only. Build what they suggest.        | Do the hints help or get in the way?              |
+| 3-6 | No bounties. Tap a hero now and then (shows its party) | Can you tell heroes apart, by look and by manner? |
+| 6-8 | Hands off. Just watch.                                 | Any stretch where nothing happens?                |
 
-## What each minute checks (Lead's map to the fun checks)
+Then Pause, Quit to title.
 
-| Fun check (content-roadmap.md) | Minutes   |
-| ------------------------------ | --------- |
-| Skills in fights               | 4-5, 9-10 |
-| Decisions every minute         | 0-9       |
-| No quiet stretch over 60 s     | 9-10      |
-| Damage types read              | 4-5       |
-| Gear shows                     | 3-4       |
-| A hero to remember             | whole run |
-| Bounties feel like steering    | 2-3, 8-9  |
+## 2. Run 2: Steer (8 minutes, 1x)
 
-## Questions (answer in one message, a word or a line each)
+| Min | Do                                                | Notice                                  |
+| --- | ------------------------------------------------- | --------------------------------------- |
+| 0-3 | Build fast. Place a bounty as soon as you can.    | Who goes for it, and can you guess why? |
+| 3-6 | A bounty every minute, on monsters and on a lair. | Does a bounty change who goes where?    |
+| 6-8 | At every level-up, read the cards before picking. | Is the choice hard in a good way?       |
 
-1. Fun to watch, 1 to 5?
-2. Name one hero and one thing it did.
-3. Did a bounty ever feel like steering? Yes, no, sometimes.
-4. Could you tell heroes apart by personality? Yes, no, a little.
-5. Any minute where nothing happened and you got bored? Which?
-6. Were skills visible (a flash, a chain, a shield)? Yes, no.
-7. Was any button too small or in the wrong place?
-8. The hints: helpful, annoying, or did not notice?
-9. One thing you want more of.
-10. One thing to cut.
+Then Pause, Quit to title.
 
-Lead turns the answers into backlog rows; Design changes the specs that the answers move.
+## 3. Run 3: To the end (4x after minute 3)
+
+| Min   | Do                                                   | Notice                                                                     |
+| ----- | ---------------------------------------------------- | -------------------------------------------------------------------------- |
+| 0-3   | 1x. Build as you like.                               |                                                                            |
+| 3-end | Speed 4x. Play as you like; slow down when it's busy | Raid warnings: time to react? Skills and damage colours readable at speed? |
+| End   | Screenshot the end screen.                           | Does the MVP match the hero you remember?                                  |
+
+## 4. Questions (one message to Lead, a word or a line each)
+
+1. **Fun to watch,** 1 to 5, for each run?
+2. **Name one hero** and one thing it did.
+3. **Steering:** did a bounty ever change what a party did? Yes, no, sometimes.
+4. **Quiet:** any minute where nothing happened? Which run, which minute?
+5. **Readability:** could you see skills, damage colours and gear on the phone? What could you not read?
+6. **One thing** you want more of, and one to cut.
+
+## 5. What we read alongside (Design and Lead, not Stefan)
+
+| Fun gate (`m2-plan.md` 4)            | Stefan's answer | Number we read                                                       |
+| ------------------------------------ | --------------- | -------------------------------------------------------------------- |
+| A skill in 60%+ of fights after 6:00 | 5               | share of fights with a cast (run stats, Sim row 150)                 |
+| A decision every minute              | 1, 4            | decisions per minute (run stats, row 150)                            |
+| No 60 s quiet                        | 4               | longest quiet gap (row 150; bot `maxQuietS` until then)              |
+| 2+ damage types after tier 2         | 5               | share of fights with 2+ types (row 150)                              |
+| Gear level 1+ by 8:00                | 5               | average gear level at 8:00 (Design adds it to the pacing probe)      |
+| A hero to remember                   | 2               | run 3 end screen: MVP, kills, lairs, KOs per hero                    |
+| Bounties steer                       | 3               | parties that turn toward a flag (Design adds it to the pacing probe) |
+
+- **The bot:** Design runs its pacing probe (it plays like `scripts/sim/run.mjs`) on the same build, 100 seeds, and reports
+  first-event times (party, level 2, tier 2, raid, lair fall, boss), run length, win rate and the
+  longest quiet gap next to Stefan's answers (as in `docs/systems/pacing-review.md`).
+- **Run 3's end screen:** run time, win or fall, the hero table and the gold curve.
+- **If "a hero to remember" or "bounties steer" fails,** M3 waits and Design proposes the fix
+  (`m2-plan.md` section 4).
+
+Lead turns the answers into backlog rows; Design changes the specs the answers move.
