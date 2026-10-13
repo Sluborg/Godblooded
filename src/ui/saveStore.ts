@@ -51,3 +51,9 @@ export function newSeed(now: number = Date.now(), rand: number = Math.random()):
   const s = (Math.floor(now) ^ Math.floor(rand * 0x7fffffff)) & 0x7fffffff;
   return s === 0 ? 1 : s;
 }
+
+// A save written by a newer game than this client: it must stay in storage (an old tab or a
+// stale cached client must not delete a newer run), unlike a damaged or unusable save.
+export function isNewerSave(e: unknown): boolean {
+  return e instanceof Error && e.message.startsWith('save is from a newer game');
+}

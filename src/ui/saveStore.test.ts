@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import type { SaveGame } from '../sim/api';
-import { clearSave, hasSave, newSeed, readSave, SAVE_KEY, writeSave } from './saveStore';
+import { migrateSave, SaveError, type SaveGame } from '../sim/api';
+import {
+  clearSave,
+  hasSave,
+  isNewerSave,
+  newSeed,
+  readSave,
+  SAVE_KEY,
+  writeSave,
+} from './saveStore';
 
 function fakeStore(initial: Record<string, string> = {}) {
   const m = new Map(Object.entries(initial));
@@ -54,5 +62,23 @@ describe('newSeed', () => {
   });
   it('never returns 0', () => {
     expect(newSeed(0, 0)).toBe(1);
+  });
+});
+
+describe('isNewerSave', () => {
+  it('tells a newer game save from a damaged one', () => {
+    const err = (raw: unknown): unknown => {
+      try {
+        migrateSave(raw);
+      } catch (e) {
+        return e;
+      }
+      return null;
+    };
+    const newer = err({ version: 9999, seed: 1, rng: 1, world: {} });
+    expect(newer).toBeInstanceOf(SaveError);
+    expect(isNewerSave(newer)).toBe(true);
+    expect(isNewerSave(err('junk'))).toBe(false);
+    expect(isNewerSave(new Error('other'))).toBe(false);
   });
 });
