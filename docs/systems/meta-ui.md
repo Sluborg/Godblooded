@@ -80,8 +80,7 @@ Run ends ──> End screen ──Play again──> Run setup ──Start──>
 - **Can't afford:** the button is dimmed and shows the cost in red; tapping it shows a toast "Need 40 more Essence".
 - **Locked:** Favoured rows of a locked pantheon show the unlock goal instead of a cost.
 - **Return to the gods:** a text button at the bottom, also press and hold (about 1.2 s, longer
-  because it undoes everything), no popup. Design's recommendation: Stefan decided hold-to-buy
-  only; this follows the same rule.
+  because it undoes everything), no popup. Lead approved (2026-10-14), following Stefan's hold-to-buy.
 
 ## 4. Hall: Saga and unlocks
 

@@ -1,5 +1,8 @@
 # How the sessions work together
 
+> **PRs are scarce (2026-10-14).** Workers push branches and message Review and Integrator;
+> Integrator lands them in batch PRs. `CLAUDE.md` "Git" wins over anything below about PRs.
+
 Five Claude Code sessions build Godblooded in parallel, plus ChatGPT chats that draw the art.
 Every session reads this file at the start of every wake.
 
@@ -12,8 +15,8 @@ Every session reads this file at the start of every wake.
 | Scene      | Phaser: map, camera, rendering the sim, input, HUD, menus, phone feel          | Lead, Sim, Art              |
 | Art        | Writes ChatGPT batches, checks and ships images, the asset spec                | Lead, Scene, ChatGPT chats  |
 | Design     | Plans systems and features (combat, skills, items, progression, meta) as specs | Lead                        |
-| Integrator | Integration tests and lands every PR (merge right delegated by Lead)           | Lead, all sessions          |
-| Review     | Reviews every PR instead of Codex; blocking findings stop a merge              | Integrator, authors         |
+| Integrator | Integration tests and lands branches in batch PRs (merge right from Lead)      | Lead, all sessions          |
+| Review     | Reviews every branch instead of Codex; blocking findings stop a merge          | Integrator, authors         |
 | Balance    | The numbers in `src/data/` and the balance passes with the bot                 | Lead, Sim, Integrator       |
 | GPT        | ChatGPT chats, one per art track; fetch `art-tasks/README.md` and draw         | Art (via the art wake bell) |
 

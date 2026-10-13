@@ -210,3 +210,10 @@ run). Lands in **M3**, with the meta.
 
 Follow-on (Lead, Stefan to veto): since Ambrosia is now in-run, the meta currency for the Altar
 between runs is renamed **Essence** (Stefan's other suggestion).
+
+## 2026-10-14 PRs are scarce: branches plus batch PRs
+
+Stefan could not switch off the automatic Codex reviews, so every PR may spend his ChatGPT
+quota. Workers stop opening PRs: they push branches (CI runs on branch pushes) and message
+Review and Integrator. Integrator lands reviewed, green branches in one batch PR at a time,
+a few a day. Design may commit its docs straight to `main`. Rules in `CLAUDE.md` "Git".
