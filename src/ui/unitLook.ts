@@ -2,7 +2,7 @@
 // footprint, colour, fallback strike) is data: src/data/looks.ts.
 
 // A standard hero is this tall on the map, in world units.
-export const UNIT_HEIGHT = 120;
+export const UNIT_HEIGHT = 84;
 // Art ships about 256 px tall at nominal size, so this is the scale of a picture.
 export const ART_NOMINAL_PX = 256;
 
