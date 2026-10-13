@@ -2,7 +2,7 @@ import {
   dist,
   maxHp,
   scaleAttrs,
-  speed,
+  speedOf,
   stepToward,
   tierValue,
   TICK_MS,
@@ -37,7 +37,7 @@ export function nearestBuilding(world: World, from: Vec2): BuildingCore | undefi
 function approach(unit: UnitState, stats: Stats, to: Vec2): boolean {
   const d = dist(unit.pos, to);
   if (d > stats.weapon.range) {
-    const dir = stepToward(unit.pos, to, (speed(stats.attrs) * TICK_MS) / 1000);
+    const dir = stepToward(unit.pos, to, (speedOf(stats) * TICK_MS) / 1000);
     if (dir.x !== 0 || dir.y !== 0) unit.facing = dir;
     return false;
   }
