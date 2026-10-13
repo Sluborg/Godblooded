@@ -4,6 +4,9 @@ import { GRAYBOX } from '../data/graybox';
 import {
   command,
   createWorld,
+  loadWorld,
+  saveWorld,
+  SaveError,
   snapshot,
   step,
   type CommandResult,
@@ -12,6 +15,7 @@ import {
   type Vec2,
   type World,
 } from '../sim/api';
+import { clearSave, newSeed, readSave, writeSave } from '../ui/saveStore';
 import { getSettings } from '../ui/settings';
 import { heroLabel, partyColor } from '../ui/partyLook';
 import { UnitViews } from '../ui/unitViews';
@@ -40,6 +44,8 @@ export interface MapTap {
   plot: number | null;
   // Id of a tapped hero (opens the party panel), or null.
   hero?: number | null;
+  // Id of a tapped building (opens the building panel), or null.
+  building?: number | null;
   target: { pos: Vec2; label: string } | null;
 }
 
@@ -64,9 +70,33 @@ export class MapScene extends Phaser.Scene {
     super('Map');
   }
 
+  // A new run (fresh seed) or, when Continue asked for it, the saved one. A save that cannot be
+  // loaded (damaged, from a newer game) is dropped and a new run starts.
+  private startWorld(): World {
+    const wantSave = this.registry.get('startMode') === 'continue';
+    this.registry.set('startMode', 'new');
+    if (wantSave) {
+      try {
+        return loadWorld(readSave(), GRAYBOX);
+      } catch (e) {
+        if (!(e instanceof SaveError)) throw e;
+        clearSave();
+      }
+    }
+    // Every fresh run (Play, Play again, Restart) drops the old checkpoint at once, so a reload
+    // before the first autosave cannot bring the abandoned run back.
+    clearSave();
+    return createWorld(newSeed(), GRAYBOX);
+  }
+
+  // Writes the run to storage (autosave, and when the player quits to the title).
+  saveNow(): void {
+    if (this.snap.status === 'running') writeSave(saveWorld(this.world));
+  }
+
   create(): void {
     const { width, height } = GRAYBOX.map;
-    this.world = createWorld(1, GRAYBOX);
+    this.world = this.startWorld();
     this.registry.set('speed', getSettings().speed);
     const cam = this.cameras.main;
     const minZoom = Math.max(GAME_WIDTH / width, GAME_HEIGHT / height);
@@ -100,6 +130,8 @@ export class MapScene extends Phaser.Scene {
     const speed = (this.registry.get('speed') as number) ?? 1;
     step(this.world, deltaMs * speed);
     this.snap = snapshot(this.world);
+    if (this.snap.events.some((e) => e.kind === 'autosave')) this.saveNow();
+    if (this.snap.status !== 'running') clearSave();
     this.registry.set('gold', this.snap.gold);
     this.registry.set('timeMs', this.snap.timeMs);
     this.registry.set('status', this.snap.status);
@@ -204,6 +236,10 @@ export class MapScene extends Phaser.Scene {
   }
 
   // Bounty amounts are the HUD's choice; the sim validates and spends.
+  tryUpgrade(building: number): CommandResult {
+    return command(this.world, { kind: 'upgrade', building });
+  }
+
   tryBounty(pos: Vec2, gold: number): CommandResult {
     return command(this.world, { kind: 'placeBounty', pos, gold });
   }
@@ -222,6 +258,8 @@ export class MapScene extends Phaser.Scene {
       this.followUnit(hero.u.id);
       return { plot: null, hero: hero.u.id, target: null };
     }
+    const building = this.buildingAt(w);
+    if (building !== null) return { plot: null, building, target: null };
     const hit = [...this.snap.units, ...this.snap.lairs]
       .map((e) => ({ e, d: Math.hypot(e.pos.x - w.x, e.pos.y - w.y) }))
       .filter(({ d }) => d < TARGET_RADIUS)
@@ -239,6 +277,18 @@ export class MapScene extends Phaser.Scene {
 
   private hud(): HudScene | null {
     return this.scene.get('Hud') as HudScene | null;
+  }
+
+  // The building whose picture covers a world position (the frontmost one), or null.
+  private buildingAt(w: Phaser.Math.Vector2): number | null {
+    let best: { id: number; y: number } | null = null;
+    for (const b of this.snap.buildings) {
+      const top =
+        (this.views.get(`b${b.id}t${b.tier}`)?.getData('top') as number | undefined) ?? 96;
+      const inside = Math.abs(w.x - b.pos.x) < 95 && w.y > b.pos.y - top && w.y < b.pos.y + 20;
+      if (inside && (!best || b.pos.y > best.y)) best = { id: b.id, y: b.pos.y };
+    }
+    return best?.id ?? null;
   }
 
   // The id of the free plot under a world position, or null.

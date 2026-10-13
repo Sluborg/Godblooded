@@ -27,7 +27,7 @@ export function swing(
     return;
   }
   if (rt.cooldownMs > 0) return;
-  const cycle = attackMs(stats);
+  const cycle = attackMs(stats, world.tuning.combat.attackK);
   rt.cooldownMs = cycle;
   const ms = Math.min(world.tuning.combat.windupMs, cycle * 0.4);
   rt.swing = { target: targetId, ms };

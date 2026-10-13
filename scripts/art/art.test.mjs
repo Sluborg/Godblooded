@@ -73,6 +73,10 @@ describe('ids', () => {
     expect(kindOf('mon_jackal-man-v3_t1_front')?.kind).toBe('mon');
     expect(kindOf('mon_draugr-v1_t1_front')).toBeNull();
     expect(kindOf('hero_warrior-v2_t1_front')).toBeNull();
+    expect(kindOf('bld_ruin')?.kind).toBe('bld');
+    expect(parseId('bld_scaffold').tier).toBeNull();
+    expect(parseId('bld_lair_troll-den_t2').tier).toBe(2);
+    expect(kindOf('bld_ruin_t4')).toBeNull();
   });
 });
 

@@ -4,6 +4,7 @@ import { ASSETS_KEY, type ManifestAsset } from '../ui/assets';
 import { pickLogoId } from '../ui/assetPriority';
 import { drawBackdrop } from '../ui/backdrop';
 import { canInstall, onInstallChange, promptInstall } from '../ui/install';
+import { clearSave, hasSave } from '../ui/saveStore';
 import { makeButton } from '../ui/button';
 
 const FONT = 'Georgia, serif';
@@ -64,8 +65,9 @@ export class TitleScene extends Phaser.Scene {
       .setOrigin(1, 1);
   }
 
-  // A run exists when the map was put to sleep by Quit and has not ended.
-  private canContinue(): boolean {
+  // A run to continue: the one Quit put to sleep in this page, or the one in storage (autosave
+  // and Quit write it; a finished run clears it).
+  private sleepingRun(): boolean {
     return (
       this.scene.isSleeping('Map') &&
       this.registry.get('status') !== 'won' &&
@@ -73,14 +75,28 @@ export class TitleScene extends Phaser.Scene {
     );
   }
 
+  private canContinue(): boolean {
+    return this.sleepingRun() || hasSave();
+  }
+
+  // A new run starts with a fresh seed (MapScene) and drops the old save.
   private play(): void {
+    clearSave();
+    this.registry.set('startMode', 'new');
     this.scene.stop('Hud');
     this.scene.start('Map');
   }
 
   private continueRun(): void {
-    this.scene.wake('Map');
-    this.scene.wake('Hud');
-    this.scene.stop();
+    if (this.sleepingRun()) {
+      this.scene.wake('Map');
+      this.scene.wake('Hud');
+      this.scene.stop();
+      return;
+    }
+    // After a reload: rebuild the run from the save.
+    this.registry.set('startMode', 'continue');
+    this.scene.stop('Hud');
+    this.scene.start('Map');
   }
 }

@@ -225,7 +225,7 @@ describe('boss lair as the win goal', () => {
   it('destroying the boss wins the run while other lairs still stand', () => {
     const { w, boss } = bossWorld();
     spawnHero(w, 'warrior', { x: boss.pos.x - 20, y: boss.pos.y });
-    run(w, 60_000);
+    run(w, 120_000);
     expect(w.status).toBe('won');
     expect(w.lairs.some((l) => !l.boss)).toBe(true);
     expect(snapshot(w).events.some((e) => e.kind === 'won')).toBe(true);

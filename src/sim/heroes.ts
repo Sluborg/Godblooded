@@ -1,5 +1,6 @@
 import { earn, newRecord } from './runstats';
 import { fledParty, fleeThreshold, newParty, pantheonOf, TRAITS } from './parties';
+import { slowOf } from './riders';
 import { revengeTarget } from './rivalry';
 import { aggroRange, dist, maxHp, speed, stepToward, tierValue, TICK_MS } from './units';
 import type { World } from './world';
@@ -150,7 +151,11 @@ export function heroMove(world: World, unit: UnitState): void {
   const cls = world.data.classes?.find((c) => c.id === unit.type);
   if (!rt || !cls) return;
   const step = (to: Vec2): boolean => {
-    const dir = stepToward(unit.pos, to, (speed(cls.attrs) * TICK_MS) / 1000);
+    const dir = stepToward(
+      unit.pos,
+      to,
+      (speed(cls.attrs) * (1 - slowOf(world, unit.id)) * TICK_MS) / 1000,
+    );
     if (dir.x !== 0 || dir.y !== 0) unit.facing = dir;
     return dist(unit.pos, to) <= tune(world).arrive;
   };
