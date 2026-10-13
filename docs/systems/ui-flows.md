@@ -27,14 +27,15 @@ Boot ──> Title ──Play──> [Trial picker, after the first win] ──>
            │  ├─Hall (new) ──> tabs: Pantheons, Buildings, Cards, Saga ──Back──> Title
            │  └─Settings ──Back──> (where it came from)
 Map + Hud ──Menu──> Pause ──Resume / Restart / Settings / Quit to title
-          ──level-up offer──> LevelUp (path card, then upgrade card) ──pick──> Map
+          ──path offer──> path tray over the map (run at 30%) ──pick──> Map
           ──won or lost──> End screen ──Play again / Title (new)
 ```
 
 - **Modal rule:** at most one modal over the map. Priority when two want the screen: end
-  screen, then LevelUp, then Pause, then a menu or card. A lower one closes when a higher opens.
-- The sim freezes during LevelUp (today), Pause, miracle aiming and the end screen; never
-  during an open card or menu.
+  screen, then Pause, then the path tray, then a menu or card. A lower one closes when a higher opens.
+- The sim freezes during Pause, miracle aiming and the end screen; it slows to 30% during
+  the path tray; never during an open card or menu. Upgrade cards never stop the run: the
+  party picks its own (`level-ups.md`).
 
 ## 2. HUD layout (1280x720)
 
@@ -101,15 +102,15 @@ slot. Today's header is 190 px and the fourth row spills below the slot.
 
 ## 6. Modal screens
 
-| Screen             | Today                                                 | Change                                                                                                                                                                   |
-| ------------------ | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| LevelUp            | path cards, then 3 upgrade cards; no close            | rarity frame and family icon (`progression.md`); a **Map** button (bottom right) hides the cards while held, so the player can look before picking; the sim stays frozen |
-| Pause              | Resume, Restart, Settings, Quit to title              | unchanged                                                                                                                                                                |
-| Settings           | default speed, reduced motion, party colours, Back    | music and effects volume (`audio.md`); the HUD speed choice is saved as the default                                                                                      |
-| End screen         | VICTORY or TOWN LOST, time, gold, 6 stats, Play again | MVP hero line (run report has `mvp`), new unlock cards, Saga entries added this run, a **Title** button next to Play again                                               |
-| Hall (new)         |                                                       | tabs: Pantheons (gods, locked greyed with condition), Buildings, Cards, Saga; Back                                                                                       |
-| Trial picker (new) | (only after the first win)                            | 5 toggles with their effect, Start; won trials marked                                                                                                                    |
-| Miracle aim        | (new)                                                 | sim paused, a 250 ring under the finger, the miracle's name at the top, cancel by its button                                                                             |
+| Screen             | Today                                                 | Change                                                                                                                        |
+| ------------------ | ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| LevelUp            | path cards, then 3 upgrade cards; no close            | replaced: upgrades are auto-picked and celebrated on the map; paths use a tray at the bottom, the run at 30% (`level-ups.md`) |
+| Pause              | Resume, Restart, Settings, Quit to title              | unchanged                                                                                                                     |
+| Settings           | default speed, reduced motion, party colours, Back    | music and effects volume (`audio.md`); the HUD speed choice is saved as the default                                           |
+| End screen         | VICTORY or TOWN LOST, time, gold, 6 stats, Play again | MVP hero line (run report has `mvp`), new unlock cards, Saga entries added this run, a **Title** button next to Play again    |
+| Hall (new)         |                                                       | tabs: Pantheons (gods, locked greyed with condition), Buildings, Cards, Saga; Back                                            |
+| Trial picker (new) | (only after the first win)                            | 5 toggles with their effect, Start; won trials marked                                                                         |
+| Miracle aim        | (new)                                                 | sim paused, a 250 ring under the finger, the miracle's name at the top, cancel by its button                                  |
 
 ## 7. Proposed backlog rows
 
@@ -121,7 +122,7 @@ slot. Today's header is 190 px and the fourth row spills below the slot.
 | 20    | Inspect slot: one card at a time; party member rows open a Hero card          |
 | 30    | End screen: Title button, MVP line                                            |
 | 40    | Flag card: raise and cancel (needs Sim 10)                                    |
-| 50    | LevelUp: hold-to-peek Map button                                              |
+| 50    | (dropped: LevelUp peek, see `level-ups.md`)                                   |
 | 60    | HUD speed choice saved as the default                                         |
 | 70    | Favour bars, miracle column and aiming (with `events.md` Sim rows)            |
 | 80    | Hall and Trial picker; end screen unlock cards and Saga (with `meta.md` rows) |
@@ -135,7 +136,6 @@ slot. Today's header is 190 px and the fourth row spills below the slot.
 
 ## OPEN (Stefan decides)
 
-1. **LevelUp peek:** a hold-to-look Map button on the card screen (recommendation), or keep the
-   cards covering the map?
+1. (Settled: no LevelUp screen, `level-ups.md`.)
 2. **Bounty cancel** refunds 50% (recommendation), 100%, or no cancel at all?
 3. **Miracle aiming pauses the game** (recommendation, one thumb on a phone), or aim live?

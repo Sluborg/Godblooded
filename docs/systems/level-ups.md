@@ -2,49 +2,92 @@
 
 Design owns this spec. Stefan, after the playtest: "level-ups are boring". Today a level-up
 freezes the whole run, dims the screen and shows 3 text cards (`src/scenes/LevelUpScene.ts`);
-the pick changes numbers nobody sees. This spec lays out three options and recommends a mix.
+the pick changes numbers nobody sees.
+
+**Stefan decided (2026-10-13):** parties pick their own level-up card, weighted by
+personality, with no pause; the player only chooses paths. Option A (celebrate on the map)
+stays, option C's auto-pick becomes the rule, option B (fewer, bigger choices) comes later.
 
 ## Bottom line
 
-- **Why it is boring:** it stops the show (the run freezes), the cards are text about stats,
-  the choice is small (+2 Str or +2 Sta), and nothing on the map changes after the pick.
-- **Option A, celebrate on the map:** the party glows, the camera swings in, the game slows for
-  a second, a choir hits, and after the pick the change is visible (aura, size, a bark).
-  Cheapest, no rule change.
-- **Option B, fewer but bigger choices:** cards only at party levels 2, 4, 6 and 8, with big
-  effects (a new trick, a god's boon, double a stat); the levels between give small automatic
-  gains. Half the interruptions, each one matters.
-- **Option C, the gods offer, the run flows:** each card is offered by one of the party's gods
-  in its colour and voice; the run keeps going in slow motion while the cards sit in a tray;
-  the party picks by itself after 15 s (by personality) if the player does not.
-- **Recommendation: A + C now, B as the follow-up** if level-ups still feel small after the
-  next playtest. A+C keeps the rules and fixes the two worst parts (the freeze and the
-  invisibility); B touches the card pool and balance.
+- **The party chooses its card.** At each level-up the Sim draws 3 cards as today and the
+  party picks one at once, weighted by the leader's trait. No freeze, no modal, no timer.
+- **The player watches it happen (option A):** the camera swings in, a pillar of light, a
+  choir chord, the leader barks, and the chosen card rises over the banner with the god who
+  offered it. After the pick the effect shows on the heroes.
+- **The player still chooses paths.** At party level 3 each hero's path offer opens a card
+  tray at the bottom while the run slows to 30%; it waits for the player.
+- **Option B later:** fewer, bigger cards at levels 2, 4, 6 and 8, if level-ups still feel
+  small after the next playtest.
 
-## 1. What is wrong today
+## 1. What was wrong
 
-| Problem                         | Where                                         |
-| ------------------------------- | --------------------------------------------- |
-| The run freezes                 | Sim freezes on an offer (decision 2026-10-04) |
-| A full-screen dim hides the map | `LevelUpScene` dims and covers the party      |
-| Cards are text about stats      | 9 graybox cards, mostly "+2 Strength"         |
-| No visible result               | after the pick nothing on the map changes     |
-| Every level asks                | levels 2-8, about every 1.5 minutes           |
+| Problem                         | Where                                         | Now                                     |
+| ------------------------------- | --------------------------------------------- | --------------------------------------- |
+| The run freezes                 | Sim freezes on an offer (decision 2026-10-04) | upgrades never pause; paths slow to 30% |
+| A full-screen dim hides the map | `LevelUpScene` dims and covers the party      | the celebration happens on the map      |
+| Cards are text about stats      | 9 graybox cards, mostly "+2 Strength"         | a god offers each card, with its sigil  |
+| No visible result               | after the pick nothing on the map changes     | aura, glint or flash on the heroes      |
+| Every level asks                | levels 2-8, about every 1.5 minutes           | only the path pick asks, once per hero  |
 
-## 2. Option A: celebrate on the map
+## 2. The celebration (option A)
 
-| Beat | What happens                                                                                                                                                                              | Who builds |
-| ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
-| 1    | The camera eases to the party (0.5 s), the game slows to 25% for 1 s                                                                                                                      | Scene      |
-| 2    | A pillar of light in the party colour, a choir chord (`sfx_levelup`), "Level 4!" over the banner                                                                                          | Scene      |
-| 3    | The party leader barks (`barks.md`, `level_up`; needs #158)                                                                                                                               | Scene      |
-| 4    | The cards come up (option C tray, or today's modal)                                                                                                                                       | Scene      |
-| 5    | After the pick: the card's effect shows on the heroes (red aura for Str, a shield glint for armour, quicker swings and a dodge flash for Dex), and the party banner gains a pip per level | Scene      |
+| Beat | What happens                                                                                                                                                              | Who builds |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| 1    | The camera eases to the party (0.5 s), the game slows to 25% for 1 s                                                                                                      | Scene      |
+| 2    | A pillar of light in the party colour, a choir chord (`sfx_levelup`), "Level 4!" over the banner                                                                          | Scene      |
+| 3    | The party leader barks (`barks.md`, `level_up`)                                                                                                                           | Scene      |
+| 4    | The chosen card rises over the banner for 2.5 s: god sigil, card name, the offer line ("Thor offers: Iron Arms"); a tap on it opens the party card                        | Scene      |
+| 5    | The card's effect shows on the heroes (red aura for Str, a shield glint for armour, quicker swings and a dodge flash for Dex), and the party banner gains a pip per level | Scene      |
 
-- No rule change; Sim already emits `levelUp` and `upgradePicked`.
+- Sim already emits `levelUp` and `upgradePicked`; beat 4 reads the picked card from
+  `upgradePicked`.
+- Nothing waits for the player: the run goes on during and after the beats.
+- Two parties levelling at once: beats 1 and 2 play for the first, the second gets beats 2 to
+  5 without the camera swing.
 - Reduced motion (setting): skip the camera swing and the slow-down, keep the light and sound.
 
-## 3. Option B: fewer, bigger choices
+## 3. The auto-pick rule
+
+1. The offer is drawn as today (`progression.md`, offer rules: 3 different cards, rarity by
+   level, fitted, needs, stacking).
+2. Each card gets a weight: 1, times `traitPickWeight` (3) when it matches the leader's
+   trait (table below). The pick is a weighted draw with the sim's seeded RNG.
+3. The pick applies at once and emits `upgradePicked { party, upgrade, god }`.
+
+| Leader trait | Favours (x3)                               |
+| ------------ | ------------------------------------------ |
+| brave        | `attack` cards                             |
+| coward       | `defence` cards                            |
+| greedy       | `gold` cards (no match: `attack`)          |
+| curious      | `sight` cards                              |
+| loyal        | `sustain` cards and cards from its own god |
+| proud        | `attack` cards and cards from its own god  |
+| vengeful     | `attack` and `nerve` cards                 |
+
+- A party's cards over a run say who leads it: a coward's party grows tough, a greedy one
+  grows rich. The weights keep it from being the same pick every time.
+- **The leader** is `members[0]`, or the next member who is not knocked out (as in
+  `barks.md`).
+- **Which god offers:** each card is tagged with a god of the party (stat cards to the god
+  whose template uses that stat most; pantheon cards to a god of that pantheon). No god in the
+  party (template-only heroes, dev and tests): the line reads "The gods offer".
+- **Level 7 (god's favour):** the same rule; loyal and proud favour their own god's favour
+  card.
+
+## 4. Path picks (the player's choice)
+
+- **A path offer opens a tray:** 2 path cards at the bottom (300 x 190 px each, 16 px gap),
+  the map visible above y 500, the hero's portrait and god sigil to the left.
+- **The run slows to 30%** (`offerSlowdown` 0.3) while the tray is open, whatever speed button
+  is set (2x and 4x come back when it closes). No timeout: the tray waits.
+- **Upgrade first, path after:** at party level 3 the upgrade card is auto-picked at once,
+  then each hero's path offer opens in turn (today `pickUpgrade` refuses until the path is
+  picked; that order flips).
+- **Two offers:** the tray shows the oldest, with a "+1" badge for the next.
+- **A hold-to-peek Map button** is no longer needed: the map stays visible.
+
+## 5. Option B, later
 
 | Party level | Today                          | Option B                                                    |
 | ----------- | ------------------------------ | ----------------------------------------------------------- |
@@ -57,61 +100,30 @@ the pick changes numbers nobody sees. This spec lays out three options and recom
 | 8           | 1 of 3                         | 1 of 3 big cards                                            |
 
 - **Big cards** merge today's small ones: "Giant's Blood" becomes +4 Str and +4 Sta, -1 Dex;
-  stat cards come in pairs; skill and pantheon cards (`progression.md`) carry the rest.
-- Cost: the card pool and balance change (Balance re-runs the bot); progression.md's offer
-  rules change.
+  stat cards come in pairs; skill and pantheon cards carry the rest. The party still picks.
+- Cost: the card pool and balance change (Balance re-runs the bot).
 
-## 4. Option C: the gods offer, the run flows
+## 6. Supersedes
 
-| Rule       | Today               | Option C                                                                                                                                                  |
-| ---------- | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Freeze     | the run stops       | the run slows to 30% while the tray is open                                                                                                               |
-| Where      | full-screen modal   | a tray of 3 cards at the bottom, the map stays visible above                                                                                              |
-| Card voice | plain name and text | each card is offered by a god of the party: its sigil, its colour, a line ("Thor offers: Iron Arms")                                                      |
-| No answer  | waits forever       | after `offerTimeoutMs` 4500 of **sim** time (about 15 s of real time at the 0.3 slow-down) the party picks by itself (rules below); always on in option C |
-| Auto-pick  | none                | a Settings toggle "Parties choose for themselves" (off by default): when on, the party picks at once and no tray opens, only a toast                      |
+- `docs/decisions.md` 2026-10-04 ("a level up freezes the run"): Lead updates it.
+- `ui-flows.md` section 6, LevelUp row, and its hold-to-peek row and OPEN 1 (updated here).
+- The earlier option C draft of this spec (timeout, Settings toggle "Parties choose for
+  themselves", `autoPick` in the world config): dropped, the auto-pick is always on.
 
-- **Which god offers:** each card is tagged with a god of the party (stat cards to the god
-  whose template uses that stat most; pantheon cards to a god of that pantheon). With one god
-  in the party, it offers all three.
-- **Auto-pick rule (deterministic, no RNG):** the party leader's trait decides. brave: first
-  `attack` card; coward: first `defence`; greedy: first `gold` (falls back to `attack` when the
-  offer has none); curious: first `sight`; loyal and proud: the first card offered by the
-  leader's own god; vengeful: first `attack`. "First" is in offer order (the offer is already
-  seeded). No match: the first card. The toast names the leader: "Bjorn chose Iron Arms".
-- **Path offers too:** a pending `pathOffer` slows the run and times out the same way; the
-  auto-pick takes the hero's first free path in data order. The upgrade offer opens after it,
-  with a fresh timer (today `pickUpgrade` refuses until the path is picked).
-- **Game speed while an offer is open:** the slow-down wins. Scene runs the sim at 0.3 x 1x
-  whatever speed button is set (2x or 4x come back when the offer closes), so the 4500 ms
-  sim timeout is always about 15 s of real time.
-- **Slow-downs do not stack:** option A's 25% runs for its 1 s beat, then the tray holds 30%.
-- **Two parties with offers:** the tray shows the oldest offer, with a "+1" badge for the
-  next; each offer has its own timer.
-- **No god in the party** (template-only heroes, dev and tests): cards say "The gods offer".
-- **Card size:** 3 cards of 300 x 190 px at the bottom (960 px wide, 16 px gaps), each one tap
-  target well above `MIN_TOUCH`; the map stays visible above y 500.
-- **Supersedes, if Stefan picks C:** `docs/decisions.md` 2026-10-04 ("a level up freezes the
-  run") and `ui-flows.md` section 6 (LevelUp freeze and hold-to-peek, which C makes moot).
-- Cost: Sim changes the freeze to a slow-down and adds an offer timer and the auto-pick rule;
-  Scene builds the tray; data adds `god?` to each card.
+## 7. Proposed rows
 
-## 5. Recommendation and rows (A + C now)
-
-| Role    | Order | Row                                                                                                                                                                                                                                                                                                                                    |
-| ------- | ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Sim     | 10    | Offers (upgrade and path) no longer freeze the run: `offerSlowdown` 0.3 while one is open; `offerTimeoutMs` 4500 sim time, then the auto-pick rule; `autoPick` in world config at `createWorld` and a `setAutoPick` command, both saved; an open offer and its timer saved (bump the save version, migrate old saves to no open offer) |
-| Scene   | 10    | Option A beats 1-5 (camera, slow-down, light, sound, bark, visible effect, banner pips)                                                                                                                                                                                                                                                |
-| Scene   | 20    | Card tray at the bottom instead of the full-screen modal; god sigil, colour and line per card; countdown ring                                                                                                                                                                                                                          |
-| Scene   | 30    | Settings toggle "Parties choose for themselves"                                                                                                                                                                                                                                                                                        |
-| Balance | 10    | On each upgrade card: `god` (who offers it), `offerLine`, and `pickTag` (attack, defence, sustain, sight, gold, nerve)                                                                                                                                                                                                                 |
-| Art     | 10    | 12 god sigils (small badges) for the cards; frames stay by rarity with a family icon (`progression.md`)                                                                                                                                                                                                                                |
-
-Option B stays in this spec as the next step; if Stefan wants it now, it adds a Balance row
-for the big-card pool and a Sim row for the automatic levels.
+| Role    | Order | Row                                                                                                                                                                                                                                     |
+| ------- | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Sim     | 10    | Upgrade offers auto-pick at once by the trait-weighted rule (seeded RNG); `upgradePicked` carries `god`; no freeze for upgrades. Old saves with an open upgrade offer auto-pick it on load (bump the save version if the shape changes) |
+| Sim     | 20    | Path offers no longer freeze: `offerSlowdown` 0.3 while one is open (Scene applies it to the run speed); the upgrade is picked before the path at level 3                                                                               |
+| Scene   | 10    | Celebration beats 1 to 5 (camera, slow-down, light, sound, bark, card rising over the banner, visible effect, banner pips)                                                                                                              |
+| Scene   | 20    | Path tray at the bottom instead of the full-screen LevelUp modal; 0.3 run speed while open; "+1" badge                                                                                                                                  |
+| Balance | 10    | On each upgrade card: `god` (who offers it), `offerLine`, `pickTag` (attack, defence, sustain, sight, gold, nerve); `tuning.party.traitPickWeight` 3                                                                                    |
+| Art     | 10    | 12 god sigils (small badges) for the cards and the path tray                                                                                                                                                                            |
 
 ## OPEN (Stefan decides)
 
-1. **A + C now, B later** (recommendation), or B right away too?
-2. **The run keeps going at 30% speed** while cards are open, or keep the freeze?
-3. **Auto-pick after 15 s:** good, or should the cards wait for you?
+1. **Path tray waits** at 30% speed with no timeout (this draft), or freeze the run for the
+   path pick as today?
+2. **Trait weight x3:** a clear personality (this draft), or stronger (always the trait's
+   card when there is one)?
