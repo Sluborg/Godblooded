@@ -152,7 +152,7 @@ export class UnitView {
   boss = false;
   enraged = false;
   // A rider on this unit (burn, chill, ...): tint and head icon until `msLeft` runs out.
-  private rider: { id: RiderId; msLeft: number } | null = null;
+  private riders = new Map<RiderId, number>();
   private readonly riderIcon: Phaser.GameObjects.Graphics;
 
   constructor(
@@ -380,18 +380,25 @@ export class UnitView {
 
   // A rider took hold: tint and icon for as long as it lasts (a newer one replaces the older).
   setRider(id: RiderId): void {
-    this.rider = { id, msLeft: riderDurationMs(id) };
+    this.riders.set(id, riderDurationMs(id));
+  }
+
+  // The rider shown: the one with the most time left, so a brief arc never hides a lasting burn.
+  private topRider(): { id: RiderId; msLeft: number } | null {
+    let best: { id: RiderId; msLeft: number } | null = null;
+    for (const [id, msLeft] of this.riders)
+      if (!best || msLeft > best.msLeft) best = { id, msLeft };
+    return best;
   }
 
   private drawRider(dtS: number): void {
     this.riderIcon.clear();
-    const r = this.rider;
-    if (!r) return;
-    r.msLeft -= dtS * 1000;
-    if (r.msLeft <= 0) {
-      this.rider = null;
-      return;
+    for (const [id, ms] of this.riders) {
+      if (ms - dtS * 1000 <= 0) this.riders.delete(id);
+      else this.riders.set(id, ms - dtS * 1000);
     }
+    const r = this.topRider();
+    if (!r) return;
     const look = RIDER_LOOK[r.id];
     // Blink in the last second so the player sees it ending.
     if (r.msLeft < 1000 && Math.floor(r.msLeft / 120) % 2 === 0) return;
@@ -475,6 +482,7 @@ export class UnitView {
       // The path name can be wider than "<God>-born": keep the party badge beside the label.
       this.badge.setX(-this.label.width / 2 - 4);
     }
+    if (u.ko) this.riders.clear();
     this.tick(u.pos, u.facing.x, u.ko, ctx);
     this.drawBar(u);
     this.drawRider(ctx.dtS);
@@ -486,6 +494,7 @@ export class UnitView {
   updateDying(ctx: FrameCtx): void {
     this.tick({ x: this.x, y: this.y }, 0, true, ctx);
     this.bar.clear();
+    this.riders.clear();
     this.riderIcon.clear();
   }
 
@@ -637,8 +646,8 @@ export class UnitView {
       hurtFlash(this.hit) ??
       (this.healGlow > 0
         ? { color: this.glowColor, alpha: Math.min(0.7, 0.5 * this.healGlow) }
-        : this.rider
-          ? { color: RIDER_LOOK[this.rider.id].tint, alpha: 0.26 }
+        : this.riders.size > 0
+          ? { color: RIDER_LOOK[this.topRider()!.id].tint, alpha: 0.26 }
           : this.enraged
             ? { color: 0xff2a2a, alpha: 0.16 + 0.1 * Math.sin(this.phase * 6) }
             : null);
@@ -830,6 +839,8 @@ export class UnitViews {
       let view = this.views.get(u.id);
       if (!view) {
         view = new UnitView(this.scene, u);
+        if (this.pendingBoss.delete(u.id)) view.boss = true;
+        if (this.pendingEnraged.delete(u.id)) view.enraged = true;
         this.views.set(u.id, view);
       }
       view.update(u, ctx, partyRole(u.id, u.party, parties));
@@ -838,6 +849,7 @@ export class UnitViews {
       if (!seen.has(id)) {
         view.die();
         this.dying.set(id, view);
+        this.fx.dropCleaves(id);
         this.views.delete(id);
       }
     }
@@ -950,25 +962,30 @@ export class UnitViews {
   }
 
   // The boss steps out of its lair: marked as a boss for its big bar, a ring and a shake.
+  private pendingBoss = new Set<number>();
+  private pendingEnraged = new Set<number>();
+
   private onBossEmerged(e: Extract<SimEvent, { kind: 'bossEmerged' }>): void {
     const v = this.views.get(e.unit);
-    if (!v) return;
+    if (!v) {
+      // Events run before new views exist: the flag is applied when the view is created.
+      this.pendingBoss.add(e.unit);
+      return;
+    }
     v.boss = true;
     this.fx.add([{ type: 'ring', x: v.container.x, y: v.container.y, r: 180, age: 0, life: 0.9 }]);
     this.fx.dust(v.container.x, v.container.y, 2.4);
     this.shake();
-    this.floatNumber(v.container.x, v.container.y - v.height - 50, {
-      text: 'The boss emerges!',
-      color: '#ffb0a0',
-      fontSize: 32,
-      tag: null,
-    });
   }
 
   // The boss enrages: a red pulse on it, a shout over its head and a shake.
   private onEnraged(e: Extract<SimEvent, { kind: 'enraged' }>): void {
     const v = this.views.get(e.unit);
-    if (!v) return;
+    if (!v) {
+      this.pendingBoss.add(e.unit);
+      this.pendingEnraged.add(e.unit);
+      return;
+    }
     v.enraged = true;
     this.fx.add([{ type: 'ring', x: v.container.x, y: v.container.y, r: 140, age: 0, life: 0.7 }]);
     this.shake();
@@ -984,7 +1001,15 @@ export class UnitViews {
     // A cleave shows its ground marker for the whole windup (the target is the centre).
     if (e.area)
       this.fx.add([
-        { type: 'cleave', x: e.area.x, y: e.area.y, r: e.area.r, age: 0, life: e.inMs / 1000 },
+        {
+          type: 'cleave',
+          owner: e.attacker,
+          x: e.area.x,
+          y: e.area.y,
+          r: e.area.r,
+          age: 0,
+          life: e.inMs / 1000,
+        },
       ]);
     this.views.get(e.attacker)?.beginWindup(e.target, e.inMs / 1000);
   }

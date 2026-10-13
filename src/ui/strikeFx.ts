@@ -57,7 +57,7 @@ export type FxEffect =
     }
   | { type: 'ring'; x: number; y: number; r: number; age: number; life: number }
   // A boss cleave: the red ground marker that fills until the strike lands.
-  | { type: 'cleave'; x: number; y: number; r: number; age: number; life: number }
+  | { type: 'cleave'; owner: number; x: number; y: number; r: number; age: number; life: number }
   // A heal: a soft gold-green beam from the healer's weapon to the target's chest.
   | { type: 'heal'; x: number; y: number; tx: number; ty: number; age: number; life: number }
   | { type: 'arrow'; x: number; y: number; tx: number; ty: number; age: number; life: number };
@@ -293,6 +293,11 @@ export class FxLayer {
     this.g = scene.add.graphics().setDepth(depth);
   }
 
+  // A boss that dies mid-windup takes its ground marker with it.
+  dropCleaves(owner: number): void {
+    this.effects = this.effects.filter((e) => !(e.type === 'cleave' && e.owner === owner));
+  }
+
   add(effects: readonly FxEffect[]): void {
     this.effects.push(...effects);
   }
@@ -475,15 +480,10 @@ export class FxLayer {
     } else if (e.type === 'cleave') {
       // The ground marker: a red disc that fills as the strike nears, an edge that pulses faster.
       const pulse = 0.65 + 0.35 * Math.sin(e.age * (8 + 14 * p));
-      g.fillStyle(0xd9302a, 0.1 + 0.3 * p).fillEllipse(e.x, e.y, e.r * 2, e.r * 0.64 * 2);
+      g.fillStyle(0xd9302a, 0.1 + 0.3 * p).fillCircle(e.x, e.y, e.r);
       g.lineStyle(4, 0xff4a3a, 0.5 + 0.5 * pulse);
-      g.strokeEllipse(e.x, e.y, e.r * 2, e.r * 0.64 * 2);
-      g.lineStyle(2, 0xff9a8a, 0.8 * (1 - p)).strokeEllipse(
-        e.x,
-        e.y,
-        e.r * 2 * (1 - p),
-        e.r * 0.64 * 2 * (1 - p),
-      );
+      g.strokeCircle(e.x, e.y, e.r);
+      g.lineStyle(2, 0xff9a8a, 0.8 * (1 - p)).strokeCircle(e.x, e.y, e.r * (1 - p));
     } else if (e.type === 'ring') {
       g.lineStyle(6 * (1 - p) + 1, 0xe6d2aa, 0.8 * (1 - p));
       g.strokeEllipse(e.x, e.y, e.r * (0.2 + p) * 2, e.r * (0.2 + p) * 0.64);

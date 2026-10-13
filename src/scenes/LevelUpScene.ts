@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { COLORS, GAME_HEIGHT, GAME_WIDTH } from '../config';
 import { GRAYBOX, UPGRADES } from '../data/graybox';
 import { godName } from '../ui/partyLook';
+import { partyHeader, partySubtitle, pathHeader, readableOn } from '../ui/levelUpLook';
 import type { MapScene } from './MapScene';
 
 // What MapScene publishes when a party has an offer pending (the sim is frozen meanwhile).
@@ -14,6 +15,12 @@ export interface LevelUpOffer {
   pathHero?: string;
   pathGod?: string | null;
   paths?: { id: string; god: string; name: string; pantheon: string }[];
+  // Which party: its colour, its leader's label, the members (label and picture ids) and where
+  // they stand. `picking` marks the hero whose path is being chosen.
+  color?: number;
+  leader?: string;
+  members?: { id: number; label: string; art: string[]; picking?: boolean }[];
+  focus?: { x: number; y: number };
 }
 
 export const OFFER_KEY = 'offer';
@@ -21,6 +28,8 @@ export const OFFER_KEY = 'offer';
 const CARD_W = 340;
 const CARD_H = 380;
 const GAP = 40;
+// Cards sit below the banner, the subtitle and the row of member portraits.
+const CARD_Y = 445;
 const FONT = 'Georgia, serif';
 
 // Modal on top of everything: 3 upgrade cards, tap one. MapScene opens and closes it from the
@@ -42,33 +51,68 @@ export class LevelUpScene extends Phaser.Scene {
     }
     // Full-screen dim, interactive so nothing underneath receives taps.
     this.add
-      .rectangle(cx, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.7)
+      .rectangle(cx, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.6)
       .setInteractive();
-    this.add
-      .text(cx, 70, `Party level ${offer.level}`, {
-        fontFamily: FONT,
-        fontSize: '56px',
-        color: '#f2c14e',
-      })
-      .setOrigin(0.5);
-    this.add
-      .text(
-        cx,
-        128,
-        `${offer.size} ${offer.size === 1 ? 'hero' : 'heroes'} grew stronger. Choose one upgrade.`,
-        {
-          fontFamily: FONT,
-          fontSize: '26px',
-          color: COLORS.text,
-        },
-      )
-      .setOrigin(0.5);
+    this.banner(
+      offer,
+      partyHeader(offer.leader ?? 'the party', offer.level),
+      partySubtitle(offer.party, offer.size),
+    );
     const n = offer.upgrades.length;
     const total = n * CARD_W + (n - 1) * GAP;
     offer.upgrades.forEach((id, i) =>
-      this.makeCard(id, cx - total / 2 + CARD_W / 2 + i * (CARD_W + GAP), 400, offer),
+      this.makeCard(id, cx - total / 2 + CARD_W / 2 + i * (CARD_W + GAP), CARD_Y, offer),
     );
     this.makeToast();
+  }
+
+  // The header: a banner in the party's colour with who levelled, a line under it, and small
+  // portraits of the members (the hero choosing a path is lit, the others dimmed).
+  private banner(offer: LevelUpOffer, title: string, sub: string): void {
+    const cx = GAME_WIDTH / 2;
+    const fill = offer.color ?? 0x8a1c2b;
+    this.add.rectangle(cx, 52, GAME_WIDTH - 120, 76, fill, 1).setStrokeStyle(4, COLORS.gold, 0.9);
+    // Pennant tabs at both ends, like the party leader's flag on the map.
+    this.add.triangle(76, 52, 0, -38, 0, 38, 34, 0, fill, 1).setStrokeStyle(3, COLORS.gold, 0.9);
+    this.add
+      .triangle(GAME_WIDTH - 76, 52, 0, -38, 0, 38, -34, 0, fill, 1)
+      .setStrokeStyle(3, COLORS.gold, 0.9);
+    this.add
+      .text(cx, 52, title, {
+        fontFamily: FONT,
+        fontSize: '40px',
+        color: readableOn(fill),
+        fontStyle: 'bold',
+      })
+      .setOrigin(0.5);
+    this.add
+      .text(cx, 112, sub, { fontFamily: FONT, fontSize: '24px', color: COLORS.text })
+      .setOrigin(0.5);
+    const members = offer.members ?? [];
+    const slot = 124;
+    const x0 = cx - ((members.length - 1) * slot) / 2;
+    members.forEach((m, i) => {
+      const x = x0 + i * slot;
+      const lit = offer.paths ? m.picking === true : true;
+      const frame = this.add
+        .rectangle(x, 184, 64, 64, 0x1a140f, 0.85)
+        .setStrokeStyle(3, fill, lit ? 1 : 0.4);
+      const art = m.art.find((id) => this.textures.exists(id));
+      if (art) {
+        const src = this.textures.get(art).getSourceImage();
+        this.add
+          .image(x, 184, art)
+          .setScale(Math.min(60 / src.height, 60 / src.width))
+          .setAlpha(lit ? 1 : 0.45);
+      } else frame.setFillStyle(fill, lit ? 0.7 : 0.25);
+      this.add
+        .text(x, 224, m.label, {
+          fontFamily: FONT,
+          fontSize: '16px',
+          color: lit ? COLORS.text : COLORS.textMuted,
+        })
+        .setOrigin(0.5);
+    });
   }
 
   private makeToast(): void {
@@ -89,23 +133,18 @@ export class LevelUpScene extends Phaser.Scene {
   private pathCards(offer: LevelUpOffer, paths: NonNullable<LevelUpOffer['paths']>): void {
     const cx = GAME_WIDTH / 2;
     this.add
-      .rectangle(cx, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.7)
+      .rectangle(cx, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.6)
       .setInteractive();
-    this.add
-      .text(cx, 70, 'A path opens', { fontFamily: FONT, fontSize: '56px', color: '#f2c14e' })
-      .setOrigin(0.5);
-    this.add
-      .text(cx, 128, `${offer.pathHero ?? 'A hero'} reaches tier 2. Choose a path.`, {
-        fontFamily: FONT,
-        fontSize: '26px',
-        color: COLORS.text,
-      })
-      .setOrigin(0.5);
+    this.banner(
+      offer,
+      pathHeader(offer.pathHero ?? 'A hero'),
+      `Party ${offer.party} (level ${offer.level}): ${offer.pathHero ?? 'a hero'} reaches tier 2. Choose a path.`,
+    );
     const n = paths.length;
     const w = Math.min(CARD_W, (GAME_WIDTH - 80 - (n - 1) * GAP) / Math.max(1, n));
     const total = n * w + (n - 1) * GAP;
     paths.forEach((p, i) =>
-      this.makePathCard(p, cx - total / 2 + w / 2 + i * (w + GAP), 400, w, offer),
+      this.makePathCard(p, cx - total / 2 + w / 2 + i * (w + GAP), CARD_Y, w, offer),
     );
     this.makeToast();
   }

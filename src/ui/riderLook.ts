@@ -1,5 +1,5 @@
 import { DEFAULT_TUNING } from '../sim/api';
-import type { RiderId, RiderTuning } from '../sim/types';
+import type { RiderId, RiderTuning } from '../sim/api';
 
 // How a rider shows on its target (docs/systems/combat.md, "What the player sees"): a tint and a
 // small icon over the head (flame, snowflake, spark, skull, sun) while it lasts. Pure data and a
