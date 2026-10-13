@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { BUTTON_COLORS, buttonState } from './buttonStyle';
+import { buttonState } from './buttonStyle';
+import { WOOD_BUTTON } from './uiStyle';
 
 describe('buttonState', () => {
   it('disabled wins, then pressed, then active', () => {
@@ -10,6 +11,6 @@ describe('buttonState', () => {
   });
   it('has colours for every state', () => {
     for (const s of ['normal', 'active', 'disabled', 'pressed'] as const)
-      expect(BUTTON_COLORS[s].fill).toBeGreaterThan(0);
+      expect(WOOD_BUTTON[s].mid).toBeGreaterThan(0);
   });
 });
