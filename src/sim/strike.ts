@@ -184,12 +184,14 @@ export function landStrike(
   const taken = takeDamage(world, foe, out.damage);
   out.damage = taken.dealt;
   foe.hp -= taken.hp;
-  tally(world, attacker.id, 'damage', out.damage);
+  // A summon's strikes count for the hero that called it.
+  const credit = attacker.summon?.owner ?? attacker.id;
+  tally(world, credit, 'damage', out.damage);
   world.events.push(hitEvent(attacker.id, foe.id, out, taken.dealt - taken.hp));
   if (input.rider && !out.dodged) applyRider(world, input.rider, attacker.id, foe, out);
   if (foe.hp <= 0) {
     foe.hp = 0;
-    world.pendingDeaths.push({ victim: foe.id, by: attacker.id });
+    world.pendingDeaths.push({ victim: foe.id, by: credit });
   }
   return out;
 }

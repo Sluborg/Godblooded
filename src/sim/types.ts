@@ -477,7 +477,36 @@ export interface DashEffect extends EffectBase {
   kind: 'dash';
 }
 
+// A unit a skill calls (docs/systems/paths-and-skills.md section 7). `hp` is flat, `hpShare` a share of
+// the caster's max hp; `fromDead` makes a thrall of a monster that just died (stats x share).
+export interface SummonDef {
+  id: string;
+  hp?: number;
+  hpShare?: number;
+  // Strikes every `everyS` for `mult` x the caster's power (the monster's own strike for a thrall).
+  strike?: { mult: number; everyS: number; sure?: boolean };
+  // Foes within `radius` of it go for it (a decoy).
+  taunt?: { radius: number };
+  // Cannot be targeted by melee attackers.
+  flies?: boolean;
+  // Called again this long after it dies (not after it ends), while the caster stands.
+  respawnS?: number;
+  fromDead?: { share: number };
+}
+
+// Calls `count` units of a summon row for `s` seconds (omitted: until killed). At the cast point,
+// or on the recent kill for a thrall. `end` runs when it ends or dies: effects on the foes within
+// `radius` of it, as the caster (Mirror Double's burst).
+export interface SummonEffect extends EffectBase {
+  kind: 'summon';
+  summon: string;
+  count?: number;
+  s?: number;
+  end?: { radius: number; effects: readonly SkillEffect[] };
+}
+
 export type SkillEffect =
+  | SummonEffect
   | DamageEffect
   | HealEffect
   | ShieldEffect
@@ -631,6 +660,8 @@ export interface GameData {
   items?: readonly ItemDef[];
   // Path skills, one per path (tier 2, upgraded at tier 3).
   skills?: readonly SkillDef[];
+  // Rows for the units skills summon.
+  summons?: readonly SummonDef[];
   // Any subset of the tunable numbers; the rest use DEFAULT_TUNING (src/sim/tuning.ts).
   tuning?: {
     combat?: Partial<CombatTuning>;
@@ -695,7 +726,8 @@ export interface LairState {
 
 export interface UnitState {
   id: number;
-  kind: 'hero' | 'monster';
+  // 'summon': a unit a hero's skill called; it fights for the party and monsters can target it.
+  kind: 'hero' | 'monster' | 'summon';
   // Monsters: the monster id. Heroes: the id of the template in use (ClassDef): the god's at
   // tier 1, the path's from tier 2. Look and strike fall back on it.
   type: string;
@@ -712,6 +744,8 @@ export interface UnitState {
   maxHp: number;
   // Heroes: gear carried (absent: nothing). Monsters never have any.
   items?: HeroItems;
+  // Summons: who called it, from which row, and when it ends (null: until it dies).
+  summon?: { owner: number; def: string; until: number | null; src: string };
   // Unit being attacked, if any (Scene lunges toward it).
   target: number | null;
   // Knocked out (heroes only, monsters are removed). Out of the fight until revived.
@@ -838,6 +872,14 @@ export type SimEvent =
   | { kind: 'arrived'; unit: number; type: string; god: string | null }
   | { kind: 'fled'; unit: number }
   | { kind: 'revived'; unit: number }
+  // A skill called a unit; it ended (`expired`), died (`died`) or its caster fell (`orphaned`).
+  | { kind: 'summoned'; unit: number; owner: number; summon: string; skill: string; pos: Vec2 }
+  | {
+      kind: 'unsummoned';
+      unit: number;
+      owner: number;
+      reason: 'expired' | 'died' | 'orphaned' | 'replaced';
+    }
   // `item`: the item id of one purchase (absent for the plain market spend without item rows).
   // A hero drank a potion (`left` still carried) and healed `amount`.
   | { kind: 'drank'; unit: number; amount: number; left: number }

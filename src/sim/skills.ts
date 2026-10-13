@@ -3,6 +3,7 @@ import { applyRider, healMult } from './riders';
 import { tally } from './runstats';
 import { attackStrike, landStrike } from './strike';
 import { dist, TICK_MS, type Stats } from './units';
+import { spawnSummons } from './summons';
 import { statsOf, targetOf, type UnitRuntime, type World } from './world';
 import type {
   DamageEffect,
@@ -339,7 +340,7 @@ function pickNearest(foes: UnitState[], from: Vec2, within: number): UnitState |
   return best;
 }
 
-function resolve(
+export function resolve(
   world: World,
   hero: UnitState,
   def: SkillDef,
@@ -362,6 +363,11 @@ function resolve(
     (side ??= foesInShape(world, hero, def.shape, point, target, [hero, ...alliesOf(world, hero)]));
   const touched = new Set<number>();
   for (const effect of effects) {
+    if (effect.kind === 'summon') {
+      const dead = deadNear(world, hero, point, 200, effect.count ?? 1);
+      spawnSummons(world, hero, effect, point, def.id, dead);
+      continue;
+    }
     const to = effect.to ?? defaultTo(effect.kind);
     const hits = to === 'foes' ? foes : to === 'allies' ? allies() : [{ unit: hero, mult: 1 }];
     for (const h of hits) {
@@ -382,6 +388,57 @@ function resolve(
     point: { ...point },
     ...(from ? { from } : {}),
   });
+}
+
+// The party's recent kills near a point, nearest first (a thrall rises from each; they are used up).
+function deadNear(
+  world: World,
+  hero: UnitState,
+  point: Vec2,
+  within: number,
+  count: number,
+): { type: string; tier: number; pos: Vec2 }[] {
+  const mine = (by: number) => {
+    const killer = world.units.find((u) => u.id === by);
+    return (
+      by === hero.id || (killer !== undefined && killer.party !== 0 && killer.party === hero.party)
+    );
+  };
+  const fresh = world.timeMs - world.tuning.skill.killWindowMs;
+  const near = world.recentKills
+    .filter((k) => k.timeMs >= fresh && mine(k.by) && dist(k.pos, point) <= within)
+    .sort((a, b) => dist(a.pos, point) - dist(b.pos, point))
+    .slice(0, count);
+  world.recentKills = world.recentKills.filter((k) => !near.includes(k));
+  return near.map((k) => ({ type: k.type, tier: k.tier, pos: { ...k.pos } }));
+}
+
+// Runs effects as `caster` on the foes within `radius` of a point (a summon's end burst).
+export function resolveEffectsAt(
+  world: World,
+  caster: UnitState,
+  point: Vec2,
+  radius: number,
+  effects: readonly SkillEffect[],
+  id: string,
+): void {
+  resolve(
+    world,
+    caster,
+    {
+      id,
+      path: '',
+      name: id,
+      trigger: { kind: 'ready' },
+      cooldownS: 0,
+      target: 'point',
+      shape: { kind: 'circle', radius },
+      effects,
+      visual: [],
+    },
+    null,
+    point,
+  );
 }
 
 function defaultTo(kind: SkillEffect['kind']): 'foes' | 'allies' | 'self' {
@@ -454,6 +511,8 @@ export function supportEffect(
     case 'taunt':
       // Bosses ignore taunt.
       if (!statsOf(world, unit)?.tags?.includes('boss')) applyTaunt(world, unit, hero.id, effect.s);
+      return;
+    case 'summon':
       return;
     case 'stagger': {
       const rt = world.unitRuntime.get(unit.id);

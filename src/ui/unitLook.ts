@@ -8,7 +8,7 @@ export const ART_NOMINAL_PX = 256;
 
 // Manifest id of a unit's picture. Front view only (decisions 2026-10-05): the picture faces
 // right and is mirrored by direction, so facing up or down never picks another picture.
-export function unitArtId(kind: 'hero' | 'monster', type: string, tier: number): string {
+export function unitArtId(kind: 'hero' | 'monster' | 'summon', type: string, tier: number): string {
   return `${kind === 'hero' ? 'hero' : 'mon'}_${type}_t${tier}_front`;
 }
 
@@ -17,7 +17,7 @@ export function unitArtId(kind: 'hero' | 'monster', type: string, tier: number):
 // its god's tier 1 picture; then the tier 1 picture of the hidden template (`type`, the shipped
 // class art); then the placeholder. A missing picture never drops a unit past an earlier look.
 export function artCandidates(
-  kind: 'hero' | 'monster',
+  kind: 'hero' | 'monster' | 'summon',
   type: string,
   tier: number,
   path: string | null = null,
