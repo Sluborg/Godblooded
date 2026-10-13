@@ -90,8 +90,8 @@ describe('windup', () => {
     );
     expect(fastWinds.length).toBeGreaterThan(0);
     for (const x of fastWinds) {
-      // 0.4 s base with 10 dex is a 200 ms cycle: windup is 40% of it.
-      if (x.e.kind === 'windup') expect(x.e.inMs).toBeCloseTo(80);
+      // 0.4 s base with 10 dex (attack curve K 15) is a 256 ms cycle: windup is 40% of it.
+      if (x.e.kind === 'windup') expect(x.e.inMs).toBeCloseTo(102.4);
     }
   });
 

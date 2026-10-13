@@ -9,6 +9,12 @@ export const DEFAULT_TUNING: Tuning = {
     healRange: 260,
     healBelow: 0.7,
     healPower: 1,
+    dodgeK: 40,
+    attackK: 15,
+    critK: 40,
+    armourK: 20,
+    resistK: 30,
+    critMult: 1.5,
   },
   hero: {
     firstRecruitMs: 5_000,

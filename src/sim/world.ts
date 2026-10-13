@@ -1,6 +1,7 @@
 import { avenge, revengeTarget, rivalPairs, vowRevenge } from './rivalry';
 import { runAutosave } from './save';
 import { generateMap } from './mapgen';
+import { resolveStrike } from './strike';
 import { swing } from './swing';
 import { buildReport, sampleGold, tally, type HeroRecord } from './runstats';
 import {
@@ -38,9 +39,7 @@ import {
 } from './heroes';
 import {
   aggroRange,
-  damage,
   dist,
-  dodgeChance,
   monsterHp,
   scaleAttrs,
   speed,
@@ -421,11 +420,21 @@ function fight(world: World, unit: UnitState, rt: UnitRuntime, stats: Stats, foe
   if (d > 0) unit.facing = { x: (foe.pos.x - unit.pos.x) / d, y: (foe.pos.y - unit.pos.y) / d };
   swing(world, unit, rt, stats, foe.id, () => {
     const foeStats = statsOf(world, foe);
-    const dodged = !!foeStats && world.rng() < dodgeChance(foeStats.attrs);
-    const dmg = dodged ? 0 : damage(stats.attrs);
+    const hit = resolveStrike(world, {
+      attrs: stats.attrs,
+      target: foeStats && { attrs: foeStats.attrs },
+    });
+    const { dodged, damage: dmg } = hit;
     foe.hp -= dmg;
     tally(world, unit.id, 'damage', dmg);
-    world.events.push({ kind: 'hit', attacker: unit.id, target: foe.id, damage: dmg, dodged });
+    world.events.push({
+      kind: 'hit',
+      attacker: unit.id,
+      target: foe.id,
+      damage: dmg,
+      dodged,
+      ...(hit.crit ? { crit: true } : {}),
+    });
     if (foe.hp <= 0) {
       foe.hp = 0;
       world.pendingDeaths.push({ victim: foe.id, by: unit.id });
