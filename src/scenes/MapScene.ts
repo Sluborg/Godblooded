@@ -473,8 +473,8 @@ export class MapScene extends Phaser.Scene {
     const shown = heroes.slice(0, INTEREST_MAX);
     shown.forEach((u, i) => {
       const x = (i - (shown.length - 1) / 2) * 22;
-      g.fillStyle(u.party > 0 ? partyColor(u.party) : 0xffffff, 1).fillCircle(x, 50, 9);
-      g.lineStyle(2, 0x000000, 0.7).strokeCircle(x, 50, 9);
+      g.fillStyle(u.party > 0 ? partyColor(u.party) : 0xffffff, 1).fillCircle(x, 66, 10);
+      g.lineStyle(2, 0x000000, 0.7).strokeCircle(x, 66, 10);
     });
   }
 
@@ -671,22 +671,41 @@ export class MapScene extends Phaser.Scene {
     // The kit's bounty flag when it is in the manifest (standing on its point), else drawn shapes.
     if (this.textures.exists('ui_icon_bounty')) {
       const flag = this.add.image(0, 0, 'ui_icon_bounty').setOrigin(0.5, 1);
-      flag.setScale(iconScale(flag.width, flag.height, 90));
+      flag.setScale(iconScale(flag.width, flag.height, 180));
+      // A gentle wave about the foot of the pole (not with reduced motion).
+      if (!getSettings().reducedMotion) {
+        flag.setAngle(-3);
+        const wave = this.tweens.add({
+          targets: flag,
+          angle: 3,
+          duration: 1300 + (x % 7) * 40,
+          yoyo: true,
+          repeat: -1,
+          ease: 'Sine.easeInOut',
+        });
+        flag.once('destroy', () => wave.stop());
+      }
       const label = this.add
-        .text(0, 6, `${gold}`, {
+        .text(0, 8, `${gold}`, {
           fontFamily: 'Georgia, serif',
-          fontSize: '24px',
+          fontSize: '34px',
           color: '#f2c14e',
           stroke: '#000000',
-          strokeThickness: 4,
+          strokeThickness: 5,
         })
         .setOrigin(0.5, 0);
       return this.add.container(x, y, [flag, label]).setDepth(y);
     }
-    const pole = this.add.rectangle(0, -40, 6, 80, 0x4b2e1a);
-    const flag = this.add.triangle(18, -68, 0, 0, 0, 28, 36, 14, COLORS.blood);
+    const pole = this.add.rectangle(0, -80, 10, 160, 0x4b2e1a);
+    const flag = this.add.triangle(34, -136, 0, 0, 0, 56, 72, 28, COLORS.blood);
     const label = this.add
-      .text(0, 8, `${gold}`, { fontFamily: 'Georgia, serif', fontSize: '22px', color: '#f2c14e' })
+      .text(0, 8, `${gold}`, {
+        fontFamily: 'Georgia, serif',
+        fontSize: '34px',
+        color: '#f2c14e',
+        stroke: '#000000',
+        strokeThickness: 5,
+      })
       .setOrigin(0.5, 0);
     return this.add.container(x, y, [pole, flag, label]).setDepth(y);
   }
