@@ -12,7 +12,7 @@ Review (PR open), Done. A worker takes its top Open row.
 | 30    | First `src/data/` rows for the graybox: 2 classes, 2 monsters, 4 buildings, 3 upgrades                     | Done   |
 | 35    | Balance pass on GRAYBOX with `npm run sim`: median run 15-18 min, win rate 55-75%, knockouts every run     | Done   |
 | 40    | Review and merge M1 PRs; when M1 runs end to end, ask Stefan "is it fun to watch?"                         | Doing  |
-| 50    | Gods and paths data: 12 GODS rows, 24 path rows, templates; balance pass (after Sim 110)                   | Open   |
+| 50    | Gods and paths data: 12 GODS rows, 24 path rows, templates; balance pass (after Sim 110)                   | Done   |
 | 60    | Building tier data (costs, effects per tier) after Sim 130; lair growth tuning after Sim 120; balance pass | Open   |
 
 ## Sim
@@ -29,8 +29,8 @@ Review (PR open), Done. A worker takes its top Open row.
 | 60    | Bounty flags: heroes weigh bounty vs danger by trait; win (last lair) and lose (town hall) conditions                                | Done   |
 | 70    | Headless balance sim (`npm run sim`): 100 seeded runs, report run length, win rate, deaths                                           | Done   |
 | 80    | Hero cap: at most `tuning.hero.maxPerClass` (2) heroes of each class alive; temples skip full classes                                | Done   |
-| 110   | Gods and paths (decision 2026-10-13): `GodDef`, path by god with a template, recruit a god's child, cap 2 per god on different paths | Open   |
-| 120   | Lair growth: lairs tier up over the run (spawn faster, tier 2/3 monsters), tuning in `GameData`                                      | Open   |
+| 110   | Gods and paths (decision 2026-10-13): `GodDef`, path by god with a template, recruit a god's child, cap 2 per god on different paths | Done   |
+| 120   | Lair growth: lairs tier up over the run (spawn faster, tier 2/3 monsters), tuning in `GameData`                                      | Review |
 | 130   | Building tiers: `upgrade` command, cost per tier, tier effects (temple recruit rate and cap, market stock, tower range and damage)   | Open   |
 | 140   | Run stats for the end screen: per hero kills, gold earned, knockouts, MVP; per run lairs cleared, gold over time                     | Open   |
 
@@ -52,8 +52,8 @@ Review (PR open), Done. A worker takes its top Open row.
 | 85    | Front picture only, mirrored; drop the `_back` lookup                                                                                                                                                     | Done   |
 | 90    | Party colours: ring under each member, banner over the leader, stable colour per party                                                                                                                    | Done   |
 | 95    | Monster tiers by colour (hue shift + size), skin variants `-v2`/`-v3` per unit id, small scale jitter                                                                                                     | Done   |
-| 100   | Gods and paths in the UI (after Sim 110): hero names "Thor-born" / path name, no class words; path cards show the god's two paths; art lookup path, god, template, placeholder                            | Open   |
-| 110   | Title screen (logo placeholder, Play, Continue if a run exists, Settings) and pause menu (resume, restart, quit); Settings: default speed, reduced motion, party-colour palette                           | Open   |
+| 100   | Gods and paths in the UI (after Sim 110): hero names "Thor-born" / path name, no class words; path cards show the god's two paths; art lookup path, god, template, placeholder                            | Doing  |
+| 110   | Title screen (logo placeholder, Play, Continue if a run exists, Settings) and pause menu (resume, restart, quit); Settings: default speed, reduced motion, party-colour palette                           | Done   |
 | 120   | Watch camera: auto-follow the most interesting fight (toggle on the HUD, any drag cancels it); tap a hero or party to follow it                                                                           | Open   |
 | 130   | Event feed: short toasts from sim events (lair cleared, hero knocked out, party level up, raid on town, tier-up), tap a toast to jump there                                                               | Open   |
 | 140   | Hero roster: side panel listing all heroes and parties (level, hp, gold, state), tap to focus and follow                                                                                                  | Open   |
@@ -73,5 +73,5 @@ Review (PR open), Done. A worker takes its top Open row.
 | 50    | Tier-2 and tier-3 batches                                                                                | Open   |
 | 60    | Front only (drop `_back` items); monster variants `-v2`/`-v3` as edits of the base picture               | Open   |
 | 70    | Track `ui`: U1 logo + app icon (3 options for Stefan), then U2 UI kit (panel, buttons, icons)            | Open   |
-| 80    | Heroes by god: rewrite A1 to 4 Aesir god tier-1 + 8 Aesir path tier-2; ids and asset-spec per 2026-10-13 | Open   |
-| 90    | Queue buildings tier 2 batch (all 8) and Greek + Egyptian temple tier 1, for Sim 130 and M3              | Open   |
+| 80    | Heroes by god: rewrite A1 to 4 Aesir god tier-1 + 8 Aesir path tier-2; ids and asset-spec per 2026-10-13 | Done   |
+| 90    | Queue buildings tier 2 batch (all 8) and Greek + Egyptian temple tier 1, for Sim 130 and M3              | Done   |
