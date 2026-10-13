@@ -21,21 +21,31 @@ describe('unit picture ids', () => {
 });
 
 describe('artCandidates', () => {
-  it('tier 1 is the class picture only', () => {
-    expect(artCandidates('hero', 'warrior', 1)).toEqual(['hero_warrior_t1_front']);
-  });
-  it('a hero on a path tries the path picture, then class tier, then tier 1', () => {
-    expect(artCandidates('hero', 'warrior', 2, 'warrior-thor')).toEqual([
-      'hero_warrior-thor_t2_front',
-      'hero_warrior_t2_front',
+  it('a tier 1 hero tries its god, then the template', () => {
+    expect(artCandidates('hero', 'warrior', 1, null, 'thor')).toEqual([
+      'hero_thor_t1_front',
       'hero_warrior_t1_front',
     ]);
+    expect(artCandidates('hero', 'warrior', 1)).toEqual(['hero_warrior_t1_front']);
   });
-  it('a path is ignored for monsters and at tier 1', () => {
-    expect(artCandidates('monster', 'troll', 2, 'warrior-thor')).toEqual([
+  it('a hero on a path tries path, god tier 1, template tier 1', () => {
+    expect(artCandidates('hero', 'paladin', 2, 'thor-hammerborn', 'thor')).toEqual([
+      'hero_thor-hammerborn_t2_front',
+      'hero_thor_t1_front',
+      'hero_paladin_t1_front',
+    ]);
+    expect(artCandidates('hero', 'paladin', 3, 'thor-hammerborn', 'thor')[0]).toBe(
+      'hero_thor-hammerborn_t3_front',
+    );
+  });
+  it('a path is ignored at tier 1; monsters ignore god and path', () => {
+    expect(artCandidates('hero', 'paladin', 1, 'thor-hammerborn', 'thor')).toEqual([
+      'hero_thor_t1_front',
+      'hero_paladin_t1_front',
+    ]);
+    expect(artCandidates('monster', 'troll', 2, 'x-y', 'thor')).toEqual([
       'mon_troll_t2_front',
       'mon_troll_t1_front',
     ]);
-    expect(artCandidates('hero', 'warrior', 1, 'warrior-thor')).toEqual(['hero_warrior_t1_front']);
   });
 });
