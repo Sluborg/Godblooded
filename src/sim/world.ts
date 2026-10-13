@@ -419,8 +419,9 @@ function runUnits(world: World): void {
 function pickTarget(world: World, unit: UnitState, stats: Stats, home?: Vec2): UnitState | null {
   // A taunted monster goes for its taunter.
   if (unit.kind === 'monster') {
+    // Not past its leash: a taunted monster does not leave its lair for the taunter.
     const taunter = tauntOf(world, unit);
-    if (taunter) return taunter;
+    if (taunter && (!home || dist(home, taunter.pos) <= world.tuning.monster.leash)) return taunter;
   }
   const reach = aggroRange(stats.attrs);
   // A hero with a sworn enemy in sight goes for it first.

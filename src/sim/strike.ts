@@ -63,7 +63,7 @@ export function resolveStrike(world: World, s: StrikeIn): StrikeOut {
     physical &&
     s.canDodge !== false &&
     s.target &&
-    world.rng() < Math.min(0.95, dodgeChance(s.target.attrs, t.dodgeK) + (s.target.dodgeAdd ?? 0))
+    world.rng() < Math.min(0.9, dodgeChance(s.target.attrs, t.dodgeK) + (s.target.dodgeAdd ?? 0))
   ) {
     return { dodged: true, crit: false, damage: 0, type, weak: false, resist: false };
   }
@@ -75,7 +75,7 @@ export function resolveStrike(world: World, s: StrikeIn): StrikeOut {
   const crit =
     s.canCrit !== false &&
     !bossTarget &&
-    world.rng() < Math.min(0.95, critChance(s.attrs, t.critK) + (s.critAdd ?? 0));
+    world.rng() < Math.min(0.9, critChance(s.attrs, t.critK) + (s.critAdd ?? 0));
   if (crit) dmg *= t.critMult;
   // 50 type multiplier: the target's row for this type; fire hurts buildings more
   let row = s.target?.types?.[type] ?? 1;
@@ -124,14 +124,16 @@ export function attackStrike(
 }
 
 // The `hit` event of a resolved strike.
-export function hitEvent(attacker: number, target: number, out: StrikeOut): SimEvent {
+// `absorbed`: the part of the damage a shield took (the event's damage is what reached the hp).
+export function hitEvent(attacker: number, target: number, out: StrikeOut, absorbed = 0): SimEvent {
   return {
     kind: 'hit',
     attacker,
     target,
-    damage: out.damage,
+    damage: out.damage - absorbed,
     dodged: out.dodged,
     type: out.type,
+    ...(absorbed > 0 ? { absorbed } : {}),
     ...(out.crit ? { crit: true } : {}),
     ...(out.weak ? { weak: true } : {}),
     ...(out.resist ? { resist: true } : {}),
@@ -157,7 +159,7 @@ export function landStrike(
   out.damage = taken.dealt;
   foe.hp -= taken.hp;
   tally(world, attacker.id, 'damage', out.damage);
-  world.events.push(hitEvent(attacker.id, foe.id, out));
+  world.events.push(hitEvent(attacker.id, foe.id, out, taken.dealt - taken.hp));
   if (input.rider && !out.dodged) applyRider(world, input.rider, attacker.id, foe, out);
   if (foe.hp <= 0) {
     foe.hp = 0;

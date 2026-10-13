@@ -666,6 +666,8 @@ export type SimEvent =
       type: string;
       // A critical strike (absent when it was not).
       crit?: boolean;
+      // The part of the damage a shield took (`damage` is what reached the hp).
+      absorbed?: number;
       // A burn tick rather than a strike.
       tick?: boolean;
       // The target's type row made it x1.5 or more (weak) or less than x1 (resist).
@@ -693,7 +695,8 @@ export type SimEvent =
       say?: boolean;
     }
   // A cast lands on `hits` (unit ids) around `point`.
-  // `from`: where the caster stood when it dashed.
+  // `hits`: every unit an effect touched (foes, allies, the caster). `from`: where the caster
+  // stood when it dashed (the dash is instant; Scene animates it from `from` to the caster).
   | { kind: 'skill'; skill: string; caster: number; hits: number[]; point: Vec2; from?: Vec2 }
   // A shield, mark, buff or taunt took hold on `unit` until run time `until`.
   | { kind: 'status'; unit: number; status: 'shield' | 'mark' | 'buff' | 'taunt'; until: number }

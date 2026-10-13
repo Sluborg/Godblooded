@@ -220,4 +220,78 @@ describe('skill effects', () => {
     expect(Math.abs(h.pos.x - rat.pos.x)).toBeLessThanOrEqual(40);
     expect(landed.hits).toContain(rat.id);
   });
+
+  it('single effects land on their own side of the pool', () => {
+    // A foe-targeted single with a damage and an ally buff: the buff goes to the caster, not the rat.
+    const sk = skill(
+      [
+        { kind: 'damage', mult: 1, sure: true },
+        { kind: 'buff', stat: 'dodge', amount: 0.5, s: 10 },
+      ],
+      { target: 'foe', shape: { kind: 'single' } },
+    );
+    const w = createWorld(1, mkData(sk));
+    const h = hero(w);
+    const rat = monster(w, 530, 500);
+    const ev = run(w, 800);
+    const buffed = of(ev, 'status')
+      .filter((e) => e.status === 'buff')
+      .map((e) => e.unit);
+    expect(buffed).toContain(h.id);
+    expect(buffed).not.toContain(rat.id);
+  });
+
+  it('an ally-targeted single does not hit its mate with a damage effect', () => {
+    const sk = skill(
+      [
+        { kind: 'heal', mult: 1 },
+        { kind: 'damage', mult: 1, sure: true },
+      ],
+      {
+        target: 'ally',
+        shape: { kind: 'single' },
+        trigger: { kind: 'allyHurt', below: 0.5, radius: 200 },
+      },
+    );
+    const w = createWorld(1, mkData(sk));
+    const h = hero(w);
+    const mate = hero(w, 540, h.party);
+    mate.path = null;
+    mate.hp = Math.floor(mate.maxHp * 0.3);
+    const ev = run(w, 900);
+    expect(of(ev, 'heal').some((e) => e.target === mate.id)).toBe(true);
+    expect(of(ev, 'hit').some((e) => e.attacker === h.id && e.target === mate.id)).toBe(false);
+  });
+
+  it('a fully absorbed hit shows no damage but the absorbed amount', () => {
+    const w = createWorld(1, mkData(skill([{ kind: 'shield', pct: 0.5, s: 30 }])));
+    const h = hero(w);
+    const rat = monster(w, 520, 500);
+    const ev = run(w, 3000);
+    const soaked = of(ev, 'hit').filter(
+      (e) => e.target === h.id && e.attacker === rat.id && e.absorbed,
+    );
+    expect(soaked.length).toBeGreaterThan(0);
+    expect(soaked[0].damage).toBe(0);
+    expect(soaked[0].absorbed).toBe(10);
+  });
+
+  it('a taunted monster does not leave its leash for the taunter', () => {
+    const sk = skill([{ kind: 'taunt', s: 20 }]);
+    const w = createWorld(1, mkData(sk));
+    w.lairs.push({
+      id: 900,
+      type: 'x',
+      boss: false,
+      tier: 1,
+      pos: { x: 3000, y: 3000 },
+      hp: 1,
+      maxHp: 1,
+    });
+    const h = hero(w);
+    const rat = monster(w, 530, 500);
+    w.unitRuntime.get(rat.id)!.lair = 900;
+    run(w, 900);
+    expect(rat.target).not.toBe(h.id);
+  });
 });

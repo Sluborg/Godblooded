@@ -280,7 +280,11 @@ export function foesInShape(
       // nearest foe that is.
       const reach = world.tuning.skill.pointReach;
       const here =
-        target && target.hp > 0 && !target.ko && dist(point, target.pos) <= reach
+        target &&
+        pool.includes(target) &&
+        target.hp > 0 &&
+        !target.ko &&
+        dist(point, target.pos) <= reach
           ? target
           : pickNearest(foes, point, reach);
       return here ? [{ unit: here, mult: 1 }] : [];
@@ -302,7 +306,11 @@ export function foesInShape(
       // Anchored to the cast point like `single`: a target that left it is not followed.
       const reach = world.tuning.skill.pointReach;
       let cur =
-        target && target.hp > 0 && !target.ko && dist(point, target.pos) <= reach
+        target &&
+        pool.includes(target) &&
+        target.hp > 0 &&
+        !target.ko &&
+        dist(point, target.pos) <= reach
           ? target
           : pickNearest(foes, point, reach);
       const out: { unit: UnitState; mult: number }[] = [];
