@@ -438,7 +438,7 @@ export const GRAYBOX: GameData = {
   // about 17 knockouts per run. Unset keys use DEFAULT_TUNING in src/sim/tuning.ts.
   tuning: {
     hero: { maxPerTemple: 7, recruitMs: 22_000 },
-    town: { raidFirstMs: 360_000, raidEveryMs: 150_000, raidGrowEveryMs: 480_000, raidSize: 1 },
+    town: { raidFirstMs: 420_000, raidEveryMs: 180_000, raidGrowEveryMs: 480_000, raidSize: 1 },
   },
   classes: CLASSES,
   gods: GODS,
