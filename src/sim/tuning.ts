@@ -23,6 +23,8 @@ export const DEFAULT_TUNING: Tuning = {
     deathShrineStep: 0.05,
     deathHealerStep: 0.05,
     deathFloor: 0.05,
+    lairDeathChance: 0.1,
+    lairDeathRange: 400,
   },
   hero: {
     firstRecruitMs: 5_000,

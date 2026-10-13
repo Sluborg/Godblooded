@@ -708,6 +708,10 @@ export interface CombatTuning {
   deathShrineStep: number;
   deathHealerStep: number;
   deathFloor: number;
+  // A tier 3 lair's monster slays with this chance when the knockout is within lairDeathRange of the
+  // lair; every cut to the boss chance cuts it by half as many points, never below 0.
+  lairDeathChance: number;
+  lairDeathRange: number;
 }
 
 export interface Tuning {
