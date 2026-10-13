@@ -56,6 +56,8 @@ export type FxEffect =
       tint?: number;
     }
   | { type: 'ring'; x: number; y: number; r: number; age: number; life: number }
+  // A boss cleave: the red ground marker that fills until the strike lands.
+  | { type: 'cleave'; x: number; y: number; r: number; age: number; life: number }
   // A heal: a soft gold-green beam from the healer's weapon to the target's chest.
   | { type: 'heal'; x: number; y: number; tx: number; ty: number; age: number; life: number }
   | { type: 'arrow'; x: number; y: number; tx: number; ty: number; age: number; life: number };
@@ -470,6 +472,18 @@ export class FxLayer {
       g.lineStyle(5, 0xc8ffb0, 0.7 * a).strokePoints(pts, false);
       g.lineStyle(2, 0xfff6c8, a).strokePoints(pts, false);
       g.fillStyle(0xe8ffc8, 0.8 * a).fillCircle(hx, hy, 8 * a + 3);
+    } else if (e.type === 'cleave') {
+      // The ground marker: a red disc that fills as the strike nears, an edge that pulses faster.
+      const pulse = 0.65 + 0.35 * Math.sin(e.age * (8 + 14 * p));
+      g.fillStyle(0xd9302a, 0.1 + 0.3 * p).fillEllipse(e.x, e.y, e.r * 2, e.r * 0.64 * 2);
+      g.lineStyle(4, 0xff4a3a, 0.5 + 0.5 * pulse);
+      g.strokeEllipse(e.x, e.y, e.r * 2, e.r * 0.64 * 2);
+      g.lineStyle(2, 0xff9a8a, 0.8 * (1 - p)).strokeEllipse(
+        e.x,
+        e.y,
+        e.r * 2 * (1 - p),
+        e.r * 0.64 * 2 * (1 - p),
+      );
     } else if (e.type === 'ring') {
       g.lineStyle(6 * (1 - p) + 1, 0xe6d2aa, 0.8 * (1 - p));
       g.strokeEllipse(e.x, e.y, e.r * (0.2 + p) * 2, e.r * (0.2 + p) * 0.64);

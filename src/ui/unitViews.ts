@@ -148,6 +148,9 @@ export class UnitView {
   // Green heal tint, 1 right after a heal and fading to 0.
   private healGlow = 0;
   private glowColor = 0x7dff9a;
+  // A boss (from its bossEmerged event): a big hp bar with a gold frame; enraged adds a red pulse.
+  boss = false;
+  enraged = false;
   // A rider on this unit (burn, chill, ...): tint and head icon until `msLeft` runs out.
   private rider: { id: RiderId; msLeft: number } | null = null;
   private readonly riderIcon: Phaser.GameObjects.Graphics;
@@ -636,7 +639,9 @@ export class UnitView {
         ? { color: this.glowColor, alpha: Math.min(0.7, 0.5 * this.healGlow) }
         : this.rider
           ? { color: RIDER_LOOK[this.rider.id].tint, alpha: 0.26 }
-          : null);
+          : this.enraged
+            ? { color: 0xff2a2a, alpha: 0.16 + 0.1 * Math.sin(this.phase * 6) }
+            : null);
     if (this.flash) {
       this.flash.setVisible(f !== null);
       if (f) this.flash.setTintFill(f.color).setAlpha(f.alpha);
@@ -685,6 +690,17 @@ export class UnitView {
 
   private drawBar(u: UnitState): void {
     this.bar.clear();
+    if (this.boss) {
+      // A boss always shows a big bar with a gold frame; it turns deep red once enraged.
+      const w = 150;
+      const y = -this.h - 34;
+      this.bar.fillStyle(0x000000, 0.7).fillRect(-w / 2 - 3, y - 3, w + 6, 18);
+      this.bar
+        .fillStyle(this.enraged ? 0xc41e1e : 0xcf4f4f, 1)
+        .fillRect(-w / 2, y, (w * Math.max(0, u.hp)) / u.maxHp, 12);
+      this.bar.lineStyle(2, 0xf2c14e, 0.9).strokeRect(-w / 2 - 3, y - 3, w + 6, 18);
+      return;
+    }
     if (u.hp >= u.maxHp) return;
     const w = 56;
     const y = -this.h - 22;
@@ -802,6 +818,8 @@ export class UnitViews {
       else if (e.kind === 'tierUp') this.onTierUp(e, paths);
       else if (e.kind === 'built') this.onBuilt(e, others);
       else if (e.kind === 'rider') this.views.get(e.target)?.setRider(e.rider);
+      else if (e.kind === 'bossEmerged') this.onBossEmerged(e);
+      else if (e.kind === 'enraged') this.onEnraged(e);
       else if (isSpeechEvent(e)) this.onSpeech(e, timeMs);
       // Shopping speaks (above) and also pops its tax in gold.
       if (e.kind === 'shopped') this.onShopped(e);
@@ -931,7 +949,43 @@ export class UnitViews {
     else ctx.healed(e.target, e.amount);
   }
 
+  // The boss steps out of its lair: marked as a boss for its big bar, a ring and a shake.
+  private onBossEmerged(e: Extract<SimEvent, { kind: 'bossEmerged' }>): void {
+    const v = this.views.get(e.unit);
+    if (!v) return;
+    v.boss = true;
+    this.fx.add([{ type: 'ring', x: v.container.x, y: v.container.y, r: 180, age: 0, life: 0.9 }]);
+    this.fx.dust(v.container.x, v.container.y, 2.4);
+    this.shake();
+    this.floatNumber(v.container.x, v.container.y - v.height - 50, {
+      text: 'The boss emerges!',
+      color: '#ffb0a0',
+      fontSize: 32,
+      tag: null,
+    });
+  }
+
+  // The boss enrages: a red pulse on it, a shout over its head and a shake.
+  private onEnraged(e: Extract<SimEvent, { kind: 'enraged' }>): void {
+    const v = this.views.get(e.unit);
+    if (!v) return;
+    v.enraged = true;
+    this.fx.add([{ type: 'ring', x: v.container.x, y: v.container.y, r: 140, age: 0, life: 0.7 }]);
+    this.shake();
+    this.floatNumber(v.container.x, v.container.y - v.height - 50, {
+      text: 'ENRAGED!',
+      color: '#ff5a4a',
+      fontSize: 36,
+      tag: null,
+    });
+  }
+
   private onWindup(e: Extract<SimEvent, { kind: 'windup' }>): void {
+    // A cleave shows its ground marker for the whole windup (the target is the centre).
+    if (e.area)
+      this.fx.add([
+        { type: 'cleave', x: e.area.x, y: e.area.y, r: e.area.r, age: 0, life: e.inMs / 1000 },
+      ]);
     this.views.get(e.attacker)?.beginWindup(e.target, e.inMs / 1000);
   }
 

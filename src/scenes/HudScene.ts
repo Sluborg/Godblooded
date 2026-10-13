@@ -128,6 +128,10 @@ export class HudScene extends Phaser.Scene {
           `RAID! ${e.size} ${lair?.type ?? 'monsters'} march on the town`,
           '#8a1c2bdd',
         );
+      } else if (e.kind === 'bossEmerged') {
+        this.showBanner('THE BOSS EMERGES!', '#8a1c2bdd');
+      } else if (e.kind === 'enraged') {
+        this.showBanner('THE BOSS IS ENRAGED!', '#8a1c2bdd');
       } else if (e.kind === 'buildingDestroyed') {
         this.showBanner(`${e.type.replace('_', ' ')} destroyed!`, '#8a1c2bdd');
       } else if (e.kind === 'lairDestroyed') {
