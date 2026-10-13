@@ -580,13 +580,14 @@ export const ITEMS: readonly ItemDef[] = [
 ];
 
 export const GRAYBOX: GameData = {
-  startGold: 300,
+  startGold: 420,
   map: { width: 2400, height: 1600 },
   townHall: { x: 1200, y: 800 },
-  // Balance pass (Lead 80, npm run sim, 300 runs, seeds 1, 1001, 2001): win rate 60-65%, median
-  // run 17 min, timeouts 2%, about 24 knockouts per run. Unset keys use DEFAULT_TUNING.
+  // Balance pass with items (Lead 100, 300 runs, bot building the smithy): win rate 64-65%, median
+  // run 16.5 min, timeouts under 1%. Town income is now item tax only: start gold 420 builds a
+  // temple, market and smithy, and tax is 75% of an item's price. Unset keys use DEFAULT_TUNING.
   tuning: {
-    hero: { maxPerTemple: 7, recruitMs: 22_000 },
+    hero: { maxPerTemple: 7, recruitMs: 22_000, taxRate: 0.75 },
     town: { raidFirstMs: 420_000, raidEveryMs: 180_000, raidGrowEveryMs: 240_000, raidSize: 1 },
   },
   classes: CLASSES,
