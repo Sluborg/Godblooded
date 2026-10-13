@@ -2,10 +2,11 @@ import { avenge, revengeTarget, rivalPairs, vowRevenge } from './rivalry';
 import { runAutosave } from './save';
 import { generateMap } from './mapgen';
 import { buffOf, tauntOf, type UnitFx } from './effects';
+import { everyNthOf, passiveAggroMult, passiveArmour } from './passives';
 import { noteFight } from './engage';
 import { runStatuses, slowOf, healMult, type UnitStatus } from './riders';
 import { attackStrike, landStrike } from './strike';
-import { cancelCast, runSkill, tickSkill, type SkillRuntime } from './skills';
+import { cancelCast, runSkill, supportEffect, tickSkill, type SkillRuntime } from './skills';
 import { swing, type Area } from './swing';
 import {
   bossNumbers,
@@ -109,6 +110,8 @@ export interface UnitRuntime {
   skill?: SkillRuntime;
   // Shield, mark, taunt and buffs from skills (see effects.ts).
   fx?: UnitFx;
+  // The fight this unit is in: kills so far, whether its first-hit miss is spent, strikes landed.
+  fight?: { kills: number; missUsed: boolean; strikes: number };
 }
 
 export interface World {
@@ -318,7 +321,7 @@ export function statsOf(world: World, unit: UnitState): Stats | undefined {
       cls && {
         weapon: cls.weapon,
         attrs: effectiveAttrs(world, unit, cls.attrs),
-        armour: scaled(cls.armour, buffOf(world, unit.id, 'armour')),
+        armour: scaled(cls.armour, buffOf(world, unit.id, 'armour'), passiveArmour(world, unit)),
         spellMult: cls.spellMult,
         slow: slowOf(world, unit.id),
         haste: buffOf(world, unit.id, 'attackSpeed'),
@@ -348,8 +351,8 @@ function heroDamageType(world: World, unit: UnitState): string | undefined {
   return path?.damageType ?? world.data.gods?.find((g) => g.id === unit.god)?.damageType;
 }
 
-const scaled = (armour: number | undefined, buff: number) =>
-  armour === undefined || buff === 0 ? armour : armour * (1 + buff);
+const scaled = (armour: number | undefined, buff: number, flat = 0) =>
+  armour === undefined && flat === 0 ? undefined : ((armour ?? 0) + flat) * (1 + buff);
 
 // What a strike needs to know about a unit it hits.
 export function targetOf(world: World, unit: UnitState) {
@@ -396,7 +399,7 @@ function runUnits(world: World): void {
     } else if (ally) {
       heal(world, unit, rt, stats, ally);
     } else if (foe) {
-      noteFight(world, rt, stats, world.unitRuntime.get(foe.id), statsOf(world, foe));
+      noteFight(world, unit, rt, stats, foe, world.unitRuntime.get(foe.id), statsOf(world, foe));
       fight(world, unit, rt, stats, foe);
     } else if (unit.kind === 'hero') {
       // A hero under oath goes for its monster, not for a lair on the way.
@@ -423,7 +426,7 @@ function pickTarget(world: World, unit: UnitState, stats: Stats, home?: Vec2): U
     const taunter = tauntOf(world, unit);
     if (taunter && (!home || dist(home, taunter.pos) <= world.tuning.monster.leash)) return taunter;
   }
-  const reach = aggroRange(stats.attrs);
+  const reach = aggroRange(stats.attrs) * passiveAggroMult(world, unit);
   // A hero with a sworn enemy in sight goes for it first.
   const sworn = unit.kind === 'hero' ? revengeTarget(world, unit) : undefined;
   if (sworn && !sworn.ko && dist(unit.pos, sworn.pos) <= reach) return sworn;
@@ -499,6 +502,14 @@ function fight(world: World, unit: UnitState, rt: UnitRuntime, stats: Stats, foe
       if (boss) boss.rt.strikes++;
       if (cleave && area) cleaveStrike(world, unit, foe, stats, area);
       else landStrike(world, unit, foe, attackStrike(stats, targetOf(world, foe)));
+      // A passive that adds effects to every nth strike.
+      const nth = everyNthOf(world, unit);
+      if (nth && foe.hp > 0) {
+        const fightState = (rt.fight ??= { kills: 0, missUsed: false, strikes: 0 });
+        if (++fightState.strikes % nth.n === 0) {
+          for (const effect of nth.effects) supportEffect(world, unit, stats, effect, foe);
+        }
+      }
     },
     cleave && boss
       ? {
@@ -538,6 +549,8 @@ function settleDeaths(world: World): void {
       world.stats.monstersKilled++;
       avenge(world, unit.id);
       tally(world, by, 'kills');
+      const krt = world.unitRuntime.get(by);
+      if (krt?.fight) krt.fight.kills++;
       payBounty(world, by, bounty);
       shareXp(world, by, xp);
     }

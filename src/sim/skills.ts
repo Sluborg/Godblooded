@@ -369,7 +369,7 @@ function resolve(
       if (effect.kind === 'damage') {
         if (stats) damage(world, hero, stats, effect, h.unit, h.mult);
       } else {
-        support(world, hero, stats, effect, h.unit);
+        supportEffect(world, hero, stats, effect, h.unit);
       }
       touched.add(h.unit.id);
     }
@@ -412,7 +412,7 @@ function dash(world: World, hero: UnitState, point: Vec2): void {
 }
 
 // Every effect other than damage and dash.
-function support(
+export function supportEffect(
   world: World,
   hero: UnitState,
   stats: Stats | undefined,

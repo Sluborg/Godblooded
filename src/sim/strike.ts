@@ -2,6 +2,7 @@ import { armourPct, critChance, dodgeChance, resistPct, type Stats } from './uni
 import type { World } from './world';
 import { applyRider } from './riders';
 import { buffOf, takeDamage } from './effects';
+import { hasPassive, passiveVsTags } from './passives';
 import { tally } from './runstats';
 import type { Attributes, RiderId, SimEvent, UnitState } from './types';
 
@@ -148,11 +149,30 @@ export function landStrike(
   foe: UnitState,
   input: StrikeIn,
 ): StrikeOut {
+  // A passive that makes the first strike against its owner each fight miss.
+  const frt = world.unitRuntime.get(foe.id);
+  if (frt && hasPassive(world, foe, 'firstHitMisses')) {
+    const fight = (frt.fight ??= { kills: 0, missUsed: false, strikes: 0 });
+    if (!fight.missUsed) {
+      fight.missUsed = true;
+      const miss: StrikeOut = {
+        dodged: true,
+        crit: false,
+        damage: 0,
+        type: input.type ?? 'physical',
+        weak: false,
+        resist: false,
+      };
+      world.events.push(hitEvent(attacker.id, foe.id, miss));
+      return miss;
+    }
+  }
   const boost = buffOf(world, attacker.id, 'damage');
+  const vsTag = passiveVsTags(world, attacker, input.target?.tags);
   const crit = buffOf(world, attacker.id, 'crit');
   const out = resolveStrike(world, {
     ...input,
-    ...(boost ? { skillMult: (input.skillMult ?? 1) * (1 + boost) } : {}),
+    ...(boost || vsTag !== 1 ? { skillMult: (input.skillMult ?? 1) * (1 + boost) * vsTag } : {}),
     ...(crit ? { critAdd: crit } : {}),
   });
   const taken = takeDamage(world, foe, out.damage);
