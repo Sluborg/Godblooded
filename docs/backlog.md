@@ -154,6 +154,6 @@ Review (PR open), Done. A worker takes its top Open row.
 | 90    | `docs/systems/audio.md`: music per pantheon and state, SFX list by event, sourcing and license per the manifest rule                    | Done    |
 | 100   | `docs/systems/content-roadmap.md`: which gods, monsters, buildings, cards land in M2, M3, M4; what M2 needs to be fun                   | Done    |
 | 110   | Fold Stefan's answers to the OPEN questions into the specs (when Lead relays them)                                                      | Blocked |
-| 120   | `docs/systems/hint-texts.md`: every Skald line and the 10 first-time hints as final English text, with triggers                         | Open    |
+| 120   | `docs/systems/hint-texts.md`: the first-time hints as final English text (plain, no Skald), with triggers                               | Open    |
 | 130   | `docs/systems/hero-ai.md`: how a Godblood decides today (audit of `src/sim`) and proposals for readable intent and visible personality  | Open    |
 | 140   | `docs/systems/aesir-content.md`: M2 content sheet (4 gods, 8 paths, skills, passives, damage types, start numbers) ready for `src/data` | Open    |
