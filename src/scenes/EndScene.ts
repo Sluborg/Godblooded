@@ -64,11 +64,11 @@ export class EndScene extends Phaser.Scene {
     const Y = 135;
     this.frame(X, Y, 600, 440, 'Heroes');
     const cols = [
-      { label: 'Kills', x: 330 },
-      { label: 'Lairs', x: 395 },
-      { label: 'Gold', x: 465 },
-      { label: 'KO', x: 535 },
-      { label: 'Dmg', x: 600 },
+      { label: 'Kills', x: 310 },
+      { label: 'Lairs', x: 375 },
+      { label: 'Gold', x: 445 },
+      { label: 'KO', x: 515 },
+      { label: 'Dmg', x: 580 },
     ];
     cols.forEach((c) => this.text(X + c.x, Y + 52, c.label, 16, COLORS.textMuted, 1));
     const { shown, hidden } = visibleHeroes(heroes, ROWS);

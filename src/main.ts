@@ -37,7 +37,16 @@ const game = new Phaser.Game({
     height: GAME_HEIGHT,
   },
   input: { activePointers: 2 },
-  scene: [BootScene, TitleScene, MapScene, HudScene, LevelUpScene, PauseScene, SettingsScene],
+  scene: [
+    BootScene,
+    TitleScene,
+    MapScene,
+    HudScene,
+    LevelUpScene,
+    EndScene,
+    PauseScene,
+    SettingsScene,
+  ],
 });
 
 // Test hook: with ?debug in the URL the game object is reachable from the console and from
