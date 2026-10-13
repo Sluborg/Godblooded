@@ -16,6 +16,7 @@ Review (PR open), Done. A worker takes its top Open row.
 | 60    | Building tier data (costs, effects per tier) after Sim 130; lair growth tuning after Sim 120; balance pass | Open   |
 | 70    | Map pool data after Sim 150: lair rows per monster, boss lair, pantheon lean; balance pass                 | Open   |
 | 80    | Combat data: armour, `spellMult`, damage types, monster type rows (after Sim 190-200); balance pass        | Open   |
+| 90    | Aesir skills (8) and passives (4) as data after Sim 240-260; balance pass with skills on                   | Open   |
 
 ## Sim
 
@@ -44,6 +45,10 @@ Review (PR open), Done. A worker takes its top Open row.
 | 210   | Combat: first strike on engage; riders (burn, chill, arc, wither, sear) as data, applied only when a strike carries one                                            | Open    |
 | 220   | Combat: boss unit (emerge, cleave, enrage, immunities); the boss lair cannot fall while the boss lives                                                             | Open    |
 | 230   | Combat: knockout cost and boss permadeath roll (waits on Stefan, combat OPEN 2-3)                                                                                  | Blocked |
+| 240   | Skills: engine (SkillDef, cooldowns, 6 triggers, 5 shapes, `cast`/`skill` events, trait nudge) (`docs/systems/paths-and-skills.md`)                                | Open    |
+| 250   | Skills: effects part 1 (damage, heal, shield, buff, stagger, mark, dash, taunt; chain)                                                                             | Open    |
+| 260   | Skills: god passives (12) as data on GodDef                                                                                                                        | Open    |
+| 270   | Skills: summons (decoy, falcon, thrall) and effects part 2 (knockback, bind, revive, execute) (waits on Stefan, skills OPEN 2-3)                                   | Blocked |
 
 ## Scene
 
@@ -76,6 +81,7 @@ Review (PR open), Done. A worker takes its top Open row.
 | 200   | Splash and menu look: splash scene (key art, logo reveal, loading bar), menu buttons and panels from the UI kit (9-slice, pressed state) with the current code-drawn style as fallback                    | Open   |
 | 210   | Combat feedback: floating numbers by type colour, crit and weak styles, "miss" with a hop (cap 6); caster bolt colour by type; rider tint and head icon                                                   | Open   |
 | 220   | Boss: cleave ground marker during windup, enrage tint, boss hp bar at the top; slain hero grave marker                                                                                                    | Open   |
+| 230   | Skills: cast windup glow and the 10 skill visuals in code, coloured by damage type; status display (shield, mark, buff ring); skill name bubble 1 cast in 4                                               | Open   |
 
 ## Art
 
@@ -93,6 +99,7 @@ Review (PR open), Done. A worker takes its top Open row.
 | 100   | Track `ui`: U2 UI kit now, not waiting on the logo pick: 9-slice panel, buttons (normal, pressed, disabled), icon set (gold, speed, menu, bounty, upgrade, pause), in a bronze-and-iron look that fits any logo option | Open   |
 | 110   | Track `ui`: U3 splash key art: a wide 16:9 painting of Godbloods of three pantheons facing a monster horde at dusk, no text (the logo goes on top in code)                                                             | Open   |
 | 120   | Rider icons (flame, snowflake, spark, skull, sun) in the U2 style; grave markers per pantheon (rune stone, stele, ankh slab)                                                                                           | Open   |
+| 130   | Status signs in the U2 style (raven mark, bind chains, shield rune); falcon summon `sum_falcon_t1_front` (if summons stay)                                                                                             | Open   |
 
 ## Design
 

@@ -90,6 +90,26 @@ export interface UpgradeDef {
 
 export type TraitId = 'brave' | 'coward' | 'greedy' | 'proud' | 'loyal' | 'vengeful' | 'curious';
 
+// How a run's lairs are laid out when GameData has no fixed lairSites: from the seed, with the
+// boss lair always placed as far from the town as the map allows.
+export interface MapRules {
+  // Lairs per run, boss included: a whole number between the two (inclusive).
+  lairs: readonly [number, number];
+  // The lairs a run may draw from, each with its pantheon (for the lean) and a weight (default 1).
+  // Drawn without repeats until the pool is used up.
+  pool: readonly { lair: string; pantheon: string; weight?: number }[];
+  // LairDef id of the boss lair: always placed, and the run is won when it falls.
+  boss: string;
+  // Each run leans on this many pantheons; pool lairs of those pantheons weigh leanWeight times more.
+  leanCount: number;
+  leanWeight: number;
+  // Lairs keep this far from the map edge, minTownDist from the town hall and minLairDist from
+  // each other (relaxed if the map is too crowded).
+  margin: number;
+  minTownDist: number;
+  minLairDist: number;
+}
+
 // Where a lair stands on the map.
 export interface LairSite {
   lair: string;
@@ -267,7 +287,9 @@ export interface GameData {
     bounty?: Partial<BountyTuning>;
   };
   lairs?: readonly LairDef[];
+  // Fixed lair positions. Empty or missing with mapRules set: the map is generated from the seed.
   lairSites?: readonly LairSite[];
+  mapRules?: MapRules;
   startGold: number;
   // Map size in world units (Scene maps units to pixels).
   map: { width: number; height: number };
@@ -302,6 +324,8 @@ export interface PlotState {
 export interface LairState {
   id: number;
   type: string;
+  // The boss lair of a generated map: destroying it wins the run.
+  boss: boolean;
   tier: number;
   pos: Vec2;
   hp: number;
@@ -471,6 +495,8 @@ export interface Snapshot {
   readonly bounties: readonly Readonly<BountyState>[];
   // Pairs of living heroes who are rivals right now (lower id first).
   readonly rivals: readonly (readonly [number, number])[];
+  // This run's map: the pantheons it leans on and the boss lair (null on a fixed map).
+  readonly map: Readonly<{ lean: string[]; boss: number | null }>;
   // The end screen numbers once the run is won or lost; null while it is running. Totals for
   // the run are in `stats`.
   readonly report: Readonly<RunReport> | null;
