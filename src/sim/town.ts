@@ -10,6 +10,7 @@ import {
   type Stats,
 } from './units';
 import { shareXp } from './parties';
+import { earn, tally } from './runstats';
 import { swing } from './swing';
 import type { UnitRuntime, World } from './world';
 import type { BuildingCore, CommandResult, LairState, UnitState, Vec2 } from './types';
@@ -103,6 +104,7 @@ export function attackLair(
   swing(world, unit, rt, stats, lair.id, () => {
     const dmg = damage(stats.attrs);
     lair.hp -= dmg;
+    tally(world, unit.id, 'damage', dmg);
     world.events.push({
       kind: 'hit',
       attacker: unit.id,
@@ -115,7 +117,9 @@ export function attackLair(
     world.lairs = world.lairs.filter((l) => l.id !== lair.id);
     world.lairRuntime.delete(lair.id);
     world.stats.lairsDestroyed++;
-    unit.gold += tm.lairBounty;
+    earn(world, unit, tm.lairBounty);
+    tally(world, unit.id, 'lairKills');
+    world.lairLog.push({ lair: lair.id, type: lair.type, timeMs: world.timeMs, by: unit.id });
     world.events.push({
       kind: 'lairDestroyed',
       lair: lair.id,
