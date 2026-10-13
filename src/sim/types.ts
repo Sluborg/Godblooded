@@ -221,8 +221,9 @@ export interface HeroItems {
   weapon: number;
   armour: number;
   potions: number;
-  // The potion row they came from (the strongest bought; drinking reads its heal).
-  potionId?: string;
+  // The potions carried, by item id (so small and greater ones keep their own heal). Its
+  // length is `potions`; missing means that many plain 40% potions.
+  flasks?: string[];
   charm: string | null;
 }
 
@@ -313,6 +314,14 @@ export interface HeroTuning {
   proudSpend: number;
   // Potions a hero may carry, by market tier.
   potionMax: number[];
+  // A hero drinks below its flee threshold plus this (points as a share of max hp), a coward
+  // plus cowardDrinkAdd; one that never flees drinks at neverFleeDrink. A drink takes drinkMs.
+  potionDrinkAdd: number;
+  cowardDrinkAdd: number;
+  neverFleeDrink: number;
+  // Heal share (percent of max hp) of a potion with no item row.
+  plainPotionPct: number;
+  drinkMs: number;
   taxRate: number;
   arrive: number;
   lairSearchRadius: number;
@@ -893,6 +902,8 @@ export type SimEvent =
   | { kind: 'fled'; unit: number }
   | { kind: 'revived'; unit: number }
   // `item`: the item id of one purchase (absent for the plain market spend without item rows).
+  // A hero drank a potion (`left` still carried) and healed `amount`.
+  | { kind: 'drank'; unit: number; amount: number; left: number }
   | { kind: 'shopped'; unit: number; spent: number; tax: number; item?: string }
   | { kind: 'bountyPlaced'; bounty: number; gold: number };
 

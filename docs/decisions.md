@@ -138,3 +138,12 @@ on screen; art style test toward cartoony units built from parts (S5 batch, code
 The party's card is a seeded draw weighted by personality: the leader trait's card counts x3
 (Design's rule in `level-ups.md`, not first-match). The path tray slows the run to 30% instead of
 freezing it.
+
+## 2026-10-13 Art style: cartoon units from parts, painterly details
+
+Stefan approved the style test (`docs/reference/style-test.html`): cartoony units built from parts
+and animated in code, flat shapes and thick outlines with painterly details (soft shading, rim
+light, texture), crisp at device resolution. Paths are a natural evolution of the god's tier 1
+child: same face, hair, palette and silhouette, plus gear and effects; tier 3 is more of the
+same. Scene renders units from code parts (baked to an atlas); ChatGPT pictures in the same
+style replace them when they exist.

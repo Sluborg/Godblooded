@@ -139,7 +139,7 @@ export function buyItem(world: World, unit: UnitState, id: string, shopTier: num
         return 0;
       }
       items.potions++;
-      items.potionId = item.id;
+      (items.flasks ??= []).push(item.id);
       break;
     case 'charm':
       return 0;

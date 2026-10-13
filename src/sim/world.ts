@@ -8,6 +8,7 @@ import { everyNthOf, passiveAggroMult, passiveArmour } from './passives';
 import { noteFight } from './engage';
 import { runStatuses, slowOf, healMult, type UnitStatus } from './riders';
 import { attackStrike, landStrike } from './strike';
+import { cancelDrink, runDrink } from './potions';
 import { cancelCast, runSkill, supportEffect, tickSkill, type SkillRuntime } from './skills';
 import { swing, type Area } from './swing';
 import {
@@ -114,6 +115,8 @@ export interface UnitRuntime {
   skill?: SkillRuntime;
   // Shield, mark, taunt and buffs from skills (see effects.ts).
   fx?: UnitFx;
+  // A potion being drunk: time left (see potions.ts).
+  drink?: { ms: number };
   // The fight this unit is in: kills so far, whether its first-hit miss is spent, strikes landed.
   fight?: { kills: number; missUsed: boolean; strikes: number };
 }
@@ -421,6 +424,7 @@ function runUnits(world: World): void {
     if (unit.ko) {
       rt.swing = undefined;
       cancelCast(rt);
+      cancelDrink(rt);
       continue;
     }
     rt.cooldownMs = Math.max(0, rt.cooldownMs - TICK_MS);
@@ -436,8 +440,16 @@ function runUnits(world: World): void {
     // A hero with a skill ready casts instead of its next strike or step.
     let casting = false;
     if (unit.kind === 'hero') {
-      if (busy) cancelCast(rt);
-      else casting = runSkill(world, unit, rt, foe);
+      if (busy) {
+        cancelCast(rt);
+        cancelDrink(rt);
+      } else if (runDrink(world, unit, rt, foe)) {
+        // Drinking comes before casting, striking and moving.
+        cancelCast(rt);
+        casting = true;
+      } else {
+        casting = runSkill(world, unit, rt, foe);
+      }
     }
     if (casting) {
       rt.swing = undefined;
