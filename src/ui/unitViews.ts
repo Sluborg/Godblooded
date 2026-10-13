@@ -1,6 +1,8 @@
 import Phaser from 'phaser';
+import { GRAYBOX } from '../data/graybox';
 import { lookOf, type UnitLook } from '../data/looks';
-import type { SimEvent, UnitState, Vec2 } from '../sim/api';
+import { bossState } from './bossLook';
+import type { RiderId, SimEvent, UnitState, Vec2 } from '../sim/api';
 import { ASSETS_KEY, type ManifestAsset } from './assets';
 import {
   FALL_S,
@@ -19,6 +21,7 @@ import {
   type Strike,
 } from './motionPose';
 import { pickVariant, rotateHue, sizeJitter, tierStyle } from './monsterLook';
+import { RIDER_LOOK, riderDurationMs } from './riderLook';
 import { damageLook, MAX_FLOATS, typeTint, type FloatLook, type HitInfo } from './damageLook';
 import { getSettings } from './settings';
 import { heroLabel, partyColor, partyRole, type PartyRole } from './partyLook';
@@ -147,6 +150,12 @@ export class UnitView {
   // Green heal tint, 1 right after a heal and fading to 0.
   private healGlow = 0;
   private glowColor = 0x7dff9a;
+  // A boss (from its bossEmerged event): a big hp bar with a gold frame; enraged adds a red pulse.
+  boss = false;
+  enraged = false;
+  // A rider on this unit (burn, chill, ...): tint and head icon until `msLeft` runs out.
+  private riders = new Map<RiderId, number>();
+  private readonly riderIcon: Phaser.GameObjects.Graphics;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -185,6 +194,7 @@ export class UnitView {
       .setOrigin(0.5, 1);
     this.body = scene.add.container(0, 0, [this.capsule, this.nose]);
     this.bar = scene.add.graphics();
+    this.riderIcon = scene.add.graphics();
     // Ring at the feet in the party colour (white and thicker when selected), badge with the
     // party number beside the name.
     this.ring = scene.add.graphics();
@@ -202,6 +212,7 @@ export class UnitView {
       this.ring,
       this.body,
       this.bar,
+      this.riderIcon,
       this.label,
       this.badge,
       this.pennant,
@@ -369,6 +380,79 @@ export class UnitView {
     fx.sparkle(c.x, c.y, 10);
   }
 
+  // A rider took hold: tint and icon for as long as it lasts (a newer one replaces the older).
+  setRider(id: RiderId): void {
+    this.riders.set(id, riderDurationMs(id));
+  }
+
+  // The rider shown: the one with the most time left, so a brief arc never hides a lasting burn.
+  private topRider(): { id: RiderId; msLeft: number } | null {
+    let best: { id: RiderId; msLeft: number } | null = null;
+    for (const [id, msLeft] of this.riders)
+      if (!best || msLeft > best.msLeft) best = { id, msLeft };
+    return best;
+  }
+
+  private drawRider(dtS: number): void {
+    this.riderIcon.clear();
+    for (const [id, ms] of this.riders) {
+      if (ms - dtS * 1000 <= 0) this.riders.delete(id);
+      else this.riders.set(id, ms - dtS * 1000);
+    }
+    const r = this.topRider();
+    if (!r) return;
+    const look = RIDER_LOOK[r.id];
+    // Blink in the last second so the player sees it ending.
+    if (r.msLeft < 1000 && Math.floor(r.msLeft / 120) % 2 === 0) return;
+    const x = 0;
+    const y = -this.h - 48;
+    const g = this.riderIcon;
+    g.lineStyle(3, look.icon, 1).fillStyle(look.icon, 1);
+    switch (look.shape) {
+      case 'flame':
+        g.fillTriangle(x - 8, y + 8, x + 8, y + 8, x, y - 12).fillCircle(x, y + 6, 8);
+        g.fillStyle(0xffe08a, 1).fillCircle(x, y + 7, 4);
+        break;
+      case 'snowflake':
+        for (let a = 0; a < 3; a++) {
+          const t = (a * Math.PI) / 3;
+          g.lineBetween(
+            x - Math.cos(t) * 10,
+            y - Math.sin(t) * 10,
+            x + Math.cos(t) * 10,
+            y + Math.sin(t) * 10,
+          );
+        }
+        break;
+      case 'spark':
+        g.beginPath()
+          .moveTo(x - 4, y - 12)
+          .lineTo(x + 4, y - 2)
+          .lineTo(x - 3, y)
+          .lineTo(x + 5, y + 12)
+          .strokePath();
+        break;
+      case 'skull':
+        g.fillCircle(x, y - 2, 9).fillRect(x - 5, y + 4, 10, 7);
+        g.fillStyle(0x2a1a3a, 1)
+          .fillCircle(x - 3.5, y - 2, 2.4)
+          .fillCircle(x + 3.5, y - 2, 2.4);
+        break;
+      case 'sun':
+        g.fillCircle(x, y, 6);
+        for (let a = 0; a < 8; a++) {
+          const t = (a * Math.PI) / 4;
+          g.lineBetween(
+            x + Math.cos(t) * 9,
+            y + Math.sin(t) * 9,
+            x + Math.cos(t) * 13,
+            y + Math.sin(t) * 13,
+          );
+        }
+        break;
+    }
+  }
+
   // A tier-up (decisions 2026-10-05): a gold flash, a ring on the ground, rising gold sparks and
   // the new identity said aloud.
   evolve(fx: FxLayer, name: string): void {
@@ -400,8 +484,10 @@ export class UnitView {
       // The path name can be wider than "<God>-born": keep the party badge beside the label.
       this.badge.setX(-this.label.width / 2 - 4);
     }
+    if (u.ko) this.riders.clear();
     this.tick(u.pos, u.facing.x, u.ko, ctx);
     this.drawBar(u);
+    this.drawRider(ctx.dtS);
     this.drawParty(u, role);
     this.drawPennant(u, role);
   }
@@ -410,6 +496,8 @@ export class UnitView {
   updateDying(ctx: FrameCtx): void {
     this.tick({ x: this.x, y: this.y }, 0, true, ctx);
     this.bar.clear();
+    this.riders.clear();
+    this.riderIcon.clear();
   }
 
   // Movement and pose for one frame. `to` is where the sim says the unit is.
@@ -560,7 +648,11 @@ export class UnitView {
       hurtFlash(this.hit) ??
       (this.healGlow > 0
         ? { color: this.glowColor, alpha: Math.min(0.7, 0.5 * this.healGlow) }
-        : null);
+        : this.riders.size > 0
+          ? { color: RIDER_LOOK[this.topRider()!.id].tint, alpha: 0.26 }
+          : this.enraged
+            ? { color: 0xff2a2a, alpha: 0.16 + 0.1 * Math.sin(this.phase * 6) }
+            : null);
     if (this.flash) {
       this.flash.setVisible(f !== null);
       if (f) this.flash.setTintFill(f.color).setAlpha(f.alpha);
@@ -609,6 +701,17 @@ export class UnitView {
 
   private drawBar(u: UnitState): void {
     this.bar.clear();
+    if (this.boss) {
+      // A boss always shows a big bar with a gold frame; it turns deep red once enraged.
+      const w = 150;
+      const y = -this.h - 34;
+      this.bar.fillStyle(0x000000, 0.7).fillRect(-w / 2 - 3, y - 3, w + 6, 18);
+      this.bar
+        .fillStyle(this.enraged ? 0xc41e1e : 0xcf4f4f, 1)
+        .fillRect(-w / 2, y, (w * Math.max(0, u.hp)) / u.maxHp, 12);
+      this.bar.lineStyle(2, 0xf2c14e, 0.9).strokeRect(-w / 2 - 3, y - 3, w + 6, 18);
+      return;
+    }
     if (u.hp >= u.maxHp) return;
     const w = 56;
     const y = -this.h - 22;
@@ -725,6 +828,9 @@ export class UnitViews {
       else if (e.kind === 'heal') this.onHeal(e, ctx);
       else if (e.kind === 'tierUp') this.onTierUp(e, paths);
       else if (e.kind === 'built') this.onBuilt(e, others);
+      else if (e.kind === 'rider') this.views.get(e.target)?.setRider(e.rider);
+      else if (e.kind === 'bossEmerged') this.onBossEmerged(e);
+      else if (e.kind === 'enraged') this.onEnraged(e);
       else if (isSpeechEvent(e)) this.onSpeech(e, timeMs);
       // Shopping speaks (above) and also pops its tax in gold.
       if (e.kind === 'shopped') this.onShopped(e);
@@ -737,12 +843,17 @@ export class UnitViews {
         view = new UnitView(this.scene, u);
         this.views.set(u.id, view);
       }
+      // Boss and enraged come from the snapshot (they survive a reload); events add the show.
+      const bs = bossState(u, GRAYBOX.monsters);
+      if (bs.boss) view.boss = true;
+      if (bs.enraged) view.enraged = true;
       view.update(u, ctx, partyRole(u.id, u.party, parties));
     }
     for (const [id, view] of this.views) {
       if (!seen.has(id)) {
         view.die();
         this.dying.set(id, view);
+        this.fx.dropCleaves(id);
         this.views.delete(id);
       }
     }
@@ -774,7 +885,20 @@ export class UnitViews {
     ctx: FrameCtx,
     others: (id: number) => Vec2 | undefined,
   ): void {
-    const info: HitInfo = { type: e.type, crit: e.crit, weak: e.weak, resist: e.resist };
+    const info: HitInfo = {
+      type: e.type,
+      crit: e.crit,
+      tick: e.tick,
+      weak: e.weak,
+      resist: e.resist,
+    };
+    // A burn tick: a small number over the target, no swing and no knockback.
+    if (e.tick) {
+      const t = this.views.get(e.target) ?? this.dying.get(e.target);
+      const look = damageLook(e.damage, false, info);
+      if (t && look) this.floatNumber(t.container.x, t.container.y - t.height - 10, look);
+      return;
+    }
     const attacker = this.views.get(e.attacker);
     if (attacker) {
       // A big monster's blow shakes the screen a little.
@@ -841,7 +965,45 @@ export class UnitViews {
     else ctx.healed(e.target, e.amount);
   }
 
+  // The boss steps out of its lair: marked as a boss for its big bar, a ring and a shake.
+  private onBossEmerged(e: Extract<SimEvent, { kind: 'bossEmerged' }>): void {
+    const v = this.views.get(e.unit);
+    if (!v) return; // the flag comes from the snapshot; a brand-new boss just skips the ring
+    v.boss = true;
+    this.fx.add([{ type: 'ring', x: v.container.x, y: v.container.y, r: 180, age: 0, life: 0.9 }]);
+    this.fx.dust(v.container.x, v.container.y, 2.4);
+    this.shake();
+  }
+
+  // The boss enrages: a red pulse on it, a shout over its head and a shake.
+  private onEnraged(e: Extract<SimEvent, { kind: 'enraged' }>): void {
+    const v = this.views.get(e.unit);
+    if (!v) return;
+    v.enraged = true;
+    this.fx.add([{ type: 'ring', x: v.container.x, y: v.container.y, r: 140, age: 0, life: 0.7 }]);
+    this.shake();
+    this.floatNumber(v.container.x, v.container.y - v.height - 50, {
+      text: 'ENRAGED!',
+      color: '#ff5a4a',
+      fontSize: 36,
+      tag: null,
+    });
+  }
+
   private onWindup(e: Extract<SimEvent, { kind: 'windup' }>): void {
+    // A cleave shows its ground marker for the whole windup (the target is the centre).
+    if (e.area)
+      this.fx.add([
+        {
+          type: 'cleave',
+          owner: e.attacker,
+          x: e.area.x,
+          y: e.area.y,
+          r: e.area.r,
+          age: 0,
+          life: e.inMs / 1000,
+        },
+      ]);
     this.views.get(e.attacker)?.beginWindup(e.target, e.inMs / 1000);
   }
 

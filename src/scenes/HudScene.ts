@@ -201,6 +201,10 @@ export class HudScene extends Phaser.Scene {
           `RAID! ${e.size} ${lair?.type ?? 'monsters'} march on the town`,
           '#8a1c2bdd',
         );
+      } else if (e.kind === 'bossEmerged') {
+        this.showBanner('THE BOSS EMERGES!', '#8a1c2bdd');
+      } else if (e.kind === 'enraged') {
+        this.showBanner('THE BOSS IS ENRAGED!', '#8a1c2bdd');
       } else if (e.kind === 'upgradePicked') {
         const party = map.snapshot.parties.find((p) => p.id === e.party);
         const lead = map.snapshot.units.find((u) => u.id === party?.members[0]);
