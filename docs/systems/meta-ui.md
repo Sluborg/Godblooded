@@ -53,13 +53,13 @@ Run ends ──> End screen ──Play again──> Run setup ──Start──>
 ## 3. The Altar
 
 ```
-┌ wood frame ───────────────────────────────────────────────── Ambrosia 340 ┐
+┌ wood frame ────────────────────────────────────────────── Ambrosia 340 ─┐
 │ < Back                    THE ALTAR                                     │
 │ Portent:  [ The north stirs ]  [ The sea grows restless ]  [ locked ]   │
-│ ┌ parchment row ─────────────────────────────────────────────────────┐ │
-│ │ [icon] War Chest      +50 start gold      ●●○   [ 120 ]            │ │
-│ │ [icon] Devout Masons  temples 10% cheaper ●○    [ 120 ]            │ │
-│ │ [icon] Favoured: Greek  temple recruits +15% ○  (win once)        │ │
+│ ┌ parchment row ──────────────────────────────────────────────────────┐ │
+│ │ [icon] War Chest      +50 start gold      ●●○   [ 120 ]             │ │
+│ │ [icon] Devout Masons  temples 10% cheaper ●○    [ 120 ]             │ │
+│ │ [icon] Favoured: Greek  temple recruits +15% ○  (win once)          │ │
 │ │ ...                                                                 │ │
 │ └─────────────────────────────────────────────────────────────────────┘ │
 │ Return to the gods (refund all)                                         │
@@ -80,7 +80,8 @@ Run ends ──> End screen ──Play again──> Run setup ──Start──>
 - **Can't afford:** the button is dimmed and shows the cost in red; tapping it shows a toast "Need 40 more Ambrosia".
 - **Locked:** Favoured rows of a locked pantheon show the unlock goal instead of a cost.
 - **Return to the gods:** a text button at the bottom, also press and hold (about 1.2 s, longer
-  because it undoes everything), no popup.
+  because it undoes everything), no popup. Design's recommendation: Stefan decided hold-to-buy
+  only; this follows the same rule.
 
 ## 4. Hall: Saga and unlocks
 
@@ -102,7 +103,9 @@ Run ends ──> End screen ──Play again──> Run setup ──Start──>
 | Altar shortcut | a small "Altar (340)" button if any rank is affordable                                                                                                                                                    |
 | Start          | big, bottom right                                                                                                                                                                                         |
 
-- **The run uses the chosen lean:** `createWorld` takes `lean` from the meta save; the map leans
+- **The run uses the chosen lean:** `createWorld` takes `lean` from the meta save. Mapgen's
+  `lean: string[]` starts with the chosen pantheon; with `leanCount` above 1 the rest are drawn
+  as today from the other pantheons in the pool (`pickLean`). The map leans
   on that pantheon and its boss pair is drawn (seeded by `nextSeed`, no repeat by `lastBoss`).
 - With only the Aesir unlocked, the strip shows one choice and the portent still shows.
 
