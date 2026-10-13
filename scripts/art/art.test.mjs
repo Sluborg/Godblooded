@@ -19,7 +19,7 @@ import {
   readPng,
   writePng,
 } from './lib.mjs';
-import { validateAssets } from './validate.mjs';
+import { musicErrors, validateAssets } from './validate.mjs';
 
 const GREEN = [0, 255, 0];
 const MAGENTA = [255, 0, 255];
@@ -463,6 +463,29 @@ describe('compression', () => {
     await compressPng(path);
     expect(compressWarnings()).toEqual([]);
     expect(validateAssets(root, 100).errors.join()).toMatch(/the budget is/);
+  });
+});
+
+describe('music rows', () => {
+  it('needs both formats, the file without extension and sane loop points', () => {
+    const root = mkdtempSync(join(tmpdir(), 'art-'));
+    mkdirSync(join(root, 'audio'), { recursive: true });
+    const row = {
+      id: 'mus_title',
+      kind: 'mus',
+      file: 'audio/mus_title',
+      loopStartMs: 0,
+      loopEndMs: 1000,
+    };
+    expect(musicErrors(row, root).join()).toMatch(/mus_title.ogg missing/);
+    writeFileSync(join(root, 'audio/mus_title.ogg'), '');
+    writeFileSync(join(root, 'audio/mus_title.m4a'), '');
+    expect(musicErrors(row, root)).toEqual([]);
+    expect(musicErrors({ ...row, loopEndMs: 0 }, root).join()).toMatch(/start < end/);
+    expect(musicErrors({ ...row, file: 'audio/mus_title.ogg' }, root).join()).toMatch(
+      /no extension/,
+    );
+    expect(musicErrors({ ...row, kind: 'ui' }, root).join()).toMatch(/kind must be "mus"/);
   });
 });
 

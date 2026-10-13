@@ -18,7 +18,8 @@
     "art:ship": "node scripts/art/ship.mjs",
     "icons": "node scripts/gen-icons.mjs",
     "smoke": "node scripts/smoke.mjs",
-    "art:compress": "node scripts/art/compress.mjs"
+    "art:compress": "node scripts/art/compress.mjs",
+    "port:proto": "node scripts/port-proto.mjs && prettier --write src/ui/parts/proto.gen.ts src/data/heroParts.gen.ts"
   },
   "dependencies": {
     "phaser": "^3.90.0"

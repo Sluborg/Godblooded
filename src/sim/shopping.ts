@@ -40,6 +40,31 @@ function potionAt(world: World, marketTier: number): ItemDef | undefined {
   return best;
 }
 
+// A charm to buy: among the market's charms the hero can afford, the dearest (one drawn when
+// several tie). With a charm already it only swaps for a dearer one of at least charmSwapPrice.
+function charmToBuy(
+  world: World,
+  held: string | null,
+  marketTier: number,
+  budget: number,
+): ItemDef | undefined {
+  const items = world.data.items ?? [];
+  const cur = held ? items.find((i) => i.id === held) : undefined;
+  const floor = held ? Math.max(world.tuning.hero.charmSwapPrice, (cur?.price ?? 0) + 1) : 0;
+  const fits = items.filter(
+    (i) =>
+      i.slot === 'charm' &&
+      i.id !== held &&
+      i.shopTier <= marketTier &&
+      i.price <= budget &&
+      i.price >= floor,
+  );
+  if (fits.length === 0) return undefined;
+  const top = Math.max(...fits.map((i) => i.price));
+  const best = fits.filter((i) => i.price === top);
+  return best.length === 1 ? best[0] : best[Math.floor(world.rng() * best.length)];
+}
+
 // The next level of weapon or armour a smithy of this tier sells.
 function nextLevel(
   world: World,
@@ -96,7 +121,16 @@ export function planShopping(world: World, unit: UnitState): ShopStop[] {
     else have.armour++;
     bought.push({ item: pick, shop: 'smithy' });
   }
-  // 4: more potions up to the market's cap (charms, step 3, wait for Sim 310)
+  // 3: a charm, if it has none (or a dearer one worth the swap)
+  if (market) {
+    const charm = charmToBuy(world, have.charm, market.tier, budget);
+    if (charm) {
+      budget -= charm.price;
+      have.charm = charm.id;
+      bought.push({ item: charm, shop: 'market' });
+    }
+  }
+  // 4: more potions up to the market's cap
   while (buyPotion()) {
     /* keep buying while it fits */
   }
@@ -141,8 +175,17 @@ export function buyItem(world: World, unit: UnitState, id: string, shopTier: num
       items.potions++;
       (items.flasks ??= []).push(item.id);
       break;
-    case 'charm':
-      return 0;
+    case 'charm': {
+      const cur = items.charm ? world.data.items?.find((i) => i.id === items.charm) : undefined;
+      if (
+        items.charm !== null &&
+        (item.price < world.tuning.hero.charmSwapPrice || item.price <= (cur?.price ?? 0))
+      ) {
+        return 0;
+      }
+      items.charm = item.id;
+      break;
+    }
   }
   unit.gold -= item.price;
   return item.price;
