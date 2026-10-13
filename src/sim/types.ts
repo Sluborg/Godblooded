@@ -136,8 +136,37 @@ export interface MonsterDef {
   // A boss: one unit per final lair (docs/systems/combat.md section 7). The object overrides
   // tuning.boss for this boss; `{}` takes the defaults.
   boss?: Partial<BossTuning>;
+  // Boss only: its signature move, which replaces the generic cleave (monsters-and-bosses.md 3).
+  move?: BossMove;
   // Boss only: its own hit points instead of Sta * 8 + Str * 4 (scaled by lair tier).
   hp?: number;
+}
+
+// A boss's signature move. Only the breath so far (Fafnir); the others arrive as rows of the same
+// shape.
+export interface BossMove {
+  // Fire Breath: every everyN-th strike (enragedEveryN once enraged) is a cone in front of the
+  // boss: range, a full angle in degrees, mult x its strike, of a type with an optional rider.
+  // It is announced windupMs ahead, cannot be dodged, and hits every hero inside the cone.
+  breath?: {
+    everyN: number;
+    enragedEveryN: number;
+    range: number;
+    angleDeg: number;
+    mult: number;
+    type: DamageType;
+    rider?: RiderId;
+    windupMs: number;
+  };
+}
+
+// A cone on the ground a strike hits, fixed when the windup starts.
+export interface ConeArea {
+  from: Vec2;
+  // Unit vector the cone opens along.
+  dir: Vec2;
+  range: number;
+  angleDeg: number;
 }
 
 // Boss numbers. Defaults in tuning.boss; a MonsterDef.boss row can override any of them.
@@ -1004,6 +1033,8 @@ export type SimEvent =
       inMs: number;
       // A cleave: the ground marker Scene draws until the strike lands.
       area?: { x: number; y: number; r: number };
+      // A breath: the cone Scene draws until the strike lands.
+      cone?: ConeArea;
     }
   | { kind: 'bossEmerged'; unit: number; lair: number }
   | { kind: 'enraged'; unit: number }
