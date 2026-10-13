@@ -20,7 +20,7 @@ column as PRs land.
   test in #228; monsters, lairs and buildings in the new look are not started (the look sheet, #234).
 - **Critical path (section 3):** data on (skills, passives, items, cards) → raid warnings and
   monster behaviours → hero intent → hints → sound → new-look art → the fun check.
-- **Out of M2:** Greek and Egyptian, tier 3, the meta (Ambrosia), omens, miracles, the Hearth Hall,
+- **Out of M2:** Greek and Egyptian, tier 3, the meta (Essence), omens, miracles, the Hearth Hall,
   ruins, music. Built specs wait for M3.
 
 ## 1. Definition of done
@@ -106,7 +106,7 @@ State: **done** (on `main`), **PR #n** (open), **not started**. Owner: the role 
 | -------------------------------------------------------------------------- | --------- | --------------------------------------- |
 | Greek and Egyptian gods, temples, monsters, bosses                         | M3        | breadth after M2 proves watching is fun |
 | Tier 3 heroes, buildings and lairs                                         | M3        | the tier 2 moment first                 |
-| Meta: Ambrosia, the Altar, unlocks, Saga, Trials, the Hall                 | M3        | no meta before the core loop is fun     |
+| Meta: Essence, the Altar, unlocks, Saga, Trials, the Hall                  | M3        | no meta before the core loop is fun     |
 | Omens; favour bars and miracles (Sim landed in #205, off until rows exist) | M3        | not needed to judge M2                  |
 | Charms and the lair relic (Sim landed in #204, no rows)                    | M3        | M2 gear is weapon, armour, potions      |
 | Elites, late recruits, bosses by pantheon, the 5 new bosses                | M3        | one boss (Fafnir) in M2                 |

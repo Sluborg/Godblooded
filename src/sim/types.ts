@@ -764,6 +764,8 @@ export interface BountyTuning {
   cowardFearMult: number;
   // Proud heroes ignore flags paying less than this.
   proudMinGold: number;
+  // Share of a flag's gold the town gets back when the flag is cancelled.
+  cancelRefund: number;
 }
 
 export interface CombatTuning {
@@ -1113,11 +1115,18 @@ export type SimEvent =
   | { kind: 'miracle'; id: string; pantheon: string; pos: Vec2; tellMs: number }
   // A party leader got a charm from a lair that fell.
   | { kind: 'relic'; unit: number; item: string; lair: number }
-  | { kind: 'bountyPlaced'; bounty: number; gold: number };
+  | { kind: 'bountyPlaced'; bounty: number; gold: number }
+  // `gold`: what the flag held; `refund`: what the town got back.
+  | { kind: 'bountyCancelled'; bounty: number; gold: number; refund: number }
+  | { kind: 'bountyRaised'; bounty: number; gold: number; total: number };
 
 export type Command =
   | { kind: 'build'; type: string; plot: number }
   | { kind: 'placeBounty'; pos: Vec2; gold: number }
+  // Take a flag down and get cancelRefund (50%) of its gold back.
+  | { kind: 'cancelBounty'; bounty: number }
+  // Add gold to a flag that stands.
+  | { kind: 'raiseBounty'; bounty: number; gold: number }
   | { kind: 'pickUpgrade'; party: number; upgrade: string }
   | { kind: 'pickPath'; party: number; path: string }
   // Buy the next tier of a building.

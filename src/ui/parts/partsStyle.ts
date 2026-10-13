@@ -25,3 +25,21 @@ export function gradePixels(
     data[i + 2] = (lum + (b - lum) * saturation) * (1 - warmth);
   }
 }
+
+// Grades one colour (0..255 channels), clamped. For a few colours at a time (the ground); the
+// pixel loop above is the fast path for whole atlases.
+export function gradeRgb(
+  r: number,
+  g: number,
+  b: number,
+  saturation: number = PARTS_STYLE.saturation,
+  warmth: number = PARTS_STYLE.warmth,
+): [number, number, number] {
+  const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+  const clamp = (v: number): number => Math.min(255, Math.max(0, Math.round(v)));
+  return [
+    clamp((lum + (r - lum) * saturation) * (1 + warmth)),
+    clamp(lum + (g - lum) * saturation),
+    clamp((lum + (b - lum) * saturation) * (1 - warmth)),
+  ];
+}
