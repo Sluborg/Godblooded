@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createWorld, snapshot, step, TICK_MS, type GameData, type SimEvent } from './api';
+import { spawnSummons } from './summons';
 import { spawnHero } from './world';
 import type { UnitState } from './types';
 
@@ -121,6 +122,60 @@ describe('Fafnir Fire Breath', () => {
     const winds = ev.filter((e) => e.kind === 'windup');
     const firstCone = winds.findIndex((e) => 'cone' in e && e.cone);
     expect(firstCone).toBe(1);
+  });
+
+  it('skips knocked out heroes inside the cone', () => {
+    const { w, target, boss } = setup();
+    const ko = spawnHero(w, 'knight', { x: boss.pos.x + 40, y: boss.pos.y + 5 });
+    const u = w.units.find((x) => x.id === ko)!;
+    u.ko = true;
+    u.mode = 'ko';
+    const ev = run(w, 6_000);
+    const fire = ev.filter((e) => e.kind === 'hit' && e.attacker === boss.id && e.type === 'fire');
+    expect(fire.some((e) => e.kind === 'hit' && e.target === target.id)).toBe(true);
+    expect(fire.some((e) => e.kind === 'hit' && e.target === ko)).toBe(false);
+  });
+
+  it('burns a summon standing in the cone', () => {
+    const w = createWorld(1, { ...data(), summons: [{ id: 'decoy', hp: 1e9 }] });
+    const id = spawnHero(w, 'knight', { x: 540, y: 500 });
+    const hero = w.units.find((x) => x.id === id)!;
+    hero.mode = 'explore';
+    hero.maxHp = 1e9;
+    hero.hp = 1e9;
+    run(w, 100);
+    const boss = w.units.find((u) => u.type === 'wyrm')!;
+    spawnSummons(
+      w,
+      hero,
+      { kind: 'summon', summon: 'decoy' } as never,
+      { x: boss.pos.x + 50, y: boss.pos.y + 8 },
+      'sk',
+    );
+    const decoy = w.units.find((u) => u.summon?.def === 'decoy')!;
+    const ev = run(w, 6_000);
+    expect(
+      ev.some(
+        (e) =>
+          e.kind === 'hit' && e.attacker === boss.id && e.target === decoy.id && e.type === 'fire',
+      ),
+    ).toBe(true);
+  });
+
+  it('a target exactly on the boss still gets a cone, along its facing', () => {
+    const { w, target, boss } = setup();
+    target.pos = { ...boss.pos };
+    const ev = run(w, 4_000);
+    const cone = ev.find((e) => e.kind === 'windup' && 'cone' in e && e.cone);
+    expect(cone).toBeDefined();
+  });
+
+  it('everyN 0 is clamped to 1: the boss breathes every strike', () => {
+    const { w } = setup({ ...BREATH, everyN: 0 });
+    const ev = run(w, 4_000);
+    const winds = ev.filter((e) => e.kind === 'windup');
+    expect(winds.length).toBeGreaterThan(1);
+    expect(winds.every((e) => 'cone' in e && e.cone)).toBe(true);
   });
 
   it('a boss without a move still cleaves as before', () => {
