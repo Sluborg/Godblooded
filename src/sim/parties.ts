@@ -1,4 +1,5 @@
 import { armourBonus } from './items';
+import { offerCards } from './cards';
 import { passiveAttrs } from './passives';
 import { partiesHaveRivals, runRivalries } from './rivalry';
 import { dist, maxHp } from './units';
@@ -115,23 +116,19 @@ export function shareXp(world: World, killer: number, xp: number): void {
     }
   }
   party.xp += xp;
-  while (party.xp >= xpNext(world, party.level) && !party.offer && !party.pathOffer) {
+  while (
+    party.level < tune(world).maxLevel &&
+    party.xp >= xpNext(world, party.level) &&
+    !party.offer &&
+    !party.pathOffer
+  ) {
     party.xp -= xpNext(world, party.level);
     party.level++;
-    const ids = offerIds(world);
+    const ids = offerCards(world, party);
     if (ids.length > 0) party.offer = ids;
     world.events.push({ kind: 'levelUp', party: party.id, level: party.level, offer: ids });
     settleTiers(world, party);
   }
-}
-
-function offerIds(world: World): string[] {
-  const pool = (world.data.upgrades ?? []).map((u) => u.id);
-  const picked: string[] = [];
-  while (picked.length < tune(world).offerSize && pool.length > 0) {
-    picked.push(...pool.splice(Math.floor(world.rng() * pool.length), 1));
-  }
-  return picked;
 }
 
 const pathDef = (world: World, id: string | null): PathDef | undefined =>

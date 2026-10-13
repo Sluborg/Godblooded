@@ -219,11 +219,33 @@ export interface HeroItems {
 }
 
 // One of 3 cards offered when a party levels up. `effect` keys are read by Sim.
+export type CardFamily = 'stats' | 'sustain' | 'nerve' | 'skill' | 'pantheon' | 'favour';
+export type CardRarity = 'common' | 'rare' | 'epic';
+
+// What a party needs for a card to be offered: every key set must hold for some member (tier:
+// some member at that tier or above; caster, healer: some member of such a template).
+export interface CardNeeds {
+  god?: string;
+  path?: string;
+  pantheon?: string;
+  template?: string;
+  tier?: number;
+  caster?: boolean;
+  healer?: boolean;
+}
+
 export interface UpgradeDef {
   id: string;
   name: string;
   text: string;
   effect: { attr?: Partial<Attributes>; healPct?: number; flee?: number };
+  // Offer rules (docs/systems/progression.md section 2). A card with none of these behaves as
+  // before: common, no needs, offered however often.
+  family?: CardFamily;
+  rarity?: CardRarity;
+  needs?: CardNeeds;
+  // Times a party may take it: stats cards 3, every other family 1, a card with no family any.
+  stack?: number;
 }
 
 export type TraitId = 'brave' | 'coward' | 'greedy' | 'proud' | 'loyal' | 'vengeful' | 'curious';
@@ -283,6 +305,12 @@ export interface PartyTuning {
   mergeEveryTicks: number;
   xpPerLevel: number;
   offerSize: number;
+  // The party stops levelling here (its XP still counts).
+  maxLevel: number;
+  // The level whose offer is the party's god's favour cards.
+  favourLevel: number;
+  // Rarity weights [common, rare, epic] by party level: 2-3, 4-5, 6 and up.
+  rarity: { low: number[]; mid: number[]; high: number[] };
   bondCap: number;
   baseFlee: number;
   // Rivalries: heroes whose bond is at or below this are rivals (bonds run from -3 up).
