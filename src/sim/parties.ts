@@ -204,7 +204,9 @@ function refreshMaxHp(world: World, u: UnitState): void {
   const cls = world.data.classes?.find((c) => c.id === u.type);
   if (!cls) return;
   const newMax = maxHp(effectiveAttrs(world, u, cls.attrs));
-  if (!u.ko) u.hp += newMax - u.maxHp;
+  // A lower max (a path template with fewer hp) must not take a living hero to 0 hp, which
+  // would leave it alive but untargetable: it keeps at least 1 hp.
+  if (!u.ko) u.hp = Math.min(newMax, Math.max(1, u.hp + newMax - u.maxHp));
   u.maxHp = newMax;
 }
 
