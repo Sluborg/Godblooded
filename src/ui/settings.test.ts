@@ -15,6 +15,7 @@ describe('parseSettings', () => {
       palette: 'colourblind',
       musicVolume: DEFAULT_SETTINGS.musicVolume,
       musicMuted: false,
+      heroNames: false,
     });
     expect(parseSettings({ speed: 3, reducedMotion: 'yes', palette: 'neon' })).toEqual(
       DEFAULT_SETTINGS,
@@ -29,6 +30,8 @@ describe('music settings', () => {
     expect(parseSettings({ musicVolume: 7 }).musicVolume).toBe(1);
     expect(parseSettings({ musicVolume: 'loud' }).musicVolume).toBe(0.6);
     expect(parseSettings({ musicMuted: true }).musicMuted).toBe(true);
+    expect(DEFAULT_SETTINGS.heroNames).toBe(false);
+    expect(parseSettings({ heroNames: true }).heroNames).toBe(true);
   });
 });
 

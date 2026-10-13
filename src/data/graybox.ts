@@ -4,6 +4,7 @@ import type {
   ClassDef,
   GameData,
   GodDef,
+  ItemDef,
   LairDef,
   MonsterDef,
   PathDef,
@@ -19,6 +20,7 @@ export const CLASSES: readonly ClassDef[] = [
     attrs: { str: 6, dex: 3, sta: 6, cha: 3, per: 3, int: 2, wp: 5 },
     weapon: { baseAttackS: 1.6, range: 40 },
     startGold: 40,
+    kit: 'heavy',
     armour: 6,
   },
   {
@@ -26,6 +28,7 @@ export const CLASSES: readonly ClassDef[] = [
     attrs: { str: 4, dex: 6, sta: 4, cha: 3, per: 6, int: 3, wp: 4 },
     weapon: { baseAttackS: 1.4, range: 220 },
     startGold: 50,
+    kit: 'light',
     armour: 3,
   },
   // Wizard: str stands for spell power until magic has its own stat.
@@ -34,6 +37,7 @@ export const CLASSES: readonly ClassDef[] = [
     attrs: { str: 5, dex: 4, sta: 3, cha: 3, per: 5, int: 7, wp: 5 },
     weapon: { baseAttackS: 1.9, range: 200 },
     startGold: 45,
+    kit: 'robe',
     armour: 0,
     spellMult: 1,
   },
@@ -42,6 +46,7 @@ export const CLASSES: readonly ClassDef[] = [
     attrs: { str: 5, dex: 2, sta: 8, cha: 4, per: 3, int: 3, wp: 7 },
     weapon: { baseAttackS: 1.9, range: 40 },
     startGold: 40,
+    kit: 'heavy',
     armour: 10,
   },
   {
@@ -49,6 +54,7 @@ export const CLASSES: readonly ClassDef[] = [
     attrs: { str: 4, dex: 8, sta: 4, cha: 3, per: 5, int: 3, wp: 3 },
     weapon: { baseAttackS: 1.1, range: 40 },
     startGold: 60,
+    kit: 'light',
     armour: 3,
   },
   // Healer: mends the most hurt party mate below the heal threshold, otherwise casts a bolt.
@@ -57,6 +63,7 @@ export const CLASSES: readonly ClassDef[] = [
     attrs: { str: 2, dex: 3, sta: 4, cha: 4, per: 4, int: 6, wp: 6 },
     weapon: { baseAttackS: 1.6, range: 200 },
     startGold: 40,
+    kit: 'robe',
     heals: true,
     armour: 1,
     spellMult: 0.6,
@@ -89,10 +96,7 @@ export const PATHS: readonly PathDef[] = [
     template: 'wizard',
     name: 'Seer',
     damageType: 'death',
-    attrs: [
-      { str: 1, int: 1 },
-      { str: 2, int: 2 },
-    ],
+    attrs: [{ int: 2 }, { int: 4 }],
   },
   {
     id: 'odin-wanderer',
@@ -120,10 +124,7 @@ export const PATHS: readonly PathDef[] = [
     template: 'wizard',
     name: 'Stormcaller',
     damageType: 'lightning',
-    attrs: [
-      { str: 1, int: 1 },
-      { str: 2, int: 2 },
-    ],
+    attrs: [{ int: 2 }, { int: 4 }],
   },
   {
     id: 'loki-trickster',
@@ -141,10 +142,7 @@ export const PATHS: readonly PathDef[] = [
     template: 'wizard',
     name: 'Flamebinder',
     damageType: 'fire',
-    attrs: [
-      { str: 1, int: 1 },
-      { str: 2, int: 2 },
-    ],
+    attrs: [{ int: 2 }, { int: 4 }],
   },
   {
     id: 'freyja-valkyrie',
@@ -183,10 +181,7 @@ export const PATHS: readonly PathDef[] = [
     template: 'wizard',
     name: 'Owlsage',
     damageType: 'lightning',
-    attrs: [
-      { str: 1, int: 1 },
-      { str: 2, int: 2 },
-    ],
+    attrs: [{ int: 2 }, { int: 4 }],
   },
   {
     id: 'ares-bloodrager',
@@ -245,10 +240,7 @@ export const PATHS: readonly PathDef[] = [
     template: 'wizard',
     name: 'Tidecaller',
     damageType: 'frost',
-    attrs: [
-      { str: 1, int: 1 },
-      { str: 2, int: 2 },
-    ],
+    attrs: [{ int: 2 }, { int: 4 }],
   },
   {
     id: 'horus-falconer',
@@ -286,10 +278,7 @@ export const PATHS: readonly PathDef[] = [
     template: 'wizard',
     name: 'Embalmer',
     damageType: 'death',
-    attrs: [
-      { str: 1, int: 1 },
-      { str: 2, int: 2 },
-    ],
+    attrs: [{ int: 2 }, { int: 4 }],
   },
   {
     id: 'sekhmet-lioness',
@@ -307,10 +296,7 @@ export const PATHS: readonly PathDef[] = [
     template: 'wizard',
     name: 'Plaguefire',
     damageType: 'fire',
-    attrs: [
-      { str: 1, int: 1 },
-      { str: 2, int: 2 },
-    ],
+    attrs: [{ int: 2 }, { int: 4 }],
   },
   {
     id: 'isis-lifegiver',
@@ -329,10 +315,7 @@ export const PATHS: readonly PathDef[] = [
     template: 'wizard',
     name: 'Enchantress',
     damageType: 'lightning',
-    attrs: [
-      { str: 1, int: 1 },
-      { str: 2, int: 2 },
-    ],
+    attrs: [{ int: 2 }, { int: 4 }],
   },
 ];
 
@@ -415,72 +398,192 @@ export const LAIRS: readonly LairDef[] = [
   { id: 'wyrm-nest', monster: 'wyrm', spawnS: 30, maxAlive: 3, hp: 3500, escort: 'draugr' },
 ];
 
-// Level-up cards; a party is offered 3 different ones. Graybox set: stats, sustain, nerve.
+// Level-up cards; a party is offered 3 and its leader auto-picks (level-ups.md): `god` offers
+// the card, `pickTag` is what a leader trait looks for. Graybox set: stats, sustain, nerve.
 export const UPGRADES: readonly UpgradeDef[] = [
   {
     id: 'iron-arms',
+    god: 'thor',
+    pickTag: 'attack',
     name: 'Iron Arms',
     text: '+2 Strength for the whole party',
     effect: { attr: { str: 2 } },
   },
   {
     id: 'thick-hide',
+    god: 'anubis',
+    pickTag: 'defence',
     name: 'Thick Hide',
     text: '+2 Stamina for the whole party',
     effect: { attr: { sta: 2 } },
   },
   {
     id: 'quick-feet',
+    god: 'loki',
+    pickTag: 'attack',
     name: 'Quick Feet',
     text: '+2 Dexterity: faster attacks, more dodges',
     effect: { attr: { dex: 2 } },
   },
   {
     id: 'hawk-eyes',
+    god: 'horus',
+    pickTag: 'sight',
     name: 'Hawk Eyes',
     text: '+3 Perception: spot monsters from further away',
     effect: { attr: { per: 3 } },
   },
   {
     id: 'iron-will',
+    god: 'athena',
+    pickTag: 'defence',
     name: 'Iron Will',
     text: '+2 Willpower and +1 Stamina',
     effect: { attr: { wp: 2, sta: 1 } },
   },
   {
     id: 'battle-hymn',
+    god: 'ares',
+    pickTag: 'attack',
     name: 'Battle Hymn',
     text: '+1 Strength and +1 Dexterity',
     effect: { attr: { str: 1, dex: 1 } },
   },
   {
     id: 'odins-eye',
+    god: 'odin',
+    pickTag: 'nerve',
     name: "Odin's Eye",
     text: 'Heal 50% now; the party flees later (at 15% hp instead of 30%)',
     effect: { healPct: 50, flee: 0.15 },
   },
   {
     id: 'second-wind',
+    god: 'freyja',
+    pickTag: 'sustain',
     name: 'Second Wind',
     text: 'Heal the whole party to full now',
     effect: { healPct: 100 },
   },
   {
     id: 'berserker',
+    god: 'sekhmet',
+    pickTag: 'nerve',
     name: 'Berserker',
     text: '+3 Strength, but the party never flees',
     effect: { attr: { str: 3 }, flee: 0 },
   },
 ];
 
+// Gear (docs/systems/items-and-shops.md section 2). Weapon and armour levels come from the
+// smithy, potions from the market; a shop of tier t sells every level up to t. Charms wait for
+// their effects (Sim 310).
+export const ITEMS: readonly ItemDef[] = [
+  {
+    id: 'weapon-1',
+    slot: 'weapon',
+    level: 1,
+    name: 'Tempered',
+    price: 60,
+    shop: 'smithy',
+    shopTier: 1,
+    effects: { power: 2 },
+  },
+  {
+    id: 'weapon-2',
+    slot: 'weapon',
+    level: 2,
+    name: 'Master-forged',
+    price: 150,
+    shop: 'smithy',
+    shopTier: 2,
+    effects: { power: 4 },
+  },
+  {
+    id: 'weapon-3',
+    slot: 'weapon',
+    level: 3,
+    name: 'Godsteel',
+    price: 320,
+    shop: 'smithy',
+    shopTier: 3,
+    effects: { power: 7 },
+  },
+  {
+    id: 'armour-1',
+    slot: 'armour',
+    level: 1,
+    price: 50,
+    shop: 'smithy',
+    shopTier: 1,
+    effects: {
+      kits: {
+        heavy: { armour: 4, wp: 0 },
+        light: { armour: 2, wp: 1 },
+        robe: { armour: 0, wp: 2 },
+      },
+    },
+  },
+  {
+    id: 'armour-2',
+    slot: 'armour',
+    level: 2,
+    price: 130,
+    shop: 'smithy',
+    shopTier: 2,
+    effects: {
+      kits: {
+        heavy: { armour: 8, wp: 1 },
+        light: { armour: 4, wp: 2 },
+        robe: { armour: 1, wp: 4 },
+      },
+    },
+  },
+  {
+    id: 'armour-3',
+    slot: 'armour',
+    level: 3,
+    price: 280,
+    shop: 'smithy',
+    shopTier: 3,
+    effects: {
+      kits: {
+        heavy: { armour: 13, wp: 2 },
+        light: { armour: 7, wp: 3 },
+        robe: { armour: 2, wp: 7 },
+      },
+    },
+  },
+  {
+    id: 'healing',
+    slot: 'potion',
+    name: 'Healing potion',
+    price: 20,
+    shop: 'market',
+    shopTier: 1,
+    effects: { healPct: 40 },
+  },
+  {
+    id: 'greater',
+    slot: 'potion',
+    name: 'Greater potion',
+    price: 40,
+    shop: 'market',
+    shopTier: 2,
+    effects: { healPct: 70 },
+  },
+];
+
 export const GRAYBOX: GameData = {
-  startGold: 300,
+  startGold: 420,
   map: { width: 2400, height: 1600 },
   townHall: { x: 1200, y: 800 },
-  // Balance pass (Lead 80, npm run sim, 300 runs, seeds 1, 1001, 2001): win rate 60-65%, median
-  // run 17 min, timeouts 2%, about 24 knockouts per run. Unset keys use DEFAULT_TUNING.
+  // Balance pass (Lead 100; items, potions, card auto-pick, level cap 8, knockout cost; 300 runs,
+  // seeds 1 and 1001): win rate 66-67%, median run 15.6 min, timeouts under 1%. Town income is
+  // item tax only: start gold 420 builds a temple, market and smithy, and tax is 60% of an
+  // item's price. Unset keys use DEFAULT_TUNING.
   tuning: {
-    hero: { maxPerTemple: 7, recruitMs: 22_000 },
+    hero: { maxPerTemple: 7, recruitMs: 22_000, taxRate: 0.6 },
     town: { raidFirstMs: 420_000, raidEveryMs: 180_000, raidGrowEveryMs: 240_000, raidSize: 1 },
   },
   classes: CLASSES,
@@ -489,6 +592,7 @@ export const GRAYBOX: GameData = {
   upgrades: UPGRADES,
   monsters: MONSTERS,
   lairs: LAIRS,
+  items: ITEMS,
   // Each run draws its own map (Sim 150): 4-6 lairs from the pool, leaning on one pantheon, and
   // the wyrm nest as the boss lair; the run is won when the boss falls.
   lairSites: [],
@@ -524,5 +628,6 @@ export const GRAYBOX: GameData = {
     { id: 'market', cost: 100 },
     { id: 'shrine', cost: 120 },
     { id: 'tower', cost: 80 },
+    { id: 'smithy', cost: 120 },
   ],
 };
