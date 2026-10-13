@@ -63,13 +63,13 @@ docs/         design, collaboration, inboxes, requests, sessions
   merges it once CI is green. A few batches a day, not one per topic. Workers never merge to
   `main`. Never land red CI.
 - **Codex: manual only.** Lead decides which batch gets `@codex review`.
-- **Docs-only commits straight to `main`:** Lead (its docs) and Design (`docs/systems/`,
-  `docs/playtest-m2.md`). Everything else goes through a batch.
+- **Docs-only commits straight to `main`:** Lead only. Everything else, Design's docs included,
+  goes through a batch.
 - `main` deploys to https://sluborg.github.io/Godblooded/ automatically.
 - Small commits, one topic per branch, conventional commit messages.
 
 ## Hard stops
 
-- No commits straight to `main`, except Lead's and Design's docs-only commits.
+- No commits straight to `main`, except Lead's docs-only commits.
 - No editing another role's files; no merging red CI; no breaking saves.
 - Never claim done without running the checks. Never invent APIs; if unsure, say so.

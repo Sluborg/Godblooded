@@ -20,6 +20,8 @@ export interface Stats {
   weaponPower?: number;
   // Bound: cannot move (speed 0).
   rooted?: boolean;
+  // Multiplies the walking speed (raiders of a harrier or swarm role).
+  speedMult?: number;
   // Multiplies the attack time (an enraged boss: 0.7).
   attackMult?: number;
   // The type of the basic attack (casters: their god's or path's); missing: physical or, for a
@@ -81,7 +83,7 @@ export function attackMs(s: Stats, k: number = DEFAULT_COMBAT.attackK): number {
 // World units per second of a unit, chill included.
 export function speedOf(s: Stats): number {
   if (s.rooted) return 0;
-  return speed(s.attrs) * (1 - (s.slow ?? 0));
+  return speed(s.attrs) * (1 - (s.slow ?? 0)) * (s.speedMult ?? 1);
 }
 
 export function dodgeChance(a: Attributes, k: number = DEFAULT_COMBAT.dodgeK): number {

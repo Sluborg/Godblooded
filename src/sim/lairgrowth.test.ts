@@ -123,7 +123,7 @@ describe('lair growth', () => {
       ...base,
       tuning: {
         ...base.tuning,
-        town: { raidFirstMs: 130_000, raidSize: 1, raidEveryMs: 10_000_000 },
+        town: { raidFirstMs: 130_000, raidSize: 1, raidEveryMs: 10_000_000, raidOnTierUp: false },
       },
     });
     step(w, 131_000);

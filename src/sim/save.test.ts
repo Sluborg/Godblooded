@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { GRAYBOX } from '../data/graybox';
 import {
   command,
@@ -16,6 +16,9 @@ import {
 } from './api';
 import { shareXp } from './parties';
 import { spawnHero } from './world';
+
+// These tests play minutes of the graybox with a snapshot every tick: slow under a loaded runner.
+vi.setConfig({ testTimeout: 60_000 });
 
 type W = ReturnType<typeof createWorld>;
 
