@@ -1,4 +1,12 @@
-import { applyBuff, applyMark, applyShield, applyTaunt } from './effects';
+import {
+  applyBind,
+  applyBuff,
+  applyHot,
+  applyMark,
+  applyShield,
+  applyTaunt,
+  refreshFrom,
+} from './effects';
 import { applyRider, healMult } from './riders';
 import { tally } from './runstats';
 import { attackStrike, landStrike } from './strike';
@@ -362,6 +370,13 @@ function resolve(
     (side ??= foesInShape(world, hero, def.shape, point, target, [hero, ...alliesOf(world, hero)]));
   const touched = new Set<number>();
   for (const effect of effects) {
+    if (effect.kind === 'revive') {
+      for (const h of reviveTargets(world, hero, def, point, target)) {
+        revive(world, hero, h.unit, effect.pct);
+        touched.add(h.unit.id);
+      }
+      continue;
+    }
     const to = effect.to ?? defaultTo(effect.kind);
     const hits = to === 'foes' ? foes : to === 'allies' ? allies() : [{ unit: hero, mult: 1 }];
     for (const h of hits) {
@@ -369,7 +384,7 @@ function resolve(
       if (effect.kind === 'damage') {
         if (stats) damage(world, hero, stats, effect, h.unit, h.mult);
       } else {
-        supportEffect(world, hero, stats, effect, h.unit);
+        supportEffect(world, hero, stats, effect, h.unit, def.id);
       }
       touched.add(h.unit.id);
     }
@@ -384,13 +399,47 @@ function resolve(
   });
 }
 
+// Knocked out party mates in the skill's shape.
+function reviveTargets(
+  world: World,
+  hero: UnitState,
+  def: SkillDef,
+  point: Vec2,
+  target: UnitState | undefined,
+): { unit: UnitState; mult: number }[] {
+  const party = world.parties.get(hero.party);
+  const downed = (party?.members ?? [])
+    .map((id) => world.units.find((u) => u.id === id))
+    .filter((u): u is UnitState => !!u && u.ko && u.id !== hero.id);
+  return foesInShape(world, hero, def.shape, point, target, downed);
+}
+
+// Stands a knocked out mate up where it lies, once per fight for this caster.
+function revive(world: World, hero: UnitState, unit: UnitState, pct: number): void {
+  const rt = world.unitRuntime.get(hero.id);
+  if (!rt) return;
+  const fight = (rt.fight ??= { kills: 0, missUsed: false, strikes: 0 });
+  if (fight.revived) return;
+  fight.revived = true;
+  unit.ko = false;
+  unit.hp = Math.max(1, Math.ceil(unit.maxHp * pct));
+  unit.mode = 'explore';
+  const hrt = world.heroRuntime.get(unit.id);
+  if (hrt) hrt.koMs = 0;
+  world.events.push({ kind: 'revived', unit: unit.id });
+}
+
 function defaultTo(kind: SkillEffect['kind']): 'foes' | 'allies' | 'self' {
   switch (kind) {
     case 'heal':
     case 'shield':
     case 'buff':
+    case 'revive':
+    case 'cleanse':
+    case 'hot':
       return 'allies';
     case 'dash':
+    case 'refresh':
       return 'self';
     default:
       return 'foes';
@@ -418,6 +467,7 @@ export function supportEffect(
   stats: Stats | undefined,
   effect: SkillEffect,
   unit: UnitState,
+  src?: string,
 ): void {
   switch (effect.kind) {
     case 'heal': {
@@ -442,11 +492,11 @@ export function supportEffect(
           : stats
             ? (effect.mult ?? 1) * (stats.attrs.int + stats.attrs.wp)
             : 0;
-      applyShield(world, unit, Math.round(hp), effect.s);
+      applyShield(world, unit, Math.round(hp), effect.s, src);
       return;
     }
     case 'buff':
-      applyBuff(world, unit, effect.stat, effect.amount, effect.s);
+      applyBuff(world, unit, effect.stat, effect.amount, effect.s, src);
       return;
     case 'mark':
       applyMark(world, unit, effect.pct, effect.s);
@@ -454,6 +504,46 @@ export function supportEffect(
     case 'taunt':
       // Bosses ignore taunt.
       if (!statsOf(world, unit)?.tags?.includes('boss')) applyTaunt(world, unit, hero.id, effect.s);
+      return;
+    case 'knockback': {
+      // Bosses cannot be knocked back.
+      if (statsOf(world, unit)?.tags?.includes('boss')) return;
+      const d = dist(hero.pos, unit.pos);
+      const dir =
+        d > 0
+          ? { x: (unit.pos.x - hero.pos.x) / d, y: (unit.pos.y - hero.pos.y) / d }
+          : { x: 1, y: 0 };
+      const { width, height } = world.data.map;
+      unit.pos = {
+        x: Math.min(width, Math.max(0, unit.pos.x + dir.x * effect.dist)),
+        y: Math.min(height, Math.max(0, unit.pos.y + dir.y * effect.dist)),
+      };
+      return;
+    }
+    case 'bind':
+      applyBind(world, unit, effect.s, !!statsOf(world, unit)?.tags?.includes('boss'));
+      return;
+    case 'execute': {
+      if (unit.hp <= 0 || statsOf(world, unit)?.tags?.includes('boss')) return;
+      if (unit.hp / unit.maxHp < effect.below) {
+        unit.hp = 0;
+        world.pendingDeaths.push({ victim: unit.id, by: hero.id });
+      }
+      return;
+    }
+    case 'cleanse': {
+      const rt = world.unitRuntime.get(unit.id);
+      if (rt) rt.status = undefined;
+      return;
+    }
+    case 'hot':
+      applyHot(world, unit, hero.id, effect.pct, effect.s, src);
+      return;
+    case 'refresh':
+      if (src) refreshFrom(world, unit, src);
+      return;
+    case 'revive':
+      // Handled in resolve (the dead are not in the shape's pool).
       return;
     case 'stagger': {
       const rt = world.unitRuntime.get(unit.id);

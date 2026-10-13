@@ -4,6 +4,7 @@ import { slowOf } from './riders';
 import { revengeTarget } from './rivalry';
 import { emptyItems } from './items';
 import { buyItem, hasItemRows, nearestShop, planShopping, type ShopStop } from './shopping';
+import { isBound } from './effects';
 import { passiveAggroMult, passiveKoMult, passiveRestMult } from './passives';
 import { aggroRange, dist, maxHp, speed, stepToward, tierValue, TICK_MS } from './units';
 import type { World } from './world';
@@ -207,7 +208,11 @@ export function heroMove(world: World, unit: UnitState): void {
     const dir = stepToward(
       unit.pos,
       to,
-      (speed(cls.attrs) * (1 - slowOf(world, unit.id)) * TICK_MS) / 1000,
+      (speed(cls.attrs) *
+        (1 - slowOf(world, unit.id)) *
+        (isBound(world, unit.id) ? 0 : 1) *
+        TICK_MS) /
+        1000,
     );
     if (dir.x !== 0 || dir.y !== 0) unit.facing = dir;
     return dist(unit.pos, to) <= tune(world).arrive;
