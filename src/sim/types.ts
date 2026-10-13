@@ -1113,11 +1113,14 @@ export type SimEvent =
   | { kind: 'miracle'; id: string; pantheon: string; pos: Vec2; tellMs: number }
   // A party leader got a charm from a lair that fell.
   | { kind: 'relic'; unit: number; item: string; lair: number }
-  | { kind: 'bountyPlaced'; bounty: number; gold: number };
+  | { kind: 'bountyPlaced'; bounty: number; gold: number }
+  | { kind: 'bountyCancelled'; bounty: number; gold: number };
 
 export type Command =
   | { kind: 'build'; type: string; plot: number }
   | { kind: 'placeBounty'; pos: Vec2; gold: number }
+  // Take a flag down and get its gold back in full (nobody has claimed it yet).
+  | { kind: 'cancelBounty'; bounty: number }
   | { kind: 'pickUpgrade'; party: number; upgrade: string }
   | { kind: 'pickPath'; party: number; path: string }
   // Buy the next tier of a building.

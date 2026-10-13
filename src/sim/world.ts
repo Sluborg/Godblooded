@@ -825,6 +825,14 @@ export function command(world: World, cmd: Command): CommandResult {
       world.events.push({ kind: 'bountyPlaced', bounty: id, gold: cmd.gold });
       return { ok: true, id };
     }
+    case 'cancelBounty': {
+      const flag = world.bounties.find((b) => b.id === cmd.bounty);
+      if (!flag) return { ok: false, reason: 'unknown bounty' };
+      world.bounties = world.bounties.filter((b) => b.id !== flag.id);
+      world.gold += flag.gold;
+      world.events.push({ kind: 'bountyCancelled', bounty: flag.id, gold: flag.gold });
+      return { ok: true, id: flag.id };
+    }
   }
 }
 
