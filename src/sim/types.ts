@@ -172,14 +172,17 @@ export interface RoleTuning {
   harrierHealPctS: number;
   harrierReturnHp: number;
   // Charger: charges a hero chargeMin to chargeMax away at chargeSpeedMult x its speed; the
-  // first strike is chargeMult x with a knockback of chargeKnockback; it charges again after
-  // chargeCooldownMs. A charging raider's buildings hits are buildingMult x.
+  // first strike is chargeMult x with a knockback of chargeKnockback, and it charges once per
+  // fight (again after chargeResetMs without a foe). A charger's hits on buildings are
+  // buildingMult x.
   chargeMin: number;
   chargeMax: number;
   chargeSpeedMult: number;
   chargeMult: number;
   chargeKnockback: number;
-  chargeCooldownMs: number;
+  chargeResetMs: number;
+  // The charge is announced this long before it starts (event windup).
+  chargeWindupMs: number;
   buildingMult: number;
   // Pack: +packBonus damage per other pack mate within packRadius, at most packMax.
   packBonus: number;
@@ -1194,6 +1197,8 @@ export type SimEvent =
     }
   | { kind: 'tierUp'; unit: number; tier: number; path: string | null }
   | { kind: 'pathOffer'; party: number; hero: number; options: string[] }
+  // A hero saw a kind of monster or lair for the first time this run (hints, barks).
+  | { kind: 'discovered'; what: 'monster' | 'lair'; type: string; unit: number; pos: Vec2 }
   // A charger starts its charge toward `to`.
   | { kind: 'charge'; unit: number; to: Vec2 }
   // A swarm splits into two halves.

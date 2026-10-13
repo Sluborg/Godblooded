@@ -170,7 +170,8 @@ export const DEFAULT_TUNING: Tuning = {
     chargeSpeedMult: 3,
     chargeMult: 2,
     chargeKnockback: 60,
-    chargeCooldownMs: 8_000,
+    chargeResetMs: 5_000,
+    chargeWindupMs: 600,
     buildingMult: 2,
     packBonus: 0.1,
     packRadius: 100,
@@ -202,7 +203,7 @@ export const DEFAULT_TUNING: Tuning = {
     defendBuildingRange: 120,
     raidWarnMs: 15_000,
     towerWarnAddMs: 5_000,
-    // Off by default: it adds a raid per tier-up (Lead's balance pass decides).
+    // Off until Balance retunes (bot win rate drops from 70% to 36% with it on); then it flips on.
     raidOnTierUp: false,
     raidBeatenGold: 20,
   },
