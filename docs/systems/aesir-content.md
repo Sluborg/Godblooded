@@ -82,9 +82,8 @@ armour: 1, spellMult: 0.5,
 ```
 
 - Casters' path bonus gives `str` today because the wizard used Str as spell power before
-  `spellMult` existed. With spell power from Int, Lead may move the Seer, Stormcaller and
-  Flamebinder bonus to `{ int: 2 }` / `{ int: 4 }` in the balance pass; this sheet keeps the
-  shipped numbers so nothing moves twice.
+  `spellMult` existed. With spell power from Int, the Seer, Stormcaller and Flamebinder bonus
+  moves to `{ int: 2 }` / `{ int: 4 }` (decided 2026-10-13) in the balance pass.
 
 ## 3. Passives (paste when Sim ships PassiveDef)
 
@@ -321,8 +320,7 @@ The 9 shipped plus these 6, all common or rare, no pantheon or skill cards in M2
 | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 10    | Type every helper field section 4 uses, with the skill engine: skill-level `pick` (`mostHp`); target `allyAttacker` (besides self, foe, ally, point); effect-level `target`, `shape` and `to` (`ally`, `allyAttacker`); shape `max` and circle `who: 'party'`; `at: 'lastHit'`; `riderS`; summon `count`; hook `on` |
 
-## OPEN (Stefan decides)
+## Decided (Stefan, 2026-10-13)
 
-1. **Casters' path bonus to Int** instead of Str (cleaner now that spells use Int)?
-2. **The Valkyrie stops healing** (she becomes a warrior): fine, or should she keep a small
-   heal on her swoop?
+1. **Casters' path bonus to Int** instead of Str.
+2. **The Valkyrie stops healing** and becomes a warrior.

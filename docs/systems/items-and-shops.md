@@ -194,11 +194,9 @@ If a run is ever saved mid-run, the hero shape changes: bump the save version an
 | 10    | Data: item rows, kits on templates, smithy building row                                |
 | 20    | Balance pass with items: same win and run length targets, gear level check (section 4) |
 
-## OPEN (Stefan decides)
+## Decided (Stefan, 2026-10-13)
 
-1. **Two shops** (smithy and market, recommendation) or three with a separate alchemist for
-   potions?
-2. **Charms** generic (recommendation) or one charm line per pantheon sold at its temple?
-3. **Lair relic:** a free charm for the party leader when a lair falls. Keep?
-4. **Hero card on tap:** fine for a game where you never command a hero, or keep the map the
-   only view?
+1. **Two shops:** smithy and market.
+2. **Charms** generic.
+3. **Lair relic:** kept.
+4. **Hero card on tap:** kept.

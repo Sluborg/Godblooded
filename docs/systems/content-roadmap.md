@@ -8,7 +8,7 @@ milestone table in step. It places every spec in `docs/systems/` on milestones M
 
 - **M2 is "Aesir, but alive":** one pantheon done well. 4 Aesir gods with their 8 paths and
   skills, the combat pipeline with visible damage types, gear at the smithy, building upgrades
-  you can tap, raid warnings, the Skald's first 3 minutes, and code-made sound effects.
+  you can tap, raid warnings, the first 3 minutes of hints, and code-made sound effects.
 - **Fun before breadth:** M2 adds no second pantheon, no meta, no omens and no miracles. If
   Stefan finds M2 fun to watch, M3 adds breadth; if not, the M2 levers get fixed first.
 - **What makes M2 fun** is a checklist with numbers the Sim bot can measure: a skill in most
@@ -52,11 +52,11 @@ milestone table in step. It places every spec in `docs/systems/` on milestones M
 
 ### Systems
 
-| Milestone | Systems                                                                                                                                                                                                                                                                                                                |
-| --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| M2        | combat pipeline, damage types, armour, crits (if Stefan says yes); skills engine for the 8 Aesir skills (incl. the decoy summon); god passives; items: weapon, armour, potions (no charms); raid warning and shapes; building card; onboarding beats 10-90 and the M2 first-time hints (`hint-texts.md`); effect synth |
-| M3        | other summons (falcon, thrall); charms and lair relic; elites and the staggered lair clock; omens; favour and miracles; meta option chosen by Stefan (unlocks, Saga, Trials); Hall screen; town hall tiers; Hearth Hall                                                                                                |
-| M4        | music (calm, tension, boss, stings); vibration; juice (crit freeze, hit pauses, screen shake); first-time hints for M4 features; balance passes per pantheon                                                                                                                                                           |
+| Milestone | Systems                                                                                                                                                                                                                                                                                           |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| M2        | combat pipeline, damage types, armour, crits; skills engine for the 8 Aesir skills (incl. the decoy summon); god passives; items: weapon, armour, potions (no charms); raid warning and shapes; building card; onboarding beats 10-90 and the M2 first-time hints (`hint-texts.md`); effect synth |
+| M3        | other summons (falcon, thrall); charms and lair relic; elites and the staggered lair clock; omens; favour and miracles; meta (Ichor and the Altar, unlocks, Saga, Trials); Hall screen; town hall tiers; Hearth Hall                                                                              |
+| M4        | music (calm, tension, boss, stings); vibration; juice (crit freeze, hit pauses, screen shake); first-time hints for M4 features; balance passes per pantheon                                                                                                                                      |
 
 ## 2. What M2 needs to be fun
 
@@ -98,9 +98,8 @@ is fun.
 | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | 10    | Run stats for the fun checks: a record per fight (fight boundary from `combat.md`: start, end, any skill cast, set of damage types), decisions per minute, longest quiet gap; the report gives the share of fights with a cast and with 2+ types |
 
-## OPEN (Stefan decides)
+## Decided (Stefan, 2026-10-13)
 
-1. **M2 = Aesir only, done well** (recommendation), or all three pantheons at tier 1 first?
-2. **Effect sounds in M2** (recommendation, cheap), or keep all sound in M4?
-3. **The fun checks:** are these the right questions for "is it fun to watch"? Anything you
-   want measured that is missing?
+1. **M2 = Aesir only, done well.**
+2. **Effect sounds in M2.**
+3. **The fun checks** as written.
