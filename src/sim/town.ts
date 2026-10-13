@@ -12,6 +12,7 @@ import { shareXp } from './parties';
 import { earn, tally } from './runstats';
 import { attackStrike, hitEvent, resolveStrike } from './strike';
 import { swing } from './swing';
+import { lairProtected } from './boss';
 import { targetOf, type UnitRuntime, type World } from './world';
 import type { BuildingCore, CommandResult, LairState, UnitState, Vec2 } from './types';
 
@@ -108,6 +109,8 @@ export function attackLair(
     lair.hp -= dmg;
     tally(world, unit.id, 'damage', dmg);
     world.events.push(hitEvent(unit.id, lair.id, hit));
+    // A boss lair cannot fall while its boss lives, or before the boss has come out.
+    if (lair.hp <= 0 && lairProtected(world, lair.id)) lair.hp = 1;
     if (lair.hp > 0) return;
     const tm = world.tuning.monster;
     world.lairs = world.lairs.filter((l) => l.id !== lair.id);

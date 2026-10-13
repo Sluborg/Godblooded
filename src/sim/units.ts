@@ -14,6 +14,8 @@ export interface Stats {
   spellMult?: number;
   // Share of speed and attack rate lost to chill (0 when none).
   slow?: number;
+  // Multiplies the attack time (an enraged boss: 0.7).
+  attackMult?: number;
   // The type of the basic attack (casters: their god's or path's); missing: physical or, for a
   // caster, an untyped spell.
   damageType?: string;
@@ -63,7 +65,10 @@ export function damage(a: Attributes): number {
 
 // Attack time falls with Dex but never below 10% of the weapon's base time.
 export function attackMs(s: Stats, k: number = DEFAULT_COMBAT.attackK): number {
-  return (s.weapon.baseAttackS * 1000 * (1 - curve(s.attrs.dex, k))) / (1 - (s.slow ?? 0));
+  return (
+    (s.weapon.baseAttackS * 1000 * (1 - curve(s.attrs.dex, k)) * (s.attackMult ?? 1)) /
+    (1 - (s.slow ?? 0))
+  );
 }
 
 // World units per second of a unit, chill included.

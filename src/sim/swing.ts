@@ -2,6 +2,13 @@ import { attackMs, TICK_MS, type Stats } from './units';
 import type { UnitRuntime, World } from './world';
 import type { UnitState } from './types';
 
+// A ground area a strike hits (a boss cleave), fixed when the windup starts.
+export interface Area {
+  x: number;
+  y: number;
+  r: number;
+}
+
 // Every strike has a windup: the attacker commits (event `windup`, `inMs` before the strike),
 // stands still, then the strike resolves and emits `hit`. A swing is cancelled with no hit
 // when the target changes, dies or moves out of reach, so Scene can play the full windup
@@ -12,7 +19,8 @@ export function swing(
   rt: UnitRuntime,
   stats: Stats,
   targetId: number,
-  resolve: () => void,
+  resolve: (area?: Area) => void,
+  opts?: { windupMs?: number; area?: Area },
 ): void {
   if (rt.swing) {
     if (rt.swing.target !== targetId) {
@@ -21,15 +29,22 @@ export function swing(
     }
     rt.swing.ms -= TICK_MS;
     if (rt.swing.ms <= 0) {
+      const area = rt.swing.area;
       rt.swing = undefined;
-      resolve();
+      resolve(area);
     }
     return;
   }
   if (rt.cooldownMs > 0) return;
   const cycle = attackMs(stats, world.tuning.combat.attackK);
   rt.cooldownMs = cycle;
-  const ms = Math.min(world.tuning.combat.windupMs, cycle * 0.4);
-  rt.swing = { target: targetId, ms };
-  world.events.push({ kind: 'windup', attacker: unit.id, target: targetId, inMs: ms });
+  const ms = opts?.windupMs ?? Math.min(world.tuning.combat.windupMs, cycle * 0.4);
+  rt.swing = { target: targetId, ms, area: opts?.area };
+  world.events.push({
+    kind: 'windup',
+    attacker: unit.id,
+    target: targetId,
+    inMs: ms,
+    ...(opts?.area ? { area: opts.area } : {}),
+  });
 }
