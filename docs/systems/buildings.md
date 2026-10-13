@@ -67,6 +67,24 @@ Heroes inside a destroyed shop or hall are pushed out, unhurt.
   button with its cost (greyed with "needs town hall tier 2" when gated).
 - **Locked plots:** faint outline and a lock that opens with a town hall tier-up.
 
+### What it does (one line per building)
+
+Shown in the build menu's info strip (`ui-flows.md` section 3: tap for info, tap again to
+build) and as the first line of the building card, above the numbers. Plain words, no numbers:
+the numbers come from tuning (`src/ui/buildingInfo.ts`).
+
+| Id              | M   | What it does                                                    |
+| --------------- | --- | --------------------------------------------------------------- |
+| townhall        | M2  | The heart of the town. If it falls, the run is lost.            |
+| temple_aesir    | M2  | Calls the children of Odin, Thor, Loki and Freyja to your town. |
+| market          | M2  | Sells potions to heroes; the town takes a tax on every sale.    |
+| smithy          | M2  | Sells weapons and armour to heroes; the town takes a tax.       |
+| shrine          | M2  | Wounded heroes rest here and heal fast.                         |
+| tower           | M2  | Shoots monsters that come near the town.                        |
+| temple_greek    | M3  | Calls the children of Athena, Ares, Apollo and Poseidon.        |
+| temple_egyptian | M3  | Calls the children of Horus, Anubis, Sekhmet and Isis.          |
+| hearth-hall     | M3  | Heroes rest here together; parties stay close and bonds grow.   |
+
 ### How buildings look per tier
 
 **Style (taste test, decision 2026-10-14):** warm, earthy colours, only slightly muted, thin colour-matched
@@ -133,9 +151,10 @@ sign) are animated by Scene over the still picture.
 
 ### Lead (data)
 
-| Order | Row                                      |
-| ----- | ---------------------------------------- |
-| 10    | Building rows and tuning above; 12 plots |
+| Order | Row                                                                  |
+| ----- | -------------------------------------------------------------------- |
+| 10    | Building rows and tuning above; 12 plots                             |
+| 20    | A `text` line per building row ("What it does" above), read by Scene |
 
 ## Decided (Stefan, 2026-10-13)
 
