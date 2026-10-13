@@ -142,7 +142,7 @@ cooldown in seconds. Radius and range in world units (melee reach is about 40, a
 | Seer        | Raven Omen       | ready, range 300        | 12  | mark the foe with most hp: +25% damage taken for 6 s                    | marks 3 foes, +35%                                          | mark (ravens) |
 | Wanderer    | Gungnir          | engage 120-300          | 14  | sure line strike 250% physical through the first foe                    | pierces every foe on a 300 line, then hits the target again | line          |
 | Hammerborn  | Mjolnir Slam     | crowd 2 in 90           | 10  | 150% lightning around self (r 90), stagger                              | r 130, 200%, arc rider                                      | pillar, burst |
-| Stormcaller | Chain Lightning  | ready, range 220        | 9   | 140% lightning, chain 3 jumps (r 120, falloff 0.7)                      | 5 jumps, a pillar on the last target for 100%               | chain         |
+| Stormcaller | Chain Lightning  | ready, range 220        | 10  | 90% lightning, chain 3 jumps (r 120, falloff 0.7)                       | 5 jumps, a pillar on the last target for 100%               | chain         |
 | Trickster   | Mirror Double    | selfHurt 60% or 2 on me | 16  | summon a decoy (20% of his max hp, taunts r 120) for 6 s; +30% dodge    | 2 decoys; each bursts for 100% fire when it ends            | summon        |
 | Flamebinder | Wildfire         | ready, range 220        | 10  | bolt bursting r 70 for 120% fire, burn rider                            | burst r 100, and the burn lasts 6 s instead of 3            | bolt, burst   |
 | Valkyrie    | Valkyrie's Swoop | allyHurt 35% in 300     | 14  | dash to the ally's attacker, 180% physical; shield ally 20% hp, 5 s     | lands with a r 70 burst for 100%; shield 35%                | dash, shield  |
@@ -185,7 +185,7 @@ cooldown in seconds. Radius and range in world units (melee reach is about 40, a
 | name      | Mjolnir Slam                                                                                                                                 |
 | trigger   | `{ kind: 'crowd', n: 2, radius: 90 }`                                                                                                        |
 | cooldownS | 10                                                                                                                                           |
-| target    | `self` / `foe` / `ally` / `point` (where the shape sits)                                                                                     |
+| target    | `self` / `foe` / `ally` / `allyAttacker` / `point` (where the shape sits); effects may override `target` and `shape`                         |
 | shape     | `{ kind: 'circle', radius: 90 }` (single, circle, cone, line, chain)                                                                         |
 | effects   | `[{ damage: 1.5, type: 'lightning' }, { stagger: true }]`                                                                                    |
 | visual    | `['pillar', 'burst']`                                                                                                                        |

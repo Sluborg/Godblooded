@@ -1,6 +1,8 @@
 import { armourPct, critChance, dodgeChance, resistPct, type Stats } from './units';
 import type { World } from './world';
-import type { Attributes, SimEvent } from './types';
+import { applyRider } from './riders';
+import { tally } from './runstats';
+import type { Attributes, RiderId, SimEvent, UnitState } from './types';
 
 // The one strike pipeline (Sim 180, docs/systems/combat.md section 1). Every attack of units,
 // and the tower bolts, resolves here, in this order:
@@ -32,6 +34,8 @@ export interface StrikeIn {
   canCrit?: boolean;
   // The target is a building: fire deals extra.
   vsBuilding?: boolean;
+  // Step 80: a rider the strike carries (skills only). Sear acts at step 50, the rest at 80.
+  rider?: RiderId;
 }
 
 export interface StrikeOut {
@@ -64,7 +68,16 @@ export function resolveStrike(world: World, s: StrikeIn): StrikeOut {
   const crit = s.canCrit !== false && world.rng() < critChance(s.attrs, t.critK);
   if (crit) dmg *= t.critMult;
   // 50 type multiplier: the target's row for this type; fire hurts buildings more
-  const row = s.target?.types?.[type] ?? 1;
+  let row = s.target?.types?.[type] ?? 1;
+  // sear: holy against undead and demons multiplies a weak row's bonus
+  if (
+    s.rider === 'sear' &&
+    type === 'holy' &&
+    row > 1 &&
+    (s.target?.tags?.includes('undead') || s.target?.tags?.includes('demon'))
+  ) {
+    row = 1 + (row - 1) * world.tuning.rider.searBonusMult;
+  }
   dmg *= row;
   if (s.vsBuilding && type === 'fire') dmg *= t.buildingFireMult;
   // 60 mitigation: armour takes its share off a physical strike, Willpower off any other type
@@ -113,4 +126,24 @@ export function hitEvent(attacker: number, target: number, out: StrikeOut): SimE
     ...(out.weak ? { weak: true } : {}),
     ...(out.resist ? { resist: true } : {}),
   };
+}
+
+// A unit strikes a unit: the pipeline, the damage, the `hit` event, the rider (step 80) and the
+// down (step 90: the caller settles deaths). Basic attacks and skills both come through here.
+export function landStrike(
+  world: World,
+  attacker: UnitState,
+  foe: UnitState,
+  input: StrikeIn,
+): StrikeOut {
+  const out = resolveStrike(world, input);
+  foe.hp -= out.damage;
+  tally(world, attacker.id, 'damage', out.damage);
+  world.events.push(hitEvent(attacker.id, foe.id, out));
+  if (input.rider && !out.dodged) applyRider(world, input.rider, attacker.id, foe, out);
+  if (foe.hp <= 0) {
+    foe.hp = 0;
+    world.pendingDeaths.push({ victim: foe.id, by: attacker.id });
+  }
+  return out;
 }
