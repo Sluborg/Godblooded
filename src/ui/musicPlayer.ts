@@ -66,12 +66,20 @@ export class MusicPlayer {
     this.loading.add(row.id);
     const base = `${import.meta.env.BASE_URL}assets/${row.file}`;
     const loader = scene.load;
+    // The scene's loader stops when the scene shuts down (Play pressed mid-download): forget the
+    // request so the next Title visit loads again.
+    const abandon = (): void => {
+      loader.off(Phaser.Loader.Events.COMPLETE, done);
+      this.loading.delete(row.id);
+    };
     const done = (): void => {
+      scene.events.off(Phaser.Scenes.Events.SHUTDOWN, abandon);
       this.loading.delete(row.id);
       if (this.wanted === row.id && this.game.cache.audio.exists(row.id)) this.spawn(row.id, false);
     };
     loader.audio(row.id, [`${base}.ogg`, `${base}.m4a`]);
     loader.once(Phaser.Loader.Events.COMPLETE, done);
+    scene.events.once(Phaser.Scenes.Events.SHUTDOWN, abandon);
     if (!loader.isLoading()) loader.start();
   }
 
