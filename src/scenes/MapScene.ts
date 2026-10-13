@@ -66,6 +66,7 @@ export class MapScene extends Phaser.Scene {
   private offerKey: string | null = null;
   // The ring on the ground around the party that levelled, while its cards are up.
   private offerRing: Phaser.GameObjects.Ellipse | null = null;
+  private resumeWatch = false;
   // Camera mode: by hand, watching the best fight, or following one hero (until it is gone).
   private cam: 'off' | 'watch' | 'unit' = 'off';
   private followId = 0;
@@ -119,6 +120,7 @@ export class MapScene extends Phaser.Scene {
     });
     this.offerKey = null;
     this.offerRing = null;
+    this.resumeWatch = false;
     this.cam = 'off';
     this.followId = 0;
     this.director.reset();
@@ -197,8 +199,11 @@ export class MapScene extends Phaser.Scene {
         : `up:${party.id}:${party.level}`;
     if (key === this.offerKey) return;
     if (this.offerKey !== null) this.scene.stop('LevelUp');
-    this.offerRing?.destroy();
-    this.offerRing = null;
+    this.clearOfferRing();
+    if (key === null && this.resumeWatch) {
+      this.resumeWatch = false;
+      this.setWatch(true);
+    }
     this.offerKey = key;
     this.registry.set('modal', key !== null);
     if (!party) return;
@@ -232,7 +237,7 @@ export class MapScene extends Phaser.Scene {
     // Show WHERE first: the camera glides to the party and a ring marks it, and only then do the
     // cards come up (the sim is frozen meanwhile).
     this.registry.set(OFFER_KEY, offer);
-    this.focusParty(who.focus, who.color);
+    this.focusParty(who.focus, who.color, who.members.length > 0);
     this.time.delayedCall(getSettings().reducedMotion ? 0 : FOCUS_MS, () => {
       if (this.offerKey === key) this.scene.launch('LevelUp');
     });
@@ -263,10 +268,19 @@ export class MapScene extends Phaser.Scene {
     };
   }
 
-  // Glide the camera to the party and ring it in its colour for as long as the cards are up.
-  private focusParty(at: Vec2, color: number): void {
-    this.setWatch(false);
+  private clearOfferRing(): void {
+    if (this.offerRing) this.tweens.killTweensOf(this.offerRing);
     this.offerRing?.destroy();
+    this.offerRing = null;
+  }
+
+  // Glide the camera to the party and ring it in its colour for as long as the cards are up.
+  private focusParty(at: Vec2, color: number, hasUnits: boolean): void {
+    // Watch is paused while the cards are up and comes back when they close.
+    if (this.registry.get('camMode') === 'watch') this.resumeWatch = true;
+    this.setWatch(false);
+    this.clearOfferRing();
+    if (!hasUnits) return;
     this.cameras.main.pan(
       at.x,
       at.y,
