@@ -296,6 +296,8 @@ function runLairs(world: World): void {
     // A lair whose monster is a boss spawns nothing regular unless it has an escort.
     const mon = world.data.monsters?.find((m) => m.id === (def.escort ?? def.monster));
     if (!mon || isBoss(mon)) continue;
+    // The guards of a boss lair stand until the boss comes out; only the enrage call adds more.
+    if (rt.bossSpawned) continue;
     spawnMonster(world, lair, mon);
   }
 }

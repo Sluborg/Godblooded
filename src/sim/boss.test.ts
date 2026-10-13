@@ -99,6 +99,61 @@ describe('boss emergence', () => {
   });
 });
 
+describe('guards and raids', () => {
+  it('guards stop spawning once the boss has come out; only the enrage call adds more', () => {
+    const w = createWorld(
+      1,
+      data({
+        lairs: [
+          { id: 'wyrm-nest', monster: 'wyrm', spawnS: 1, maxAlive: 3, hp: 1000, escort: 'imp' },
+        ],
+      }),
+    );
+    run(w, 4_000);
+    expect(w.units.filter((u) => u.type === 'imp').length).toBeGreaterThan(0);
+    lairOf(w).hp = 700;
+    run(w, 200);
+    // wipe the guards: none come back while the boss is out
+    for (const u of w.units.filter((x) => x.type === 'imp')) {
+      u.hp = 0;
+      w.pendingDeaths.push({ victim: u.id, by: 0 });
+    }
+    run(w, 100);
+    expect(w.units.filter((u) => u.type === 'imp')).toHaveLength(0);
+    run(w, 5_000);
+    expect(w.units.filter((u) => u.type === 'imp')).toHaveLength(0);
+    expect(bossUnit(w)).toBeDefined();
+  });
+
+  it('a boss lair that raids (fixed map) sends its escort, never clones of the boss', () => {
+    const w = createWorld(
+      1,
+      data({
+        tuning: {
+          ...data().tuning,
+          town: { raidFirstMs: 1_000, raidSize: 2, raidEveryMs: 10_000_000, townHallHp: 1e9 },
+        },
+      }),
+    );
+    run(w, 1_500);
+    expect(w.units.some((u) => u.type === 'wyrm')).toBe(false);
+    expect(w.units.filter((u) => w.unitRuntime.get(u.id)?.raid && u.type === 'imp').length).toBe(2);
+    // with no escort a boss lair has nothing to raid with
+    const bare = createWorld(
+      1,
+      data({
+        lairs: [{ id: 'wyrm-nest', monster: 'wyrm', spawnS: 1000, maxAlive: 3, hp: 1000 }],
+        tuning: {
+          ...data().tuning,
+          town: { raidFirstMs: 1_000, raidSize: 2, raidEveryMs: 10_000_000, townHallHp: 1e9 },
+        },
+      }),
+    );
+    run(bare, 1_500);
+    expect(bare.units).toHaveLength(0);
+  });
+});
+
 describe('the lair cannot fall while the boss lives', () => {
   it('a killing blow on the lair leaves it at 1 hp until the boss is dead', () => {
     const w = createWorld(1, data());

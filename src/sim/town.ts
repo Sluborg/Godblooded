@@ -153,8 +153,9 @@ export function runRaids(world: World): void {
   }
   for (const lair of sending) {
     const def = world.data.lairs?.find((l) => l.id === lair.type);
-    const mon = world.data.monsters?.find((m) => m.id === def?.monster);
-    if (!def || !mon) continue;
+    // A boss lair raids with its escort, never with clones of the boss.
+    const mon = world.data.monsters?.find((m) => m.id === (def?.escort ?? def?.monster));
+    if (!def || !mon || mon.boss) continue;
     for (let i = 0; i < size; i++) {
       const id = world.nextId++;
       const hp = maxHp(scaleAttrs(mon.attrs, tierValue(world.tuning.lair.statMult, lair.tier, 1)));
