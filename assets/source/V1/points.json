@@ -1,0 +1,42 @@
+{
+  "mon_draugr-v2_t1_front": {
+    "strike": "chop",
+    "weapon": [752, 84],
+    "fit": true
+  },
+  "mon_draugr-v3_t1_front": {
+    "strike": "chop",
+    "weapon": [785, 80],
+    "fit": true
+  },
+  "mon_harpy-v2_t1_front": {
+    "strike": "upward",
+    "weapon": [752, 1024],
+    "fit": true
+  },
+  "mon_harpy-v3_t1_front": {
+    "strike": "upward",
+    "weapon": [752, 1024],
+    "fit": true
+  },
+  "mon_jackal-man-v2_t1_front": {
+    "strike": "sweep",
+    "weapon": [146, 585],
+    "fit": true
+  },
+  "mon_jackal-man-v3_t1_front": {
+    "strike": "sweep",
+    "weapon": [146, 543],
+    "fit": true
+  },
+  "mon_minotaur-v2_t1_front": {
+    "strike": "chop",
+    "weapon": [272, 188],
+    "fit": true
+  },
+  "mon_minotaur-v3_t1_front": {
+    "strike": "chop",
+    "weapon": [272, 188],
+    "fit": true
+  }
+}
