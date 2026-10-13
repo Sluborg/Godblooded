@@ -1,7 +1,7 @@
 # Meta UI: between runs
 
 Design owns this spec (Lead row Design 250). It is the phone flow from the end of a run to the
-start of the next: the Ichor tally, the Altar, goal unlocks and the Saga, the Trial picker and
+start of the next: the Ichor tally, the Altar, goal unlocks and the Saga, the Trials and
 the new run setup. Rules come from `meta.md` (Ichor, the Altar, unlocks, Saga, Trials); screens
 and HUD rules from `ui-flows.md`; the look from the taste test (decision 2026-10-14).
 
@@ -12,10 +12,12 @@ and HUD rules from `ui-flows.md`; the look from the taste test (decision 2026-10
   the Title.
 - **Never more than two taps between runs:** "Play again" on the end screen goes straight to the
   run setup; the Altar is one tap away and only nags (a pulsing badge) when Ichor covers a rank.
-- **The Altar is a list, not a tree:** 10 rows, each with its ranks as pips and the next cost on
+- **The Altar is a list, not a tree:** 10 upgrades (Favoured is one row per unlocked pantheon, so 10 to
+  12 rows), each with its ranks as pips and the next cost on
   a big button. A tree adds reading for no choice (`meta.md` has only "rank needs the rank
   before it").
-- **The lean is shown, not chosen:** the run setup shows the omen of the coming run ("The north
+- **The lean is shown, not chosen:** the run setup shows the portent (not an in-run omen,
+  `events.md`) of the coming run ("The north
   stirs": an Aesir lean and its boss pair) so a player can buy for it; the map seed decides it.
 - **Look:** wood-and-parchment frames, big readable numbers, actions in the right thumb zone,
   Back always top left.
@@ -30,7 +32,7 @@ Run ends ──> End screen ──Play again──> Run setup ──Start──>
 ```
 
 - **Run setup** replaces today's "Trial picker, after the first win": every new run passes
-  through it; before the first win it shows only the omen and Start.
+  through it; before the first win it shows only the portent and Start.
 - **Back** goes one step up; the system back gesture on Android does the same.
 
 ## 2. End screen
@@ -54,16 +56,17 @@ Run ends ──> End screen ──Play again──> Run setup ──Start──>
 ┌ wood frame ───────────────────────────────────────────────── Ichor 340 ┐
 │ < Back                    THE ALTAR                                     │
 │ ┌ parchment row ─────────────────────────────────────────────────────┐ │
-│ │ [icon] War Chest      +50 start gold      ●●○   [ 80 ]             │ │
+│ │ [icon] War Chest      +50 start gold      ●●○   [ 120 ]            │ │
 │ │ [icon] Devout Masons  temples 10% cheaper ●○    [ 120 ]            │ │
-│ │ [icon] Fourth Card    a 4th card in offers ○    [ 200 ] (locked)   │ │
+│ │ [icon] Favoured: Greek  temple recruits +15% ○  (win once)        │ │
 │ │ ...                                                                 │ │
 │ └─────────────────────────────────────────────────────────────────────┘ │
 │ Return to the gods (refund all)                                         │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
-- **10 rows** in `meta.md` order, 96 px high: 5 show at once, a short drag shows the rest.
+- **10 to 12 rows** in `meta.md` order (Favoured: one row per unlocked pantheon), 96 px high: 5
+  show at once, a short drag shows the rest.
 - **Each row:** icon, name, effect per rank in one line, rank pips, and the next rank's cost on a
   button (80 x 80 or larger). A full row shows "Full" in place of the button.
 - **Buy:** tap the cost button; the pip fills with a short glow and the Ichor counter ticks down.
@@ -87,21 +90,22 @@ Run ends ──> End screen ──Play again──> Run setup ──Start──>
 
 | Part           | Content                                                                                                                                                                                               |
 | -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Omen           | the coming run's lean, from its seed: "The north stirs" (Aesir), "The sea grows restless" (Greek), "The sands whisper" (Egyptian), with the pantheon sigil and its two possible bosses as silhouettes |
+| Portent        | the coming run's lean, from its seed: "The north stirs" (Aesir), "The sea grows restless" (Greek), "The sands whisper" (Egyptian), with the pantheon sigil and its two possible bosses as silhouettes |
 | Trials         | after the first win: 5 toggles (name, effect, a mark if won with it before), the Ichor bonus shown (+10 each)                                                                                         |
 | Altar shortcut | a small "Altar (340)" button if any rank is affordable                                                                                                                                                |
 | Start          | big, bottom right                                                                                                                                                                                     |
 
-- **The seed is fixed when the setup opens,** so the omen is true; the next run's seed is drawn
-  from the meta save, not from the clock (Sim decides the source; it stays seeded).
-- With only the Aesir unlocked, the omen still shows (the lean decides the boss pair).
+- **The seed is fixed when the setup opens,** so the portent is true: the meta save keeps
+  `nextSeed` (drawn at the end of each run, `meta.md` section 4) and `lastBoss`, and Sim's
+  `previewRun` reads both, so the boss pair and the no-repeat rule match the real run.
+- With only the Aesir unlocked, the portent still shows (the lean decides the boss pair).
 
 ## 6. Layout rules
 
 - **Frames:** wood border, parchment fill, iron studs (taste test); panels never fill the whole
   screen edge to edge: a 24 px margin shows the backdrop.
 - **Thumb zones:** primary actions (Play again, Start, buy buttons) on the right half, bottom
-  two thirds; Back and Title top or bottom left.
+  two thirds; Back top left, Title bottom left.
 - **Touch targets** at least `MIN_TOUCH` (80); numbers at least 28 px.
 - **Sound:** a coin clink per Ichor line, a deep chime on a buy, a horn on Start (`audio.md`).
 
@@ -121,14 +125,14 @@ Run ends ──> End screen ──Play again──> Run setup ──Start──>
 | 10    | End screen v3: Ichor tally with count-up, unlock cards, Saga lines, Run details tab, buttons |
 | 20    | Altar screen: rows, pips, buy, toasts, refund                                                |
 | 30    | Hall tabs: Altar, Saga, Unlocks                                                              |
-| 40    | Run setup: omen with sigil and boss silhouettes, Trial toggles, Start                        |
+| 40    | Run setup: portent with sigil and boss silhouettes, Trial toggles, Start                     |
 | 50    | Wood-and-parchment frame and tab pieces (with Art's UI kit)                                  |
 
 ### Balance (data)
 
-| Order | Row                                                           |
-| ----- | ------------------------------------------------------------- |
-| 10    | Omen lines per pantheon; Altar row icons and text (`meta.md`) |
+| Order | Row                                                              |
+| ----- | ---------------------------------------------------------------- |
+| 10    | Portent lines per pantheon; Altar row icons and text (`meta.md`) |
 
 ### Art
 

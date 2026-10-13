@@ -16,15 +16,15 @@ other specs need (`items-and-shops.md`, `buildings.md`, `events.md`, `meta.md`,
 - **Thumb zones:** frequent taps live at the edges, low: the build and bounty menus bottom
   centre (as today), the inspect slot right (right thumb).
   The top bar keeps glanceable info and rare buttons.
-- **New screens for the meta and events specs:** the Hall (unlocks, Saga), the Trial picker,
+- **New screens for the meta and events specs:** the Hall (Altar, Saga, Unlocks), the run setup,
   the end screen's unlock cards and a Title button.
 
 ## 1. Navigation map
 
 ```
-Boot ──> Title ──Play──> Run setup (omen, Trials after the first win; `meta-ui.md`) ──> Map + Hud
+Boot ──> Title ──Play──> Run setup (portent, Trials after the first win; `meta-ui.md`) ──> Map + Hud
            │  ├─Continue (Map asleep, run not over) ──> Map + Hud
-           │  ├─Hall (new) ──> tabs: Altar, Pantheons, Buildings, Cards, Saga ──Back──> Title
+           │  ├─Hall (new) ──> tabs: Altar, Saga, Unlocks ──Back──> Title
            │  └─Settings ──Back──> (where it came from)
 Map + Hud ──Menu──> Pause ──Resume / Restart / Settings / Quit to title
           ──path offer──> path tray over the map (run at 30%) ──pick──> Map
@@ -105,30 +105,30 @@ slot. Today's header is 190 px and the fourth row spills below the slot.
 
 ## 6. Modal screens
 
-| Screen             | Today                                                 | Change                                                                                                                                                |
-| ------------------ | ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| LevelUp            | path cards, then 3 upgrade cards; no close            | replaced: upgrades are auto-picked and celebrated on the map; paths use a tray at the bottom, the run at 30% (`level-ups.md`)                         |
-| Pause              | Resume, Restart, Settings, Quit to title              | unchanged                                                                                                                                             |
-| Settings           | default speed, reduced motion, party colours, Back    | music and effects volume (`audio.md`); the HUD speed choice is saved as the default                                                                   |
-| End screen         | VICTORY or TOWN LOST, time, gold, 6 stats, Play again | MVP hero line (run report has `mvp`), Ichor earned line by line, new unlock cards, Saga entries added this run, a **Title** button next to Play again |
-| Hall (new)         |                                                       | tabs: Altar (Ichor upgrades, `meta.md`), Pantheons (gods, locked greyed with condition), Buildings, Cards, Saga; Back                                 |
-| Trial picker (new) | (only after the first win)                            | 5 toggles with their effect, Start; won trials marked                                                                                                 |
+| Screen          | Today                                                 | Change                                                                                                                                      |
+| --------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| LevelUp         | path cards, then 3 upgrade cards; no close            | replaced: upgrades are auto-picked and celebrated on the map; paths use a tray at the bottom, the run at 30% (`level-ups.md`)               |
+| Pause           | Resume, Restart, Settings, Quit to title              | unchanged                                                                                                                                   |
+| Settings        | default speed, reduced motion, party colours, Back    | music and effects volume (`audio.md`); the HUD speed choice is saved as the default                                                         |
+| End screen      | VICTORY or TOWN LOST, time, gold, 6 stats, Play again | per `meta-ui.md` section 2: THE TOWN HAS FALLEN, MVP line, Ichor tally, unlock cards, Saga lines, Run details tab; Play again, Altar, Title |
+| Hall (new)      |                                                       | tabs: Altar, Saga, Unlocks (`meta-ui.md` section 4); Back                                                                                   |
+| Run setup (new) |                                                       | portent of the coming lean, Trials after the first win, Start (`meta-ui.md` section 5)                                                      |
 
 ## 7. Proposed backlog rows
 
 ### Scene
 
-| Order | Row                                                                           |
-| ----- | ----------------------------------------------------------------------------- |
-| 10    | Tap a building: building card with the upgrade button (Sim `upgrade` exists)  |
-| 20    | Inspect slot: one card at a time; party member rows open a Hero card          |
-| 30    | End screen: Title button, MVP line                                            |
-| 40    | Flag card: raise and cancel (needs Sim 10)                                    |
-| 50    | (dropped: LevelUp peek, see `level-ups.md`)                                   |
-| 60    | HUD speed choice saved as the default                                         |
-| 70    | Favour bars and the miracle tell (with `events.md` Sim rows)                  |
-| 80    | Hall and Trial picker; end screen unlock cards and Saga (with `meta.md` rows) |
-| 90    | Rebuild menu and ruins (with `buildings.md` rows)                             |
+| Order | Row                                                                          |
+| ----- | ---------------------------------------------------------------------------- |
+| 10    | Tap a building: building card with the upgrade button (Sim `upgrade` exists) |
+| 20    | Inspect slot: one card at a time; party member rows open a Hero card         |
+| 30    | End screen: Title button, MVP line                                           |
+| 40    | Flag card: raise and cancel (needs Sim 10)                                   |
+| 50    | (dropped: LevelUp peek, see `level-ups.md`)                                  |
+| 60    | HUD speed choice saved as the default                                        |
+| 70    | Favour bars and the miracle tell (with `events.md` Sim rows)                 |
+| 80    | Hall, run setup, end screen v3 (with `meta-ui.md` and `meta.md` rows)        |
+| 90    | Rebuild menu and ruins (with `buildings.md` rows)                            |
 
 ### Sim
 
