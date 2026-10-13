@@ -70,6 +70,28 @@ export interface MonsterDef {
   tags?: readonly string[];
   // Damage type to multiplier: weak 1.5, resist 0.5, immune 0. Missing types are 1.
   types?: Partial<Record<DamageType, number>>;
+  // A boss: one unit per final lair (docs/systems/combat.md section 7). The object overrides
+  // tuning.boss for this boss; `{}` takes the defaults.
+  boss?: Partial<BossTuning>;
+  // Boss only: its own hit points instead of Sta * 8 + Str * 4 (scaled by lair tier).
+  hp?: number;
+}
+
+// Boss numbers. Defaults in tuning.boss; a MonsterDef.boss row can override any of them.
+export interface BossTuning {
+  // The boss comes out of its lair when the lair is below this share of its hp.
+  emergeBelow: number;
+  // Every cleaveEvery-th strike is a cleave: a long windup with a ground marker, cannot be
+  // dodged, and it hits every hero within cleaveRadius of the target for cleaveShare of the hit.
+  cleaveEvery: number;
+  cleaveRadius: number;
+  cleaveShare: number;
+  cleaveWindupMs: number;
+  // At this share of its hp the boss enrages: its attack time is multiplied by
+  // enrageAttackMult and it calls enrageCalls monsters (LairDef.escort) from its lair.
+  enrageAt: number;
+  enrageAttackMult: number;
+  enrageCalls: number;
 }
 
 export interface LairDef {
@@ -79,6 +101,9 @@ export interface LairDef {
   spawnS: number;
   maxAlive: number;
   hp: number;
+  // The monster that spawns from this lair when `monster` is a boss (and that a boss calls when
+  // it enrages). A lair whose monster is a boss spawns nothing regular without it.
+  escort?: string;
 }
 
 export interface ClassDef {
@@ -461,6 +486,7 @@ export interface Tuning {
   monster: MonsterTuning;
   lair: LairTuning;
   building: BuildingTuning;
+  boss: BossTuning;
   rider: RiderTuning;
   skill: SkillTuning;
   save: SaveTuning;
@@ -493,6 +519,7 @@ export interface GameData {
     building?: Partial<BuildingTuning>;
     rider?: Partial<RiderTuning>;
     skill?: Partial<SkillTuning>;
+    boss?: Partial<BossTuning>;
     save?: Partial<SaveTuning>;
     stats?: Partial<StatsTuning>;
     town?: Partial<TownTuning>;
@@ -618,7 +645,16 @@ export type SimEvent =
   | { kind: 'built'; building: number; type: string }
   | { kind: 'upgraded'; building: number; type: string; tier: number }
   | { kind: 'spawned'; unit: number; type: string; lair: number }
-  | { kind: 'windup'; attacker: number; target: number; inMs: number }
+  | {
+      kind: 'windup';
+      attacker: number;
+      target: number;
+      inMs: number;
+      // A cleave: the ground marker Scene draws until the strike lands.
+      area?: { x: number; y: number; r: number };
+    }
+  | { kind: 'bossEmerged'; unit: number; lair: number }
+  | { kind: 'enraged'; unit: number }
   | { kind: 'heal'; healer: number; target: number; amount: number }
   | {
       kind: 'hit';

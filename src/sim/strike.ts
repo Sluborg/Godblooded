@@ -70,8 +70,11 @@ export function resolveStrike(world: World, s: StrikeIn): StrikeOut {
   // 20 power, 30 skill multiplier
   let dmg = (s.power ?? Math.max(1, s.attrs.str)) * (s.skillMult ?? 1);
   // 40 crit
+  // Bosses cannot be crit.
+  const bossTarget = s.target?.tags?.includes('boss');
   const crit =
     s.canCrit !== false &&
+    !bossTarget &&
     world.rng() < Math.min(0.95, critChance(s.attrs, t.critK) + (s.critAdd ?? 0));
   if (crit) dmg *= t.critMult;
   // 50 type multiplier: the target's row for this type; fire hurts buildings more

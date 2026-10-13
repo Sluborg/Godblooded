@@ -44,7 +44,17 @@ export type FxEffect =
       age: number;
       life: number;
     }
-  | { type: 'bolt'; x: number; y: number; tx: number; ty: number; age: number; life: number }
+  | {
+      type: 'bolt';
+      x: number;
+      y: number;
+      tx: number;
+      ty: number;
+      age: number;
+      life: number;
+      // Colour of a typed bolt (fire, frost, ...); the default blue when absent.
+      tint?: number;
+    }
   | { type: 'ring'; x: number; y: number; r: number; age: number; life: number }
   // A heal: a soft gold-green beam from the healer's weapon to the target's chest.
   | { type: 'heal'; x: number; y: number; tx: number; ty: number; age: number; life: number }
@@ -71,6 +81,8 @@ export interface StrikeInput {
   reach: number;
   foot: number;
   rnd?: (a: number, b: number) => number;
+  // Colour of the damage type for a bolt, or absent for the default blue.
+  tint?: number;
 }
 
 export interface StrikeResult {
@@ -209,7 +221,16 @@ export function buildStrike(i: StrikeInput): StrikeResult {
       break;
     case 'bolt': {
       const to = i.target ?? { x: x + f * h * 2.4, y: y - h * 0.5 };
-      effects.push({ type: 'bolt', x: wp.x, y: wp.y, tx: to.x, ty: to.y, age: 0, life: 0.2 });
+      effects.push({
+        type: 'bolt',
+        x: wp.x,
+        y: wp.y,
+        tx: to.x,
+        ty: to.y,
+        age: 0,
+        life: 0.2,
+        tint: i.tint,
+      });
       break;
     }
     case 'shot': {
@@ -425,8 +446,8 @@ export class FxLayer {
       }
       pts.push({ x: e.tx, y: e.ty });
       for (const [lw, col, al] of [
-        [12, 0x6f9bff, 0.25 * (1 - p)],
-        [5, 0x8cb4ff, 1 - p],
+        [12, e.tint ?? 0x6f9bff, 0.25 * (1 - p)],
+        [5, e.tint ?? 0x8cb4ff, 1 - p],
         [2, 0xf0f8ff, 1 - p],
       ] as const) {
         g.lineStyle(lw, col, al).strokePoints(pts as Phaser.Types.Math.Vector2Like[], false);

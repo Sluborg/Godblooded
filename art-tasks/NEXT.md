@@ -9,8 +9,8 @@ Take the first **Ready** batch of **your track** that is not in the upload log; 
 | A1    | heroes    | `A1.md`  | Aesir gods t1 (Odin, Thor, Loki, Freyja) and their 8 paths t2       | 12     | Ready  |
 | U1    | ui        | `U1.md`  | Logo and app icon: three options                                    | 6      | Done   |
 | U1B   | ui        | `U1B.md` | Logo option B revised: fixed khopesh, Greek spear, calmer sun, drop | 4      | Ready  |
-| U2    | ui        | `U2.md`  | UI kit: 9-slice panel, buttons (3 states), 9 icons, after U1        | 13     | Ready  |
-| U3    | ui        | `U3.md`  | Splash key art: Godbloods facing a monster horde at dusk            | 1      | Ready  |
+| U2    | ui        | `U2.md`  | UI kit: 9-slice panel, buttons (3 states), 9 icons, after U1        | 13     | Done   |
+| U3    | ui        | `U3.md`  | Splash key art: Godbloods facing a monster horde at dusk            | 1      | Done   |
 | U4    | ui        | `U4.md`  | Item icons: sword, focus, armour, 2 potions, 6 charms (after U2)    | 11     | Ready  |
 | U5    | ui        | `U5.md`  | Rider icons (5) and status signs (3), after U2                      | 8      | Ready  |
 | U6    | ui        | `U6.md`  | Card frames (iron, bronze, gold), 5 family icons, 3 sigils          | 11     | Ready  |
