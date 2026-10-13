@@ -279,6 +279,8 @@ export interface HeroTuning {
   potionDrinkAdd: number;
   cowardDrinkAdd: number;
   neverFleeDrink: number;
+  // Heal share (percent of max hp) of a potion with no item row.
+  plainPotionPct: number;
   drinkMs: number;
   taxRate: number;
   arrive: number;

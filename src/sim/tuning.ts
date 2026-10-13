@@ -38,6 +38,7 @@ export const DEFAULT_TUNING: Tuning = {
     potionDrinkAdd: 0.1,
     cowardDrinkAdd: 0.25,
     neverFleeDrink: 0.3,
+    plainPotionPct: 40,
     drinkMs: 500,
     // Share of what heroes spend that the town collects.
     taxRate: 0.5,

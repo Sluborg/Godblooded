@@ -45,9 +45,12 @@ export function runDrink(
 
 // The strongest potion the hero carries (the heal share and the flask to use up).
 function strongestFlask(world: World, flasks: string[]): { index: number; pct: number } {
-  let best = { index: -1, pct: 0.4 };
+  const plain = world.tuning.hero.plainPotionPct / 100;
+  let best = { index: -1, pct: plain };
   flasks.forEach((id, index) => {
-    const pct = (world.data.items?.find((i) => i.id === id)?.effects.healPct ?? 40) / 100;
+    const pct =
+      (world.data.items?.find((i) => i.id === id)?.effects.healPct ??
+        world.tuning.hero.plainPotionPct) / 100;
     if (best.index === -1 || pct > best.pct) best = { index, pct };
   });
   return best;

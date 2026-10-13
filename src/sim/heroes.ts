@@ -125,6 +125,8 @@ export function runHeroes(world: World): void {
 // A hero in a fight with a potion (or already drinking one) drinks rather than runs: the drink
 // starts in the units step, even when one hit took it from above the drink threshold to below
 // the flee threshold. Only a hero without a potion flees.
+// "In a fight" means the hero's last target is a living monster (set by the last tick): a hero
+// walking to a lair or tending a mate still flees, with its potions unused.
 function drinksInsteadOfFleeing(world: World, unit: UnitState): boolean {
   if (world.unitRuntime.get(unit.id)?.drink) return true;
   if (!unit.items || unit.items.potions <= 0 || unit.target === null) return false;
