@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { initInstall } from './ui/install';
 import { registerSW } from 'virtual:pwa-register';
 import { COLORS, GAME_HEIGHT, GAME_WIDTH } from './config';
 import { BootScene } from './scenes/BootScene';
@@ -17,6 +18,8 @@ registerSW({
     if (registration) setInterval(() => registration.update(), 60 * 60 * 1000);
   },
 });
+
+initInstall();
 
 // Block pinch zoom, double-tap zoom and page scroll.
 const prevent = (e: Event) => e.preventDefault();
