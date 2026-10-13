@@ -203,6 +203,11 @@ export class HudScene extends Phaser.Scene {
       return;
     }
     this.panel.hide();
+    // A tap on bare ground while a menu is open dismisses it (a second tap places a bounty).
+    if (this.menu.length > 0 && tap.plot === null && tap.target?.label === 'this spot') {
+      this.closeMenu();
+      return;
+    }
     if (tap.plot !== null) {
       const plot = tap.plot;
       this.openMenu(
@@ -228,8 +233,12 @@ export class HudScene extends Phaser.Scene {
 
   private openMenu(title: string, options: MenuOption[]): void {
     this.closeMenu();
+    // Every menu ends in a Close button: the only other way out used to be a tap on the map,
+    // which opened a bounty menu on the bare ground instead.
+    options = [...options, { label: 'Close', cost: 0, pick: () => this.closeMenu() }];
     const n = options.length;
-    const bw = 230;
+    const gap0 = 14;
+    const bw = Math.min(230, Math.floor((GAME_WIDTH - 40 - (n + 1) * gap0) / n));
     const bh = 100;
     const gap = 14;
     const w = n * bw + (n + 1) * gap;
