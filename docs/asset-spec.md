@@ -85,6 +85,21 @@ feet as anchor for both, and on the arm row `pivotX`/`pivotY` (0..1 of the image
 shoulder, found as the top of the band where the arm touches the body. Rotate the arm sprite
 around that point.
 
+## 9-slice (panels and buttons)
+
+UI pieces the game stretches (`ui_panel`, `ui_button`, `ui_button_pressed`,
+`ui_button_disabled`) are drawn for 9-slice: ornament only in the four corners (inside the outer
+15% of the shape), plain even edges, a flat even middle. On ship Art measures the corners on the
+shipped PNG and adds four integer fields to the row, in **shipped pixels**:
+
+- `sliceLeft`, `sliceRight`: width of the left and right column (corner art included)
+- `sliceTop`, `sliceBottom`: height of the top and bottom row
+
+Scene draws it with Phaser's NineSlice, whose arguments run left, right, top, bottom:
+`this.add.nineslice(x, y, id, undefined, w, h, row.sliceLeft, row.sliceRight, row.sliceTop,
+row.sliceBottom)`. The validator checks that all four are present together and leave a middle
+(left + right < width, top + bottom < height).
+
 ## Tiers
 
 | Tier | Reads as                                                                   |
@@ -122,6 +137,7 @@ shows a tougher monster by colour (tint) in code.
 
 - `kind`: `hero`, `mon`, `bld`, `ter` or `ui`. `tier` and `view` are `null` when the id has none.
 - Rig pieces add `part` (`body` or `arm`); arm rows add `pivotX`, `pivotY`.
+- 9-slice UI rows add `sliceLeft`, `sliceRight`, `sliceTop`, `sliceBottom` (pixels, see 9-slice).
 - Unit stills (hero and mon rows without `part`) must carry the strike and weapon points (all
   fractions 0..1 of the shipped picture):
   - `strike`: `chop`, `double`, `sweep`, `upward`, `thrust`, `smash`, `stomp`, `bolt` or `shot`
