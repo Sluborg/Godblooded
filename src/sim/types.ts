@@ -204,6 +204,12 @@ export interface BuildingTuning {
   towerCooldownMs: number[];
 }
 
+export interface SaveTuning {
+  // The sim emits an `autosave` event every this many ms of run time (0 = never); Scene answers
+  // it with saveWorld(). Not emitted while the world waits for a card pick.
+  autosaveMs: number;
+}
+
 export interface StatsTuning {
   // Town gold is sampled this often for the end screen's gold curve (0 turns it off).
   goldSampleMs: number;
@@ -257,6 +263,7 @@ export interface Tuning {
   monster: MonsterTuning;
   lair: LairTuning;
   building: BuildingTuning;
+  save: SaveTuning;
   stats: StatsTuning;
   town: TownTuning;
   bounty: BountyTuning;
@@ -282,6 +289,7 @@ export interface GameData {
     monster?: Partial<MonsterTuning>;
     lair?: Partial<LairTuning>;
     building?: Partial<BuildingTuning>;
+    save?: Partial<SaveTuning>;
     stats?: Partial<StatsTuning>;
     town?: Partial<TownTuning>;
     bounty?: Partial<BountyTuning>;
@@ -420,6 +428,7 @@ export type SimEvent =
   | { kind: 'argue'; a: number; b: number }
   | { kind: 'revenge'; hero: number; target: number; victim: number }
   | { kind: 'avenged'; hero: number; target: number }
+  | { kind: 'autosave' }
   | { kind: 'lairTierUp'; lair: number; tier: number }
   | { kind: 'lairDestroyed'; lair: number; type: string; by: number; bounty: number }
   | { kind: 'buildingDestroyed'; building: number; type: string }

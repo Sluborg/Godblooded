@@ -1,4 +1,5 @@
 import { avenge, revengeTarget, rivalPairs, vowRevenge } from './rivalry';
+import { runAutosave } from './save';
 import { generateMap } from './mapgen';
 import { swing } from './swing';
 import { buildReport, sampleGold, tally, type HeroRecord } from './runstats';
@@ -90,6 +91,7 @@ export interface UnitRuntime {
 
 export interface World {
   readonly data: GameData;
+  readonly seed: number;
   readonly rng: Rng;
   timeMs: number;
   tick: number;
@@ -107,6 +109,8 @@ export interface World {
   towerNextMs: Map<number, number>;
   // When a pair of rivals may argue again, by pair key.
   argueNextMs: Map<string, number>;
+  // Run time of the next autosave event (0: not set yet).
+  nextAutosaveMs: number;
   tuning: Tuning;
   parties: Map<number, Party>;
   bonds: Map<string, number>;
@@ -127,6 +131,7 @@ export interface World {
 export function createWorld(seed: number, data: GameData): World {
   const world: World = {
     data,
+    seed,
     rng: makeRng(seed),
     timeMs: 0,
     tick: 0,
@@ -143,6 +148,7 @@ export function createWorld(seed: number, data: GameData): World {
     templeNextMs: new Map(),
     towerNextMs: new Map(),
     argueNextMs: new Map(),
+    nextAutosaveMs: 0,
     tuning: resolveTuning(data),
     parties: new Map(),
     bonds: new Map(),
@@ -227,6 +233,7 @@ export function step(world: World, dtMs: number): void {
 function runTick(world: World): void {
   world.tick++;
   world.timeMs += TICK_MS;
+  runAutosave(world);
   sampleGold(world);
   runTemples(world);
   runTowers(world);
