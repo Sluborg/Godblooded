@@ -17,6 +17,7 @@ import { partyColor } from '../ui/partyLook';
 import { UnitViews } from '../ui/unitViews';
 import { OFFER_KEY, type LevelUpOffer } from './LevelUpScene';
 import { attachCameraControls } from '../ui/cameraControls';
+import { easeToward, WatchDirector } from '../ui/watchCam';
 import type { HudScene } from './HudScene';
 
 const BUILDING_COLORS: Record<string, number> = {
@@ -51,6 +52,10 @@ export class MapScene extends Phaser.Scene {
   private links!: Phaser.GameObjects.Graphics;
   // Party whose level-up cards are open (the sim is frozen until it is picked), or null.
   private offerKey: string | null = null;
+  // Camera mode: by hand, watching the best fight, or following one hero (until it is gone).
+  private cam: 'off' | 'watch' | 'unit' = 'off';
+  private followId = 0;
+  private director = new WatchDirector();
   private views = new Map<string, Phaser.GameObjects.GameObject>();
 
   constructor() {
@@ -71,9 +76,14 @@ export class MapScene extends Phaser.Scene {
     attachCameraControls(this, {
       minZoom,
       onTap: (w) => this.events.emit('mapTapped', this.resolveTap(w)),
+      onManual: () => this.setWatch(false),
       blocked: (x, y) => this.registry.get('modal') === true || (this.hud()?.blocks(x, y) ?? false),
     });
     this.offerKey = null;
+    this.cam = 'off';
+    this.followId = 0;
+    this.director.reset();
+    this.registry.set('camMode', 'off');
     this.registry.set('modal', false);
     this.unitViews = new UnitViews(this, () => {
       if (!getSettings().reducedMotion) this.cameras.main.shake(130, 0.004);
@@ -95,6 +105,38 @@ export class MapScene extends Phaser.Scene {
     this.syncOffer();
     // Motion runs at the game speed, but not past 2x: a 4x swing would be a blur.
     this.sync(deltaMs * Math.min(speed, 2));
+    this.updateCamera(deltaMs);
+  }
+
+  // Watch on: the camera drifts to the most interesting fight. Off: back to by hand.
+  setWatch(on: boolean): void {
+    this.cam = on ? 'watch' : 'off';
+    this.followId = 0;
+    this.director.reset();
+    this.registry.set('camMode', this.cam);
+  }
+
+  // Follow one hero until it leaves the map or the player drags.
+  followUnit(id: number): void {
+    this.cam = 'unit';
+    this.followId = id;
+    this.registry.set('camMode', 'unit');
+  }
+
+  private updateCamera(dtMs: number): void {
+    if (this.cam === 'off') return;
+    let target: Vec2 | null;
+    if (this.cam === 'unit') {
+      const u = this.snap.units.find((x) => x.id === this.followId);
+      if (!u) return this.setWatch(false);
+      target = u.pos;
+    } else {
+      target = this.director.update(this.snap.units, dtMs)?.center ?? null;
+    }
+    if (!target) return;
+    const cam = this.cameras.main;
+    const next = easeToward({ x: cam.midPoint.x, y: cam.midPoint.y }, target, dtMs);
+    cam.centerOn(next.x, next.y);
   }
 
   // Level-up cards open while any party has an offer and close when the sim accepts a pick. A
@@ -169,7 +211,10 @@ export class MapScene extends Phaser.Scene {
       .map((u) => ({ u, d: Math.hypot(u.pos.x - w.x, u.pos.y - w.y) }))
       .filter(({ d }) => d < TARGET_RADIUS)
       .sort((a, b) => a.d - b.d)[0];
-    if (hero) return { plot: null, hero: hero.u.id, target: null };
+    if (hero) {
+      this.followUnit(hero.u.id);
+      return { plot: null, hero: hero.u.id, target: null };
+    }
     const hit = [...this.snap.units, ...this.snap.lairs]
       .map((e) => ({ e, d: Math.hypot(e.pos.x - w.x, e.pos.y - w.y) }))
       .filter(({ d }) => d < TARGET_RADIUS)

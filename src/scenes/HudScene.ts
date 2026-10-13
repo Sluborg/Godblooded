@@ -33,6 +33,7 @@ export class HudScene extends Phaser.Scene {
   private panel!: PartyPanel;
   private endObjects: Phaser.GameObjects.GameObject[] = [];
   private speedButtons: Button[] = [];
+  private watchBtn: Button | null = null;
   private menu: Phaser.GameObjects.GameObject[] = [];
   private menuButtons: { button: Button; cost: number }[] = [];
   private menuRect: Phaser.Geom.Rectangle | null = null;
@@ -69,6 +70,10 @@ export class HudScene extends Phaser.Scene {
       this.speedButtons.push(b);
     });
     makeButton(this, 890, 40, 110, MIN_TOUCH, 'Menu', () => this.openPause());
+    this.watchBtn = makeButton(this, 770, 40, 110, MIN_TOUCH, 'Watch', () => {
+      const m = map.registry.get('camMode');
+      map.setWatch(m === 'off' || m === undefined);
+    });
     this.refreshSpeed();
     this.toast = this.add
       .text(GAME_WIDTH / 2, 640, '', {
@@ -99,6 +104,7 @@ export class HudScene extends Phaser.Scene {
   }
 
   update(): void {
+    this.watchBtn?.setActive(this.registry.get('camMode') === 'watch');
     this.goldText.setText(`Gold ${this.registry.get('gold') ?? 0}`);
     this.clockText.setText(formatClock((this.registry.get('timeMs') as number) ?? 0));
     const status = this.registry.get('status') as string | undefined;
