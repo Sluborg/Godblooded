@@ -245,6 +245,16 @@ export interface CombatTuning {
   healRange: number;
   healBelow: number;
   healPower: number;
+  // Curves 0.9 * x / (x + K): never 100%, capped at 90% (docs/systems/combat.md).
+  // Dodge uses 2 * Dex + Per, attack time Dex (floor 10% of the weapon base), crit Per, armour
+  // the armour number, magic resist Wp.
+  dodgeK: number;
+  attackK: number;
+  critK: number;
+  armourK: number;
+  resistK: number;
+  // A crit multiplies the strike (1 = crits off in effect).
+  critMult: number;
 }
 
 export interface Tuning {
@@ -407,7 +417,15 @@ export type SimEvent =
   | { kind: 'spawned'; unit: number; type: string; lair: number }
   | { kind: 'windup'; attacker: number; target: number; inMs: number }
   | { kind: 'heal'; healer: number; target: number; amount: number }
-  | { kind: 'hit'; attacker: number; target: number; damage: number; dodged: boolean }
+  | {
+      kind: 'hit';
+      attacker: number;
+      target: number;
+      damage: number;
+      dodged: boolean;
+      // A critical strike (absent when it was not).
+      crit?: boolean;
+    }
   | { kind: 'knockout'; unit: number; by: number }
   | { kind: 'died'; unit: number; type: string; by: number; bounty: number; xp: number }
   | { kind: 'partyFormed'; party: number; members: number[] }

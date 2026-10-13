@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { createWorld, snapshot, step, type GameData } from './api';
 import { spawnHero } from './world';
-import { attackMs, dodgeChance } from './units';
+import { DEFAULT_TUNING } from './tuning';
+import { armourPct, attackMs, critChance, dodgeChance, resistPct } from './units';
 
 const attrs = { str: 5, dex: 3, sta: 5, cha: 1, per: 3, int: 1, wp: 3 };
 const data: GameData = {
@@ -44,7 +45,24 @@ describe('combat formulas', () => {
       attackMs({ ...w, attrs: { ...attrs, dex: 0 } }),
     );
     expect(dodgeChance({ ...attrs, dex: 1000 })).toBeLessThan(0.9);
-    expect(dodgeChance({ ...attrs, dex: 0 })).toBe(0);
+    expect(dodgeChance({ ...attrs, dex: 0, per: 0 })).toBe(0);
+  });
+
+  it('the curves follow 0.9 * x / (x + K) from tuning.combat', () => {
+    const t = DEFAULT_TUNING.combat;
+    // dodge counts Dex twice and Per once
+    const a = { ...attrs, dex: 5, per: 4 };
+    expect(dodgeChance(a, t.dodgeK)).toBeCloseTo((0.9 * 14) / (14 + t.dodgeK));
+    expect(critChance(a, t.critK)).toBeCloseTo((0.9 * 4) / (4 + t.critK));
+    expect(armourPct(20, t.armourK)).toBeCloseTo(0.45);
+    expect(resistPct(30, t.resistK)).toBeCloseTo(0.45);
+    // attack time never drops below 10% of the weapon base
+    const w = { weapon: { baseAttackS: 2, range: 40 } };
+    expect(attackMs({ ...w, attrs: { ...attrs, dex: 1_000_000 } }, t.attackK)).toBeGreaterThan(200);
+    expect(attackMs({ ...w, attrs: { ...attrs, dex: 0 } }, t.attackK)).toBe(2000);
+    expect(attackMs({ ...w, attrs: { ...attrs, dex: 15 } }, t.attackK)).toBeCloseTo(1100);
+    // a bigger K flattens the curve
+    expect(dodgeChance(a, 400)).toBeLessThan(dodgeChance(a, 40));
   });
 });
 
