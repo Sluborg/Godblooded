@@ -98,3 +98,16 @@ V1 | 2026-10-13T17:46:33.551Z | monsters | started
 B9 | 2026-10-13T17:46:48.133Z | buildings | started
 
 U1 | 2026-10-13T17:50:16.330Z | ui | started
+
+
+V1 | 2026-10-13T18:25:26.066Z | monsters | mon_draugr-v2_t1_front, mon_draugr-v3_t1_front, mon_harpy-v2_t1_front, mon_harpy-v3_t1_front, mon_jackal-man-v2_t1_front, mon_jackal-man-v3_t1_front, mon_minotaur-v2_t1_front, mon_minotaur-v3_t1_front | uploaded
+V1 delivery: eight unchanged 1254x1254 PNGs recovered from the interrupted generation run, no new generation on resume. Built-in image edits of the shipped raw bases in assets/source/B4 and B5. Drive metadata verified filenames, image/png, exact local byte sizes and destination folder. Files:
+mon_draugr-v2_t1_front (1702302 bytes): https://drive.google.com/file/d/1hZ6DuOXJCT2Qm4g78oOFd_QKbkjzhJjv/view?usp=drivesdk
+mon_draugr-v3_t1_front (1705848 bytes): https://drive.google.com/file/d/1ysWkDvDHLUyhonwqumuCKE_jAqHyqddP/view?usp=drivesdk
+mon_harpy-v2_t1_front (1760682 bytes): https://drive.google.com/file/d/1P0putTjNy_MdfHFa--TOVkj6BILk7CQD/view?usp=drivesdk
+mon_harpy-v3_t1_front (1738240 bytes): https://drive.google.com/file/d/1oydNuOthr_p5vryaO2lkCt6I9FnKvrVL/view?usp=drivesdk
+mon_jackal-man-v2_t1_front (1540796 bytes): https://drive.google.com/file/d/1xpPoENbdx4XzKcr7L2IiGywUTimRsJBW/view?usp=drivesdk
+mon_jackal-man-v3_t1_front (1554581 bytes): https://drive.google.com/file/d/1YZZw8OMwV9YeBmxvVTXqIGM477xLnj8x/view?usp=drivesdk
+mon_minotaur-v2_t1_front (1575388 bytes): https://drive.google.com/file/d/19uUH8NPAL4LTsFfR9WzxL4CVujx7AVMu/view?usp=drivesdk
+mon_minotaur-v3_t1_front (1664439 bytes): https://drive.google.com/file/d/1LTYUj-EYG2dmTnLrU5EDWKtzJeTPIdQz/view?usp=drivesdk
+Prompt set: edit base, change only specified head and weapon/claws; preserve canvas, body, clothing colours, pose, feet, hand positions, outline and pixel shading; weapon same size/place/angle and strike position; flat magenta, no text/scenery/shadow. Review: body and pose visually retained, exact pixel identity not guaranteed. Replacement weapon silhouettes and strike points differ slightly, especially jackal axe and minotaur maul; Art should measure points. Draugr-v2 axe is bearded but slightly larger vertical extent than sword tip. Harpy-v2 mask has extended beak beyond an eyes-only mask; corrected output retains original gold legs and changes claws only. Minotaur-v3 gold horn treatment includes base bands. Background near-magenta (corner RGB 237-241,11-13,241-243), not exact #FF00FF. Original oversized framing retained to honor base-preservation instruction. No resizing, cropping, conversion or recompression.
