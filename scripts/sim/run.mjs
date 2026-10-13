@@ -41,6 +41,20 @@ try {
     const w = sim.createWorld(seed0 + r, GRAYBOX);
     let snap = sim.snapshot(w);
     let timeout = false;
+    // Minutes of the first boss emerge and the first blow to or from a boss (null: never).
+    let bossOutMin = null;
+    let bossFightMin = null;
+    const bossIds = new Set();
+    const watch = (sn) => {
+      for (const e of sn.events ?? []) {
+        if (e.kind === 'bossEmerged') {
+          bossIds.add(e.unit);
+          bossOutMin ??= sn.timeMs / 60_000;
+        } else if (e.kind === 'hit' && (bossIds.has(e.attacker) || bossIds.has(e.target))) {
+          bossFightMin ??= sn.timeMs / 60_000;
+        }
+      }
+    };
     for (let t = 0; snap.status === 'running'; t += DT) {
       if (t > maxMin * 60_000) {
         timeout = true;
@@ -48,6 +62,7 @@ try {
       }
       sim.step(w, DT);
       snap = sim.snapshot(w);
+      watch(snap);
       const pathCard = snap.parties.find((p) => p.pathOffer);
       if (pathCard) {
         sim.command(w, {
@@ -62,10 +77,13 @@ try {
       if (t % 5000 === 0) botTurn(w, snap);
     }
     snap = sim.snapshot(w);
+    watch(snap);
     results.push({
       seed: seed0 + r,
       outcome: timeout ? 'timeout' : snap.status,
       minutes: snap.timeMs / 60_000,
+      bossOutMin,
+      bossFightMin,
       ...snap.stats,
       heroes: snap.units.filter((u) => u.kind === 'hero').length,
       maxPartyLevel: Math.max(1, ...snap.parties.map((p) => p.level)),
@@ -129,6 +147,20 @@ function mean(list, key) {
   return list.length === 0 ? 0 : list.reduce((a, r) => a + r[key], 0) / list.length;
 }
 
+// Share of runs that reached the moment, and its p10, median and p90 in minutes.
+function bossTimes(results, key) {
+  const t = results
+    .map((r) => r[key])
+    .filter((x) => x !== null)
+    .sort((a, b) => a - b);
+  return {
+    reached: results.length === 0 ? 0 : t.length / results.length,
+    p10: pct(t, 0.1),
+    median: pct(t, 0.5),
+    p90: pct(t, 0.9),
+  };
+}
+
 function summarize(results) {
   const count = (o) => results.filter((r) => r.outcome === o).length;
   const ended = results.filter((r) => r.outcome !== 'timeout');
@@ -145,6 +177,8 @@ function summarize(results) {
       median: pct(minutes, 0.5),
       p90: pct(minutes, 0.9),
     },
+    bossOut: bossTimes(results, 'bossOutMin'),
+    bossFight: bossTimes(results, 'bossFightMin'),
     perRun: Object.fromEntries(
       [
         'monstersKilled',
@@ -170,6 +204,14 @@ function print(rep) {
   console.log(
     `  run length (min, ended runs): mean ${f(rep.minutes.mean)}  p10 ${f(rep.minutes.p10)}  median ${f(rep.minutes.median)}  p90 ${f(rep.minutes.p90)}`,
   );
+  for (const [name, b] of [
+    ['boss out', rep.bossOut],
+    ['boss fight', rep.bossFight],
+  ]) {
+    console.log(
+      `  ${name} (min): reached ${(b.reached * 100).toFixed(0)}%  p10 ${f(b.p10)}  median ${f(b.median)}  p90 ${f(b.p90)}`,
+    );
+  }
   console.log('  per run (mean):');
   for (const [k, v] of Object.entries(rep.perRun)) console.log(`    ${k.padEnd(16)} ${f(v)}`);
 }

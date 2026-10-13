@@ -7,6 +7,7 @@ import { emptyItems } from './items';
 import { buyItem, hasItemRows, nearestShop, planShopping, type ShopStop } from './shopping';
 import { isBound } from './effects';
 import { passiveKoMult, passiveRestMult } from './passives';
+import { koTimeMult } from './quirks';
 import { dist, maxHp, speed, stepToward, tierValue, TICK_MS } from './units';
 import type { World } from './world';
 import type { LairState, PartyIntent, Vec2, UnitState } from './types';
@@ -223,14 +224,18 @@ function finishShopping(unit: UnitState, rt: HeroRuntime): void {
   rt.dest = null;
 }
 
-// A rested enough hero rejoins the fight when a monster comes within defendRange of the town hall.
+// A rested enough hero rejoins the fight when a monster comes within defendRange of the town hall,
+// or within defendBuildingRange of any building (a raider stands at the plot it attacks).
 function defend(world: World, unit: UnitState, rt: HeroRuntime): void {
   if (unit.hp < unit.maxHp * world.tuning.town.defendHp) return;
-  // Only monsters inside the town call a resting hero back, not ones near an outlying building.
-  const range = world.tuning.town.defendRange;
+  const { defendRange, defendBuildingRange } = world.tuning.town;
   const hall = world.data.townHall;
   const threatened = world.units.some(
-    (m) => m.kind === 'monster' && m.hp > 0 && dist(hall, m.pos) <= range,
+    (m) =>
+      m.kind === 'monster' &&
+      m.hp > 0 &&
+      (dist(hall, m.pos) <= defendRange ||
+        world.buildings.some((b) => dist(b.pos, m.pos) <= defendBuildingRange)),
   );
   if (!threatened) return;
   unit.mode = 'explore';
@@ -247,11 +252,12 @@ function revive(world: World, unit: UnitState, rt: HeroRuntime): void {
   world.events.push({ kind: 'revived', unit: unit.id });
 }
 
-export function heroKnockedOut(world: World, unit: UnitState): void {
+export function heroKnockedOut(world: World, unit: UnitState, by?: number): void {
   const rt = world.heroRuntime.get(unit.id);
   if (!rt) return;
   unit.mode = 'ko';
-  rt.koMs = tune(world).koMs * passiveKoMult(world, unit);
+  rt.koMs =
+    tune(world).koMs * passiveKoMult(world, unit) * (by === undefined ? 1 : koTimeMult(world, by));
   rt.dest = null;
 }
 
