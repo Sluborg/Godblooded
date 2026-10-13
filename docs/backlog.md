@@ -5,25 +5,26 @@ Review (PR open), Done. A worker takes its top Open row.
 
 ## Lead
 
-| Order | Item                                                                                                                    | Status  |
-| ----- | ----------------------------------------------------------------------------------------------------------------------- | ------- |
-| 10    | Spawn Sim, Scene and Art sessions (`docs/prompts/`), check they registered in sessions.md                               | Done    |
-| 20    | Agree the first `src/sim/api.ts` shape with Sim and Scene (inboxes), record in decisions                                | Done    |
-| 30    | First `src/data/` rows for the graybox: 2 classes, 2 monsters, 4 buildings, 3 upgrades                                  | Done    |
-| 35    | Balance pass on GRAYBOX with `npm run sim`: median run 15-18 min, win rate 55-75%, knockouts every run                  | Done    |
-| 40    | Review and merge M1 PRs; when M1 runs end to end, ask Stefan "is it fun to watch?"                                      | Doing   |
-| 50    | Gods and paths data: 12 GODS rows, 24 path rows, templates; balance pass (after Sim 110)                                | Done    |
-| 60    | Building tier data (costs, effects per tier) after Sim 130; lair growth tuning after Sim 120; balance pass              | Open    |
-| 70    | Map pool data after Sim 150: lair rows per monster, boss lair, pantheon lean; balance pass                              | Done    |
-| 80    | Combat data: armour, `spellMult`, damage types, monster type rows (after Sim 190-200); balance pass                     | Doing   |
-| 90    | Aesir skills (8) and passives (4) as data after Sim 240-260; balance pass with skills on                                | Open    |
-| 100   | Data: item rows, kits on templates, smithy row (after Sim 280); balance pass with items                                 | Open    |
-| 110   | Data: the 30 upgrade cards, lair clock and elite tuning (after Sim 320-350); balance pass against the five beats        | Open    |
-| 120   | Data: 8 omens (after Sim 390); 3 miracles once Stefan picks tap-to-cast or auto                                         | Open    |
-| 130   | Data: building rows and tuning from `docs/systems/buildings.md`, 12 plots (after Stefan answers buildings OPEN)         | Blocked |
-| 140   | Data: scarab swarm, Hydra, Apep and their lairs when their art lands; balance pass per lean pantheon (within 10 points) | Blocked |
-| 150   | Meta: record Stefan's A/B/C pick in decisions, turn `docs/systems/meta.md` into rows                                    | Blocked |
-| 160   | Assign Balance: caster paths give Int only (not Str+Int) per the decisions; card `pickTag`/`god` rows                   | Open    |
+| Order | Item                                                                                                                                                      | Status  |
+| ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| 10    | Spawn Sim, Scene and Art sessions (`docs/prompts/`), check they registered in sessions.md                                                                 | Done    |
+| 20    | Agree the first `src/sim/api.ts` shape with Sim and Scene (inboxes), record in decisions                                                                  | Done    |
+| 30    | First `src/data/` rows for the graybox: 2 classes, 2 monsters, 4 buildings, 3 upgrades                                                                    | Done    |
+| 35    | Balance pass on GRAYBOX with `npm run sim`: median run 15-18 min, win rate 55-75%, knockouts every run                                                    | Done    |
+| 40    | Review and merge M1 PRs; when M1 runs end to end, ask Stefan "is it fun to watch?"                                                                        | Doing   |
+| 50    | Gods and paths data: 12 GODS rows, 24 path rows, templates; balance pass (after Sim 110)                                                                  | Done    |
+| 60    | Building tier data (costs, effects per tier) after Sim 130; lair growth tuning after Sim 120; balance pass                                                | Open    |
+| 70    | Map pool data after Sim 150: lair rows per monster, boss lair, pantheon lean; balance pass                                                                | Done    |
+| 80    | Combat data: armour, `spellMult`, damage types, monster type rows (after Sim 190-200); balance pass                                                       | Doing   |
+| 90    | Aesir skills (8) and passives (4) as data after Sim 240-260; balance pass with skills on                                                                  | Open    |
+| 100   | Data: item rows, kits on templates, smithy row (after Sim 280); balance pass with items                                                                   | Open    |
+| 110   | Data: the 30 upgrade cards, lair clock and elite tuning (after Sim 320-350); balance pass against the five beats                                          | Open    |
+| 120   | Data: 8 omens (after Sim 390); 3 miracles once Stefan picks tap-to-cast or auto                                                                           | Open    |
+| 130   | Data: building rows and tuning from `docs/systems/buildings.md`, 12 plots (after Stefan answers buildings OPEN)                                           | Blocked |
+| 140   | Data: scarab swarm, Hydra, Apep and their lairs when their art lands; balance pass per lean pantheon (within 10 points)                                   | Blocked |
+| 150   | Meta: record Stefan's A/B/C pick in decisions, turn `docs/systems/meta.md` into rows                                                                      | Blocked |
+| 160   | Assign Balance: caster paths give Int only (not Str+Int) per the decisions; card `pickTag`/`god` rows                                                     | Open    |
+| 170   | M2 critical path per `docs/systems/m2-plan.md`: data, raids and monsters, intent, visuals, hints, sound, art, run stats and balance, then Stefan playtest | Doing   |
 
 ## Sim
 
@@ -78,6 +79,7 @@ Review (PR open), Done. A worker takes its top Open row.
 | 460   | Bosses by pantheon: `bossesByPantheon` (2 each), seeded pick, no repeat via meta `lastBoss`; moves for the 5 new bosses                                            | Open    |
 | 470   | Late recruits: parties below level 3 take new heroes; `hallJoinBelowLevel` with the Hearth Hall                                                                    | Open    |
 | 480   | Meta: Ichor per run and the Altar upgrades (`meta.md`), meta save                                                                                                  | Open    |
+| 490   | Hero AI (M2, `docs/systems/hero-ai.md` Sim rows 10-60): intent event, score-and-commit choices with distance, trait behaviours, party retreat, discovery state     | Open    |
 
 ## Scene
 
@@ -119,6 +121,8 @@ Review (PR open), Done. A worker takes its top Open row.
 | 290   | Building damage: scaffold, smoke and fire by hp (ruins wait on Stefan)                                                                                                                                    | Open   |
 | 300   | Elite look and lair tier-up shake; quirk effects (regen sparkle, snatched coin)                                                                                                                           | Open   |
 | 310   | Hero card on tap; boss telegraphs for the new bosses; favour bars and miracle visuals (automatic)                                                                                                         | Open   |
+| 320   | Hero AI visuals (M2, `hero-ai.md` Scene rows 10-30): party intent icon, trait tells, retreat horn                                                                                                         | Open   |
+| 330   | M2 visuals per `docs/systems/m2-plan.md`: skill and gear visuals, flag raise/cancel, first-time hints, effect sounds                                                                                      | Open   |
 
 ## Art
 
