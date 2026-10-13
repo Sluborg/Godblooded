@@ -71,6 +71,9 @@ export const DEFAULT_TUNING: Tuning = {
   },
   lair: {
     tierUpEveryMs: 480_000,
+    firstTierUpMs: 0,
+    tierUpStaggerMs: 0,
+    pressureKos: 0,
     maxTier: 3,
     spawnMult: [1, 0.85, 0.7],
     maxAliveAdd: [0, 1, 1],
