@@ -85,6 +85,20 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,json,png,webp,mp3,ogg}'],
+        // Music is cached at runtime the first time it plays, so the first install stays small.
+        globIgnores: ['assets/audio/**'],
+        runtimeCaching: [
+          {
+            urlPattern: /\/assets\/audio\/.*\.(ogg|m4a)$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'godblooded-music',
+              rangeRequests: true,
+              cacheableResponse: { statuses: [200] },
+              expiration: { maxEntries: 20 },
+            },
+          },
+        ],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         cleanupOutdatedCaches: true,
         clientsClaim: true,

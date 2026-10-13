@@ -219,6 +219,15 @@ the game shows the lair tier.
   format, fields, file path, size, alpha, nothing cut off at the border, no key colour left, no
   PNG without a row.
 
+## Music
+
+Music rows follow `docs/systems/audio.md` section 6 and `docs/systems/music-prompts.md` section 4:
+`{ id: "mus_<name>", kind: "mus", file: "audio/mus_<name>", loopStartMs, loopEndMs, bpm, key,
+license, source }`, the file **without extension**: both `.ogg` and `.m4a` ship (stereo, 44.1
+kHz, 96 kbps), loops at about -16 LUFS and stings about -14 LUFS, peaks below -1 dB. Extra
+fields: `loopCrossfadeMs` when the loop needs a crossfade at the seam, `loudnessLufs`, `note`.
+The raw file stays in `assets/source/<batch>/`, never in `public/`.
+
 ## Pipeline (Art)
 
 | Step   | Command                                         | Does                                              |

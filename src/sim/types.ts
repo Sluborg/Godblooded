@@ -441,6 +441,54 @@ export interface SaveTuning {
   autosaveMs: number;
 }
 
+// What a miracle does at its spot. Damage is flat (gods have no attributes) and goes through the
+// strike pipeline as a spell: no dodge, no crit, resisted by Willpower.
+export interface MiracleEffect {
+  kind: 'damage' | 'heal' | 'shield' | 'buff';
+  // Foes are the monsters within the miracle's radius, heroes every hero within it.
+  to: 'foes' | 'heroes';
+  // Only targets with this tag (undead).
+  tag?: string;
+  // Damage: flat per strike, its type (default 'magic') and rider (arc, sear).
+  amount?: number;
+  type?: string;
+  rider?: RiderId;
+  // Damage: this many strikes on random foes (one each), spread evenly over `overS` seconds.
+  // Without it every target is struck once.
+  strikes?: number;
+  overS?: number;
+  // Heal and shield: share of max hp.
+  pct?: number;
+  // Shield and buff: seconds, and the buff's stat and amount.
+  s?: number;
+  stat?: BuffStat;
+  buff?: number;
+}
+
+export interface MiracleDef {
+  id: string;
+  pantheon: string;
+  radius: number;
+  effects: readonly MiracleEffect[];
+  // Names for Scene's tell and effect art.
+  visual?: readonly string[];
+}
+
+// God favours (docs/systems/events.md section 3): temples fill a bar per pantheon; a full bar
+// makes the god cast its miracle where its children are in the most danger.
+export interface FavourTuning {
+  // Bar points per second per temple tier is 1 / perTempleTierS.
+  perTempleTierS: number;
+  // Added when a hero of the pantheon tiers up, and when a party with one of its heroes clears a lair.
+  tierUpGain: number;
+  lairGain: number;
+  max: number;
+  // A hero below this share of max hp is in danger.
+  dangerHp: number;
+  // The tell lasts this long before the miracle lands.
+  tellMs: number;
+}
+
 export interface StatsTuning {
   // Town gold is sampled this often for the end screen's gold curve (0 turns it off).
   goldSampleMs: number;
@@ -770,6 +818,7 @@ export interface Tuning {
   skill: SkillTuning;
   save: SaveTuning;
   stats: StatsTuning;
+  favour: FavourTuning;
   town: TownTuning;
   bounty: BountyTuning;
 }
@@ -790,6 +839,8 @@ export interface GameData {
   items?: readonly ItemDef[];
   // Path skills, one per path (tier 2, upgraded at tier 3).
   skills?: readonly SkillDef[];
+  // One miracle per pantheon (docs/systems/events.md section 3). Without rows no bar fills.
+  miracles?: readonly MiracleDef[];
   // Rows for the units skills summon.
   summons?: readonly SummonDef[];
   // Any subset of the tunable numbers; the rest use DEFAULT_TUNING (src/sim/tuning.ts).
@@ -805,6 +856,7 @@ export interface GameData {
     boss?: Partial<BossTuning>;
     save?: Partial<SaveTuning>;
     stats?: Partial<StatsTuning>;
+    favour?: Partial<FavourTuning>;
     town?: Partial<TownTuning>;
     bounty?: Partial<BountyTuning>;
   };
@@ -955,7 +1007,8 @@ export type SimEvent =
     }
   | { kind: 'bossEmerged'; unit: number; lair: number }
   | { kind: 'enraged'; unit: number }
-  | { kind: 'heal'; healer: number; target: number; amount: number }
+  // `source: 'miracle'`: a god's doing; `healer` is 0 (no unit swings or casts).
+  | { kind: 'heal'; healer: number; target: number; amount: number; source?: 'miracle' }
   | {
       kind: 'hit';
       attacker: number;
@@ -970,6 +1023,8 @@ export type SimEvent =
       absorbed?: number;
       // A burn tick rather than a strike.
       tick?: boolean;
+      // `source: 'miracle'`: a god's doing; `attacker` is 0 (no unit swings or casts).
+      source?: 'miracle';
       // The target's type row made it x1.5 or more (weak) or less than x1 (resist).
       weak?: boolean;
       resist?: boolean;
@@ -1054,6 +1109,8 @@ export type SimEvent =
   | { kind: 'shopped'; unit: number; spent: number; tax: number; item?: string }
   // The seal on a boss lair broke: it can be attacked now.
   | { kind: 'bossLairUnsealed'; lair: number; by: 'time' | 'lairs' }
+  // A god starts its miracle at `pos`; it lands after `tellMs` (Scene draws the tell).
+  | { kind: 'miracle'; id: string; pantheon: string; pos: Vec2; tellMs: number }
   // A party leader got a charm from a lair that fell.
   | { kind: 'relic'; unit: number; item: string; lair: number }
   | { kind: 'bountyPlaced'; bounty: number; gold: number };
@@ -1121,6 +1178,8 @@ export interface Snapshot {
   readonly parties: readonly Readonly<PartyState>[];
   readonly paths: readonly Readonly<PathState>[];
   readonly bounties: readonly Readonly<BountyState>[];
+  // Favour bar of every pantheon with a miracle row (0 to max); a full bar waits for a fight.
+  readonly favour: readonly Readonly<{ pantheon: string; value: number; max: number }>[];
   // Where heroes were slain; the markers stay for the run.
   readonly graves: readonly Readonly<GraveState>[];
   // Pairs of living heroes who are rivals right now (lower id first).

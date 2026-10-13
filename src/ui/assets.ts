@@ -6,6 +6,11 @@ import { DIAG_KEY, type ArtDiag } from './artDiag';
 export interface ManifestAsset {
   id: string;
   file: string;
+  // 'mus' rows are audio (no extension in `file`, .ogg and .m4a shipped); never loaded as images.
+  kind?: string;
+  loopStartMs?: number;
+  loopEndMs?: number;
+  loopCrossfadeMs?: number;
   anchorX: number;
   anchorY: number;
   // Unit stills: the strike effect and where it starts (fractions 0..1 of the picture).
@@ -63,9 +68,11 @@ export function loadManifest(scene: Phaser.Scene, done: () => void, hooks: LoadH
   };
   scene.load.json('manifest', 'assets/manifest.json');
   scene.load.once(Phaser.Loader.Events.COMPLETE, () => {
-    const assets = ((scene.cache.json.get('manifest') as { assets?: ManifestAsset[] } | null)
+    const all = ((scene.cache.json.get('manifest') as { assets?: ManifestAsset[] } | null)
       ?.assets ?? []) as ManifestAsset[];
-    for (const a of assets) rows.set(a.id, a);
+    for (const a of all) rows.set(a.id, a);
+    // Music rows stay in `rows` for the music player but are not images.
+    const assets = all.filter((a) => a.kind !== 'mus');
     diag.expected = assets.length;
     const splash = assets.filter((a) => isSplashAsset(a.id));
     const rest = assets.filter((a) => !isSplashAsset(a.id));
