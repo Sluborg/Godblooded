@@ -554,6 +554,9 @@ export class UnitView {
   // Walk dust comes from the foot that just landed: one or two small puffs, the side
   // alternating with the step (the same parity as the step tilt).
   private stepDust(ctx: FrameCtx): void {
+    // Small monsters wander around their lair all day: their step puffs piled up into grey balls
+    // beside it. Only heroes and tier 3 brutes raise dust.
+    if (!this.isHero && this.tierNow < 3) return;
     const side = Math.floor(this.stepT) % 2 ? 1 : -1;
     const k = 0.4 * this.look.scale;
     ctx.fx.dust(this.x + side * this.footOffset(), this.y, k);
