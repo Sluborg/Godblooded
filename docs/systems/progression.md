@@ -70,40 +70,40 @@ tiers) and on `combat.md`, `paths-and-skills.md` and `items-and-shops.md`.
 
 ### The pool (today's 9 marked "kept")
 
-| Id             | Name             | Family   | Rarity | Needs    | Effect                                                     |
-| -------------- | ---------------- | -------- | ------ | -------- | ---------------------------------------------------------- |
-| iron-arms      | Iron Arms        | stats    | common |          | +2 Str (kept)                                              |
-| thick-hide     | Thick Hide       | stats    | common |          | +2 Sta (kept)                                              |
-| quick-feet     | Quick Feet       | stats    | common |          | +2 Dex (kept)                                              |
-| hawk-eyes      | Hawk Eyes        | stats    | common |          | +3 Per (kept)                                              |
-| iron-will      | Iron Will        | stats    | common |          | +2 Wp, +1 Sta (kept)                                       |
-| battle-hymn    | Battle Hymn      | stats    | common |          | +1 Str, +1 Dex (kept)                                      |
-| keen-mind      | Keen Mind        | stats    | common | a caster | +2 Int                                                     |
-| giants-blood   | Giant's Blood    | stats    | rare   |          | +2 Str, +2 Sta, -1 Dex                                     |
-| second-wind    | Second Wind      | sustain  | common |          | heal the party to full now (kept)                          |
-| field-dressing | Field Dressing   | sustain  | common |          | rest 50% faster                                            |
-| deep-pockets   | Deep Pockets     | sustain  | rare   |          | +1 potion slot each                                        |
-| mending-bond   | Mending Bond     | sustain  | rare   | a healer | heals also touch the most hurt second ally for 50%         |
-| last-stand     | Last Stand       | sustain  | epic   |          | once per fight, a member at 0 hp stays up at 1 hp for 3 s  |
-| odins-eye      | Odin's Eye       | nerve    | common |          | heal 50% now; flee at 15% (kept)                           |
-| berserker      | Berserker        | nerve    | rare   |          | +3 Str, never flee (kept)                                  |
-| oath-brothers  | Oath-Brothers    | nerve    | common |          | bonds grow twice as fast; a loyal member never flees alone |
-| bounty-hunters | Bounty Hunters   | nerve    | common |          | bounty flags look 50% richer to this party                 |
-| tight-purse    | Tight Purse      | nerve    | common |          | a knocked-out member loses half the gold                   |
-| wolf-blood     | Wolf Blood       | nerve    | common |          | +25% damage while below 30% hp                             |
-| quick-hands    | Quick Hands      | skill    | rare   | tier 2   | signature skill cooldowns -20%                             |
-| wide-reach     | Wide Reach       | skill    | rare   | tier 2   | skill radius and range +25%                                |
-| twin-cast      | Twin Cast        | skill    | epic   | tier 2   | 25% chance a skill casts twice                             |
-| opening-gambit | Opening Gambit   | skill    | common | tier 2   | skills start every fight ready                             |
-| berserkergang  | Berserkergang    | pantheon | rare   | Aesir    | +20% damage below 50% hp                                   |
-| fimbulwinter   | Fimbulwinter     | pantheon | epic   | Aesir    | basic strikes carry the chill rider                        |
-| einherjar      | Einherjar        | pantheon | common | Aesir    | knocked out members wake 50% faster, at 50% hp             |
-| phalanx        | Phalanx          | pantheon | common | Greek    | +3 armour while 3 members stand within 100                 |
-| kleos          | Kleos            | pantheon | rare   | Greek    | +50% gold from flags and lairs; a kill shout per kill      |
-| metis          | Metis            | pantheon | epic   | Greek    | +10% crit; crits stagger                                   |
-| scarab         | Scarab           | pantheon | common | Egyptian | heal 3% max hp per kill                                    |
-| book-of-dead   | Book of the Dead | pantheon | rare   | Egyptian | death chances -10 points (boss), -5 (lair); +25% vs undead |
-| eye-of-ra      | Eye of Ra        | pantheon | epic   | Egyptian | every 4th strike is holy and carries sear                  |
+| Id             | Name             | Family   | Rarity | Needs    | Effect                                                          |
+| -------------- | ---------------- | -------- | ------ | -------- | --------------------------------------------------------------- |
+| iron-arms      | Iron Arms        | stats    | common |          | +2 Str (kept)                                                   |
+| thick-hide     | Thick Hide       | stats    | common |          | +2 Sta (kept)                                                   |
+| quick-feet     | Quick Feet       | stats    | common |          | +2 Dex (kept)                                                   |
+| hawk-eyes      | Hawk Eyes        | stats    | common |          | +3 Per (kept)                                                   |
+| iron-will      | Iron Will        | stats    | common |          | +2 Wp, +1 Sta (kept)                                            |
+| battle-hymn    | Battle Hymn      | stats    | common |          | +1 Str, +1 Dex (kept)                                           |
+| keen-mind      | Keen Mind        | stats    | common | a caster | +2 Int                                                          |
+| giants-blood   | Giant's Blood    | stats    | rare   |          | +2 Str, +2 Sta, -1 Dex                                          |
+| second-wind    | Second Wind      | sustain  | common |          | heal the party to full now (kept)                               |
+| field-dressing | Field Dressing   | sustain  | common |          | rest 50% faster                                                 |
+| deep-pockets   | Deep Pockets     | sustain  | rare   |          | +1 potion slot each                                             |
+| mending-bond   | Mending Bond     | sustain  | rare   | a healer | heals also touch the most hurt second ally for 50%              |
+| last-stand     | Last Stand       | sustain  | epic   |          | once per fight, a member at 0 hp stays up at 1 hp for 3 s       |
+| odins-eye      | Odin's Eye       | nerve    | common |          | heal 50% now; flee at 15% (kept)                                |
+| berserker      | Berserker        | nerve    | rare   |          | +3 Str, never flee (kept)                                       |
+| oath-brothers  | Oath-Brothers    | nerve    | common |          | bonds grow twice as fast; a loyal member never flees alone (M3) |
+| bounty-hunters | Bounty Hunters   | nerve    | common |          | bounty flags look 50% richer to this party (M3)                 |
+| tight-purse    | Tight Purse      | nerve    | common |          | knocked-out members lose half as much gold                      |
+| wolf-blood     | Wolf Blood       | nerve    | common |          | +25% damage while below 30% hp                                  |
+| quick-hands    | Quick Hands      | skill    | rare   | tier 2   | signature skill cooldowns -20%                                  |
+| wide-reach     | Wide Reach       | skill    | rare   | tier 2   | skill radius and range +25%                                     |
+| twin-cast      | Twin Cast        | skill    | epic   | tier 2   | 25% chance a skill casts twice                                  |
+| opening-gambit | Opening Gambit   | skill    | common | tier 2   | skills start every fight ready                                  |
+| berserkergang  | Berserkergang    | pantheon | rare   | Aesir    | +20% damage below 50% hp                                        |
+| fimbulwinter   | Fimbulwinter     | pantheon | epic   | Aesir    | basic strikes carry the chill rider                             |
+| einherjar      | Einherjar        | pantheon | common | Aesir    | knocked out members wake 50% faster, at 50% hp                  |
+| phalanx        | Phalanx          | pantheon | common | Greek    | +3 armour while 3 members stand within 100                      |
+| kleos          | Kleos            | pantheon | rare   | Greek    | +50% gold from flags and lairs; a kill shout per kill           |
+| metis          | Metis            | pantheon | epic   | Greek    | +10% crit; crits stagger                                        |
+| scarab         | Scarab           | pantheon | common | Egyptian | heal 3% max hp per kill                                         |
+| book-of-dead   | Book of the Dead | pantheon | rare   | Egyptian | death chances -10 points (boss), -5 (lair); +25% vs undead      |
+| eye-of-ra      | Eye of Ra        | pantheon | epic   | Egyptian | every 4th strike is holy and carries sear                       |
 
 Favour cards (level 7, one per god, epic): a stronger form of the god's passive for the
 whole party (Odin: the party always wins first strike and sees through fog; Thor: +50% against
