@@ -80,6 +80,7 @@ export const DEFAULT_TUNING: Tuning = {
     raidFirstMs: 240_000,
     raidEveryMs: 120_000,
     raidSize: 2,
+    raidLairs: 1,
     raidGrowEveryMs: 300_000,
     defendHp: 0.5,
   },
