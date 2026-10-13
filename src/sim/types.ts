@@ -252,6 +252,8 @@ export interface MapRules {
 export interface LairSite {
   lair: string;
   pos: Vec2;
+  // This lair's first tier-up (else from tuning.lair: first tier-up plus its stagger).
+  firstTierUpMs?: number;
 }
 
 export interface HeroTuning {
@@ -313,6 +315,12 @@ export interface MonsterTuning {
 export interface LairTuning {
   // 0 turns growth off.
   tierUpEveryMs: number;
+  // First tier-up of the nearest lair (0: the same as tierUpEveryMs), and how much later each
+  // lair farther from the town goes up (rank by distance), so the map does not jump at once.
+  firstTierUpMs: number;
+  tierUpStaggerMs: number;
+  // A lair whose monsters knock out this many heroes goes up a tier early (0: off).
+  pressureKos: number;
   maxTier: number;
   // Multiplies the lair's spawn interval.
   spawnMult: number[];
@@ -811,7 +819,8 @@ export type SimEvent =
   | { kind: 'revenge'; hero: number; target: number; victim: number }
   | { kind: 'avenged'; hero: number; target: number }
   | { kind: 'autosave' }
-  | { kind: 'lairTierUp'; lair: number; tier: number }
+  // `pressure`: the lair grew early because its monsters knocked out too many heroes.
+  | { kind: 'lairTierUp'; lair: number; tier: number; pressure?: boolean }
   | { kind: 'lairDestroyed'; lair: number; type: string; by: number; bounty: number }
   | { kind: 'buildingDestroyed'; building: number; type: string }
   | { kind: 'bountyClaimed'; bounty: number; unit: number; gold: number }
