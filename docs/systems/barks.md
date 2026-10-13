@@ -9,8 +9,8 @@ them, but not too often.
 
 - **386 lines** in 26 situations, flavoured by the 12 gods and the 7 traits, so the same
   moment sounds different from Thor's child and a greedy coward.
-- **Rare and precise:** at most one bubble every 3 s on screen, at most 2 at once, each hero
-  at most once per 20 s, and most small events speak only sometimes. Big moments (a knockout,
+- **Rare and precise:** at most one bubble every 5 s on screen, at most 2 at once, each hero
+  at most once per 30 s, and most small events speak only sometimes. Big moments (a knockout,
   a flight, a boss, a revenge) always speak.
 - **Never the same line twice in 5 minutes,** and a hero never repeats itself until it has
   used every line it can say in that situation.
@@ -57,9 +57,9 @@ lines (the skill names) but share the global gap and the 2-bubble cap below, at 
 
 ## 2. Frequency rules
 
-1. **Global gap:** at least 3 s of real time between two bubbles starting; at most 2 bubbles
+1. **Global gap:** at least 5 s of real time between two bubbles starting; at most 2 bubbles
    on screen. Real time, not game time, so 4x speed does not turn into chatter.
-2. **Per hero:** at most one bubble per 20 s of game time. High-priority barks ignore this
+2. **Per hero:** at most one bubble per 30 s of real time. High-priority barks ignore this
    rule, never the global gap.
 3. **Queue:** a high bark that hits the global gap waits up to 1.5 s, then drops; mid and low
    barks drop at once.
@@ -80,10 +80,10 @@ lines (the skill names) but share the global gap and the 2-bubble cap below, at 
 
 ## 3. Proposed data rows
 
-| Row                                                      | Fields                                                                                                                                                              |
-| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| BarkDef                                                  | `situation`, `text` (max 40 chars), `god?` (GodDef id), `trait?` (TraitId)                                                                                          |
-| BARK_TUNING (in `src/data/barks.ts`, Scene-only numbers) | `globalGapMs` 3000, `maxOnScreen` 2, `heroGapMs` 20000, `queueMs` 1500, `noRepeatMs` 300000, `tagWeight` 3, `idleAfterMs` 60000, `chance` per situation (section 1) |
+| Row                                                      | Fields                                                                                                                                                                               |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| BarkDef                                                  | `situation`, `text` (max 40 chars), `god?` (GodDef id), `trait?` (TraitId)                                                                                                           |
+| BARK_TUNING (in `src/data/barks.ts`, Scene-only numbers) | `globalGapMs` 5000, `maxOnScreen` 2, `heroGapMs` 30000 (both real time), `queueMs` 1500, `noRepeatMs` 300000, `tagWeight` 3, `idleAfterMs` 60000, `chance` per situation (section 1) |
 
 Scene owns the picker and the bubble; the rows live in `src/data/barks.ts` (Balance or
 Lead). A test checks every line is at most 40 characters and every tag is a real id.
@@ -569,4 +569,4 @@ Format: `- text` for every hero, `- [god] text` or `- [trait] text` for tagged l
 ## OPEN (Stefan decides)
 
 1. **Tone:** mostly heroic with some jokes (Loki, idle lines). More jokes, or more grim?
-2. **Frequency:** one bubble every 3 s at most, each hero at most every 20 s. More, less?
+2. **Frequency:** set by Lead 2026-10-13 to a 5 s gap and 30 s per hero (real time), after the playtest; more or less?
