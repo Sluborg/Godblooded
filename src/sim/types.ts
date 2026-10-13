@@ -365,9 +365,11 @@ export interface PartyTuning {
   rarity: { low: number[]; mid: number[]; high: number[] };
   bondCap: number;
   baseFlee: number;
-  // Half of the party (rounded up) below baseFlee makes the whole party retreat together; a proud
-  // hero holds on until this share of its hp.
+  // Half of the members in combat (retreatShare, rounded up) below the retreat line, baseFlee plus
+  // retreatMargin, make the whole party retreat together; a proud hero holds on until
+  // proudRetreatAt of its hp.
   retreatShare: number;
+  retreatMargin: number;
   // A party retreat needs at least this many members actually in combat.
   retreatMinFighting: number;
   proudRetreatAt: number;

@@ -74,6 +74,7 @@ export const DEFAULT_TUNING: Tuning = {
     // Hp fraction a hero flees at before upgrades and personality.
     baseFlee: 0.3,
     retreatShare: 0.5,
+    retreatMargin: 0.15,
     retreatMinFighting: 3,
     proudRetreatAt: 0.2,
     rivalBelow: -2,

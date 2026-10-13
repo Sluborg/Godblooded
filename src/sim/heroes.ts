@@ -128,9 +128,10 @@ export function runHeroes(world: World): void {
   }
 }
 
-// Party retreat: when half of the members still in the fight (rounded up) are below the party's
-// own flee line, everyone falls back together (a proud hero stays until its own line). No bond
-// is lost; a hero that already fled alone is out of the count.
+// Party retreat: when half of the members in combat (rounded up) are below the party's retreat
+// line, everyone falls back together (a proud hero stays until its own line). No bond is lost.
+// The retreat line sits retreatMargin above the solo flee line, so the party goes before the
+// first hurt hero would have run off alone.
 function retreatParties(world: World): void {
   for (const party of world.parties.values()) {
     const fighting = party.members
@@ -144,7 +145,8 @@ function retreatParties(world: World): void {
           world.units.some((m) => m.id === u.target && m.kind === 'monster' && m.hp > 0),
       );
     if (fighting.length < world.tuning.party.retreatMinFighting) continue;
-    const hurt = fighting.filter((u) => u.hp < u.maxHp * baseFleeOf(world, u)).length;
+    const margin = world.tuning.party.retreatMargin;
+    const hurt = fighting.filter((u) => u.hp < u.maxHp * (baseFleeOf(world, u) + margin)).length;
     if (hurt < Math.ceil(fighting.length * world.tuning.party.retreatShare)) continue;
     const going: number[] = [];
     for (const u of fighting) {
@@ -221,7 +223,7 @@ function finishShopping(unit: UnitState, rt: HeroRuntime): void {
   rt.dest = null;
 }
 
-// A rested enough hero rejoins the fight when a monster comes within defendRange of a building.
+// A rested enough hero rejoins the fight when a monster comes within defendRange of the town hall.
 function defend(world: World, unit: UnitState, rt: HeroRuntime): void {
   if (unit.hp < unit.maxHp * world.tuning.town.defendHp) return;
   // Only monsters inside the town call a resting hero back, not ones near an outlying building.
