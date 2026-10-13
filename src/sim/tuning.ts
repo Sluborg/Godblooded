@@ -202,8 +202,8 @@ export const DEFAULT_TUNING: Tuning = {
     defendRange: 300,
     raidWarnMs: 15_000,
     towerWarnAddMs: 5_000,
-    // On (Stefan kept raids after a lair tier-up); it adds raids, Balance retunes.
-    raidOnTierUp: true,
+    // Off until Balance retunes (bot win rate drops from 70% to 36% with it on); then it flips on.
+    raidOnTierUp: false,
     raidBeatenGold: 20,
   },
   bounty: {
