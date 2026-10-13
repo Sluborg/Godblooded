@@ -3,6 +3,7 @@ import { runAutosave } from './save';
 import { generateMap } from './mapgen';
 import { buffOf, tauntOf, type UnitFx } from './effects';
 import { armourBonus, weaponPower } from './items';
+import { passiveRider } from './passives';
 import { everyNthOf, passiveAggroMult, passiveArmour } from './passives';
 import { noteFight } from './engage';
 import { removeSummon, runSummon, runSummonUpkeep, summonStats } from './summons';
@@ -269,13 +270,18 @@ export function step(world: World, dtMs: number): void {
   if (world.status !== 'running' || dtMs <= 0) return;
   world.accumulatorMs += dtMs;
   let ticks = 0;
-  // The run waits while a party has a level-up pick pending.
-  while (world.accumulatorMs >= TICK_MS && ticks < MAX_TICKS_PER_STEP) {
-    if (hasPendingPick(world)) {
+  // The run slows to `offerSlowdown` of its speed while a party has a pick pending (0: it
+  // waits). A tick then costs TICK_MS / slowdown of real time.
+  const slow = world.tuning.party.offerSlowdown;
+  for (;;) {
+    const pending = hasPendingPick(world);
+    if (pending && slow <= 0) {
       world.accumulatorMs = 0;
       return;
     }
-    world.accumulatorMs -= TICK_MS;
+    const cost = pending ? TICK_MS / slow : TICK_MS;
+    if (world.accumulatorMs + 1e-6 < cost || ticks >= MAX_TICKS_PER_STEP) break;
+    world.accumulatorMs -= cost;
     runTick(world);
     ticks++;
   }
@@ -576,7 +582,11 @@ function fight(world: World, unit: UnitState, rt: UnitRuntime, stats: Stats, foe
     (area) => {
       if (boss) boss.rt.strikes++;
       if (cleave && area) cleaveStrike(world, unit, foe, stats, area);
-      else landStrike(world, unit, foe, attackStrike(stats, targetOf(world, foe)));
+      else {
+        const input = attackStrike(stats, targetOf(world, foe));
+        const rider = unit.kind === 'hero' ? passiveRider(world, unit) : undefined;
+        landStrike(world, unit, foe, rider ? { ...input, rider } : input);
+      }
       // A passive that adds effects to every nth strike.
       const nth = everyNthOf(world, unit);
       if (nth && foe.hp > 0) {

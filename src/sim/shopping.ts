@@ -1,4 +1,5 @@
 import { emptyItems, itemsOf } from './items';
+import { passivePotionSlots } from './passives';
 import { dist, tierValue } from './units';
 import type { World } from './world';
 import type { BuildingCore, HeroItems, ItemDef, UnitState, Vec2 } from './types';
@@ -69,7 +70,9 @@ export function planShopping(world: World, unit: UnitState): ShopStop[] {
   const have: HeroItems = { ...itemsOf(unit) };
   const bought: { item: ItemDef; shop: 'smithy' | 'market' }[] = [];
   const potion = market ? potionAt(world, market.tier) : undefined;
-  const potionMax = market ? tierValue(world.tuning.hero.potionMax, market.tier, 2) : 0;
+  const potionMax = market
+    ? tierValue(world.tuning.hero.potionMax, market.tier, 2) + passivePotionSlots(world, unit)
+    : 0;
   const buyPotion = () => {
     if (!potion || have.potions >= potionMax || potion.price > budget) return false;
     budget -= potion.price;
@@ -129,7 +132,12 @@ export function buyItem(world: World, unit: UnitState, id: string, shopTier: num
       items.armour = item.level;
       break;
     case 'potion':
-      if (items.potions >= tierValue(world.tuning.hero.potionMax, shopTier, 2)) return 0;
+      if (
+        items.potions >=
+        tierValue(world.tuning.hero.potionMax, shopTier, 2) + passivePotionSlots(world, unit)
+      ) {
+        return 0;
+      }
       items.potions++;
       (items.flasks ??= []).push(item.id);
       break;

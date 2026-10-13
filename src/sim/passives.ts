@@ -6,6 +6,7 @@ import type {
   PassiveDef,
   PassiveEffect,
   PassiveKeys,
+  RiderId,
   UnitState,
 } from './types';
 
@@ -18,8 +19,10 @@ import type {
 // of living party mates in range. A party effect of one passive counts once however many mates
 // carry it.
 export function passivesFor(world: World, unit: UnitState): PassiveEffect[] {
-  if (unit.kind !== 'hero' || !world.data.gods?.some((g) => g.passive)) return [];
+  if (unit.kind !== 'hero') return [];
   const out = new Map<string, PassiveEffect>();
+  const cards = cardEffects(world, unit);
+  if (!world.data.gods?.some((g) => g.passive) && cards.length === 0) return [];
   const own = passiveOf(world, unit);
   own?.effects.forEach((e, i) => {
     if (e.scope !== 'mates') out.set(`${own.id}:${i}`, e);
@@ -37,7 +40,19 @@ export function passivesFor(world: World, unit: UnitState): PassiveEffect[] {
       });
     }
   }
-  return [...out.values()];
+  return [...out.values(), ...cards];
+}
+
+// The cards the hero's party has taken that carry keys: each copy counts, for the whole party.
+function cardEffects(world: World, unit: UnitState): PassiveEffect[] {
+  const upgrades = world.parties.get(unit.party)?.upgrades;
+  if (!upgrades || upgrades.length === 0) return [];
+  const out: PassiveEffect[] = [];
+  for (const id of upgrades) {
+    const keys = world.data.upgrades?.find((u) => u.id === id)?.effect.keys;
+    if (keys) out.push({ scope: 'party', keys });
+  }
+  return out;
 }
 
 function passiveOf(world: World, hero: UnitState): PassiveDef | undefined {
@@ -79,6 +94,19 @@ export const passiveKoMult = (world: World, unit: UnitState) =>
   product(world, unit, (k) => k.koMult);
 export const passiveAggroMult = (world: World, unit: UnitState) =>
   product(world, unit, (k) => k.aggroMult);
+export const passivePotionSlots = (world: World, unit: UnitState) =>
+  sum(world, unit, (k) => k.potionSlots);
+export const passiveCooldownMult = (world: World, unit: UnitState) =>
+  product(world, unit, (k) => k.cooldownMult);
+export const passiveRangeMult = (world: World, unit: UnitState) =>
+  product(world, unit, (k) => k.rangeMult);
+
+// The rider the hero's basic strikes carry, if a card or passive gives one.
+export function passiveRider(world: World, unit: UnitState): RiderId | undefined {
+  for (const p of passivesFor(world, unit)) if (p.keys.rider) return p.keys.rider;
+  return undefined;
+}
+
 export const passiveHealTaken = (world: World, unit: UnitState) =>
   product(world, unit, (k) => k.healTakenMult);
 

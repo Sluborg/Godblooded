@@ -39,6 +39,8 @@ const data: GameData = {
     },
     { id: 'extra', name: 'Extra', text: 'x', effect: { attr: { dex: 1 } } },
   ],
+  // These tests are about the player's pick.
+  tuning: { party: { autoPick: false, offerSlowdown: 0 } },
 };
 
 function world(seed = 1) {
