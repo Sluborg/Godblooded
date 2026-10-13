@@ -145,11 +145,13 @@ describe('rivals', () => {
     const { w, a, b } = pair();
     together(w, a, b);
     // two flights without a shared kill in between: bond 0 -> -2
-    unit(w, b).hp = 1;
+    // a coward flees alone (a party retreat costs no trust)
+    unit(w, b).trait = 'coward';
+    unit(w, b).hp = Math.ceil(unit(w, b).maxHp * 0.4);
     unit(w, b).mode = 'explore';
     run(w, 200);
     unit(w, b).mode = 'explore';
-    unit(w, b).hp = 1;
+    unit(w, b).hp = Math.ceil(unit(w, b).maxHp * 0.4);
     run(w, 200);
     expect(snapshot(w).rivals).toEqual([[a, b]]);
   });
