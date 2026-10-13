@@ -239,11 +239,25 @@ describe('god passives', () => {
     const a = hero(w, 'ares');
     const rt = w.unitRuntime.get(a.id)!;
     rt.fight = { kills: 2, missUsed: false, strikes: 0 };
+    rt.fightUntilMs = w.timeMs + 5000;
     expect(statsOf(w, a)?.haste).toBeCloseTo(0.12);
     rt.fight.kills = 9;
     expect(statsOf(w, a)?.haste).toBeCloseTo(0.3);
     const base = attackMs({ ...statsOf(w, a)!, haste: 0 });
     expect(attackMs(statsOf(w, a)!)).toBeLessThan(base);
+    // The stacks do not carry into the next fight.
+    rt.fightUntilMs = w.timeMs - 1;
+    expect(statsOf(w, a)?.haste).toBe(0);
+  });
+
+  it('an undodgeable strike is not voided by firstHitMisses', () => {
+    const w = world();
+    const l = hero(w, 'loki');
+    const rat = monster(w);
+    const before = l.hp;
+    landStrike(w, rat, l, { ...attackStrike(statsOf(w, rat)!, targetOf(w, l)), canDodge: false });
+    expect(l.hp).toBeLessThan(before);
+    expect(w.unitRuntime.get(l.id)?.fight?.missUsed ?? false).toBe(false);
   });
 
   it('belowHp is a buff only while hurt', () => {

@@ -151,7 +151,8 @@ export function landStrike(
 ): StrikeOut {
   // A passive that makes the first strike against its owner each fight miss.
   const frt = world.unitRuntime.get(foe.id);
-  if (frt && hasPassive(world, foe, 'firstHitMisses')) {
+  // Strikes that cannot be dodged (a boss cleave, tower bolts) are not voided by it.
+  if (frt && input.canDodge !== false && hasPassive(world, foe, 'firstHitMisses')) {
     const fight = (frt.fight ??= { kills: 0, missUsed: false, strikes: 0 });
     if (!fight.missUsed) {
       fight.missUsed = true;

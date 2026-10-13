@@ -94,7 +94,9 @@ export function passiveVsTags(
 // and a buff while below a share of max hp. Folded into buffOf (effects.ts).
 export function passiveBuff(world: World, unit: UnitState, stat: BuffStat): number {
   let total = 0;
-  const kills = world.unitRuntime.get(unit.id)?.fight?.kills ?? 0;
+  // Kill stacks last while the fight does, not into the next one.
+  const rt = world.unitRuntime.get(unit.id);
+  const kills = rt && world.timeMs < (rt.fightUntilMs ?? 0) ? (rt.fight?.kills ?? 0) : 0;
   for (const p of passivesFor(world, unit)) {
     const k = p.keys;
     if (stat === 'dodge') total += k.dodge ?? 0;
