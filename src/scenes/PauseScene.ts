@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { COLORS, GAME_HEIGHT, GAME_WIDTH } from '../config';
 import type { MapScene } from './MapScene';
+import { addIcon } from '../ui/icons';
 import { makeButton } from '../ui/button';
 import { makePanel } from '../ui/panel';
 
@@ -25,7 +26,12 @@ export class PauseScene extends Phaser.Scene {
       ['Settings', () => this.scene.launch('Settings')],
       ['Quit to title', () => this.quit()],
     ];
-    items.forEach(([label, fn], i) => makeButton(this, cx, 230 + i * 110, 360, 90, label, fn));
+    const icons: Record<string, string> = { Settings: 'ui_icon_settings' };
+    items.forEach(([label, fn], i) =>
+      makeButton(this, cx, 230 + i * 110, 360, 90, label, fn, { icon: icons[label] }),
+    );
+    // The pause icon beside the title when the kit has it.
+    addIcon(this, 'ui_icon_pause', cx - 140, 110, 44);
     this.add
       .text(cx, GAME_HEIGHT - 30, 'Quitting keeps this run until you start a new one.', {
         fontFamily: 'Georgia, serif',

@@ -20,6 +20,7 @@ import { getSettings } from '../ui/settings';
 import { heroLabel, partyColor } from '../ui/partyLook';
 import { artCandidates } from '../ui/unitLook';
 import { UnitViews } from '../ui/unitViews';
+import { iconScale } from '../ui/icons';
 import { buildingArtCandidates, buildingScale, lairArtCandidates } from '../ui/unitLook';
 import { ASSETS_KEY, type ManifestAsset } from '../ui/assets';
 import { OFFER_KEY, type LevelUpOffer } from './LevelUpScene';
@@ -653,6 +654,21 @@ export class MapScene extends Phaser.Scene {
   }
 
   private makeBounty(gold: number, x: number, y: number): Phaser.GameObjects.Container {
+    // The kit's bounty flag when it is in the manifest (standing on its point), else drawn shapes.
+    if (this.textures.exists('ui_icon_bounty')) {
+      const flag = this.add.image(0, 0, 'ui_icon_bounty').setOrigin(0.5, 1);
+      flag.setScale(iconScale(flag.width, flag.height, 90));
+      const label = this.add
+        .text(0, 6, `${gold}`, {
+          fontFamily: 'Georgia, serif',
+          fontSize: '24px',
+          color: '#f2c14e',
+          stroke: '#000000',
+          strokeThickness: 4,
+        })
+        .setOrigin(0.5, 0);
+      return this.add.container(x, y, [flag, label]).setDepth(y);
+    }
     const pole = this.add.rectangle(0, -40, 6, 80, 0x4b2e1a);
     const flag = this.add.triangle(18, -68, 0, 0, 0, 28, 36, 14, COLORS.blood);
     const label = this.add

@@ -8,6 +8,7 @@ import { makePanel } from '../ui/panel';
 import { pickToast } from '../ui/levelUpLook';
 import { heroLabel } from '../ui/partyLook';
 import { makeButton, type Button } from '../ui/button';
+import { addIcon } from '../ui/icons';
 import { PartyPanel } from '../ui/partyPanel';
 import type { SimEvent, Vec2 } from '../sim/api';
 import { describeEvent, EventFeed, type FeedWorld } from '../ui/eventFeed';
@@ -28,6 +29,7 @@ const TEXT = { fontFamily: 'Georgia, serif', fontSize: '30px', color: COLORS.tex
 // through MapScene.tryBuild; it holds no rules.
 export class HudScene extends Phaser.Scene {
   private goldText!: Phaser.GameObjects.Text;
+  private goldIcon: Phaser.GameObjects.Image | null = null;
   private clockText!: Phaser.GameObjects.Text;
   private toast!: Phaser.GameObjects.Text;
   private banner!: Phaser.GameObjects.Text;
@@ -65,7 +67,11 @@ export class HudScene extends Phaser.Scene {
     this.places = new Map();
     const map = this.scene.get('Map') as MapScene;
     this.add.rectangle(GAME_WIDTH / 2, 36, GAME_WIDTH, 72, 0x000000, 0.45);
-    this.goldText = this.add.text(20, 36, '', { ...TEXT, color: '#f2c14e' }).setOrigin(0, 0.5);
+    // The gold amount with the kit's gold icon in front of it (the word "Gold" when there is none).
+    this.goldIcon = addIcon(this, 'ui_icon_gold', 36, 36, 44);
+    this.goldText = this.add
+      .text(this.goldIcon ? 66 : 20, 36, '', { ...TEXT, color: '#f2c14e' })
+      .setOrigin(0, 0.5);
     this.clockText = this.add.text(GAME_WIDTH / 2, 36, '0:00', TEXT).setOrigin(0.5);
     SPEEDS.forEach((s, i) => {
       const b = makeButton(
@@ -79,10 +85,13 @@ export class HudScene extends Phaser.Scene {
           this.registry.set('speed', s);
           this.refreshSpeed();
         },
+        { icon: `ui_icon_speed${s}`, iconOnly: true },
       );
       this.speedButtons.push(b);
     });
-    makeButton(this, 890, 40, 110, MIN_TOUCH, 'Menu', () => this.openPause());
+    makeButton(this, 890, 40, 110, MIN_TOUCH, 'Menu', () => this.openPause(), {
+      icon: 'ui_icon_menu',
+    });
     this.watchBtn = makeButton(this, 770, 40, 110, MIN_TOUCH, 'Watch', () => {
       const m = map.registry.get('camMode');
       map.setWatch(m !== 'watch');
@@ -124,7 +133,7 @@ export class HudScene extends Phaser.Scene {
     // Toasts wait while the pause menu is up and are not redrawn over the end screen.
     if (!this.scene.isPaused('Map')) this.feed.update(deltaMs);
     this.drawFeed(this.scene.get('Map') as MapScene);
-    this.goldText.setText(`Gold ${this.registry.get('gold') ?? 0}`);
+    this.goldText.setText(`${this.goldIcon ? '' : 'Gold '}${this.registry.get('gold') ?? 0}`);
     this.clockText.setText(formatClock((this.registry.get('timeMs') as number) ?? 0));
     const status = this.registry.get('status') as string | undefined;
     if ((status === 'won' || status === 'lost') && !this.ended) this.showEnd();
@@ -338,13 +347,22 @@ export class HudScene extends Phaser.Scene {
     const y = cy + h / 2 - 60;
     if (b.upgradeCost !== null) {
       const cost = b.upgradeCost;
-      const up = makeButton(this, cx - 150, y, 280, 90, `Upgrade\n${cost} gold`, () => {
-        const res = map.tryUpgrade(b.id);
-        if (res.ok) {
-          this.closeMenu();
-          this.showToast(`${buildingName(b.type)} upgraded to tier ${b.tier + 1}`);
-        } else this.showToast(res.reason);
-      });
+      const up = makeButton(
+        this,
+        cx - 150,
+        y,
+        280,
+        90,
+        `Upgrade\n${cost} gold`,
+        () => {
+          const res = map.tryUpgrade(b.id);
+          if (res.ok) {
+            this.closeMenu();
+            this.showToast(`${buildingName(b.type)} upgraded to tier ${b.tier + 1}`);
+          } else this.showToast(res.reason);
+        },
+        { icon: 'ui_icon_upgrade' },
+      );
       this.menu.push(up.container);
       this.menuButtons.push({ button: up, cost });
     }
