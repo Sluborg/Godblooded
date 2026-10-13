@@ -200,10 +200,11 @@
   <p class="pathnote" id="pathNote">Tier 1: children of Thor, Odin, Loki and Freyja.</p>
   <h1>Godblooded Style Test</h1>
   <p class="lede">
-    A cartoon, RimWorld-like look drawn entirely in code, with a painterly finish: soft light from
-    the top left, rim light, brush texture and metal glints. Every hero and monster is built from
-    parts (feet, body, head, headgear, cape, hands, weapon) and every motion is code: walk, breathe,
-    swing, cast, flinch, fall, cheer.
+    This version reflects Stefan's taste-test picks: big-head cartoon figures with thin
+    colour-matched outlines and a painterly finish, a warm earthy grade, small units (the hall is
+    about five heroes wide), smooth and weighty motion, big coloured damage numbers, grim monsters
+    and wood-and-parchment frames. Effects grow with progression: subtle at tier 1, stronger at tier
+    2, clearly effectful at tier 3 and on bosses. Everything is still drawn in code from parts.
   </p>
   <div class="notes">
     <p>
@@ -237,6 +238,17 @@
     INK = '#2a201b',
     LW = 1.8,
     TAU = Math.PI * 2;
+  // taste-test picks: small units (the hall is about 5 heroes wide), thin colour-matched outlines
+  const US = 0.86;
+  let OW = 1; // outline width factor: 1 / the scale the current piece is drawn at, so outlines stay ~0.8 px at 1x
+  // effect intensity grows with progression: tier 1 subtle, tier 2 medium, tier 3 and bosses strong
+  const FXL = {
+    0: { r: 0.85, a: 0.85, n: 3, sp: 0.6 },
+    1: { r: 0.7, a: 0.7, n: 3, sp: 0.5 },
+    2: { r: 1, a: 0.95, n: 6, sp: 0.8 },
+    3: { r: 1.35, a: 1.1, n: 11, sp: 1.15 },
+  };
+  let FX = FXL[0];
   let T = 0,
     speed = 1,
     paused = false,
@@ -304,6 +316,27 @@
   const LIGHT = '#fff2d0',
     SHADE = '#1f1b38';
   const tone = (c, k) => (k >= 0 ? mix(c, LIGHT, k) : mix(c, SHADE, -k));
+  // thin colour-matched outline: each shape is outlined in a darker shade of its own fill
+  const OUT = '#3a2c22',
+    DKC = new Map();
+  function dark(c) {
+    if (!c || c[0] !== '#') return OUT;
+    let v = DKC.get(c);
+    if (!v) {
+      v = mix(c, '#1b1410', 0.52);
+      DKC.set(c, v);
+    }
+    return v;
+  }
+  const thin = (lw) => clamp(lw * 0.45, 0.5, 1) * OW;
+  function outline(fill, lw, stroke) {
+    const own = stroke && stroke !== INK; // a deliberate coloured border (a sign, a label) keeps its width and colour
+    ctx.lineWidth = own ? lw : thin(lw);
+    ctx.strokeStyle = own ? stroke : C(dark(fill));
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    ctx.stroke();
+  }
   // fill + outline in one call; path is a function that adds to the current path
   function fs(fill, path, lw = LW, stroke = INK) {
     ctx.beginPath();
@@ -312,13 +345,7 @@
       ctx.fillStyle = C(fill);
       ctx.fill();
     }
-    if (lw) {
-      ctx.lineWidth = lw;
-      ctx.strokeStyle = stroke;
-      ctx.lineJoin = 'round';
-      ctx.lineCap = 'round';
-      ctx.stroke();
-    }
+    if (lw) outline(fill, lw, stroke);
   }
   // painterly fill: a soft top-left to bottom-right gradient, optional texture strokes clipped to
   // the shape, a rim light crescent on the lit edge, then the crisp cartoon outline on top
@@ -354,11 +381,7 @@
     if (lw) {
       ctx.beginPath();
       path();
-      ctx.lineWidth = lw;
-      ctx.strokeStyle = o.stroke || INK;
-      ctx.lineJoin = 'round';
-      ctx.lineCap = 'round';
-      ctx.stroke();
+      outline(fill, lw, o.stroke);
     }
   }
   const E =
@@ -387,6 +410,21 @@
     ctx.lineCap = 'round';
     ctx.stroke();
   }
+  // a stick drawn with its thin outline: a darker line of its own colour underneath
+  function inkLine(x0, y0, x1, y1, col, w) {
+    line(x0, y0, x1, y1, C(dark(col)), w + 1.6 * OW);
+    line(x0, y0, x1, y1, C(col), w);
+  }
+  // the same for an open path already on the context (crooks, curls, eaves)
+  function inkPath(col, w) {
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = C(dark(col));
+    ctx.lineWidth = w + 1.6 * OW;
+    ctx.stroke();
+    ctx.strokeStyle = C(col);
+    ctx.lineWidth = w;
+    ctx.stroke();
+  }
   // a batch of brush strokes: each entry is [x0, y0, x1, y1] or [x0, y0, cx, cy, x1, y1]
   function strokes(list, col, lw) {
     ctx.beginPath();
@@ -412,6 +450,8 @@
     ctx.fill();
   }
   function glow(x, y, r, col, a) {
+    r *= FX.r;
+    a = Math.min(1, a * FX.a);
     if (a <= 0.01) return;
     const g = ctx.createRadialGradient(x, y, 0, x, y, r);
     g.addColorStop(0, rgba(col, a));
@@ -475,6 +515,7 @@
     ctx.stroke();
   }
   function bolt(pts, col, w = 1) {
+    w *= FX.r;
     ctx.save();
     ctx.globalCompositeOperation = 'lighter';
     strokePts(pts, rgba(col, 0.45), 4.5 * w);
@@ -595,7 +636,7 @@
       fx: 'spark',
       hp: 60,
       speed: 62,
-      atk: { style: 'swing', type: 'physical', dmg: [7, 10], cd: 1.25, range: 22, dur: 0.62 },
+      atk: { style: 'swing', type: 'physical', dmg: [7, 10], cd: 1.35, range: 22, dur: 0.88 },
       paths: [
         {
           name: 'Hammerborn',
@@ -627,7 +668,7 @@
               dmg: [8, 11],
               cd: 1.5,
               range: 150,
-              dur: 0.6,
+              dur: 0.78,
               shot: 'zap',
             },
           },
@@ -659,7 +700,7 @@
         dmg: [6, 8],
         cd: 1.6,
         range: 160,
-        dur: 0.6,
+        dur: 0.78,
         shot: 'orb',
       },
       paths: [
@@ -673,7 +714,7 @@
           t2: {
             weapon: 'spear',
             pack: true,
-            atk: { style: 'thrust', type: 'physical', dmg: [7, 9], cd: 1.2, range: 26, dur: 0.5 },
+            atk: { style: 'thrust', type: 'physical', dmg: [7, 9], cd: 1.25, range: 26, dur: 0.66 },
           },
           t3: {
             gold: true,
@@ -700,7 +741,7 @@
       fx: 'greenflame',
       hp: 26,
       speed: 74,
-      atk: { style: 'stab', type: 'physical', dmg: [4, 6], cd: 0.85, range: 20, dur: 0.5 },
+      atk: { style: 'stab', type: 'physical', dmg: [4, 6], cd: 0.95, range: 20, dur: 0.66 },
       paths: [
         {
           name: 'Trickster',
@@ -730,7 +771,7 @@
               dmg: [7, 9],
               cd: 1.4,
               range: 140,
-              dur: 0.55,
+              dur: 0.74,
               shot: 'fireball',
             },
           },
@@ -760,7 +801,7 @@
         dmg: [5, 7],
         cd: 1.5,
         range: 150,
-        dur: 0.6,
+        dur: 0.78,
         shot: 'star',
       },
       paths: [
@@ -772,7 +813,7 @@
             off: 'shield',
             shield: ['#3d6fa8', '#efe3c8'],
             plate: '#bcc5cc',
-            atk: { style: 'thrust', type: 'physical', dmg: [7, 9], cd: 1.2, range: 26, dur: 0.5 },
+            atk: { style: 'thrust', type: 'physical', dmg: [7, 9], cd: 1.25, range: 26, dur: 0.66 },
           },
           t3: { gold: true, capeLen: 1.35, aura: '#ffd34d', spirit: true, wscale: 1.15 },
         },
@@ -788,7 +829,7 @@
               dmg: [6, 8],
               cd: 1.5,
               range: 150,
-              dur: 0.6,
+              dur: 0.78,
               shot: 'shard',
             },
           },
@@ -799,19 +840,22 @@
   };
   const MON_DEFS = {
     draugr: {
+      // grim: dead-grey skin, near-black mail, bright cold eyes, a jagged axe and a faint dark wisp
       name: 'Draugr',
-      skin: '#8d9fae',
-      body: '#3d4451',
-      trim: '#5e4f3f',
-      boots: '#25272d',
+      grim: true,
+      skin: '#5f6b74',
+      body: '#1c2027',
+      trim: '#3a2f27',
+      boots: '#121418',
       head: 'rusthelm',
-      helmCol: '#7a6450',
+      helmCol: '#463a31',
       beard: 'wisp',
-      beardCol: '#aeb8bd',
-      eyes: '#8ff6ff',
-      weapon: 'axe',
+      beardCol: '#7d878c',
+      eyes: '#8ffcff',
+      weapon: 'grimaxe',
       wscale: 1.15,
-      hunch: 0.16,
+      hunch: 0.26,
+      scale: 1.06,
       tatters: true,
       hp: 55,
       speed: 40,
@@ -825,26 +869,29 @@
         wa: 0.45,
         swing: 0.3,
       },
-      armCol: '#8d9fae',
-      atk: { style: 'swing', type: 'physical', dmg: [4, 6], cd: 1.7, range: 22, dur: 0.85 },
+      armCol: '#5f6b74',
+      atk: { style: 'swing', type: 'physical', dmg: [4, 6], cd: 1.8, range: 22, dur: 1.1 },
     },
     troll: {
+      // menacing: moss-dark hide, heavy brow, ember eyes, big lower tusks, a spiked club
       name: 'Troll',
-      skin: '#6c8a45',
-      body: '#62803f',
-      trim: '#6b4a2c',
-      boots: '#55703a',
+      boss: true,
+      skin: '#56694a',
+      body: '#47593a',
+      trim: '#3e2c1e',
+      boots: '#3c4d2e',
       head: 'troll',
       weapon: 'club',
-      belly: '#8aa35c',
+      belly: '#66744f',
       fur: true,
+      eyes: '#ffa040',
       scale: 1.7,
       bw: 9.5,
       bh: 9.5,
       hx: 6,
       hy: -22,
       hr: 6,
-      hunch: 0.1,
+      hunch: 0.17,
       hp: 120,
       speed: 30,
       footR: 4.3,
@@ -859,15 +906,15 @@
         wa: -1.1,
         swing: 0.08,
       },
-      armCol: '#6c8a45',
+      armCol: '#56694a',
       atk: {
         style: 'swing',
         heavy: true,
         type: 'physical',
         dmg: [10, 14],
-        cd: 2.4,
+        cd: 2.6,
         range: 30,
-        dur: 1.5,
+        dur: 1.8,
       },
     },
     harpy: { name: 'Harpy', fly: true, hp: 30, speed: 50, atk: { style: 'none' } },
@@ -876,30 +923,34 @@
   // Arm angle 0 hangs straight down, PI/2 points forward, PI straight up, beyond PI behind the head.
   // Weapon angle 0 points up, +PI/2 forward. The wind-up cocks the weapon behind the head, the
   // swing whips it over the top so the head of the weapon leads, then it follows through low.
+  // Smooth and weighty: a long eased wind-up that slows into the cock, a heavy strike, then a
+  // small settle (the weapon sinks a touch and rebounds) before the arm eases back to rest.
   const SWING = {
     std: {
-      hit: 0.6,
+      hit: 0.62,
       k: [
-        [0.38, 3.95, -0.75, -0.14, -1, 'io'],
-        [0.46, 4.05, -0.95, -0.17, -1.2, 'out'],
-        [0.6, 1.35, 1.6, 0.14, 3, 'in'],
-        [0.74, 0.95, 2.15, 0.18, 3.5, 'out'],
+        [0.42, 3.95, -0.75, -0.16, -1.1, 'io'],
+        [0.5, 4.05, -0.95, -0.19, -1.3, 'out'],
+        [0.62, 1.35, 1.6, 0.14, 3, 'in'],
+        [0.72, 0.88, 2.2, 0.2, 3.6, 'out'],
+        [0.82, 1.02, 2.0, 0.15, 3.1, 'io'],
         [1, 0, 0, 0, 0, 'io'],
       ],
     },
     heavy: {
       hit: 0.68,
       k: [
-        [0.4, 3.85, -0.55, -0.2, -1.5, 'io'],
-        [0.56, 3.95, -0.8, -0.23, -2, 'out'],
+        [0.44, 3.85, -0.55, -0.22, -1.6, 'io'],
+        [0.56, 3.95, -0.8, -0.25, -2, 'out'],
         [0.68, 0.6, 1.75, 0.2, 4, 'in'],
-        [0.82, 0.58, 1.8, 0.22, 4, 'out'],
+        [0.78, 0.5, 1.88, 0.24, 4.3, 'out'],
+        [0.87, 0.62, 1.74, 0.2, 3.9, 'io'],
         [1, 0, 0, 0, 0, 'io'],
       ],
     },
   };
   const EASE = { io: eio, out: eout, in: (t) => t * t * t };
-  const WLEN = { axe: 14.5, club: 16.5, hammer: 14 };
+  const WLEN = { axe: 14.5, grimaxe: 16, club: 16.5, hammer: 14 };
   const IMPACT = { stab: [0.42, 0.7], thrust: [0.5], cast: [0.5], none: [] };
   const impacts = (d) =>
     d.atk.style === 'swing' ? [SWING[d.atk.heavy ? 'heavy' : 'std'].hit] : IMPACT[d.atk.style];
@@ -1328,7 +1379,7 @@
       11,
       { tex: () => planks(x - 16, y - 38, x + 16, y - 27, 4, 7) },
     );
-    line(x, y - 27, x + 1, y - 18, INK, 1);
+    line(x, y - 27, x + 1, y - 18, '#4a3a2a', 0.9);
     paint('#8a5a37', RR(x - 2.5, y - 19, 5, 5, 1), x - 2.5, y - 19, 5, 5, { lw: 1.3, rim: 0.5 });
   }
   function stump(x, y) {
@@ -1444,27 +1495,20 @@
       ctx.stroke();
     }
     fs('#a87b36', P([-62, -29, 62, -29, 60, -34, -60, -34]), 0);
-    line(-62, -29, 62, -29, INK, 2.2);
+    line(-62, -29, 62, -29, dark('#a87b36'), 1.2);
     paint('#5a3a24', RR(-52, -76, 104, 6, 2), -52, -76, 104, 6, { rim: 0.8 });
     for (const s of [-1, 1]) {
       ctx.beginPath();
       ctx.moveTo(s * 46, -72);
       ctx.lineTo(s * 57, -90);
       ctx.quadraticCurveTo(s * 62, -96, s * 54, -95);
-      ctx.strokeStyle = INK;
-      ctx.lineWidth = 5;
-      ctx.lineCap = 'round';
-      ctx.stroke();
-      ctx.strokeStyle = '#7a5232';
-      ctx.lineWidth = 2.6;
-      ctx.stroke();
+      inkPath('#7a5232', 2.6);
       ctx.strokeStyle = 'rgba(255,225,170,0.4)';
       ctx.lineWidth = 0.8;
       ctx.stroke();
     }
     // the town's own banner
-    line(-70, 2, -70, -64, INK, 4);
-    line(-70, 2, -70, -64, '#6b4a2c', 2);
+    inkLine(-70, 2, -70, -64, '#6b4a2c', 2);
     waveCloth(-69, -62, 24, 15, '#3d6fa8', 0.7);
     ctx.restore();
   }
@@ -1573,14 +1617,9 @@
       ctx.beginPath();
       ctx.moveTo(sx, sy);
       ctx.quadraticCurveTo(sx + d * 7, sy - 4, sx + d * 6, sy - 10);
-      ctx.strokeStyle = INK;
-      ctx.lineWidth = 4.2;
-      ctx.stroke();
-      ctx.strokeStyle = '#7a5232';
-      ctx.lineWidth = 2;
-      ctx.stroke();
+      inkPath('#7a5232', 2);
     }
-    line(0, -95, 0, -103, INK, 3);
+    inkLine(0, -95, 0, -103, '#5a4030', 1.4);
     paint('#d9a441', E(0, -104, 2.2, 2.2), -2.2, -106.2, 4.4, 4.4, { lw: 1.2, rim: 0 });
     spec(-0.8, -104.8, 0.4);
     for (const s of [-1, 1]) {
@@ -1668,14 +1707,14 @@
     ctx.fillStyle = 'rgba(30,20,20,0.25)';
     ctx.fillRect(-40, -44, 80, 4);
     // hanging coin sign, barrels, sacks
-    line(-30, -40, -30, -33, INK, 1.2);
+    line(-30, -40, -30, -33, '#4a3a2a', 0.9);
     paint('#e8b53a', E(-30, -30, 4, 4), -34, -34, 8, 8, { lw: 1.4 });
     spec(-31.4, -31.6, 0.6);
     for (const bx of [50, 58]) {
       paint('#8a5a37', RR(bx - 5, -13, 10, 13, 3), bx - 5, -13, 10, 13, {
         tex: () => planks(bx - 5, -13, bx + 5, 0, 3.4, bx),
       });
-      line(bx - 5, -8, bx + 5, -8, INK, 1.2);
+      line(bx - 5, -8, bx + 5, -8, '#4a3220', 1);
     }
     paint('#d8c49a', E(-50, -5, 6, 5.5), -56, -10.5, 12, 11, {});
     paint('#cdb88c', E(-56, -3, 5, 4.5), -61, -7.5, 10, 9, {});
@@ -1823,8 +1862,7 @@
     // standing stones, skull pike, bones
     stone('#77746c', [-66, 2, -58, 2, -59, -22, -64, -24]);
     stone('#77746c', [62, 2, 70, 2, 69, -18, 63, -20]);
-    line(-40, 4, -40, -34, INK, 3.4);
-    line(-40, 4, -40, -34, '#5a4030', 1.6);
+    inkLine(-40, 4, -40, -34, '#5a4030', 1.6);
     skull(-40, -38, 1.2);
     for (const [bx, by, a] of [
       [-24, 8, 0.3],
@@ -1855,17 +1893,16 @@
   }
   function drawFlag() {
     if (!flag.on) return;
-    const d = clamp(flag.t / 0.5, 0, 1),
-      drop = (1 - eout(d)) * -120,
-      sq = d < 1 ? 1 : 1 + Math.max(0, 0.25 - (flag.t - 0.5) * 1.5) * Math.sin(flag.t * 40) * 0.2;
+    const d = clamp(flag.t / 0.7, 0, 1),
+      drop = (1 - eio(d)) * -120,
+      sq = 1;
     ctx.save();
     ctx.translate(FLAG.x, FLAG.y);
     ctx.globalAlpha = flag.fade;
     shadow(5, 1, 10 * d + 2, 3.5, 0.3);
     ctx.translate(0, drop);
     ctx.scale(1, sq);
-    line(0, 2, 0, -64, INK, 5);
-    line(0, 2, 0, -64, '#6e4a2a', 2.8);
+    inkLine(0, 2, 0, -64, '#6e4a2a', 2.8);
     line(-0.6, 0, -0.6, -62, 'rgba(255,225,170,0.4)', 0.7);
     paint('#e8b53a', E(0, -66, 3.4, 3.4), -3.4, -69.4, 6.8, 6.8, { lw: 1.6 });
     spec(-1.2, -67.3, 0.5);
@@ -1879,14 +1916,14 @@
     const ly = -86 + Math.sin(T * 3) * 1.5;
     ctx.font = "800 17px 'Alegreya Sans', sans-serif";
     const tw = ctx.measureText('250').width,
-      pw = tw + 32;
-    fs('#2a2014', RR(-pw / 2, ly - 12, pw, 24, 12), 2, '#f0c443');
-    paint('#f0c443', E(-pw / 2 + 12, ly, 6, 6), -pw / 2 + 6, ly - 6, 12, 12, { lw: 1.4 });
-    fs('#c88a1c', E(-pw / 2 + 12, ly, 3, 3), 0);
-    ctx.fillStyle = '#ffe28a';
+      pw = tw + 38;
+    woodFrame(-pw / 2, ly - 14, pw, 28, 4, false);
+    paint('#f0c443', E(-pw / 2 + 14, ly, 6, 6), -pw / 2 + 8, ly - 6, 12, 12, { lw: 1.4 });
+    fs('#c88a1c', E(-pw / 2 + 14, ly, 3, 3), 0);
+    ctx.fillStyle = '#5a3208';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
-    ctx.fillText('250', -pw / 2 + 21, ly + 1);
+    ctx.fillText('250', -pw / 2 + 24, ly + 1);
     ctx.restore();
   }
 
@@ -1973,11 +2010,13 @@
       }
       return p;
     }
-    const br = Math.sin(t * 2.6);
-    p.sy = 1 + br * 0.03;
-    p.bob = -br * 0.25;
-    p.hf.y += br * 0.3;
-    p.hb.y += br * 0.3;
+    // gentle idle: slow breathing and a faint sway, no bounce
+    const br = Math.sin(t * 1.5);
+    p.sy = 1 + br * 0.018;
+    p.bob = -br * 0.22;
+    p.lean += Math.sin(t * 0.75) * 0.035;
+    p.hf.y += br * 0.25;
+    p.hb.y += br * 0.25;
     if (u.moving) {
       const w = u.walkPh,
         s = Math.sin(w),
@@ -1985,7 +2024,7 @@
         st = bw * 0.5;
       p.f0 = { x: -bw * 0.36 + s * st, y: -Math.max(0, c) * 1.5 };
       p.f1 = { x: bw * 0.42 - s * st, y: -Math.max(0, -c) * 1.5 };
-      p.bob = -Math.abs(c) * 1.0;
+      p.bob = -Math.abs(c) * 0.8;
       p.lean += 0.08;
       p.hb.x -= s * 2.2;
       p.hf.x += s * 1.6;
@@ -1998,15 +2037,15 @@
       }
     }
     if (u.cheer > 0) {
-      const h = Math.abs(Math.sin(u.cheer * 7));
-      p.bob = -h * 6;
-      p.hf = { x: 5, y: -27 };
-      p.hb = { x: -5, y: -27 };
-      p.wa = -0.15;
-      p.wb = -0.3;
-      p.lean = 0;
-      p.sy = 1 + h * 0.06;
-      p.f0.y = p.f1.y = -h * 5.4; // the feet leave the ground with the body
+      // a slow, proud raise of the arms into the light: eased up, held, eased down; feet stay planted
+      const c = 2.6 - u.cheer,
+        up = eio(clamp(c / 0.6, 0, 1)) * (1 - eio(clamp((c - 2.1) / 0.5, 0, 1)));
+      p.hf = { x: lerp(p.hf.x, 5, up), y: lerp(p.hf.y, -27, up) };
+      p.hb = { x: lerp(p.hb.x, -5, up), y: lerp(p.hb.y, -26, up) };
+      p.wa = lerp(p.wa, -0.15, up);
+      p.wb = lerp(p.wb, -0.3, up);
+      p.lean = lerp(p.lean, -0.06, up);
+      p.bob -= up * (1.2 + Math.sin(T * 2) * 0.3);
     }
     if (u.channel > 0) {
       p.hf = { x: 9, y: -20 + Math.sin(T * 8) };
@@ -2017,7 +2056,13 @@
     }
     arms();
     if (u.atkT >= 0) attackPose(u, p);
-    if (u.flash > 0) p.lean -= 0.3 * u.flash;
+    if (u.hitT >= 0 && u.hitT < 0.8) {
+      // weighty recoil: the body rocks back and settles, no squash
+      const k = Math.sin(Math.PI * clamp(u.hitT / 0.8, 0, 1)) * (u.d.scale > 1.2 ? 0.4 : 1);
+      p.lean -= 0.26 * k;
+      p.dx -= 2.2 * k;
+      p.bob += 0.6 * k;
+    }
     return p;
   }
   function attackPose(u, p) {
@@ -2068,7 +2113,7 @@
       p.f1.x += p.dx * 0.6;
       if (fwd > 0.2) p.trail = ['thrust', fwd];
     } else if (st === 'cast') {
-      const up = a < 0.5 ? eout(a / 0.5) : 1 - eio((a - 0.5) / 0.5);
+      const up = a < 0.5 ? eio(a / 0.5) : 1 - eio(Math.max(0, a - 0.58) / 0.42);
       p.hf = { x: lerp(h0.x, 7, up), y: lerp(h0.y, -24, up) };
       p.wa = lerp(A0, 0.05, up);
       p.hb = { x: lerp(-5.5, 4, up * 0.7), y: lerp(-11, -17, up * 0.7) };
@@ -2154,12 +2199,7 @@
         if (kind === 'staff') {
           ctx.beginPath();
           ctx.arc(1.5, -22.5, 3.2, Math.PI * 0.9, Math.PI * 2.4);
-          ctx.strokeStyle = INK;
-          ctx.lineWidth = 4;
-          ctx.stroke();
-          ctx.strokeStyle = '#7a5532';
-          ctx.lineWidth = 2;
-          ctx.stroke();
+          inkPath('#7a5532', 2);
           ctx.strokeStyle = 'rgba(255,225,170,0.45)';
           ctx.lineWidth = 0.7;
           ctx.stroke();
@@ -2168,12 +2208,7 @@
           // Seer: the same crook, now holding a glowing eye
           ctx.beginPath();
           ctx.arc(0, -26, 4.6, Math.PI * 0.75, Math.PI * 2.25);
-          ctx.strokeStyle = INK;
-          ctx.lineWidth = 3.6;
-          ctx.stroke();
-          ctx.strokeStyle = '#7a5532';
-          ctx.lineWidth = 1.8;
-          ctx.stroke();
+          inkPath('#7a5532', 1.8);
           const br = d.bright ? 1 : 0;
           glow(0, -26, 12 + p.cast * 8 + br * 6, '#9be36b', 0.45 + p.cast * 0.4 + br * 0.2);
           paint('#c9f59a', E(0, -26, 3.2, 3.2), -3.2, -29.2, 6.4, 6.4, { lw: 1.3, rim: 0 });
@@ -2259,6 +2294,21 @@
         }
         spec(6.4, -16.4, 0.45);
         break;
+      case 'grimaxe':
+        woodStick(-1.2, -17, 2.4, 21, '#3e2e24');
+        paint(
+          '#5a5a62',
+          P([0.5, -17, 6, -22, 9, -19, 7.5, -16, 10, -13, 7, -8, 0.5, -10]),
+          0.5,
+          -22,
+          9.5,
+          14,
+          { rim: 0.7, k: 1.2 },
+        );
+        strokes([[7.5, -20, 8.6, -15, 7.6, -10]], '#a0a6ae', 0.8);
+        paint('#5a241e', E(5, -12.5, 1.3, 1.1), 3.7, -13.6, 2.6, 2.2, { lw: 0.8, rim: 0 });
+        spec(6, -18, 0.4);
+        break;
       case 'club':
         paint(
           '#7a5a3a',
@@ -2290,6 +2340,15 @@
           ctx.fillStyle = 'rgba(255,220,170,0.35)';
           ctx.fillRect(kx - 0.8, ky - 1, 0.7, 0.5);
         }
+        // iron spikes hammered through the head of the club
+        for (const [sx, sy, dx] of [
+          [-3.6, -15, -1],
+          [4, -14, 1],
+          [-2.6, -19, -1],
+          [3, -19.5, 1],
+          [-3, -10, -1],
+        ])
+          fs('#8a8c90', P([sx, sy - 1, sx + dx * 2.8, sy - 0.2, sx, sy + 0.9]), 1);
         break;
     }
   }
@@ -2320,7 +2379,7 @@
   }
   function drawArm(d, sh, h, front) {
     const w = d.arms.w;
-    line(sh.x, sh.y, h.x, h.y, INK, w + 3);
+    line(sh.x, sh.y, h.x, h.y, C(dark(front ? d.armCol : tone(d.armCol, -0.25))), w + 1.6 * OW);
     line(sh.x, sh.y, h.x, h.y, C(front ? d.armCol : tone(d.armCol, -0.25)), w);
     const nx = h.y - sh.y,
       ny = -(h.x - sh.x),
@@ -2685,13 +2744,23 @@
       return;
     }
     if (d.eyes) {
+      // bright, flickering eyes read even when the unit is tiny (always at full strength)
+      const f = FX,
+        fl = 0.9 + Math.sin(T * 9 + u.ph) * 0.1;
+      FX = FXL[2];
+      const gr = d.boss ? 3.2 : 6.5;
       for (const e of [e1, e2]) {
-        glow(e[0], e[1], 4.5, d.eyes, 0.7);
-        ctx.fillStyle = d.eyes;
+        glow(e[0], e[1], gr, d.eyes, (d.boss ? 0.6 : 0.85) * fl);
+        ctx.fillStyle = '#ffffff';
         ctx.beginPath();
-        ctx.arc(e[0], e[1], 1.1, 0, TAU);
+        ctx.arc(e[0], e[1], 0.55, 0, TAU);
+        ctx.fill();
+        ctx.fillStyle = rgba(d.eyes, 0.9);
+        ctx.beginPath();
+        ctx.arc(e[0], e[1], 1.25, 0, TAU);
         ctx.fill();
       }
+      FX = f;
       return;
     }
     const blink = Math.sin(T * 0.9 + u.ph * 3) > 0.985;
@@ -2890,45 +2959,90 @@
     paint(d.skin, E(hx, hy, r, r), hx - r, hy - r, 2 * r, 2 * r, {
       rim: 1.2,
       tex: () => {
-        ctx.fillStyle = 'rgba(224,112,90,0.22)';
-        ctx.beginPath();
-        ctx.ellipse(hx + 3.8, hy + 2.6, 1.8, 1.1, 0, 0, TAU);
-        ctx.fill();
+        if (!d.eyes) {
+          ctx.fillStyle = 'rgba(224,112,90,0.22)';
+          ctx.beginPath();
+          ctx.ellipse(hx + 3.8, hy + 2.6, 1.8, 1.1, 0, 0, TAU);
+          ctx.fill();
+        } else {
+          ctx.fillStyle = 'rgba(10,12,18,0.35)';
+          ctx.beginPath();
+          ctx.ellipse(hx + 3, hy + 0.2, 4.6, 2.2, 0, 0, TAU);
+          ctx.fill();
+        } // sunken eye shadow
       },
     });
     if (hd === 'troll') {
-      eyes(u, d, hx, hy - 1, 1.2);
-      line(hx, hy - 3.2, hx + 6.5, hy - 2.4, '#33421c', 1.8);
-      paint(
-        mix(d.skin, '#000000', 0.1),
-        E(hx + 6.3, hy + 1.2, 2.8, 2.3),
-        hx + 3.5,
-        hy - 1.1,
-        5.6,
-        4.6,
-        { lw: 1.3, rim: 0.6 },
-      );
-      for (const tx of [1.5, 4]) {
-        fs('#f1ead2', P([hx + tx, hy + 5.2, hx + tx + 0.8, hy + 2.2, hx + tx + 1.6, hy + 5.2]), 1);
+      // bony spines down the skull, deep-set ember eyes under a heavy brow, a hooked nose and big tusks
+      for (const [sx, sy, a] of [
+        [-4.5, -4.5, -2.4],
+        [-2, -6.2, -2.0],
+        [1, -6.6, -1.6],
+      ]) {
+        ctx.save();
+        ctx.translate(hx + sx, hy + sy);
+        ctx.rotate(a);
+        fs('#3a3328', P([-1.2, 0, 4.2, 0.2, -1.2, 1.6]), 1);
+        ctx.restore();
       }
-      strokes(
-        [
-          [hx - 2, hy - r + 0.5, hx - 3.5, hy - r - 2.5],
-          [hx, hy - r + 0.5, hx - 1.5, hy - r - 2.8],
-          [hx + 2, hy - r + 0.5, hx + 0.5, hy - r - 2.5],
-          [hx - 4, hy - r + 2, hx - 5.5, hy - r - 0.5],
-        ],
-        INK,
-        0.9,
+      eyes(u, d, hx, hy - 0.8, 1.6);
+      const brow = mix(d.skin, '#000000', 0.3);
+      paint(
+        brow,
+        P([
+          hx - 3.5,
+          hy - 4.8,
+          hx + 3,
+          hy - 5.4,
+          hx + 8.2,
+          hy - 3.6,
+          hx + 7.6,
+          hy - 1.6,
+          hx + 4.4,
+          hy - 2.6,
+          hx + 1.4,
+          hy - 1.7,
+          hx - 3,
+          hy - 2.6,
+        ]),
+        hx - 3.5,
+        hy - 5.4,
+        11.7,
+        3.8,
+        { lw: 1.2, rim: 0.4 },
       );
+      paint(
+        mix(d.skin, '#000000', 0.15),
+        P([hx + 5, hy - 1.8, hx + 8.8, hy + 1.6, hx + 7.4, hy + 2.6, hx + 5.4, hy + 1.6]),
+        hx + 5,
+        hy - 1.8,
+        3.8,
+        4.4,
+        { lw: 1.1, rim: 0.4 },
+      );
+      line(hx + 0.6, hy + 4.4, hx + 7, hy + 3.4, '#1a1a12', 1);
+      for (const [tx, h] of [
+        [1.2, 4.2],
+        [5.6, 3.4],
+      ])
+        fs(
+          '#e3d8bc',
+          () => {
+            ctx.moveTo(hx + tx, hy + 4.8);
+            ctx.quadraticCurveTo(hx + tx - 0.4, hy + 4.8 - h * 0.6, hx + tx + 0.4, hy + 4.8 - h);
+            ctx.lineTo(hx + tx + 1.8, hy + 4.6);
+            ctx.closePath();
+          },
+          1,
+        );
       strokes(
         [
-          [hx - 4, hy + 2, hx - 3, hy + 4],
-          [hx - 2, hy + 3.5, hx - 1, hy + 5],
+          [hx - 4, hy + 0.5, hx - 1.5, hy + 3],
+          [hx - 3.4, hy + 1.6, hx - 2.4, hy + 0.8],
         ],
-        'rgba(30,45,15,0.5)',
+        'rgba(20,10,8,0.55)',
         0.6,
-      );
+      ); // an old scar
       return;
     }
     eyes(u, d, hx, hy, 2.2);
@@ -3036,8 +3150,20 @@
       }
     }
     if (hd === 'rusthelm') {
+      if (d.grim)
+        for (const sx of [-1, 1])
+          fs(
+            '#cfc6b0',
+            P([hx + sx * 4 - 1, hy - 6, hx + sx * 8.5, hy - 13, hx + sx * 4 + 1.5, hy - 5]),
+            1.1,
+          );
       helm(hx, hy, r, d.helmCol);
       line(hx - 3, hy - 7, hx - 1, hy - 3, '#3a2a20', 1);
+      if (d.grim) {
+        line(hx + 2, hy + 4.6, hx + 6.5, hy + 4, '#141016', 1);
+        for (const bx of [-1, 1.5, 4])
+          line(hx + bx, hy - 4, hx + bx + 1, hy - 1.5, 'rgba(20,20,30,0.45)', 0.7);
+      }
       for (let k = 0; k < 4; k++) {
         ctx.fillStyle = 'rgba(150,80,40,0.55)';
         ctx.fillRect(hx - 4 + k * 2.3, hy - 4 - (k % 2) * 2, 1, 1);
@@ -3196,7 +3322,7 @@
         ),
     });
     if (d.lantern) {
-      line(-14, -9, -15.5, -6, INK, 0.9);
+      line(-14, -9, -15.5, -6, '#3a2c22', 0.8);
       paint('#4a3a2a', RR(-17.4, -6.2, 4, 5.4, 1), -17.4, -6.2, 4, 5.4, { lw: 1.1, rim: 0 });
       ctx.fillStyle = '#ffd77a';
       ctx.fillRect(-16.6, -5.2, 2.4, 3.4);
@@ -3223,14 +3349,35 @@
       glow(cx, cy + 3, 9, '#9fd8ff', 0.5);
     }
   }
+  const usc = (u) => (u.d.scale || 1) * US;
+  // effect level of a unit: heroes follow the tier buttons, bosses are always strong, others subtle
+  const fxLevel = (u) => (!u ? 0 : u.kind === 'hero' ? (u.sel || SEL).t : u.d.boss ? 3 : 1);
   function drawHuman(u) {
     const d = u.d,
       p = pose(u),
-      s = d.scale || 1;
+      s = usc(u);
     ctx.save();
     ctx.translate(u.x, u.y);
     ctx.globalAlpha = u.alpha;
     LX = u.face;
+    OW = 1 / s;
+    FX = FXL[fxLevel(u)];
+    if (d.grim && !u.ko) {
+      // a faint dark wisp curls up off the draugr
+      for (let i = 0; i < 5; i++) {
+        const k = (T * 0.45 + i / 5 + u.ph) % 1;
+        ctx.fillStyle = `rgba(12,16,26,${0.2 * (1 - k) * Math.min(1, k * 4)})`;
+        ctx.beginPath();
+        ctx.arc(
+          (-6 + i * 3 + Math.sin(T * 2 + i + u.ph) * 2) * s,
+          (-8 - k * 30) * s,
+          (3 + k * 4) * s,
+          0,
+          TAU,
+        );
+        ctx.fill();
+      }
+    }
     if (d.aura && !u.ko) {
       ctx.save();
       ctx.scale(s, s);
@@ -3255,16 +3402,18 @@
     ctx.restore();
     FL = 0;
     LX = 1;
+    OW = 1;
     if (d.fx === 'raven' && !u.ko) {
       const n = d.ravens || 1;
       for (let i = 0; i < n; i++) {
         const a = T * 1.8 + u.ph + (i * TAU) / n,
-          rx = u.x + Math.cos(a) * 20,
-          ry = u.y - 48 + Math.sin(a) * 6;
+          rx = u.x + Math.cos(a) * 20 * US,
+          ry = u.y - 48 * US + Math.sin(a) * 6;
         raven(rx, ry, Math.sin(a) > 0 ? -1 : 1, T * 12 + i);
         shadow(rx + 4, u.y + Math.sin(a) * 4 + 2, 3, 1.2, 0.16);
       }
     }
+    FX = FXL[0];
   }
   function figure(u, d, p) {
     const A = d.arms,
@@ -3285,8 +3434,7 @@
     if (d.fx === 'gold' && u.glow > 0) glow(0, -14, 30, '#ffd34d', 0.6 * u.glow);
     if (d.runes || d.shards) orbit(d, false);
     if (d.lead) {
-      line(-4, -10, -6, -44, INK, 3);
-      line(-4, -10, -6, -44, '#6b4a2c', 1.5);
+      inkLine(-4, -10, -6, -44, '#6b4a2c', 1.5);
       waveCloth(-6, -44, 12, 8, PARTY, 0.4);
     }
     if (d.spirit) spiritWings(d);
@@ -3298,10 +3446,7 @@
     drawBody(u, d, p);
     if (d.plate) plate(d);
     if (d.mantle) mantle(d);
-    if (d.pack) {
-      line(-4.5, -18.5, 4.5, -7.5, INK, 2.6);
-      line(-4.5, -18.5, 4.5, -7.5, '#5a3a24', 1.4);
-    }
+    if (d.pack) inkLine(-4.5, -18.5, 4.5, -7.5, '#5a3a24', 1.4);
     const front = () => {
       if (p.trail) drawTrail(u, p);
       if (A) drawArm(d, shF, p.hf, true);
@@ -3335,7 +3480,7 @@
     ctx.save();
     ctx.globalCompositeOperation = 'lighter';
     if (Array.isArray(tr)) {
-      line(2, -14, 26, -14, `rgba(255,255,255,${0.5 * tr[1]})`, 3);
+      line(2, -14, 26, -14, `rgba(255,255,255,${0.4 * FX.a * tr[1]})`, 1 + FX.r * 1.5);
     } else {
       // smear along the path the weapon head really travelled in the last moment
       const wl = (WLEN[u.d.weapon] || 14) * (u.d.wscale || 1),
@@ -3351,14 +3496,13 @@
       }
       for (let i = 1; i < pts.length; i++) {
         const t = i / (pts.length - 1);
-        line(
-          pts[i - 1][0],
-          pts[i - 1][1],
-          pts[i][0],
-          pts[i][1],
-          `rgba(255,255,255,${0.5 * t * fade})`,
-          1 + 4 * t,
-        );
+        ctx.beginPath();
+        ctx.moveTo(pts[i - 1][0], pts[i - 1][1]);
+        ctx.lineTo(pts[i][0], pts[i][1]);
+        ctx.lineCap = 'butt';
+        ctx.strokeStyle = `rgba(255,255,255,${0.42 * FX.a * t * fade})`;
+        ctx.lineWidth = 0.8 + 3 * FX.r * t;
+        ctx.stroke();
       }
     }
     ctx.restore();
@@ -3367,21 +3511,24 @@
     const w = Math.sin(ph) * 4;
     ctx.save();
     ctx.translate(x, y);
-    ctx.scale(f, 1);
+    ctx.scale(f * US, US);
+    OW = 1 / US;
     fs('#1e1c22', P([-1, 0, -7, -3 - w, -3, 1]), 1);
     paint('#26232c', E(0, 0, 3.6, 2), -3.6, -2, 7.2, 4, { lw: 1, rim: 0.6 });
     paint('#26232c', E(3.3, -1, 1.8, 1.7), 1.5, -2.7, 3.6, 3.4, { lw: 1, rim: 0.5 });
     fs('#d9a441', P([4.8, -1.3, 6.8, -0.6, 4.8, -0.2]), 0);
     fs('#2a2830', P([0, 0, -5, -2 + w * 0.6, -2, 1.5]), 1);
     ctx.restore();
+    OW = 1;
   }
   function drawHarpy(u) {
     const alt = 24 + Math.sin(T * 2.4 + u.ph) * 4,
       fl = Math.sin(T * 10 + u.ph);
     ctx.save();
-    ctx.translate(u.x, u.y - alt);
-    ctx.scale(u.face * 1.15, 1.15);
+    ctx.translate(u.x, u.y - alt * US);
+    ctx.scale(u.face * 1.15 * US, 1.15 * US);
     LX = u.face;
+    OW = 1 / (1.15 * US);
     FL = u.flash;
     const wing = (dx, col) => {
       const path = () => {
@@ -3412,7 +3559,7 @@
     wing(2, '#4f3348');
     fs('#5a3a50', P([-5, -2, -11, 4, -7, 5, -3, 1]));
     for (const lx of [-2, 2]) {
-      line(lx, 0, lx + 1, 6, INK, 2);
+      inkLine(lx, 0, lx + 1, 6, '#4a3040', 1.2);
       fs('#e2b84a', P([lx - 1, 6, lx + 3, 6, lx + 1, 8.5]), 1);
     }
     paint('#6b4560', E(0, -6, 5.5, 7), -5.5, -13, 11, 14, {
@@ -3438,6 +3585,7 @@
     ctx.restore();
     FL = 0;
     LX = 1;
+    OW = 1;
   }
 
   // ---------- entities ----------
@@ -3490,6 +3638,7 @@
       healCd: 0,
       emerge: 1,
       hits: 0,
+      hitT: -1,
     };
     u.d = resolve(def);
     units.push(u);
@@ -3514,11 +3663,11 @@
     if (nums.length > 6) nums.shift();
   }
   function chest(u) {
-    const s = u.d.scale || 1;
-    return { x: u.x, y: u.y - (u.d.fly ? 30 : 15 * s) };
+    const s = usc(u);
+    return { x: u.x, y: u.y - (u.d.fly ? 30 * US : 15 * s) };
   }
   function handPos(u) {
-    const s = u.d.scale || 1;
+    const s = usc(u);
     return { x: u.x + u.face * 8 * s, y: u.y - 30 * s };
   }
 
@@ -3531,7 +3680,7 @@
     u.x += (dx / dd) * st;
     u.y += (dy / dd) * st;
     u.moving = true;
-    u.walkPh += st * 0.17;
+    u.walkPh += (st * 0.15) / US;
     if (Math.abs(dx) > 0.5) u.face = dx > 0 ? 1 : -1;
     return dd - st <= stop + 0.01;
   }
@@ -3553,29 +3702,34 @@
     const crit = type === 'physical' && R() < 0.1;
     if (crit) amt = Math.round(amt * 1.5);
     t.hp -= amt;
-    t.flash = 1;
+    t.flash = 0.8;
+    t.hitT = 0;
     const c = chest(t);
     num(c.x, c.y - 18, amt + (crit ? '!' : ''), TYPE[type], crit || weak);
     if (src) {
       const dx = t.x - src.x,
         dy = t.y - src.y,
         dd = Math.hypot(dx, dy) || 1,
-        k = t.d.scale > 1.2 ? 30 : 110;
+        k = t.d.scale > 1.2 ? 20 : 55;
       t.kbx += (dx / dd) * k;
       t.kby += (dy / dd) * k * 0.6;
     }
-    for (let i = 0; i < 6; i++)
+    // hit effects grow with the attacker's tier: a few short sparks at tier 1, a shower at tier 3
+    const lv = fxLevel(src),
+      L = FXL[lv];
+    for (let i = 0; i < L.n; i++)
       addP({
         x: c.x,
         y: c.y,
-        vx: rnd(-80, 80),
-        vy: rnd(-90, 20),
+        vx: rnd(-80, 80) * L.sp,
+        vy: rnd(-90, 20) * L.sp,
         g: 200,
-        life: 0.35,
-        size: 1.6,
+        life: 0.25 + 0.1 * lv,
+        size: 0.9 + 0.3 * lv,
         col: TYPE[type],
         kind: 'spark',
       });
+    fx.push({ kind: 'hit', x: c.x, y: c.y, t: 0, life: 0.18 + 0.06 * lv, col: TYPE[type], lv });
     if (t.hp <= 0) {
       if (t.kind === 'hero') {
         if (t.key === 'loki' && !S.lokiDown) {
@@ -3633,16 +3787,17 @@
       t = u.tgt;
     if (a.heavy) {
       // the troll's club lands on the ground in front of it: a small puff of dust
-      const s = u.d.scale || 1;
+      const s = usc(u);
       dust(u.x + u.face * 34 * s * 0.62, u.y + 2, 10, 1.3);
       fx.push({
         kind: 'ring',
-        x: u.x + u.face * 21,
+        x: u.x + (u.face * 21 * s) / 1.7,
         y: u.y + 2,
         t: 0,
-        life: 0.45,
+        life: 0.6,
         col: '#d8c49a',
-        r: 16,
+        r: 18,
+        lv: 3,
       });
     }
     if (!t || t.dead || t.ko) return;
@@ -3658,7 +3813,16 @@
     const h = handPos(u);
     if (a.shot === 'zap') {
       const c = chest(t);
-      fx.push({ kind: 'zap', x0: h.x, y0: h.y, x1: c.x, y1: c.y, t: 0, life: 0.22 });
+      fx.push({
+        kind: 'zap',
+        x0: h.x,
+        y0: h.y,
+        x1: c.x,
+        y1: c.y,
+        t: 0,
+        life: 0.22,
+        lv: fxLevel(u),
+      });
       damage(t, dmg, a.type, u);
     } else shots.push({ x: h.x, y: h.y, tgt: t, src: u, type: a.type, kind: a.shot, dmg, t: 0 });
   }
@@ -3776,7 +3940,8 @@
       h.face = 1;
       return;
     }
-    const reach = d.atk.range + 8 * ((t.d.scale || 1) - 1) + 6;
+    const reach =
+      (d.atk.style === 'cast' ? d.atk.range : d.atk.range * US) + 8 * (usc(t) - US) + 6 * US;
     if (dist(h, t) > reach)
       moveTo(
         h,
@@ -3805,8 +3970,8 @@
     let t = !S.lokiDown && !loki.ko ? loki : alive[0];
     const pull = (h) => dist(m, h) - (h.key === 'thor' ? 70 : 0);
     if (S.lokiDown) for (const h of alive) if (pull(h) < pull(t)) t = h;
-    if (dist(m, t) > m.d.atk.range + 6)
-      moveTo(m, t.x + 16 * Math.sign(m.x - t.x || 1), t.y + m.lane * 0.3, dt, 1);
+    if (dist(m, t) > (m.d.atk.range + 6) * US)
+      moveTo(m, t.x + 16 * US * Math.sign(m.x - t.x || 1), t.y + m.lane * 0.3, dt, 1);
     else {
       faceTo(m, t);
       if (m.cd <= 0) startAttack(m, t);
@@ -3903,21 +4068,29 @@
   }
   function levelUp() {
     const c = centroid(heroes);
-    fx.push({ kind: 'burst', x: c.x, y: c.y - 14, t: 0, life: 1.8 });
+    let w = 30,
+      by = c.y;
+    for (const h of heroes) {
+      w = Math.max(w, Math.abs(h.x - c.x) + 16);
+      by = Math.max(by, h.y);
+    }
+    fx.push({ kind: 'pillar', x: c.x, y: by + 4, w: Math.min(w, 70), t: 0, life: 3.4, lv: SEL.t });
+    fx.push({ kind: 'burst', x: c.x, y: c.y - 14, t: 0, life: 2.2, lv: SEL.t });
     for (const h of heroes) {
       h.cheer = 2.6;
       h.glow = 1;
       h.face = 1;
       h.atkT = -1;
-      for (let i = 0; i < 8; i++)
+      for (let i = 0; i < 2 + 2 * SEL.t; i++)
         addP({
           x: h.x + rnd(-8, 8),
           y: h.y - rnd(0, 26),
-          vy: rnd(-60, -30),
-          life: rnd(0.8, 1.4),
-          size: rnd(1.4, 2.6),
+          vy: rnd(-40, -20),
+          life: rnd(1, 1.6),
+          size: rnd(1.2, 2),
           col: '#ffe28a',
           kind: 'mote',
+          lv: SEL.t,
         });
     }
     banner = { t: 0, text: 'Party of Eirik reached level 3' };
@@ -3957,8 +4130,16 @@
         dd = Math.hypot(dx, dy),
         st = 360 * dt;
       s.t += dt;
-      if (s.t % 0.03 < dt)
-        addP({ x: s.x, y: s.y, life: 0.3, size: 2.2, col: TYPE[s.type], kind: 'mote' });
+      if (s.t % (0.075 - 0.015 * fxLevel(s.src)) < dt)
+        addP({
+          x: s.x,
+          y: s.y,
+          life: 0.3,
+          size: 1.2 + 0.4 * fxLevel(s.src),
+          col: TYPE[s.type],
+          kind: 'mote',
+          lv: fxLevel(s.src),
+        });
       if (dd <= st + 4 || s.tgt.dead || s.tgt.ko) {
         shots.splice(i, 1);
         if (!s.tgt.dead && !s.tgt.ko) damage(s.tgt, s.dmg, s.type, s.src);
@@ -4012,7 +4193,8 @@
     cam.y = lerp(cam.y, clamp(tgt.y - 20, hh, H - hh), k);
   }
   function updUnit(u, dt) {
-    u.flash = Math.max(0, u.flash - dt * 6);
+    u.flash = Math.max(0, u.flash - dt * 5);
+    if (u.hitT >= 0) u.hitT += dt;
     u.glow = Math.max(0, u.glow - dt * 1.3);
     u.cd -= dt;
     u.healCd -= dt;
@@ -4074,7 +4256,7 @@
       for (let j = i + 1; j < list.length; j++) {
         const a = list[i],
           b = list[j],
-          r = 9 * ((a.d.scale || 1) + (b.d.scale || 1));
+          r = 9 * (usc(a) + usc(b));
         const dx = b.x - a.x,
           dy = (b.y - a.y) * 1.6,
           dd = Math.hypot(dx, dy);
@@ -4173,7 +4355,7 @@
   }
   function drawRing(u) {
     if (!showRings || (u.dead && u.deadT > 0.6)) return;
-    const s = u.d.scale || 1,
+    const s = usc(u),
       foe = u.kind === 'mon',
       rx = (foe && u.d.fly ? 10 : 11) * s,
       ry = rx * 0.4;
@@ -4191,10 +4373,27 @@
     ctx.stroke();
     ctx.restore();
   }
+  const labelTop = (u) =>
+    u.y -
+    (u.d.fly ? 64 * US : (u.d.head === 'widehat' ? 50 : u.d.helm || u.d.horns ? 46 : 42) * usc(u));
+  // when the party bunches up, stack name labels instead of letting them overlap
+  function placeLabels() {
+    const tags = units
+      .filter((u) => u.kind === 'hero')
+      .map((u) => ({ u, y: labelTop(u) }))
+      .sort((a, b) => b.y - a.y);
+    for (let i = 0; i < tags.length; i++) {
+      for (let j = 0; j < i; j++) {
+        const a = tags[i],
+          b = tags[j];
+        if (Math.abs(a.u.x - b.u.x) < 44 && a.y > b.y - 14) a.y = b.y - 14;
+      }
+      tags[i].u.tagY = tags[i].y;
+    }
+  }
   function drawLabels(u) {
-    const s = u.d.scale || 1,
-      top =
-        u.y - (u.d.fly ? 64 : (u.d.head === 'widehat' ? 50 : u.d.helm || u.d.horns ? 46 : 42) * s);
+    const s = usc(u),
+      top = u.kind === 'hero' && u.tagY != null ? u.tagY : labelTop(u);
     if (u.kind === 'hero' && showNames && !u.ko) {
       ctx.font = "700 11px 'Alegreya Sans', sans-serif";
       ctx.textAlign = 'center';
@@ -4212,7 +4411,7 @@
       ctx.fillText(u.d.name, u.x + 3, top);
     }
     if (u.hp < u.max && !u.ko && !u.dead && S.phase === 'fight') {
-      const w = 20 * Math.min(s, 1.3),
+      const w = 20 * Math.min(s / US, 1.3),
         y = top + (u.kind === 'hero' && showNames ? 9 : 4);
       ctx.fillStyle = 'rgba(20,15,10,0.8)';
       ctx.fillRect(u.x - w / 2 - 1, y - 1, w + 2, 4);
@@ -4231,7 +4430,9 @@
       } else if (p.kind === 'spark')
         line(p.x, p.y, p.x - p.vx * 0.03, p.y - p.vy * 0.03, rgba(p.col, a), p.size);
       else if (p.kind === 'mote') {
-        glow(p.x, p.y, p.size * 3, p.col, 0.5 * a);
+        FX = FXL[p.lv ?? 0];
+        glow(p.x, p.y, p.size * 2.2, p.col, 0.45 * a);
+        FX = FXL[0];
         ctx.fillStyle = rgba(p.col, a);
         ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
       } else if (p.kind === 'coin') {
@@ -4242,7 +4443,9 @@
   }
   function drawShot(s) {
     const col = TYPE[s.type];
-    glow(s.x, s.y, 14, col, 0.7);
+    FX = FXL[fxLevel(s.src)];
+    glow(s.x, s.y, 10, col, 0.6);
+    FX = FXL[0];
     if (s.kind === 'star') {
       ctx.save();
       ctx.translate(s.x, s.y);
@@ -4265,17 +4468,35 @@
   }
   function drawFx(e) {
     const k = e.t / e.life;
+    FX = FXL[e.lv ?? 0];
     if (e.kind === 'zap') {
       ctx.globalAlpha = 1 - k;
-      bolt(zig(e.x0, e.y0, e.x1, e.y1, 7, 7), '#fff27a');
-      glow(e.x1, e.y1, 18, '#fff27a', 0.8 * (1 - k));
+      bolt(zig(e.x0, e.y0, e.x1, e.y1, 7, 5 + e.lv), '#fff27a', 0.55 + 0.2 * e.lv);
+      glow(e.x1, e.y1, 12, '#fff27a', 0.7 * (1 - k));
       ctx.globalAlpha = 1;
+    } else if (e.kind === 'hit') {
+      glow(e.x, e.y, 6 + 2 * e.lv, e.col, 0.5 * (1 - k));
+      if (e.lv >= 2) {
+        ctx.strokeStyle = rgba(e.col, (e.lv - 1) * 0.35 * (1 - k));
+        ctx.lineWidth = 0.6 + 0.4 * e.lv;
+        ctx.beginPath();
+        ctx.ellipse(e.x, e.y, 3 + k * 5 * e.lv, 2.4 + k * 4 * e.lv, 0, 0, TAU);
+        ctx.stroke();
+      }
     } else if (e.kind === 'ring') {
-      ctx.strokeStyle = rgba(e.col, 1 - k);
-      ctx.lineWidth = 2.5;
+      ctx.strokeStyle = rgba(e.col, 0.75 * (1 - k));
+      ctx.lineWidth = 1.6;
       ctx.beginPath();
       ctx.ellipse(e.x, e.y, e.r * (0.4 + k), e.r * 0.4 * (0.4 + k), 0, 0, TAU);
       ctx.stroke();
+    } else if (e.kind === 'pillar') {
+      // level up: motes drift up through the pillar (its light is drawn behind the party, see drawPillar)
+      const al = pillarA(e);
+      for (let i = 0; i < 9 + 3 * e.lv; i++) {
+        const my = e.y - ((e.t * 34 + i * 29) % 150),
+          mx = e.x + Math.sin(i * 2.7 + e.t) * e.w * 0.8;
+        glow(mx, my, 3.2, '#fff2b0', 0.7 * al * (1 - (e.y - my) / 150));
+      }
     } else if (e.kind === 'column') {
       const a = Math.sin(k * Math.PI);
       const g = ctx.createLinearGradient(0, e.y - 110, 0, e.y);
@@ -4288,29 +4509,66 @@
       ctx.restore();
       glow(e.x, e.y - 10, 34, '#ffd34d', 0.6 * a);
     } else if (e.kind === 'burst') {
-      const a = k < 0.15 ? k / 0.15 : 1 - (k - 0.15) / 0.85;
+      // soft rays: few, faint and slow; they grow a little with the party's tier
+      const a = k < 0.2 ? eio(k / 0.2) : 1 - eio((k - 0.2) / 0.8),
+        n = 6 + 2 * e.lv,
+        len = 60 + 18 * e.lv;
       ctx.save();
       ctx.translate(e.x, e.y);
       ctx.globalCompositeOperation = 'lighter';
-      ctx.rotate(e.t * 0.6);
-      for (let i = 0; i < 14; i++) {
-        ctx.rotate(TAU / 14);
-        ctx.fillStyle = `rgba(255,214,110,${0.22 * a})`;
+      ctx.rotate(e.t * 0.25);
+      for (let i = 0; i < n; i++) {
+        ctx.rotate(TAU / n);
+        const g = ctx.createLinearGradient(0, 0, 0, -len * (0.6 + k * 0.5));
+        g.addColorStop(0, `rgba(255,220,130,${(0.05 + 0.025 * e.lv) * a})`);
+        g.addColorStop(1, 'rgba(255,220,130,0)');
+        ctx.fillStyle = g;
         ctx.beginPath();
         ctx.moveTo(0, 0);
-        ctx.lineTo(-6, -140 * (0.5 + k));
-        ctx.lineTo(6, -140 * (0.5 + k));
+        ctx.lineTo(-4, -len * (0.6 + k * 0.5));
+        ctx.lineTo(4, -len * (0.6 + k * 0.5));
         ctx.closePath();
         ctx.fill();
       }
       ctx.restore();
-      glow(e.x, e.y, 70, '#ffd34d', 0.7 * a);
-      ctx.strokeStyle = `rgba(255,230,150,${a})`;
-      ctx.lineWidth = 3;
+      glow(e.x, e.y, 34, '#ffd34d', 0.35 * a);
+      ctx.strokeStyle = `rgba(255,230,150,${0.5 * a})`;
+      ctx.lineWidth = 1.4;
       ctx.beginPath();
-      ctx.ellipse(e.x, e.y + 14, 30 + k * 120, (30 + k * 120) * 0.4, 0, 0, TAU);
+      ctx.ellipse(e.x, e.y + 14, 24 + k * 70, (24 + k * 70) * 0.4, 0, 0, TAU);
       ctx.stroke();
     }
+    FX = FXL[0];
+  }
+  const pillarA = (e) =>
+    e.t < 0.45 ? eio(e.t / 0.45) : e.t > e.life - 0.9 ? 1 - eio((e.t - e.life + 0.9) / 0.9) : 1;
+  // a soft pillar of light falling on the party: drawn before the units so the heroes stay readable
+  // in it; many faint nested bands make a smooth fall-off to both sides
+  function drawPillar(e) {
+    FX = FXL[e.lv];
+    const al = pillarA(e) * (0.8 + 0.2 * FX.a),
+      top = e.y - 440,
+      w = e.w + Math.sin(e.t * 3) * 2;
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    const bot = e.y + 14,
+      g = ctx.createLinearGradient(0, top, 0, bot);
+    g.addColorStop(0, 'rgba(255,226,140,0)');
+    g.addColorStop(0.7, `rgba(255,226,140,${0.05 * al})`);
+    g.addColorStop(0.93, `rgba(255,232,160,${0.09 * al})`);
+    g.addColorStop(1, 'rgba(255,232,160,0)');
+    ctx.fillStyle = g;
+    for (let i = 1; i <= 7; i++) {
+      const f = i / 7;
+      ctx.fillRect(e.x - w * f, top, w * 2 * f, bot - top);
+    }
+    ctx.restore();
+    ctx.save();
+    ctx.translate(e.x, e.y);
+    ctx.scale(1, 0.38);
+    glow(0, -16, w * 1.2, '#ffd34d', 0.32 * al);
+    ctx.restore();
+    FX = FXL[0];
   }
   function drawBones(e) {
     const a = clamp(1 - (e.t - e.life + 1), 0, 1);
@@ -4349,41 +4607,90 @@
     ctx.fillText(n.txt, 0, 0);
     ctx.restore();
   }
+  // wood and parchment frame: a planked wooden border (grain, nails) around a parchment panel
+  function woodFrame(x, y, w, h, b = 5, nails = true) {
+    const r = Math.min(6, h / 2);
+    const wg = ctx.createLinearGradient(x, y, x, y + h);
+    wg.addColorStop(0, '#9a6a3e');
+    wg.addColorStop(0.5, '#7d5130');
+    wg.addColorStop(1, '#5e3b20');
+    ctx.save();
+    ctx.beginPath();
+    RR(x, y, w, h, r)();
+    ctx.fillStyle = wg;
+    ctx.fill();
+    ctx.clip();
+    ctx.strokeStyle = 'rgba(40,20,8,0.35)';
+    ctx.lineWidth = 0.8;
+    for (let i = 0; i < 5; i++) {
+      const yy = y + 1.5 + i * (h / 5);
+      ctx.beginPath();
+      ctx.moveTo(x, yy);
+      ctx.quadraticCurveTo(x + w * 0.5, yy + 2.5 * hsh(i + w), x + w, yy - 1);
+      ctx.stroke();
+    }
+    ctx.strokeStyle = 'rgba(255,215,160,0.35)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(x + r, y + 1);
+    ctx.lineTo(x + w - r, y + 1);
+    ctx.stroke();
+    ctx.restore();
+    ctx.beginPath();
+    RR(x, y, w, h, r)();
+    ctx.strokeStyle = '#3a2210';
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+    const pg = ctx.createRadialGradient(
+      x + w / 2,
+      y + h / 2,
+      4,
+      x + w / 2,
+      y + h / 2,
+      Math.max(w, h) * 0.62,
+    );
+    pg.addColorStop(0, '#f7e9c6');
+    pg.addColorStop(1, '#dcc08a');
+    ctx.beginPath();
+    RR(x + b, y + b, w - 2 * b, h - 2 * b, Math.max(1.5, r - b))();
+    ctx.fillStyle = pg;
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(90,60,30,0.6)';
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+    if (nails)
+      for (const [nx, ny] of [
+        [x + b / 2 + 0.5, y + b / 2 + 0.5],
+        [x + w - b / 2 - 0.5, y + b / 2 + 0.5],
+        [x + b / 2 + 0.5, y + h - b / 2 - 0.5],
+        [x + w - b / 2 - 0.5, y + h - b / 2 - 0.5],
+      ]) {
+        ctx.fillStyle = '#c9a25a';
+        ctx.beginPath();
+        ctx.arc(nx, ny, Math.min(1.6, b * 0.3), 0, TAU);
+        ctx.fill();
+        ctx.fillStyle = 'rgba(255,245,210,0.8)';
+        ctx.beginPath();
+        ctx.arc(nx - 0.4, ny - 0.4, 0.5, 0, TAU);
+        ctx.fill();
+      }
+  }
   function drawBanner() {
     if (!banner) return;
     const t = banner.t,
-      a = t < 0.3 ? t / 0.3 : t > 2.9 ? 1 - (t - 2.9) / 0.5 : 1,
-      y = 64 + (1 - eout(Math.min(1, t / 0.4))) * -40;
+      a = t < 0.4 ? eio(t / 0.4) : t > 2.9 ? 1 - eio((t - 2.9) / 0.5) : 1,
+      y = 64 + (1 - eio(Math.min(1, t / 0.55))) * -40;
     ctx.save();
     ctx.globalAlpha = clamp(a, 0, 1);
     ctx.font = "700 30px 'Alegreya SC', Georgia, serif";
     const tw = ctx.measureText(banner.text).width,
       w = tw + 70,
       x = 640;
+    // the wooden board hangs from two short ropes
     for (const s of [-1, 1])
-      fs(
-        '#7a2a20',
-        P([
-          x + s * (w / 2 - 10),
-          y - 14,
-          x + s * (w / 2 + 26),
-          y - 14,
-          x + s * (w / 2 + 14),
-          y + 4,
-          x + s * (w / 2 + 26),
-          y + 22,
-          x + s * (w / 2 - 10),
-          y + 22,
-        ]),
-        2.4,
-      );
-    fs('#2a1c12', RR(x - w / 2, y - 24, w, 48, 8), 3, '#e0b04a');
-    ctx.strokeStyle = 'rgba(224,176,74,0.45)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    RR(x - w / 2 + 5, y - 19, w - 10, 38, 5)();
-    ctx.stroke();
-    ctx.fillStyle = '#ffe7a6';
+      line(x + s * (w / 2 - 30), y - 24, x + s * (w / 2 - 44), y - 44, '#6a5232', 1.6);
+    woodFrame(x - w / 2, y - 26, w, 52, 7);
+    ctx.fillStyle = '#4a2a14';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(banner.text, x, y + 1);
@@ -4396,24 +4703,37 @@
     if (!caption) return;
     ctx.font = "700 20px 'Alegreya Sans', sans-serif";
     const tw = ctx.measureText(caption).width;
-    ctx.fillStyle = 'rgba(24,18,12,0.72)';
-    ctx.beginPath();
-    RR(16, H - 50, tw + 28, 34, 8)();
-    ctx.fill();
-    ctx.fillStyle = '#f6ecd8';
+    woodFrame(14, H - 54, tw + 36, 40, 5);
+    ctx.fillStyle = '#3e2412';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
-    ctx.fillText(caption, 30, H - 32);
+    ctx.fillText(caption, 32, H - 33);
     const lbl = tierLabel();
     if (lbl) {
       const lw = ctx.measureText(lbl).width;
-      ctx.fillStyle = 'rgba(24,18,12,0.72)';
-      ctx.beginPath();
-      RR(W - lw - 44, H - 50, lw + 28, 34, 8)();
-      ctx.fill();
-      ctx.fillStyle = '#ffd98a';
-      ctx.fillText(lbl, W - lw - 30, H - 32);
+      woodFrame(W - lw - 50, H - 54, lw + 36, 40, 5);
+      ctx.fillStyle = '#6a3a12';
+      ctx.fillText(lbl, W - lw - 32, H - 33);
     }
+  }
+  // warm earthy grade over the whole scene: slightly desaturated, leaning ochre and umber, most
+  // saturation kept. UI, names and damage numbers are drawn after it so their colours stay true.
+  function grade() {
+    ctx.save();
+    ctx.setTransform(K, 0, 0, K, 0, 0);
+    ctx.globalCompositeOperation = 'saturation';
+    ctx.globalAlpha = 0.17;
+    ctx.fillStyle = '#808080';
+    ctx.fillRect(0, 0, W, H);
+    ctx.globalCompositeOperation = 'soft-light';
+    ctx.globalAlpha = 0.4;
+    ctx.fillStyle = '#c4884a';
+    ctx.fillRect(0, 0, W, H);
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = 0.07;
+    ctx.fillStyle = '#b07a44';
+    ctx.fillRect(0, 0, W, H);
+    ctx.restore();
   }
   function render() {
     ctx.setTransform(K, 0, 0, K, 0, 0);
@@ -4440,15 +4760,11 @@
     for (const u of units) {
       if (u.d.fly) shadow(u.x + 2, u.y + 2, 9, 3, 0.2 * u.alpha);
       else if (!u.dead || u.deadT < 1)
-        shadow(
-          u.x + 1.5,
-          u.y + 0.5,
-          10 * (u.d.scale || 1) * (u.ko ? 1.6 : 1),
-          3.6 * (u.d.scale || 1),
-          0.34 * u.alpha,
-        );
+        shadow(u.x + 1.5, u.y + 0.5, 10 * usc(u) * (u.ko ? 1.6 : 1), 3.6 * usc(u), 0.34 * u.alpha);
+      if (u.d.grim && !u.dead) glow(u.x, u.y - 3, 18 * usc(u), '#3fd0e0', 0.1);
       drawRing(u);
     }
+    for (const e of fx) if (e.kind === 'pillar') drawPillar(e);
     const list = BUILD.concat(PROPS);
     for (const u of units)
       list.push({
@@ -4460,6 +4776,16 @@
     for (const s of shots) drawShot(s);
     for (const e of fx) if (e.kind !== 'bones') drawFx(e);
     drawParticles();
+    grade();
+    ctx.setTransform(
+      K * z,
+      0,
+      0,
+      K * z,
+      -(cam.x - W / (2 * z)) * z * K,
+      -(cam.y - H / (2 * z)) * z * K,
+    );
+    placeLabels();
     for (const u of units) drawLabels(u);
     for (const n of nums) drawNum(n);
     ctx.setTransform(K, 0, 0, K, 0, 0);
@@ -4508,7 +4834,7 @@
       top = 40,
       cw = W / cols,
       rh = (H - top - 6) / rows,
-      S2 = mon ? 2.6 : 2.55;
+      S2 = (mon ? 2.6 : 2.55) / US;
     ctx.setTransform(K, 0, 0, K, 0, 0);
     const bg = ctx.createLinearGradient(0, 0, 0, H);
     bg.addColorStop(0, '#8fa260');
@@ -4576,7 +4902,7 @@
         }
       }
       ctx.setTransform(K * S2, 0, 0, K * S2, K * cx, K * cy);
-      shadow(1.5, 0.5, 10 * (u.d.scale || 1), 3.6 * (u.d.scale || 1), 0.34);
+      shadow(1.5, 0.5, 10 * usc(u), 3.6 * usc(u), 0.34);
       drawHuman(u);
       ctx.setTransform(K, 0, 0, K, 0, 0);
       ctx.font = "700 14px 'Alegreya Sans', sans-serif";
@@ -4589,6 +4915,7 @@
         );
       else if (it.c === 0) ctx.fillText(u.d.name, cx, cy + 22);
     }
+    grade();
   }
 
   // ---------- controls and loop ----------
