@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import type { Strike } from '../data/looks';
+import { getSettings } from './settings';
 
 // Strike effects and particles, ported from the reference (docs/reference/motion-test.html).
 // `buildStrike` is pure (it only decides which effects start where); `FxLayer` draws them.
@@ -274,6 +275,7 @@ export class FxLayer {
   }
 
   dust(x: number, y: number, k: number): void {
+    if (getSettings().reducedMotion) return;
     for (let i = 0; i < 3; i++)
       this.parts.push({
         x: x + (Math.random() - 0.5) * 10,
@@ -291,6 +293,7 @@ export class FxLayer {
   }
 
   sparks(x: number, y: number, col: Rgb, n: number): void {
+    if (getSettings().reducedMotion) return;
     for (let i = 0; i < n; i++) {
       const a = Math.random() * Math.PI * 2;
       const v = 120 + Math.random() * 200;
@@ -312,6 +315,7 @@ export class FxLayer {
 
   // Gold-green sparkles rising off a healed unit.
   sparkle(x: number, y: number, n: number, palette: readonly Rgb[] = HEAL_SPARKS): void {
+    if (getSettings().reducedMotion) return;
     for (let i = 0; i < n; i++)
       this.parts.push({
         x: x + (Math.random() - 0.5) * 46,

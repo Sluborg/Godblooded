@@ -1,3 +1,4 @@
+import { getSettings, type PaletteId } from './settings';
 import type { TraitId, UnitMode } from '../sim/api';
 
 // One colour per party so groups can be told apart on the map and in the panel. Eight colours
@@ -12,6 +13,18 @@ export const PARTY_COLORS = [
   0xff8fb1, // pink
   0xffffff, // white
   0x3d6fe0, // royal blue
+] as const;
+
+// Colour-blind safe alternative (Okabe-Ito based, with lightness steps between neighbours).
+export const PARTY_COLORS_CB = [
+  0xe69f00, // orange
+  0x56b4e9, // sky blue
+  0xf0e442, // yellow
+  0xcc79a7, // reddish purple
+  0xffffff, // white
+  0x0072b2, // blue
+  0xd55e00, // vermillion
+  0x9a9a9a, // grey
 ] as const;
 
 export type PartyRole = 'leader' | 'member' | 'solo';
@@ -29,8 +42,9 @@ export function partyRole(
   return p.members[0] === unitId ? 'leader' : 'member';
 }
 
-export function partyColor(party: number): number {
-  return PARTY_COLORS[(Math.max(1, party) - 1) % PARTY_COLORS.length];
+export function partyColor(party: number, palette: PaletteId = getSettings().palette): number {
+  const colors = palette === 'colourblind' ? PARTY_COLORS_CB : PARTY_COLORS;
+  return colors[(Math.max(1, party) - 1) % colors.length];
 }
 
 export function partyColorCss(party: number): string {
