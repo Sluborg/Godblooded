@@ -90,15 +90,25 @@ export function makeButton(
     .setShadow(0, 2, '#000000', 3, false, true);
   // The icon, when the picture exists: beside the label, or alone when asked.
   const icon = opts.icon ? addIcon(scene, opts.icon, 0, 0, Math.min(h - 24, 48)) : null;
-  if (icon) {
-    if (opts.iconOnly || label === '') text.setVisible(false);
-    else {
-      const gap = 10;
-      const total = icon.displayWidth + gap + text.width;
-      icon.x = -total / 2 + icon.displayWidth / 2;
-      text.x = total / 2 - text.width / 2;
+  const iconBase = icon ? icon.scale : 1;
+  // Icon and text centred together; the icon shrinks when the pair would poke past the frame.
+  const layout = (): void => {
+    if (!icon) return;
+    if (opts.iconOnly || text.text === '') {
+      text.setVisible(false);
+      return;
     }
-  }
+    const gap = 10;
+    icon.setScale(iconBase);
+    const room = w - 20;
+    const over = icon.displayWidth + gap + text.width - room;
+    if (over > 0 && icon.displayWidth > over + 16)
+      icon.setScale((iconBase * (icon.displayWidth - over)) / icon.displayWidth);
+    const total = icon.displayWidth + gap + text.width;
+    icon.x = -total / 2 + icon.displayWidth / 2;
+    text.x = total / 2 - text.width / 2;
+  };
+  layout();
   const hit = scene.add.rectangle(0, 0, w, h, 0x000000, 0).setInteractive({ useHandCursor: true });
   const container = scene.add.container(x, y, [
     (art ?? g) as Phaser.GameObjects.GameObject,
@@ -125,6 +135,7 @@ export function makeButton(
     }
     text.setAlpha(enabled ? 1 : 0.45);
     text.y = pressed ? 2 : 0;
+    icon?.setAlpha(enabled ? 1 : 0.45).setY(pressed ? 2 : 0);
   };
   const press = (down: boolean): void => {
     if (!enabled && down) return;
@@ -147,7 +158,10 @@ export function makeButton(
   return {
     container,
     rect: new Phaser.Geom.Rectangle(x - w / 2, y - h / 2, w, h),
-    setLabel: (t) => text.setText(t),
+    setLabel: (t) => {
+      text.setText(t);
+      layout();
+    },
     setEnabled(e) {
       enabled = e;
       refresh();
