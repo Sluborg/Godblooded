@@ -9,6 +9,7 @@ concept sheets in `docs/concept/`); this is the technical contract.
 | -------- | ---------------------------------- | --------------------------------- |
 | Hero     | `hero_<god>[-<path>]_t<1-3>_front` | `hero_thor-hammerborn_t2_front`   |
 | Monster  | `mon_<type>[-v2\|-v3]_t1_front`    | `mon_draugr-v2_t1_front`          |
+| Summon   | `sum_<type>_t<1-3>_front`          | `sum_falcon_t1_front`             |
 | Building | `bld_<type>[_t<1-3>]`              | `bld_temple_aesir_t3`, `bld_ruin` |
 | Terrain  | `ter_<name>`                       | `ter_grass_a`                     |
 | UI       | `ui_<name>`                        | `ui_flag_bounty`                  |
@@ -134,6 +135,9 @@ Silhouette must change between tiers (not only colour), so a tier reads at phone
 **A path picture is a natural evolution of the god's tier-1 child** (Stefan 2026-10-13): the
 same face, hair, palette and silhouette as `hero_<god>_t1_front`, adding gear and effects; tier
 3 is more of the same. Never a different person.
+
+A **summon** (`sum_`, a unit a path skill calls up, such as Horus's falcon) is drawn and shipped
+like a monster still: one front picture facing right, with its strike and weapon point.
 
 Heroes and buildings get a picture per tier. **Monsters have tier-1 pictures only**: the game
 shows a tougher monster by colour (tint) in code.
