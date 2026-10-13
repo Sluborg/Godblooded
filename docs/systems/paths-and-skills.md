@@ -178,9 +178,10 @@ cooldown in seconds. Radius and range in world units (melee reach is about 40, a
 
 **Style (Stefan's taste test, decision 2026-10-14):** big-head cartoon proportions, **thin
 outlines in a darker shade of the part's own colour** (no thick black ink), painterly shading,
-a **warm, earthy, muted palette**, smooth and weighty motion. Units are small next to buildings
-(a hall is about 5 heroes wide). Glows, auras and trails in the tables below stay **subtle and
-close to the body**; each hero has its party ring and a name label.
+a **warm, earthy palette, only slightly muted** (most of the saturation stays), smooth and
+weighty motion. Units are small next to buildings (a hall is about 5 heroes wide). **Effects grow
+with progression** (Lead 2026-10-14): tier 1 subtle, tier 2 stronger, tier 3 clearly effectful;
+never screen shake. Each hero has its party ring and a name label.
 
 Rule (decision 2026-10-13, cartoon units from parts): a path is a natural evolution of the
 god's tier 1 child. The **face, hair, skin and the god's signature pieces** (the "keeps"

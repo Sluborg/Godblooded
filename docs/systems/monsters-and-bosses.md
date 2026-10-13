@@ -172,7 +172,7 @@ B17), and Scene shows the lair tier in code, with no new art.
 
 **Style (taste test, decision 2026-10-14): grim and scary.** Same cartoon proportions and thin
 colour-matched outlines as the heroes, but gaunt faces, sunken glowing eyes, scars, rot and
-rags, in muted earthy colours; menace from shape and posture, not gore.
+rags, in earthy colours only slightly muted; menace from shape and posture, not gore.
 
 Same rule as the heroes (`paths-and-skills.md` section 6, cartoon units from parts): a monster
 keeps its face, body and palette on every tier; each tier adds **one silhouette change** and
@@ -202,7 +202,8 @@ whole-sprite tint, so it never clashes with Scene's rider and heal tints.
 ### How bosses look
 
 Bosses are the grimmest units on the map (taste test): about 2.5x a hero's height (Fafnir's
-art sets the size), muted colours with one sickly accent, and one look; the sim
+art sets the size), earthy colours with one sickly accent and clearly visible effects (bosses sit at the top of
+the effect scale, like tier 3), and one look; the sim
 still scales their hp with the lair tier (visual only). The
 **telegraph** is the boss's one moving tell; `Signature moves` above gives its timing.
 

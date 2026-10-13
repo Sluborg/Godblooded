@@ -69,9 +69,10 @@ Heroes inside a destroyed shop or hall are pushed out, unhurt.
 
 ### How buildings look per tier
 
-**Style (taste test, decision 2026-10-14):** warm, earthy, muted colours, thin colour-matched
+**Style (taste test, decision 2026-10-14):** warm, earthy colours, only slightly muted, thin colour-matched
 outlines, painterly shading; buildings are big next to units (a hall is about 5 heroes wide);
-the ground is plain grass with tufts. Tier 3 glows stay soft and small.
+the ground is plain grass with tufts. Effects grow with the tier: none at tier 1, small at tier 2, clear
+glows at tier 3.
 
 Tier 1 and tier 2 follow Art's batches B15 and B16 (the new look); this table adds tier 3
 (`docs/asset-spec.md`: divine, gold trim, a glowing motif, a bigger silhouette). Each tier

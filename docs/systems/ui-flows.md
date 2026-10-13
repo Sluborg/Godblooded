@@ -40,7 +40,8 @@ Map + Hud ──Menu──> Pause ──Resume / Restart / Settings / Quit to ti
 
 **Look (taste test, decision 2026-10-14):** every panel, card, menu and button sits in a
 **wood-and-parchment frame** (dark wood border, parchment fill, iron studs). Damage numbers are
-big and coloured by type; hit effects are subtle and **there is no screen shake**. Heroes carry
+big and coloured by type; **hit effects grow with progression** (subtle at tier 1, stronger at tier
+2, clearly effectful at tier 3, for bosses and late in a run) and **there is no screen shake**. Heroes carry
 their party ring and a small name label; a level-up is a pillar of light with a banner.
 
 | Zone              | Where (px)               | Holds                                                                                 |
