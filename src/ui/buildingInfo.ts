@@ -1,5 +1,4 @@
-import { DEFAULT_TUNING } from '../sim/api';
-import type { BuildingTuning, ItemDef } from '../sim/types';
+import { DEFAULT_TUNING, type BuildingTuning, type ItemDef } from '../sim/api';
 import { GRAYBOX } from '../data/graybox';
 
 // Text for the building panel. Numbers come from the sim's tuning table (display only: the sim
@@ -51,14 +50,16 @@ export function buildingEffect(
     return `${tax}, up to ${at(t.marketStock, tier)} gold per visit`;
   }
   if (type === 'smithy') {
-    const weapon = sold(items, 'smithy', 'weapon', tier);
-    const armour = sold(items, 'smithy', 'armour', tier);
-    if (!weapon && !armour) return '';
-    const parts = [
-      weapon ? `weapon level ${weapon.level ?? 1} for ${weapon.price}` : '',
-      armour ? `armour level ${armour.level ?? 1} for ${armour.price}` : '',
-    ].filter(Boolean);
-    return `Sells ${parts.join(', ')} gold`;
+    // Heroes buy one level at a time, so every level up to the tier is on sale.
+    const part = (slot: 'weapon' | 'armour', label: string): string => {
+      const rows = items
+        .filter((i) => i.shop === 'smithy' && i.slot === slot && i.shopTier <= tier)
+        .sort((a, b) => (a.level ?? 0) - (b.level ?? 0));
+      if (rows.length === 0) return '';
+      const top = rows[rows.length - 1].level ?? rows.length;
+      return `${label} up to level ${top} (${rows.map((r) => r.price).join(' / ')} gold)`;
+    };
+    return [part('weapon', 'Weapons'), part('armour', 'armour')].filter(Boolean).join(', ');
   }
   if (type === 'tower')
     return `Range ${at(t.towerRange, tier)}, ${at(t.towerDamage, tier)} damage every ${(at(t.towerCooldownMs, tier) / 1000).toFixed(1)} s`;

@@ -143,6 +143,20 @@ does about 30-40 damage per second, so a boss fight lasts 60-90 s.
   Egyptian, jackal-men, as guards until the boss emerges.
 - **Raids** come from every lair as today; harriers and swarms raid faster (1.5x walk speed).
 
+### How lairs look per tier
+
+Lairs follow the monster rule (`docs/asset-spec.md`): **one tier-1 picture per lair** (Art batch
+B17), and Scene shows the lair tier in code, with no new art.
+
+| Lair tier | What Scene draws                                                                                |
+| --------- | ----------------------------------------------------------------------------------------------- |
+| 1         | the B17 picture on the corrupted ground; the skull name plate (`lairPlate`) as today            |
+| 2         | the corrupted ground grows (radius x1.15); the plate takes the tier 2 colour (yellow)           |
+| 3         | ground x1.3; the plate turns red and pulses slowly: heroes can die here (`combat.md` section 6) |
+
+- **Boss lairs** have one look for every tier _visually_; the sim still tiers them (guards and
+  boss hp scale with the lair tier).
+
 ## 5. What the player sees
 
 - **Roles read from motion:** harpies dart in and out, minotaurs paw the ground then charge
@@ -153,6 +167,48 @@ does about 30-40 damage per second, so a boss fight lasts 60-90 s.
   pips on the Hydra, a swallowed hero's portrait shown in a small ring over Apep, a green
   poison tint, a fleeing hero's broken-shield icon after the howl, a stone-grey hero after a
   failed riddle.
+
+### How monsters look (tier 1, 2, 3)
+
+Same rule as the heroes (`paths-and-skills.md` section 6, cartoon units from parts): a monster
+keeps its face, body and palette on every tier; each tier adds **one silhouette change** and
+grows a little (size x1.0, x1.1, x1.2). The **tier colour** (green, yellow, red,
+`docs/game-design.md`, Lead 2026-10-13) shows on the eyes and the ground ring, never as a
+whole-sprite tint, so it never clashes with Scene's rider and heal tints.
+
+| Monster      | Tier 1 (keeps on every tier)                             | Tier 2 adds                              | Tier 3 adds                                                |
+| ------------ | -------------------------------------------------------- | ---------------------------------------- | ---------------------------------------------------------- |
+| draugr       | grey-green skin, rusted mail, dented helm, notched sword | a cracked round shield, a tattered cape  | a horned helm, frost on the blade, a cold mist at the feet |
+| troll        | mossy grey skin, huge arms, a tree-branch club           | a stone in the club, a bone necklace     | moss and a small tree on the back, a boulder club          |
+| harpy        | feathered wings, bird legs with talons, wild hair        | longer wing tips, a stolen gold necklace | a feather crest, storm-dark wings with a bright edge       |
+| minotaur     | bull head with horns, bare chest, a big axe              | a bronze nose ring, a leather harness    | gilded horns, a double-headed axe                          |
+| jackal-man   | jackal head, black fur, linen kilt, a short spear        | a bronze collar, a small round shield    | a gold headdress, a khopesh                                |
+| scarab swarm | a knot of black beetles with gold backs                  | a bigger knot, a few flying beetles      | one large gold scarab at the centre                        |
+
+- **Elites** (from lair tier 2, `progression.md`): the same picture with a **gold outline edge**
+  and a bigger health bar; an elite with a skill (lair tier 3) shows the skill's colour in the
+  eyes.
+- **Readable at 0.7x on a phone:** each tier must change the outline (a shield, horns, a
+  crest), not only the colour.
+- **Variants** (`docs/game-design.md`): common monsters get 2-3 swaps of one part (head or
+  weapon), so a pack never looks cloned.
+- **Art contract:** this replaces "monsters have tier-1 pictures only"; Art updates
+  `docs/asset-spec.md` and `STYLE.md` (Lead 2026-10-13).
+
+### How bosses look
+
+Bosses are about 2.5x a hero's height (Fafnir's art sets the size) and have one look; the sim
+still scales their hp with the lair tier (visual only). The
+**telegraph** is the boss's one moving tell; `Signature moves` above gives its timing.
+
+| Boss        | Silhouette                                                  | Palette                   | Telegraph look                                                 | Enraged look                        |
+| ----------- | ----------------------------------------------------------- | ------------------------- | -------------------------------------------------------------- | ----------------------------------- |
+| Fafnir      | a long-necked wyrm on four legs, folded wings, a gold hoard | dark green, gold belly    | head rears back, a red cone on the ground, smoke from the jaws | glowing cracks along the neck       |
+| Jormungandr | a huge serpent rising in coils, a wide fanged head          | sea-green, pale scales    | head lifts, green drops fall, a green ring under the target    | venom drips from the jaws all along |
+| Hydra       | a squat body with three long necks                          | marsh green, yellow eyes  | 3 head pips over the body; a cut neck smokes                   | the necks thrash faster             |
+| Cerberus    | a giant three-headed hound, chain collar                    | black, ember-red eyes     | the three heads lift, a red shock ring spreads                 | fire in the mouths and the collar   |
+| Apep        | a giant coiling serpent, a hooded head                      | black-violet, dark gold   | coils tighten, a dark ring under the target                    | a black haze trailing the coils     |
+| Sphinx      | a lion body with a pharaoh head and folded wings            | sandstone, lapis and gold | a "?" over the chosen hero, then "!" or a stone-grey tint      | the eyes glow gold, the wings open  |
 
 ## 6. Proposed data rows
 

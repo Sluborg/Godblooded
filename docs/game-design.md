@@ -20,13 +20,14 @@ falls or your town hall burns.
    you choose its upgrade (1 of 3, autobattler style).
 4. **Everything has 3 tiers**, and tier reads at a glance (decisions 2026-10-05):
    - **Heroes (decision 2026-10-13):** no classes in the game. A hero is a **Godblood**, the
-     child of one god; tier 1 is a picture per god. At tier-up the hero takes one of its god's
-     **two paths**, with its own art at tier 2 and 3. At most two children of the same god in
+     child of one god, drawn from code parts (decision 2026-10-13: cartoon with painterly details).
+     At tier-up the hero takes one of its god's **two paths**, a natural evolution of the same
+     character (same face, hair, palette; added gear and effects) at tier 2 and 3. At most two children of the same god in
      town, and they take different paths. Gods and paths below.
-   - **Monsters:** tiers by **colour** (like Rage of Mages: green, yellow, red goblins) plus size,
-     done in code on one picture. Common monsters get 2-3 **variants** (same pose, a different
-     head or weapon) so a pack never looks cloned.
-   - **Buildings:** a new picture per tier.
+   - **Monsters:** each tier adds one visible piece, tier colour on eyes and ring, size
+     1.0/1.1/1.2 (look tables in `docs/systems/monsters-and-bosses.md`). Part variants keep a pack
+     from looking cloned; elites get a gold edge.
+   - **Buildings:** each tier adds to the same building (`docs/systems/buildings.md`).
 5. **Phone first.** Landscape, one thumb, short runs.
 6. **Art direction: chunky and gritty** (Stefan, batch S4): pixel art after his concept sheets
    (`docs/concept/`), about 3.5 to 4 heads tall, oversized weapons, thick outline, dark palette.

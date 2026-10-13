@@ -132,11 +132,17 @@ function check(world: World, data: GameData): void {
   }
   for (const l of world.lairs) if (!data.lairs?.some((d) => d.id === l.type)) bad('lair', l.type);
   for (const u of world.units) {
-    const known =
-      u.kind === 'hero'
-        ? data.classes?.some((c) => c.id === u.type)
-        : data.monsters?.some((m) => m.id === u.type);
-    if (!known) bad(u.kind === 'hero' ? 'template' : 'monster', u.type);
+    if (u.kind === 'summon') {
+      if (!u.summon || !data.summons?.some((d) => d.id === u.summon?.def)) {
+        bad('summon', u.summon?.def ?? u.type);
+      }
+    } else {
+      const known =
+        u.kind === 'hero'
+          ? data.classes?.some((c) => c.id === u.type)
+          : data.monsters?.some((m) => m.id === u.type);
+      if (!known) bad(u.kind === 'hero' ? 'template' : 'monster', u.type);
+    }
     if (u.god && !data.gods?.some((g) => g.id === u.god)) bad('god', u.god);
     if (u.path && !data.paths?.some((p) => p.id === u.path)) bad('path', u.path);
   }
