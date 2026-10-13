@@ -182,14 +182,14 @@ column below) **never change**; tier 2 adds gear and one effect (armour or a rob
 the tunic colour), tier 3 is more of the same (finer material, a bigger effect, one extra
 piece). Scene builds these from code parts (the Aesir rows match `docs/reference/style-test.html`);
 Art's pictures follow the same table. The **accent** is the colour of the path's trim, glow and
-skill effects, matching its damage type (`combat.md` section 3).
+skill effects (rule under the paths table).
 
 #### The tier 1 child per god
 
 | God      | Keeps on every tier                 | Tier 1 outfit                        | Tier 1 weapon, effect      |
 | -------- | ----------------------------------- | ------------------------------------ | -------------------------- |
 | Odin     | long grey beard, eye patch          | blue-grey robe, wide hat             | staff, ravens              |
-| Thor     | red hair, big red beard             | brown tunic with gold trim, red cape | hammer, sparks             |
+| Thor     | red hair: braids or a big beard     | brown tunic with gold trim, red cape | hammer, sparks             |
 | Loki     | sly grin, a hood                    | green hood, dark green tunic         | two daggers, green flame   |
 | Freyja   | golden braids                       | rose dress, cream feather cape       | wand, gold motes           |
 | Athena   | dark hair in a bun, grey-blue eyes  | white chiton with owl-grey trim      | spear and round shield     |
@@ -203,35 +203,38 @@ skill effects, matching its damage type (`combat.md` section 3).
 
 #### Paths
 
-| God      | Path        | Tier 2 adds                                                   | Tier 3 adds                                              | Accent    |
-| -------- | ----------- | ------------------------------------------------------------- | -------------------------------------------------------- | --------- |
-| Odin     | Seer        | tall hat, eye-topped staff, 2 ravens                          | a third raven, glowing runes on the robe                 | violet    |
-| Odin     | Wanderer    | spear, grey travelling cloak, robe off (tunic)                | Gungnir-style gold spearhead, wolf-pelt mantle           | steel     |
-| Thor     | Hammerborn  | iron helm (no horns), plate, red and cream round shield       | gold-rimmed plate, a crackle on the hammer               | lightning |
-| Thor     | Stormcaller | lightning staff, blue cape and tunic                          | a small storm cloud over the head, arcs on the cape hem  | lightning |
-| Loki     | Trickster   | horned purple hood, pale violet blades                        | a faint mirror shimmer that trails him                   | violet    |
-| Loki     | Flamebinder | flame in both hands, darker hood, orange trim                 | horns of flame on the hood, embers trailing              | fire      |
-| Freyja   | Valkyrie    | winged helm, spear, blue round shield, light plate            | white-gold wings on the back, gold trim on the plate     | holy      |
-| Freyja   | Seidkona    | frost hood, frost staff, ice-blue cape                        | a ring of floating ice shards, frosted cape hem          | frost     |
-| Athena   | Aegis       | crested bronze helm (open face), Medusa-faced shield          | the shield's face glows, silver cape                     | steel     |
-| Athena   | Owlsage     | owl on the shoulder, scroll staff, grey stola                 | the owl's wings open when casting, silver laurel         | holy      |
-| Ares     | Bloodrager  | second sword, bare chest with war paint                       | red aura when fighting, a torn crimson cloak             | fire      |
-| Ares     | Warlord     | red-crested helm, bronze cuirass, battle standard on the back | larger crest and a gold-edged standard                   | steel     |
-| Apollo   | Sunarcher   | longbow, gold quiver, sun disc clasp                          | a halo behind the head, glowing arrows                   | holy      |
-| Apollo   | Paean       | lyre in hand, longer chiton, gold laurel                      | music-note motes that drift, a gold lyre                 | holy      |
-| Poseidon | Trident     | trident, scale-armour vest                                    | coral-gold trident tips, a cape like a breaking wave     | frost     |
-| Poseidon | Tidecaller  | conch-shell staff, sea-foam cape                              | a ring of water circling the feet, pearl crown           | frost     |
-| Horus    | Falconer    | falcon on the arm, leather bracer, longbow                    | a bigger falcon with gold wing tips, gold bracer         | steel     |
-| Horus    | Skyguard    | sun-disc shield, gilded collar, short spear                   | the disc glows, falcon wings on the helm                 | holy      |
-| Anubis   | Gravewarden | heavy khopesh, black and gold scale armour                    | a jackal mask, purple-black dust trailing                | steel     |
-| Anubis   | Embalmer    | wrapped staff with a canopic jar, linen sash                  | green soul-wisps circling, a gold death mask on the belt | death     |
-| Sekhmet  | Lioness     | lion-pelt hood, longer claws                                  | the mane flares when she pounces, gold claw tips         | steel     |
-| Sekhmet  | Plaguefire  | red sun disc over the head, flame in one hand                 | a heat haze around her, black-red flames                 | fire      |
-| Isis     | Lifegiver   | wings opened on the arms, ankh staff                          | full feathered wings, a soft gold glow                   | holy      |
-| Isis     | Enchantress | bound-cord staff, star-flecked blue veil                      | sparking cords that float around her                     | lightning |
+| God      | Path        | Tier 2 adds                                                   | Tier 3 adds                                                                           | Accent    |
+| -------- | ----------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------- | --------- |
+| Odin     | Seer        | tall hat, eye-topped staff, 2 ravens                          | gold-banded hat, raven-feather mantle, glowing runes circling the staff head          | death     |
+| Odin     | Wanderer    | spear, grey travelling cloak, robe off (tunic)                | Gungnir-style gold spearhead, wolf-pelt mantle                                        | steel     |
+| Thor     | Hammerborn  | iron helm (no horns), plate, red and cream round shield       | gilded plate, the helm gains wings folded back, a crackle on the hammer               | lightning |
+| Thor     | Stormcaller | lightning staff, blue cape and tunic                          | a small storm cloud over the head, arcs on the cape hem                               | lightning |
+| Loki     | Trickster   | horned purple hood, pale violet blades                        | a faint mirror shimmer that trails him                                                | steel     |
+| Loki     | Flamebinder | flame in both hands, darker hood, orange trim                 | horns of flame on the hood, embers trailing                                           | fire      |
+| Freyja   | Valkyrie    | winged helm, spear, blue round shield, light plate            | gold-trimmed helm (wings folded close), white fur mantle, feathered blue-violet cloak | steel     |
+| Freyja   | Seidkona    | frost hood, frost staff, ice-blue cape                        | a ring of floating ice shards, frosted cape hem                                       | frost     |
+| Athena   | Aegis       | crested bronze helm (open face), Medusa-faced shield          | the shield's face glows, silver cape                                                  | steel     |
+| Athena   | Owlsage     | owl on the shoulder, scroll staff, grey stola                 | the owl's wings open when casting, silver laurel                                      | lightning |
+| Ares     | Bloodrager  | second sword, bare chest with war paint                       | red aura when fighting, a torn crimson cloak                                          | steel     |
+| Ares     | Warlord     | red-crested helm, bronze cuirass, battle standard on the back | larger crest and a gold-edged standard                                                | steel     |
+| Apollo   | Sunarcher   | longbow, gold quiver, sun disc clasp                          | a halo behind the head, glowing arrows                                                | holy      |
+| Apollo   | Paean       | lyre in hand, longer chiton, gold laurel                      | music-note motes that drift, a gold lyre                                              | holy      |
+| Poseidon | Trident     | trident, scale-armour vest                                    | coral-gold trident tips, a cape like a breaking wave                                  | frost     |
+| Poseidon | Tidecaller  | conch-shell staff, sea-foam cape                              | a ring of water circling the feet, pearl crown                                        | frost     |
+| Horus    | Falconer    | falcon on the arm, leather bracer, longbow                    | a bigger falcon with gold wing tips, gold bracer                                      | steel     |
+| Horus    | Skyguard    | sun-disc shield, gilded collar, short spear                   | the disc glows, falcon wings on the helm                                              | holy      |
+| Anubis   | Gravewarden | heavy khopesh, black and gold scale armour                    | a jackal mask, purple-black dust trailing                                             | steel     |
+| Anubis   | Embalmer    | wrapped staff with a canopic jar, linen sash                  | green soul-wisps circling, a gold death mask on the belt                              | death     |
+| Sekhmet  | Lioness     | lion-pelt hood, longer claws                                  | the mane flares when she pounces, gold claw tips                                      | steel     |
+| Sekhmet  | Plaguefire  | red sun disc over the head, flame in one hand                 | a heat haze around her, black-red flames                                              | fire      |
+| Isis     | Lifegiver   | wings opened on the arms, ankh staff                          | full feathered wings, a soft gold glow                                                | holy      |
+| Isis     | Enchantress | bound-cord staff, star-flecked blue veil                      | sparking cords that float around her                                                  | lightning |
 
-- **Accent colours** are the `DamageType` colours (`combat.md`), plus **steel** (light grey)
-  for physical paths and **violet** for mark and trick paths (Seer, Trickster).
+- **Accent colours** follow the data: a path with a `damageType` row (`src/data`) uses that
+  type's colour (`combat.md` section 3); a physical path uses its skill's damage type if the
+  skill has one (Hammerborn lightning, Trident frost), else **steel** (light grey).
+- **Tier 3 keeps the silhouette tight** (Art batch A2): wings stay folded, glows stay close to
+  the body, no wide auras.
 - **Readable at 0.7x on a phone:** each tier must change the silhouette at least once (a hat,
   a shield, wings, a weapon shape), not only colours.
 
