@@ -7,8 +7,9 @@ tiers) and on `combat.md`, `paths-and-skills.md` and `items-and-shops.md`.
 ## Bottom line
 
 - **The party is the only level.** Heroes have no XP of their own; the party shares XP, levels
-  up together, and the player picks 1 of 3 cards. Keep today's curve (level n needs 30n XP),
-  cap the party at **level 8**.
+  up together, and the party picks 1 of 3 cards by itself, weighted by its leader's trait
+  (Stefan, 2026-10-13; `level-ups.md`). Keep today's curve (level n needs 30n XP), cap the
+  party at **level 8**.
 - **Card pool from 9 to 30,** plus 12 god's favour cards, in five families: stats, sustain, nerve, skill and pantheon.
   Rarity rises with party level; pantheon and skill cards only show for parties that can use
   them, so every offer feels made for this party.
@@ -34,7 +35,7 @@ tiers) and on `combat.md`, `paths-and-skills.md` and `items-and-shops.md`.
 
 - **XP** comes from kills and lairs as today (`MonsterDef.xp`, `lairXp`, times the lair tier's
   `rewardMult`). Every member gets the whole amount (shared, not split).
-- **Late recruits** (decision needed, OPEN 3): a new hero may join a party of level 2 or lower
+- **Late recruits** (decision needed, OPEN 2): a new hero may join a party of level 2 or lower
   with a free slot when they meet. It takes the party's cards at once. From level 3 on, a party
   is closed (today: closed from level 2).
 - **Knocked out members** still share XP from kills made while they are down: a party is one
@@ -44,7 +45,8 @@ tiers) and on `combat.md`, `paths-and-skills.md` and `items-and-shops.md`.
 
 ### Offer rules
 
-1. A level-up offers 3 different cards, as today.
+1. A level-up offers 3 different cards, as today; the party picks one at once by the
+   trait-weighted rule in `level-ups.md` (section 3). The player only picks paths.
 2. **Rarity** by party level: level 2-3 common 70 / rare 30; level 4-5 common 50 / rare 40 /
    epic 10; level 6+ common 30 / rare 50 / epic 20.
 3. **Fitted:** at least one card in each offer is a pantheon card of a pantheon in the party, or
@@ -150,8 +152,8 @@ The bot reports these times (new run stats), so a balance pass can see which bea
 ## 5. What the player sees
 
 - **XP bar** under each party banner (thin, party colour).
-- **Level-up card** shows rarity by frame colour (iron, bronze, gold) and the family icon; a
-  pantheon card shows the pantheon sigil.
+- **The picked card** rises over the party banner (`level-ups.md`) with its rarity frame
+  colour (iron, bronze, gold) and family icon; a pantheon card shows the pantheon sigil.
 - **Lair tier-up** keeps today's event; Scene adds a short roar shake and the new colour.
 - **Elites** have a gold edge and a bigger health bar.
 
@@ -183,7 +185,7 @@ The bot reports these times (new run stats), so a balance pass can see which bea
 | Order | Row                                                          |
 | ----- | ------------------------------------------------------------ |
 | 10    | Party XP bar under the banner                                |
-| 20    | Card rarity frames and family icons on the level-up panel    |
+| 20    | Card rarity frames and family icons on the picked card       |
 | 30    | Elite look: gold edge, bigger health bar; lair tier-up shake |
 
 ### Art
@@ -202,9 +204,7 @@ The bot reports these times (new run stats), so a balance pass can see which bea
 ## OPEN (Stefan decides)
 
 1. **Level cap 8** with a god's favour at level 7 (recommendation), or no cap?
-2. **Reroll:** one free reroll of a level-up offer per run (a roguelite staple), or none
-   (recommendation: none in M3, maybe a meta unlock)?
-3. **Late recruits** joining young parties (recommendation), or parties stay closed after
+2. **Late recruits** joining young parties (recommendation), or parties stay closed after
    level 1 as today?
-4. **Pressure tier-up:** a lair that knocks out 6 heroes grows early. Fair, or too punishing?
-5. **Elites** at lair tier 2: yes (recommendation) or keep packs uniform?
+3. **Pressure tier-up:** a lair that knocks out 6 heroes grows early. Fair, or too punishing?
+4. **Elites** at lair tier 2: yes (recommendation) or keep packs uniform?

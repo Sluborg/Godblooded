@@ -91,6 +91,8 @@ interface LairRuntime {
   nextTierMs: number;
   // The boss of a boss lair has come out (once).
   bossSpawned?: boolean;
+  // Heroes its monsters have knocked out since its last tier-up (pressure growth).
+  kos?: number;
 }
 export interface UnitRuntime {
   // The lair a monster belongs to; null for heroes.
@@ -235,9 +237,14 @@ export function createWorld(seed: number, data: GameData): World {
     });
     const every = lt.tierUpEveryMs;
     if (i === bossIndex) world.bossLair = id;
+    // Staggered clock: the nearer to the town, the earlier the first tier-up.
+    const rank = sites.filter(
+      (o) => dist(o.pos, data.townHall) < dist(site.pos, data.townHall),
+    ).length;
+    const first = site.firstTierUpMs ?? (lt.firstTierUpMs || every) + rank * lt.tierUpStaggerMs;
     world.lairRuntime.set(id, {
       nextSpawnMs: def.spawnS * 1000 * tierValue(lt.spawnMult, 1, 1),
-      nextTierMs: every > 0 && world.tuning.lair.maxTier > 1 ? every : Infinity,
+      nextTierMs: every > 0 && world.tuning.lair.maxTier > 1 ? first : Infinity,
     });
   }
   return world;
@@ -247,13 +254,18 @@ export function step(world: World, dtMs: number): void {
   if (world.status !== 'running' || dtMs <= 0) return;
   world.accumulatorMs += dtMs;
   let ticks = 0;
-  // The run waits while a party has a level-up pick pending.
-  while (world.accumulatorMs >= TICK_MS && ticks < MAX_TICKS_PER_STEP) {
-    if (hasPendingPick(world)) {
+  // The run slows to `offerSlowdown` of its speed while a party has a pick pending (0: it
+  // waits). A tick then costs TICK_MS / slowdown of real time.
+  const slow = world.tuning.party.offerSlowdown;
+  for (;;) {
+    const pending = hasPendingPick(world);
+    if (pending && slow <= 0) {
       world.accumulatorMs = 0;
       return;
     }
-    world.accumulatorMs -= TICK_MS;
+    const cost = pending ? TICK_MS / slow : TICK_MS;
+    if (world.accumulatorMs + 1e-6 < cost || ticks >= MAX_TICKS_PER_STEP) break;
+    world.accumulatorMs -= cost;
     runTick(world);
     ticks++;
   }
@@ -283,14 +295,32 @@ function runTick(world: World): void {
 }
 
 // A lair goes up a tier: tougher hp, and its next spawns are bigger, faster and stronger.
-function tierUpLair(world: World, lair: LairState, rt: LairRuntime, def: LairDef): void {
+function tierUpLair(
+  world: World,
+  lair: LairState,
+  rt: LairRuntime,
+  def: LairDef,
+  pressure = false,
+): void {
   const t = world.tuning.lair;
   lair.tier++;
   const maxHp = Math.round(def.hp * tierValue(t.hpMult, lair.tier, 1));
   lair.hp += maxHp - lair.maxHp;
   lair.maxHp = maxHp;
-  rt.nextTierMs = lair.tier < t.maxTier ? rt.nextTierMs + t.tierUpEveryMs : Infinity;
-  world.events.push({ kind: 'lairTierUp', lair: lair.id, tier: lair.tier });
+  rt.kos = 0;
+  // An early (pressure) tier-up restarts the clock from now; a timed one keeps its rhythm.
+  rt.nextTierMs =
+    lair.tier >= t.maxTier
+      ? Infinity
+      : pressure
+        ? world.timeMs + t.tierUpEveryMs
+        : rt.nextTierMs + t.tierUpEveryMs;
+  world.events.push({
+    kind: 'lairTierUp',
+    lair: lair.id,
+    tier: lair.tier,
+    ...(pressure ? { pressure: true } : {}),
+  });
 }
 
 function runLairs(world: World): void {
@@ -300,6 +330,14 @@ function runLairs(world: World): void {
     const def = world.data.lairs?.find((l) => l.id === lair.type);
     if (!rt || !def) continue;
     if (world.timeMs >= rt.nextTierMs && lair.tier < lt.maxTier) tierUpLair(world, lair, rt, def);
+    else if (
+      lt.pressureKos > 0 &&
+      (rt.kos ?? 0) >= lt.pressureKos &&
+      lair.tier < lt.maxTier &&
+      rt.nextTierMs !== Infinity
+    ) {
+      tierUpLair(world, lair, rt, def, true);
+    }
     if (world.timeMs < rt.nextSpawnMs) continue;
     rt.nextSpawnMs = world.timeMs + def.spawnS * 1000 * tierValue(lt.spawnMult, lair.tier, 1);
     const alive = world.units.filter((u) => {
@@ -544,6 +582,11 @@ function settleDeaths(world: World): void {
       world.stats.knockouts++;
       tally(world, unit.id, 'knockouts');
       world.events.push({ kind: 'knockout', unit: unit.id, by });
+      // A lair's monsters count the heroes they put down (pressure growth).
+      const lairId = world.unitRuntime.get(by)?.lair;
+      const lrt =
+        lairId === null || lairId === undefined ? undefined : world.lairRuntime.get(lairId);
+      if (lrt) lrt.kos = (lrt.kos ?? 0) + 1;
       vowRevenge(world, unit, by);
     } else {
       const mon = world.data.monsters?.find((m) => m.id === unit.type);

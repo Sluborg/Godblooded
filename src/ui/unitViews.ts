@@ -26,12 +26,14 @@ import { damageLook, MAX_FLOATS, typeTint, type FloatLook, type HitInfo } from '
 import { getSettings } from './settings';
 import { heroLabel, partyColor, partyRole, type PartyRole } from './partyLook';
 import { SpeechLimit } from './speechLimit';
-import { isSpeechEvent, pickLine, type SpeechKind } from './speechLines';
+import { BARK_META, barkRoll, isSpeechEvent, pickLine, type SpeechKind } from './speechLines';
 import { buildHeal, buildStrike, FxLayer, type Vec } from './strikeFx';
 import { ART_NOMINAL_PX, PLACEHOLDER, UNIT_HEIGHT, artCandidates, baseType } from './unitLook';
 
 // Speech bubbles: how long one stays, the most on screen at once, and the quiet time per unit.
 const BUBBLE_MS = 2200;
+const HIGH_BUBBLE_MS = 3000;
+const HIGH_WAIT_MS = 1500;
 // How far ahead of the impact the windup is allowed to start when the sim gives no warning:
 // the `hit` event arrives at impact, so the windup is squeezed into this (docs/api: Scene 70).
 const DEFAULT_LEAD_S = 0.09;
@@ -123,6 +125,7 @@ export class UnitView {
   private readonly hue: number;
   private readonly unitId: number;
   spoken = 0;
+  barkTries = 0;
 
   // motion state
   private x: number;
@@ -746,7 +749,7 @@ export class UnitView {
 
   // One bubble per unit: a new line replaces the old one. It lives on the unit's container,
   // so it follows the unit and fades with it.
-  say(text: string): void {
+  say(text: string, ms = BUBBLE_MS): void {
     this.bubble?.destroy();
     const label = this.scene.add
       .text(0, 0, text, { fontFamily: 'Georgia, serif', fontSize: '22px', color: '#1a1410' })
@@ -773,7 +776,7 @@ export class UnitView {
     this.scene.tweens.add({
       targets: bubble,
       alpha: 0,
-      delay: BUBBLE_MS,
+      delay: ms,
       duration: 250,
       onComplete: () => {
         bubble.destroy();
@@ -806,7 +809,7 @@ export class UnitViews {
   sync(
     units: readonly Readonly<UnitState>[],
     events: readonly SimEvent[],
-    timeMs: number,
+    _timeMs: number,
     dtMs: number,
     others: (id: number) => Vec2 | undefined = () => undefined,
     parties: readonly { id: number; members: readonly number[] }[] = [],
@@ -850,7 +853,7 @@ export class UnitViews {
       else if (e.kind === 'rider') this.views.get(e.target)?.setRider(e.rider);
       else if (e.kind === 'bossEmerged') this.onBossEmerged(e);
       else if (e.kind === 'enraged') this.onEnraged(e);
-      else if (isSpeechEvent(e)) this.onSpeech(e, timeMs);
+      else if (isSpeechEvent(e)) this.onSpeech(e);
       // Shopping speaks (above) and also pops its tax in gold.
       if (e.kind === 'shopped') this.onShopped(e);
     }
@@ -884,17 +887,47 @@ export class UnitViews {
         this.dying.delete(id);
       }
     }
+    this.flushQueued();
     this.fx.update(dtS);
   }
 
   private speech = new SpeechLimit();
 
   // Heroes only, rationed by SpeechLimit (one bark in town per few seconds, one per hero per 30 s).
-  private onSpeech(e: Extract<SimEvent, { kind: SpeechKind }>, timeMs: number): void {
+  // A high priority bark that meets the global gap waits up to HIGH_WAIT_MS for it, then drops
+  // (barks.md section 2 rule 3). Mid and low barks drop at once.
+  private queued: { e: Extract<SimEvent, { kind: SpeechKind }>; until: number } | null = null;
+
+  private onSpeech(e: Extract<SimEvent, { kind: SpeechKind }>): void {
+    if (!this.trySpeak(e) && BARK_META[e.kind].priority === 'high' && !this.queued)
+      this.queued = { e, until: this.scene.time.now + HIGH_WAIT_MS };
+  }
+
+  // Retries the queued high bark once per frame until it speaks or runs out of time.
+  private flushQueued(): void {
+    const q = this.queued;
+    if (!q) return;
+    if (this.scene.time.now > q.until || this.trySpeak(q.e)) this.queued = null;
+  }
+
+  private trySpeak(e: Extract<SimEvent, { kind: SpeechKind }>): boolean {
     const view = this.views.get(e.unit);
-    if (!view || !view.isHero) return;
-    if (!this.speech.allow(e.unit, timeMs)) return;
-    view.say(pickLine(e.kind, e.unit, view.spoken++));
+    if (!view || !view.isHero) return true; // nothing to wait for
+    const meta = BARK_META[e.kind];
+    // Only heroes on screen speak; small events speak only some of the time.
+    const cam = this.scene.cameras.main.worldView;
+    if (!cam.contains(view.container.x, view.container.y)) return true;
+    if (!this.queued && meta.chance < 1 && barkRoll(e.unit, view.barkTries++) >= meta.chance)
+      return true;
+    let live = 0;
+    for (const v of this.views.values())
+      if (v.hasBubble && cam.contains(v.container.x, v.container.y)) live++;
+    if (!this.speech.allow(e.unit, this.scene.time.now, live, meta.priority)) return false;
+    view.say(
+      pickLine(e.kind, e.unit, view.spoken++),
+      meta.priority === 'high' ? HIGH_BUBBLE_MS : BUBBLE_MS,
+    );
+    return true;
   }
 
   private onHit(

@@ -52,6 +52,8 @@ export const DEFAULT_TUNING: Tuning = {
     offerSize: 3,
     maxLevel: 8,
     autoPick: true,
+    offerSlowdown: 0.3,
+    traitPickWeight: 3,
     favourLevel: 7,
     rarity: { low: [70, 30, 0], mid: [50, 40, 10], high: [30, 50, 20] },
     bondCap: 10,
@@ -75,6 +77,9 @@ export const DEFAULT_TUNING: Tuning = {
   },
   lair: {
     tierUpEveryMs: 480_000,
+    firstTierUpMs: 0,
+    tierUpStaggerMs: 0,
+    pressureKos: 0,
     maxTier: 3,
     spawnMult: [1, 0.85, 0.7],
     maxAliveAdd: [0, 1, 1],

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createWorld, type GameData } from './api';
+import { createWorld, step, type GameData } from './api';
 import { newParty, shareXp } from './parties';
 import { offerCards } from './cards';
 import { spawnHero } from './world';
@@ -174,16 +174,19 @@ describe('card offers', () => {
     expect(p.xp).toBeGreaterThan(400);
   });
 
-  it('with autoPick the party takes a card itself, by its leader, without pausing', () => {
+  it('with autoPick the party takes a card itself, weighted by its leader, without pausing', () => {
     const cards: UpgradeDef[] = [
       { ...card('plain', 'stats'), pickTag: 'sight' },
       { ...card('sword', 'stats'), pickTag: 'attack', god: 'athena' },
       { ...card('shield', 'stats'), pickTag: 'defence' },
       { ...card('coin', 'stats'), pickTag: 'gold', god: 'thor' },
+      { ...card('herb', 'stats'), pickTag: 'sustain' },
+      { ...card('oath', 'stats'), pickTag: 'nerve' },
     ];
-    const pick = (trait: UnitState['trait']) => {
-      const data = mk(cards, {
-        party: { autoPick: true, offerSize: 4, xpPerLevel: 10 },
+    // A huge weight makes the trait's choice certain, so the table can be checked.
+    const pick = (trait: UnitState['trait'], pool = cards) => {
+      const data = mk(pool, {
+        party: { autoPick: true, offerSize: 6, xpPerLevel: 10, traitPickWeight: 1e9 },
       });
       const { w, p, ids } = party(data);
       const leader = w.units.find((u) => u.id === ids[0])!;
@@ -195,16 +198,66 @@ describe('card offers', () => {
       expect(picked).toHaveLength(1);
       expect(p.upgrades).toHaveLength(1);
       expect(picked[0]).toMatchObject({ party: p.id, auto: true, hero: leader.id });
-      return p.upgrades[0];
+      return { card: p.upgrades[0], event: picked[0] };
     };
-    expect(pick('brave')).toBe('sword');
-    expect(pick('vengeful')).toBe('sword');
-    expect(pick('coward')).toBe('shield');
-    expect(pick('greedy')).toBe('coin');
-    expect(pick('curious')).toBe('plain');
-    // thor's own card for loyal and proud
-    expect(pick('loyal')).toBe('coin');
-    expect(pick('proud')).toBe('coin');
+    expect(pick('brave').card).toBe('sword');
+    // proud: attack cards and its own god's (thor's coin)
+    expect(['sword', 'coin']).toContain(pick('proud').card);
+    expect(pick('coward').card).toBe('shield');
+    expect(pick('greedy').card).toBe('coin');
+    expect(pick('curious').card).toBe('plain');
+    // loyal: sustain cards and its own god's
+    expect(['herb', 'coin']).toContain(pick('loyal').card);
+    // vengeful looks for attack and nerve
+    expect(['sword', 'oath']).toContain(pick('vengeful').card);
+    // greedy with no gold card in the offer looks for attack
+    expect(
+      pick(
+        'greedy',
+        cards.filter((c) => c.pickTag !== 'gold'),
+      ).card,
+    ).toBe('sword');
+    // the event names the god that offers the card
+    expect(pick('greedy').event).toMatchObject({ god: 'thor' });
+    expect(pick('coward').event).toMatchObject({ god: 'thor' });
+  });
+
+  it('the draw is weighted, not forced: a matching card is likelier at the default weight', () => {
+    const cards: UpgradeDef[] = [
+      { ...card('a', 'stats'), pickTag: 'attack' },
+      { ...card('b', 'stats'), pickTag: 'sight' },
+      { ...card('c', 'stats'), pickTag: 'gold' },
+    ];
+    let attack = 0;
+    for (let seed = 1; seed <= 300; seed++) {
+      const { w, p, ids } = party(mk(cards, { party: { xpPerLevel: 10 } }));
+      void seed;
+      const leader = w.units.find((u) => u.id === ids[0])!;
+      leader.trait = 'brave';
+      // each loop draws a different part of the seeded stream
+      for (let i = 0; i < seed; i++) w.rng();
+      shareXp(w, ids[0], 10);
+      if (p.upgrades[0] === 'a') attack++;
+    }
+    // weight 3 against 1 and 1: expected 60%
+    expect(attack).toBeGreaterThan(150);
+    expect(attack).toBeLessThan(220);
+  });
+
+  it('the leader is the first member that is not knocked out', () => {
+    const cards: UpgradeDef[] = [
+      { ...card('sword', 'stats'), pickTag: 'attack' },
+      { ...card('shield', 'stats'), pickTag: 'defence' },
+    ];
+    const { w, p, ids } = party(
+      mk(cards, { party: { autoPick: true, offerSize: 2, xpPerLevel: 10, traitPickWeight: 1e9 } }),
+      ['thor', 'thor'],
+    );
+    w.units.find((u) => u.id === ids[0])!.trait = 'brave';
+    w.units.find((u) => u.id === ids[0])!.ko = true;
+    w.units.find((u) => u.id === ids[1])!.trait = 'coward';
+    shareXp(w, ids[1], 10);
+    expect(p.upgrades[0]).toBe('shield');
   });
 
   it('autoPick levels through several levels at once; off, the offer waits', () => {
@@ -217,5 +270,27 @@ describe('card offers', () => {
     shareXp(manual.w, manual.ids[0], 10 + 20 + 30);
     expect(manual.p.level).toBe(2);
     expect(manual.p.offer).toHaveLength(3);
+  });
+
+  it('an open offer from an old save is taken by the party itself on load', () => {
+    const cards = ['a', 'b', 'c'].map((id) => card(id, 'stats'));
+    const { w, p } = party(mk(cards, { party: { autoPick: true } }));
+    p.offer = ['a', 'b', 'c'];
+    step(w, 1_000);
+    expect(p.offer).toBeNull();
+    expect(p.upgrades).toHaveLength(1);
+  });
+
+  it('a pending pick slows the run to offerSlowdown instead of freezing it', () => {
+    const cards = ['a', 'b', 'c'].map((id) => card(id, 'stats'));
+    const { w, p } = party(mk(cards, { party: { autoPick: false, offerSlowdown: 0.3 } }));
+    p.offer = ['a', 'b', 'c'];
+    const t = w.timeMs;
+    step(w, 1_000);
+    expect(w.timeMs - t).toBe(300);
+    const frozen = party(mk(cards, { party: { autoPick: false, offerSlowdown: 0 } }));
+    frozen.p.offer = ['a', 'b', 'c'];
+    step(frozen.w, 1_000);
+    expect(frozen.w.timeMs).toBe(0);
   });
 });

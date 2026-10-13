@@ -258,7 +258,7 @@ export interface UpgradeDef {
   family?: CardFamily;
   rarity?: CardRarity;
   needs?: CardNeeds;
-  // Who offers it and what the party's leader looks for (auto-pick, level-ups.md section 4):
+  // Who offers it and what the party's leader looks for (auto-pick, level-ups.md):
   // attack, defence, sustain, sight, gold or nerve.
   god?: string;
   pickTag?: string;
@@ -292,6 +292,8 @@ export interface MapRules {
 export interface LairSite {
   lair: string;
   pos: Vec2;
+  // This lair's first tier-up (else from tuning.lair: first tier-up plus its stagger).
+  firstTierUpMs?: number;
 }
 
 export interface HeroTuning {
@@ -328,6 +330,11 @@ export interface PartyTuning {
   // The party picks its level-up card itself, by its leader's personality (no pause, no player
   // choice). Off: the run waits for the player's pick.
   autoPick: boolean;
+  // While a pick is open (a path card, or an upgrade offer with autoPick off) the run goes at
+  // this share of its speed; 0 freezes it.
+  offerSlowdown: number;
+  // A card matching the leader's trait weighs this many times a plain one in the auto-pick draw.
+  traitPickWeight: number;
   // The level whose offer is the party's god's favour cards.
   favourLevel: number;
   // Rarity weights [common, rare, epic] by party level: 2-3, 4-5, 6 and up.
@@ -362,6 +369,12 @@ export interface MonsterTuning {
 export interface LairTuning {
   // 0 turns growth off.
   tierUpEveryMs: number;
+  // First tier-up of the nearest lair (0: the same as tierUpEveryMs), and how much later each
+  // lair farther from the town goes up (rank by distance), so the map does not jump at once.
+  firstTierUpMs: number;
+  tierUpStaggerMs: number;
+  // A lair whose monsters knock out this many heroes goes up a tier early (0: off).
+  pressureKos: number;
   maxTier: number;
   // Multiplies the lair's spawn interval.
   spawnMult: number[];
@@ -835,7 +848,15 @@ export type SimEvent =
   | { kind: 'partyFormed'; party: number; members: number[] }
   | { kind: 'levelUp'; party: number; level: number; offer: string[] }
   // `auto`: the party chose the card itself (tuning.party.autoPick), `hero` its leader.
-  | { kind: 'upgradePicked'; party: number; upgrade: string; auto?: boolean; hero?: number }
+  // `god`: the god that offers the card (its own `god`, else the leader's) for "Thor offers: X".
+  | {
+      kind: 'upgradePicked';
+      party: number;
+      upgrade: string;
+      auto?: boolean;
+      hero?: number;
+      god?: string;
+    }
   | { kind: 'tierUp'; unit: number; tier: number; path: string | null }
   | { kind: 'pathOffer'; party: number; hero: number; options: string[] }
   | { kind: 'raid'; lair: number; size: number }
@@ -861,7 +882,8 @@ export type SimEvent =
   | { kind: 'revenge'; hero: number; target: number; victim: number }
   | { kind: 'avenged'; hero: number; target: number }
   | { kind: 'autosave' }
-  | { kind: 'lairTierUp'; lair: number; tier: number }
+  // `pressure`: the lair grew early because its monsters knocked out too many heroes.
+  | { kind: 'lairTierUp'; lair: number; tier: number; pressure?: boolean }
   | { kind: 'lairDestroyed'; lair: number; type: string; by: number; bounty: number }
   | { kind: 'buildingDestroyed'; building: number; type: string }
   | { kind: 'bountyClaimed'; bounty: number; unit: number; gold: number }
