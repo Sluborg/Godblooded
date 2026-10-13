@@ -12,10 +12,12 @@ export interface CameraControlOptions {
   onTap?: (world: Phaser.Math.Vector2) => void;
   // True when a press at this screen position belongs to the UI, not the map.
   blocked?: (screenX: number, screenY: number) => boolean;
+  // Fires when a drag, pinch or wheel zoom takes the camera by hand (cancels watch and follow).
+  onManual?: () => void;
 }
 
 export function attachCameraControls(scene: Phaser.Scene, opts: CameraControlOptions): void {
-  const { minZoom, onTap, blocked } = opts;
+  const { minZoom, onTap, blocked, onManual } = opts;
   const cam = scene.cameras.main;
   const input = scene.input;
   input.addPointer(1);
@@ -39,11 +41,13 @@ export function attachCameraControls(scene: Phaser.Scene, opts: CameraControlOpt
       if (pinchDist > 0) cam.setZoom(clampZoom(cam.zoom * (d / pinchDist)));
       pinchDist = d;
       dragging = true;
+      onManual?.();
       return;
     }
     if (!p.isDown) return;
     if (!dragging && p.getDistance() < DRAG_THRESHOLD) return;
     dragging = true;
+    onManual?.();
     cam.scrollX -= (p.x - p.prevPosition.x) / cam.zoom;
     cam.scrollY -= (p.y - p.prevPosition.y) / cam.zoom;
   });
@@ -61,6 +65,7 @@ export function attachCameraControls(scene: Phaser.Scene, opts: CameraControlOpt
   });
 
   input.on('wheel', (_p: unknown, _o: unknown, _dx: number, dy: number) => {
+    onManual?.();
     cam.setZoom(clampZoom(cam.zoom * (dy > 0 ? 0.9 : 1.1)));
   });
 }

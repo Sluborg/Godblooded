@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { COLORS, GAME_HEIGHT, GAME_WIDTH } from '../config';
 import { makeButton, type Button } from '../ui/button';
+import { makePanel } from '../ui/panel';
 import { PARTY_COLORS, PARTY_COLORS_CB } from '../ui/partyLook';
 import { getSettings, updateSettings, type PaletteId, type Speed } from '../ui/settings';
 
@@ -28,6 +29,7 @@ export class SettingsScene extends Phaser.Scene {
     this.paletteButtons = [];
     const cx = GAME_WIDTH / 2;
     this.add.rectangle(cx, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x0e0b08, 1).setInteractive();
+    makePanel(this, cx, GAME_HEIGHT / 2, 1160, 660);
     this.add
       .text(cx, 70, 'Settings', { fontFamily: FONT, fontSize: '56px', color: '#f2c14e' })
       .setOrigin(0.5);

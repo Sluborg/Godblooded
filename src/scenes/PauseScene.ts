@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { COLORS, GAME_HEIGHT, GAME_WIDTH } from '../config';
 import { makeButton } from '../ui/button';
+import { makePanel } from '../ui/panel';
 
 // Pause menu over a frozen map: Resume, Restart, Settings, Quit to title.
 export class PauseScene extends Phaser.Scene {
@@ -13,6 +14,7 @@ export class PauseScene extends Phaser.Scene {
     this.add
       .rectangle(cx, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.7)
       .setInteractive();
+    makePanel(this, cx, GAME_HEIGHT / 2, 520, 640);
     this.add
       .text(cx, 110, 'Paused', { fontFamily: 'Georgia, serif', fontSize: '64px', color: '#f2c14e' })
       .setOrigin(0.5);
