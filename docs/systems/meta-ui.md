@@ -16,9 +16,9 @@ and HUD rules from `ui-flows.md`; the look from the taste test (decision 2026-10
   12 rows), each with its ranks as pips and the next cost on
   a big button. A tree adds reading for no choice (`meta.md` has only "rank needs the rank
   before it").
-- **The lean is shown, not chosen:** the run setup shows the portent (not an in-run omen,
-  `events.md`) of the coming run ("The north
-  stirs": an Aesir lean and its boss pair) so a player can buy for it; the map seed decides it.
+- **The player chooses the lean at the Altar** (Stefan, 2026-10-14): a portent strip at the top
+  of the Altar picks the next run's pantheon (unlocked ones only); the run setup shows it.
+- **Buys are press-and-hold** (about 0.6 s, a ring fills round the button), no popup.
 - **Look:** wood-and-parchment frames, big readable numbers, actions in the right thumb zone,
   Back always top left.
 
@@ -55,6 +55,7 @@ Run ends ──> End screen ──Play again──> Run setup ──Start──>
 ```
 ┌ wood frame ───────────────────────────────────────────────── Ichor 340 ┐
 │ < Back                    THE ALTAR                                     │
+│ Portent:  [ The north stirs ]  [ The sea grows restless ]  [ locked ]   │
 │ ┌ parchment row ─────────────────────────────────────────────────────┐ │
 │ │ [icon] War Chest      +50 start gold      ●●○   [ 120 ]            │ │
 │ │ [icon] Devout Masons  temples 10% cheaper ●○    [ 120 ]            │ │
@@ -69,11 +70,17 @@ Run ends ──> End screen ──Play again──> Run setup ──Start──>
   show at once, a short drag shows the rest.
 - **Each row:** icon, name, effect per rank in one line, rank pips, and the next rank's cost on a
   button (80 x 80 or larger). A full row shows "Full" in place of the button.
-- **Buy:** tap the cost button; the pip fills with a short glow and the Ichor counter ticks down.
-  No confirm dialog; a mistake is undone with "Return to the gods".
+- **Portent strip (the lean picker):** one button per pantheon with its sigil and portent line;
+  locked pantheons show their unlock goal. Tap to choose; the choice is saved and holds until
+  changed (default: the Aesir). The two possible bosses of the chosen pantheon show as
+  silhouettes under the strip.
+- **Buy: press and hold** the cost button for about 0.6 s; a ring fills round it, then the pip
+  fills with a short glow and the Ichor counter ticks down. Letting go early cancels. No popup; a
+  mistake is undone with "Return to the gods".
 - **Can't afford:** the button is dimmed and shows the cost in red; tapping it shows a toast "Need 40 more Ichor".
 - **Locked:** Favoured rows of a locked pantheon show the unlock goal instead of a cost.
-- **Return to the gods:** a text button at the bottom, one confirm ("Refund 340 Ichor?").
+- **Return to the gods:** a text button at the bottom, also press and hold (about 1.2 s, longer
+  because it undoes everything), no popup.
 
 ## 4. Hall: Saga and unlocks
 
@@ -88,17 +95,16 @@ Run ends ──> End screen ──Play again──> Run setup ──Start──>
 
 ## 5. Run setup
 
-| Part           | Content                                                                                                                                                                                               |
-| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Portent        | the coming run's lean, from its seed: "The north stirs" (Aesir), "The sea grows restless" (Greek), "The sands whisper" (Egyptian), with the pantheon sigil and its two possible bosses as silhouettes |
-| Trials         | after the first win: 5 toggles (name, effect, a mark if won with it before), the Ichor bonus shown (+10 each)                                                                                         |
-| Altar shortcut | a small "Altar (340)" button if any rank is affordable                                                                                                                                                |
-| Start          | big, bottom right                                                                                                                                                                                     |
+| Part           | Content                                                                                                                                                                                                   |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Portent        | the lean chosen at the Altar: "The north stirs" (Aesir), "The sea grows restless" (Greek), "The sands whisper" (Egyptian), with the sigil and the two possible bosses; a tap opens the Altar to change it |
+| Trials         | after the first win: 5 toggles (name, effect, a mark if won with it before), the Ichor bonus shown (+10 each)                                                                                             |
+| Altar shortcut | a small "Altar (340)" button if any rank is affordable                                                                                                                                                    |
+| Start          | big, bottom right                                                                                                                                                                                         |
 
-- **The seed is fixed when the setup opens,** so the portent is true: the meta save keeps
-  `nextSeed` (drawn at the end of each run, `meta.md` section 4) and `lastBoss`, and Sim's
-  `previewRun` reads both, so the boss pair and the no-repeat rule match the real run.
-- With only the Aesir unlocked, the portent still shows (the lean decides the boss pair).
+- **The run uses the chosen lean:** `createWorld` takes `lean` from the meta save; the map leans
+  on that pantheon and its boss pair is drawn (seeded by `nextSeed`, no repeat by `lastBoss`).
+- With only the Aesir unlocked, the strip shows one choice and the portent still shows.
 
 ## 6. Layout rules
 
@@ -115,7 +121,7 @@ Run ends ──> End screen ──Play again──> Run setup ──Start──>
 
 | Order | Row                                                                                                                                      |
 | ----- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| 10    | `previewRun(meta)`: the next run's seed, lean pantheon and boss pair without starting it                                                 |
+| 10    | `createWorld` takes a chosen `lean`; `previewRun(meta)` gives that lean's boss pair; `lean` in the meta save                             |
 | 20    | Ichor tally lines from `RunReport` (source, count, amount) for the end screen; Altar buy and refund as pure functions over the meta save |
 
 ### Scene
@@ -140,8 +146,7 @@ Run ends ──> End screen ──Play again──> Run setup ──Start──>
 | ----- | ---------------------------------------------------------------------------------------------- |
 | 10    | Wood-and-parchment frame (9-slice), tab buttons, 10 Altar icons, 3 pantheon sigils, Ichor icon |
 
-## OPEN (Stefan decides)
+## Decided (Stefan, 2026-10-14)
 
-1. **The lean is shown, not chosen** (recommendation), or may the player pick the pantheon of
-   the next run?
-2. **Buy without a confirm** (recommendation, refund is free), or confirm every purchase?
+1. **The lean is chosen** by the player at the Altar (the portent strip).
+2. **Altar buys are press and hold** (about 0.6 s), no popup.
