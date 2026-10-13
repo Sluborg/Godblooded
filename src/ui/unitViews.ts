@@ -101,6 +101,8 @@ export class UnitView {
   private readonly pennant: Phaser.GameObjects.Graphics;
   private readonly label: Phaser.GameObjects.Text;
   private ringKey = '';
+  // The tier last seen in the snapshot (a tier 3 monster is a boss-sized threat: its hits shake).
+  tierNow = 1;
   private bubble: Phaser.GameObjects.Container | null = null;
   readonly isHero: boolean;
   readonly look: UnitLook;
@@ -377,6 +379,7 @@ export class UnitView {
   // ---------- per frame ----------
 
   update(u: UnitState, ctx: FrameCtx, role: PartyRole = 'solo'): void {
+    this.tierNow = u.tier;
     this.applyArt(u);
     if (u.kind === 'hero') {
       this.label.setText(heroLabel(u));
@@ -705,6 +708,8 @@ export class UnitViews {
       else if (e.kind === 'windup') this.onWindup(e);
       else if (e.kind === 'heal') this.onHeal(e, ctx);
       else if (e.kind === 'tierUp') this.onTierUp(e, paths);
+      else if (e.kind === 'shopped') this.onShopped(e);
+      else if (e.kind === 'built') this.onBuilt(e, others);
       else if (isSpeechEvent(e)) this.onSpeech(e, timeMs);
     }
     const seen = new Set<number>();
@@ -753,7 +758,11 @@ export class UnitViews {
     others: (id: number) => Vec2 | undefined,
   ): void {
     const attacker = this.views.get(e.attacker);
-    if (attacker) return attacker.landHit(e.target, e.damage, e.dodged);
+    if (attacker) {
+      // A big monster's blow shakes the screen a little.
+      if (!attacker.isHero && attacker.tierNow >= 3 && !e.dodged && e.damage > 0) ctx.shake();
+      return attacker.landHit(e.target, e.damage, e.dodged);
+    }
     // No unit view: a tower (or other building) shooting. An arrow flies from its top to the
     // target and the hit lands at once, knocked back away from the tower.
     const from = others(e.attacker);
@@ -782,6 +791,30 @@ export class UnitViews {
   ): void {
     const name = paths.find((p) => p.id === e.path)?.name;
     this.views.get(e.unit)?.evolve(this.fx, name ?? `Tier ${e.tier}!`);
+  }
+
+  // A hero spent gold at the market: the town's tax pops out in gold with a few sparkles.
+  private onShopped(e: Extract<SimEvent, { kind: 'shopped' }>): void {
+    const v = this.views.get(e.unit);
+    if (!v || e.tax <= 0) return;
+    this.floatText(
+      v.container.x,
+      v.container.y - v.height - 28,
+      `+${Math.round(e.tax)}g`,
+      '#f2c14e',
+    );
+    this.fx.sparkle(v.container.x, v.container.y - v.height * 0.5, 8, GOLD_SPARKS);
+  }
+
+  // A building went up: a cloud of dust and a few chips at its feet.
+  private onBuilt(
+    e: Extract<SimEvent, { kind: 'built' }>,
+    others: (id: number) => Vec2 | undefined,
+  ): void {
+    const p = others(e.building);
+    if (!p) return;
+    for (let i = 0; i < 4; i++) this.fx.dust(p.x + (i - 1.5) * 34, p.y, 1.8);
+    this.fx.sparks(p.x, p.y - 10, [190, 160, 110], 10);
   }
 
   private onHeal(e: Extract<SimEvent, { kind: 'heal' }>, ctx: FrameCtx): void {
