@@ -7,7 +7,7 @@ them, but not too often.
 
 ## Bottom line
 
-- **334 lines** in 20 situations, flavoured by the 12 gods and the 7 traits, so the same
+- **386 lines** in 26 situations, flavoured by the 12 gods and the 7 traits, so the same
   moment sounds different from Thor's child and a greedy coward.
 - **Rare and precise:** at most one bubble every 3 s on screen, at most 2 at once, each hero
   at most once per 20 s, and most small events speak only sometimes. Big moments (a knockout,
@@ -19,28 +19,41 @@ them, but not too often.
 
 ## 1. Situations
 
-| Id           | Fires on (Sim event or Scene condition)              | Priority | Chance       |
-| ------------ | ---------------------------------------------------- | -------- | ------------ |
-| arrive       | `arrived`                                            | high     | 100%         |
-| explore      | a hero sets out to explore (intent explore)          | low      | 10%          |
-| spot_lair    | a lair becomes discovered by this hero               | mid      | 50%          |
-| fight_start  | the hero's fight starts (`combat.md` fight boundary) | mid      | 25%          |
-| low_hp       | hp drops below 35% (once per fight)                  | mid      | 40%          |
-| flee         | `fled`                                               | high     | 100%         |
-| ko           | `knockout` (the hero itself)                         | high     | 100%         |
-| revive       | `revived`                                            | mid      | 60%          |
-| kill         | the hero lands a killing blow                        | mid      | 20%          |
-| level_up     | `levelUp` (one member of the party speaks)           | high     | 100%         |
-| path_pick    | `tierUp` to tier 2                                   | high     | 100%         |
-| shop         | `shopped`                                            | low      | 25%          |
-| rest         | the hero starts resting                              | low      | 15%          |
-| bounty_seen  | a flag is placed in the hero's aggro range           | low      | 30%          |
-| bounty_taken | the hero (or its party) commits to a flag            | mid      | 50%          |
-| raid         | `raidWarning` or `raid`, a hero in town speaks       | high     | 100%         |
-| boss         | the boss emerges, a hero in view speaks              | high     | 100%         |
-| argue        | `argue` (one of the two)                             | mid      | 100%         |
-| revenge      | `revenge` (the oath taker)                           | high     | 100%         |
-| idle         | a hero has said nothing for 60 s and is not fighting | low      | 10% per 15 s |
+| Id           | Fires on (Sim event or Scene condition)                                                                             | Priority | Chance       |
+| ------------ | ------------------------------------------------------------------------------------------------------------------- | -------- | ------------ |
+| arrive       | `arrived`                                                                                                           | high     | 100%         |
+| explore      | intent `explore` (`hero-ai.md` `intent` event)                                                                      | low      | 10%          |
+| spot_lair    | a lair becomes discovered by this hero                                                                              | mid      | 50%          |
+| fight_start  | the hero's fight starts (`combat.md` fight boundary)                                                                | mid      | 25%          |
+| low_hp       | hp drops below 35% (once per fight)                                                                                 | mid      | 40%          |
+| flee         | `fled`                                                                                                              | high     | 100%         |
+| ko           | `knockout` (the hero itself)                                                                                        | high     | 100%         |
+| revive       | `revived`                                                                                                           | mid      | 60%          |
+| kill         | the hero lands a killing blow                                                                                       | mid      | 20%          |
+| level_up     | `upgradePicked` (after the card closes): the party leader (`members[0]`, or the next member not knocked out) speaks | high     | 100%         |
+| path_pick    | `tierUp` to tier 2                                                                                                  | high     | 100%         |
+| shop         | `shopped`                                                                                                           | low      | 25%          |
+| rest         | intent `rest` (`hero-ai.md` `intent` event)                                                                         | low      | 15%          |
+| bounty_seen  | a flag is placed in the hero's aggro range                                                                          | low      | 30%          |
+| bounty_taken | the hero (or its party) commits to a flag                                                                           | mid      | 50%          |
+| raid         | `raidWarning` (planned, `events.md`) or today's `raid`, a hero in town speaks                                       | high     | 100%         |
+| boss         | the boss emerges, a hero in view speaks                                                                             | high     | 100%         |
+| argue        | `argue` (one of the two)                                                                                            | mid      | 100%         |
+| revenge      | `revenge` (the oath taker)                                                                                          | high     | 100%         |
+| idle         | a hero has said nothing for 60 s and is not fighting                                                                | low      | 10% per 15 s |
+| lair_go      | intent `lair` (party leader)                                                                                        | mid      | 50%          |
+| retreat      | intent `retreat` / `partyRetreat` (party leader)                                                                    | high     | 100%         |
+| defend       | intent `defend` / `defend` event                                                                                    | mid      | 60%          |
+| slain        | the hero is slain by a boss (`combat.md` section 6)                                                                 | high     | 100%         |
+| mourn        | a party mate was slain; one member speaks                                                                           | high     | 100%         |
+| omen         | `omenStart` (`events.md`): a hero of the omen's pantheon in view                                                    | mid      | 100%         |
+
+This table **replaces the speech column of `hero-ai.md` section 2**: intents speak through
+the `explore`, `lair_go`, `retreat`, `rest`, `defend`, `bounty_taken` (flag) and `revenge`
+situations here, with these chances instead of "one in three".
+
+**Skill-name bubbles** (`paths-and-skills.md`, one cast in four) are their own pool of
+lines (the skill names) but share the global gap and the 2-bubble cap below, at mid priority.
 
 ## 2. Frequency rules
 
@@ -55,18 +68,22 @@ them, but not too often.
 5. **No repeats:** a line is not used again within 5 minutes of game time (run-wide); a hero
    cycles through all its candidate lines for a situation before reusing one.
 6. **Pick:** candidates = generic lines of the situation + lines tagged with the hero's god +
-   lines tagged with its trait. Weight god and trait lines x3. Seeded pick (a replay shows the
-   same words), as today's `pickLine`.
-7. **Placeholders:** `{friend}` (a party mate's name), `{monster}` (the foe's type), `{gold}`
-   (a bounty's amount). A line whose placeholder has no value is skipped.
+   lines tagged with its trait. Weight god and trait lines x3. The pick is Scene-side and
+   deterministic per unit (unit id plus how often it spoke, like today's `pickLine`); it never
+   draws from the sim RNG. Which barks play at all depends on the viewer (camera, real time),
+   so replays need not show the same bubbles.
+7. **Placeholders:** `{friend}` is the `revenge` event's `victim` (its name), `{gold}` a
+   bounty's amount. A line whose placeholder has no value is skipped. Templates with a
+   placeholder stay at most 30 characters so a 10-character name still fits in 40; hero
+   names (`meta.md` name lists) are at most 10 characters.
 8. **Bubble:** 22 px text, one line, max 40 characters, 2.2 s on screen (3 s for high).
 
 ## 3. Proposed data rows
 
-| Row         | Fields                                                                                                                                                              |
-| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| BarkDef     | `situation`, `text` (max 40 chars), `god?` (GodDef id), `trait?` (TraitId)                                                                                          |
-| tuning.bark | `globalGapMs` 3000, `maxOnScreen` 2, `heroGapMs` 20000, `queueMs` 1500, `noRepeatMs` 300000, `tagWeight` 3, `idleAfterMs` 60000, `chance` per situation (section 1) |
+| Row                                                      | Fields                                                                                                                                                              |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| BarkDef                                                  | `situation`, `text` (max 40 chars), `god?` (GodDef id), `trait?` (TraitId)                                                                                          |
+| BARK_TUNING (in `src/data/barks.ts`, Scene-only numbers) | `globalGapMs` 3000, `maxOnScreen` 2, `heroGapMs` 20000, `queueMs` 1500, `noRepeatMs` 300000, `tagWeight` 3, `idleAfterMs` 60000, `chance` per situation (section 1) |
 
 Scene owns the picker and the bubble; the rows live in `src/data/barks.ts` (Balance or
 Lead). A test checks every line is at most 40 characters and every tag is a real id.
@@ -448,6 +465,76 @@ Format: `- text` for every hero, `- [god] text` or `- [trait] text` for tagged l
 - [vengeful] I swore it. Now I do it.
 - [loyal] For {friend}! Always!
 
+### lair_go
+
+- To the lair!
+- Their nest. Let's burn it.
+- We end this at the source.
+- Into the den.
+- [thor] Knock knock, trolls.
+- [athena] Strike where they sleep.
+- [ares] Their home is our war.
+- [sekhmet] Into the lion's den. Mine.
+- [brave] Finally, the real fight.
+- [coward] Do we have to go inside?
+
+### retreat
+
+- Fall back!
+- Back to town, all of us!
+- Regroup! Regroup!
+- We fight again tomorrow.
+- [odin] A wise retreat. Go.
+- [athena] Withdraw in order!
+- [ares] We'll be back for more!
+- [loyal] Nobody gets left behind!
+- [proud] I'll hold. You go.
+
+### defend
+
+- The town!
+- They're at the walls!
+- Back! Defend the town!
+- Not our homes!
+- [thor] Nobody touches my town.
+- [athena] To the gates!
+- [poseidon] Let them crash on us.
+- [loyal] Our town. Our people.
+
+### slain
+
+- Valhalla... or wherever...
+- Remember me...
+- This is the end of my song.
+- [odin] I see the hall now.
+- [freyja] Take me, Valkyries.
+- [anubis] Weigh it well.
+- [isis] Mother, I'm coming home.
+
+### mourn
+
+- They're gone. Gone.
+- We'll sing for them.
+- I'll carry their name.
+- Rest well, friend.
+- [freyja] Chosen. Truly chosen.
+- [anubis] Their heart was light.
+- [vengeful] Someone will pay for this.
+- [loyal] I should have been there.
+
+### omen
+
+- A sign in the sky!
+- The gods are speaking.
+- Did you see that?
+- [odin] The ravens are restless.
+- [thor] Thunder without clouds.
+- [apollo] The sun turns strange.
+- [poseidon] The ground is restless.
+- [horus] The sky has changed.
+- [anubis] Death walks tonight.
+- [isis] Magic hangs in the air.
+
 ### idle
 
 - Quiet. Too quiet.
@@ -471,13 +558,13 @@ Format: `- text` for every hero, `- [god] text` or `- [trait] text` for tagged l
 
 ## 5. Proposed backlog rows
 
-| Role            | Order | Row                                                                                                                                                         |
-| --------------- | ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Balance or Lead | 10    | `src/data/barks.ts` from section 4 (BarkDef rows) and `tuning.bark`                                                                                         |
-| Scene           | 10    | Bark picker: situations, tags, weights, global and per-hero gaps, queue, no-repeat, on-screen only                                                          |
-| Scene           | 20    | Bubble: one line, 22 px, 2.2 s (3 s high), at most 2 on screen                                                                                              |
-| Sim             | 10    | Events Scene needs that are missing: `fightStart` per unit, `lowHp` once per fight, `killedBy` on `died`, `discovered` on a lair (with `hero-ai.md` row 25) |
-| Scene           | 30    | Test: every line at most 40 characters, every tag a real god or trait id                                                                                    |
+| Role            | Order | Row                                                                                                                                                                                                                                                                                                    |
+| --------------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Balance or Lead | 10    | `src/data/barks.ts` from section 4 (BarkDef rows) and `BARK_TUNING`                                                                                                                                                                                                                                    |
+| Scene           | 10    | Bark picker: situations, tags, weights, global and per-hero gaps, queue, no-repeat, on-screen only                                                                                                                                                                                                     |
+| Scene           | 20    | Bubble: one line, 22 px, 2.2 s (3 s high), at most 2 on screen                                                                                                                                                                                                                                         |
+| Sim             | 10    | Events Scene needs that are missing: `fightStart` per unit, `lowHp` once per fight, the killer on `died` is there already (`by`); depends on `intent` (`hero-ai.md` row 10), `discovered` (`hero-ai.md` row 25), `raidWarning` and `omenStart` (`events.md` rows 10, 20), `slain` (`combat.md` row 80) |
+| Scene           | 30    | Test: every line at most 40 characters, every tag a real god or trait id                                                                                                                                                                                                                               |
 
 ## OPEN (Stefan decides)
 
