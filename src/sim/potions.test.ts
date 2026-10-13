@@ -145,4 +145,30 @@ describe('potions', () => {
     const ev = run(w, 450);
     expect(ev.filter((e) => e.kind === 'windup' && e.attacker === h.id)).toHaveLength(0);
   });
+
+  it('one hit past both thresholds: a hero with a potion drinks instead of fleeing', () => {
+    const { w, h, rat } = setup(0.42);
+    // A fight first, so the hero has a target.
+    run(w, 100);
+    expect(h.target).toBe(rat.id);
+    // One big hit takes it from above the drink threshold to below the flee threshold.
+    h.hp = Math.floor(h.maxHp * 0.15);
+    const ev = run(w, 800);
+    expect(ev.some((e) => e.kind === 'fled' && e.unit === h.id)).toBe(false);
+    expect(drank(ev)).toHaveLength(1);
+    expect(h.mode).toBe('explore');
+  });
+
+  it('a hit mid-drink does not make the hero flee; with no potion left it flees', () => {
+    const { w, h } = setup(0.35);
+    run(w, 200);
+    h.hp = Math.floor(h.maxHp * 0.1);
+    const mid = run(w, 400);
+    expect(mid.some((e) => e.kind === 'fled')).toBe(false);
+    // The drink lands; the potion is spent, and the hurt hero now runs.
+    const after = run(w, 400);
+    expect(drank(after).length + drank(mid).length).toBe(1);
+    h.hp = Math.floor(h.maxHp * 0.1);
+    expect(run(w, 200).some((e) => e.kind === 'fled' && e.unit === h.id)).toBe(true);
+  });
 });
