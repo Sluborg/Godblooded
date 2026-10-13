@@ -18,7 +18,7 @@ decision 2026-10-04 "Graybox combat").
 - **Heroes are knocked out, never killed**, except by a boss: a boss knockout rolls a death
   chance that shrines and healers lower.
 - **Bosses** are one unit per final lair with a telegraphed area strike, an enrage at half hp
-  and immunity to crits and slows.
+  and immunity to crits; chill slows it at half strength.
 - **Curves are rescaled to graybox numbers** (attributes 2 to 11, not Coda's up to 99): same
   shapes, smaller K. At tier 1 fights land within about 20% of today's speed.
 
@@ -30,10 +30,10 @@ order:
 | Step | Rule                                                                                               |
 | ---- | -------------------------------------------------------------------------------------------------- |
 | 10   | **Dodge.** Physical strikes only: roll the target's dodge. Dodged = 0 damage, event `dodged`.      |
-| 20   | **Power.** Weapon: attacker Str. Spell: attacker Int times the template's `spellMult`.             |
+| 20   | **Power.** Weapon: attacker Str. Spell: attacker Int times `spellMult`. Tower: its `towerDamage`.  |
 | 30   | **Skill multiplier.** A skill strike multiplies power (paths-and-skills spec). Basic attack = 1.   |
 | 40   | **Crit.** Roll the attacker's crit chance; a crit multiplies by `critMult`. Bosses cannot be crit. |
-| 50   | **Type.** Multiply by the target's row for this damage type (weak 1.5, normal 1, resist 0.5).      |
+| 50   | **Type.** Multiply by the target's row for this type (weak 1.5, normal 1, resist 0.5); sear here.  |
 | 60   | **Mitigation.** Physical: times (1 - armour%). Any other type: times (1 - resist%).                |
 | 70   | **Round** to a whole number, at least 1 on a landed strike. Subtract from hp.                      |
 | 80   | **Rider.** If the strike carries a rider (skills only, section 4), apply it.                       |
@@ -41,7 +41,11 @@ order:
 
 Missiles (ranger arrows, tower bolts) are physical and resolve on the strike like melee; the
 projectile Scene draws is only a picture. Tower bolts skip the dodge roll (towers are the
-player's one sure thing) and cannot crit.
+player's one sure thing) and cannot crit; their power is the tier's flat `towerDamage`.
+
+**A fight** (for every "per fight" and "first strike" rule in the specs): a unit's fight starts
+when it takes a foe target after having none for 5 s, and ends once it has had no foe target
+for 5 s. Sim tracks it per unit; a party's fight is any member's.
 
 ## 2. Curves
 
@@ -84,18 +88,22 @@ strongest template by far. Lead re-runs the Sim bot after the change.
 
 ## 3. Damage types
 
-| Type      | Colour (Scene) | Dodge | Mitigated by | Rider (skills only)                                       |
-| --------- | -------------- | ----- | ------------ | --------------------------------------------------------- |
-| physical  | white          | yes   | armour       | none                                                      |
-| fire      | orange         | no    | resist       | **burn:** 3 more ticks of 20% of the hit over 3 s         |
-| frost     | pale blue      | no    | resist       | **chill:** move and attack 25% slower for 3 s             |
-| lightning | yellow-white   | no    | resist       | **arc:** jumps to 1 foe within 120 for 50% of the hit     |
-| death     | sickly green   | no    | resist       | **wither:** healing on the target halved for 4 s          |
-| holy      | gold           | no    | resist       | **sear:** double the type bonus against undead and demons |
+| Type      | Colour (Scene) | Dodge | Mitigated by | Rider (skills only)                                      |
+| --------- | -------------- | ----- | ------------ | -------------------------------------------------------- |
+| physical  | white          | yes   | armour       | none                                                     |
+| fire      | orange         | no    | resist       | **burn:** 3 more ticks of 20% of the hit over 3 s        |
+| frost     | pale blue      | no    | resist       | **chill:** move and attack 25% slower for 3 s            |
+| lightning | yellow-white   | no    | resist       | **arc:** jumps to 1 foe within 120 for 50% of the hit    |
+| death     | sickly green   | no    | resist       | **wither:** healing on the target halved for 4 s         |
+| holy      | gold           | no    | resist       | **sear:** at step 50, the bonus doubles vs undead/demons |
 
 - **Basic attacks carry no rider**, only their type. Riders come from skills (next spec), so the
   map is not a soup of status effects, and a rider is a visible event.
-- **Riders do not stack:** a new one refreshes the timer. Bosses take chill at half strength.
+- **Riders do not stack:** a new one refreshes the timer. Bosses take chill at half strength
+  (12.5% slower, full duration).
+- **Sear** is the one rider that acts inside the strike: at step 50 a weak (x1.5) holy hit on an
+  `undead` or `demon` target becomes x2 (the bonus 0.5 doubles to 1.0). All other riders apply
+  at step 80.
 - **Buildings and lairs** take every type as normal, with no dodge and no resist, except fire,
   which deals x1.5 to buildings (raids that burn read well).
 
@@ -156,7 +164,7 @@ Tags drive holy's sear and later skills: `undead`, `beast`, `giant`, `demon`, `f
   for `koMs` and wakes at the town hall at `reviveHp` (today's 10 s and 25%). Monsters ignore a
   downed hero.
 - **Cost of a knockout** (new, small): the hero drops 25% of the gold it carries (lost), and
-  the party's bond with it does not grow from that fight. Enough that the player notices, not
+  its bond with each party mate drops by 1 at the moment of the knockout (like fleeing today). Enough that the player notices, not
   enough to snowball.
 - **Monsters die** at 0 hp and leave the map; the killing blow's hero gets the bounty (today).
 - **Permadeath, boss only:** a hero knocked out by a boss strike rolls `bossDeathChance` (20%).
@@ -234,7 +242,7 @@ dealer (Int 6, no dodge for the target).
 | 30    | Damage types: type on god/path/monster rows, monster type multipliers, `hit` event carries `type`, `crit`, `weak`/`resist` |
 | 40    | First strike on engage                                                                                                     |
 | 50    | Riders (burn, chill, arc, wither, sear) as data, applied only when a strike carries one                                    |
-| 60    | Knockout cost (gold loss, no bond gain)                                                                                    |
+| 60    | Knockout cost (gold loss, bond -1)                                                                                         |
 | 70    | Boss unit: emerge, cleave, enrage, immunities; lair cannot fall while it lives                                             |
 | 80    | Boss permadeath roll, shrine and healer reductions, `slain` event, god slot freed                                          |
 
