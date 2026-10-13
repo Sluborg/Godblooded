@@ -209,7 +209,7 @@ from this list; Sim implements each key once:
 | restMult           | resting speed multiplier                            | Apollo       |
 | everyNth           | effects on every nth strike (`n`, `effects`)        | Poseidon     |
 | aggroMult          | aggro range multiplier                              | Horus        |
-| bossDeathAdd       | added to the boss death chance                      | Anubis       |
+| bossDeathAdd       | added to the boss death chance (half to the lair's) | Anubis       |
 | belowHp            | a buff while below a share of max hp                | Sekhmet      |
 | healTakenMult      | healing received multiplier                         | Isis         |
 
@@ -272,14 +272,10 @@ from this list; Sim implements each key once:
 | 10    | Falcon summon (one small picture, flying, facing right) `sum_falcon_t1_front`             |
 | 20    | Raven mark sign and status signs (raven, bind chains, shield rune) in the U2 UI kit style |
 
-## OPEN (Stefan decides)
+## Decided (Stefan, 2026-10-13)
 
-1. **Tier 1 heroes have no skill** (recommendation: the first tier-up is the reward), or a
-   small basic skill per god at tier 1?
-2. **Revive** (Lifegiver tier 3) undoes a knockout once per fight. Too strong for a run where
-   knockouts are the main cost, or the heal fantasy the healer path needs?
-3. **Summons** (decoy, falcon, thralls): keep all three, or cut summons from M2 to save Scene
-   and Art work (Trickster and Falconer would get other skills)?
-4. **Skill names** are a first draft; any you want renamed or tied to a myth you prefer?
-5. **Passives:** Freyja's and Anubis's tie into knockouts and boss deaths from `combat.md`.
-   Keep that link?
+1. **Tier 1 heroes have no skill;** the first tier-up is the reward.
+2. **Revive** (Lifegiver tier 3) stays, once per fight.
+3. **Summons stay:** decoy, falcon, thralls.
+4. **Skill names** as written.
+5. **Passives** keep the link to knockouts and boss deaths.

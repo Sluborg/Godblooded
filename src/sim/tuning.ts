@@ -35,6 +35,11 @@ export const DEFAULT_TUNING: Tuning = {
     greedySpend: 0.35,
     proudSpend: 0.8,
     potionMax: [2, 2, 3],
+    potionDrinkAdd: 0.1,
+    cowardDrinkAdd: 0.25,
+    neverFleeDrink: 0.3,
+    plainPotionPct: 40,
+    drinkMs: 500,
     // Share of what heroes spend that the town collects.
     taxRate: 0.5,
     // How close counts as arrived, in world units.

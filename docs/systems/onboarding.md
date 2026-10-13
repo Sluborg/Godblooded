@@ -6,9 +6,9 @@ today's run start (300 gold, temple 150, first hero 5 s after a temple stands).
 
 ## Bottom line
 
-- **Teach by pointing, never by commanding.** A narrator, the town's **Skald**, says one line
-  at a time in a speech bubble from the town hall and a pulse points at the thing to tap. The
-  heroes are never steered; the player is.
+- **Teach by pointing, never by commanding.** Plain hint text (Stefan, 2026-10-13: no
+  narrator), one hint at a time in a bubble, and a pulse points at the thing to tap. The
+  heroes are never steered; the player is. Final text: `hint-texts.md`.
 - **The first run waits for the first temple:** the clock does not start and no monster moves
   until a temple stands. After that nothing pauses for teaching.
 - **First 3 minutes, beat by beat:** temple, first hero, the "you can't command them" line, the
@@ -27,25 +27,24 @@ today's run start (300 gold, temple 150, first hero 5 s after a temple stands).
 4. **Once per player:** a seen hint is stored in the meta save (`hintsSeen`), so it never comes
    back, also not in later runs.
 5. **Settings:** "Hints on/off" and "Show hints again" (clears `hintsSeen`).
-6. **The Skald speaks like the world:** short, in voice, no UI words like "click" or "HUD"
-   where a game word fits ("Raise a temple" not "Tap a plot to build").
+6. **Plain words:** short and direct, game names over jargon (rules in `hint-texts.md`).
 
 ## 2. The first 3 minutes
 
-| Beat | When                         | The Skald says                                                               | Points at                  |
-| ---- | ---------------------------- | ---------------------------------------------------------------------------- | -------------------------- |
-| 10   | run start (clock stopped)    | "The gods have children among us. Raise a temple, and they will come."       | a free plot                |
-| 20   | build menu open              | "The Aesir temple. Odin, Thor, Loki and Freyja will hear it."                | the temple button          |
-| 30   | first hero arrives           | "A Godblood. They answer to no king, not even you."                          | the hero                   |
-| 40   | 10 s later                   | "You cannot command them. But gold speaks to every child of a god."          | none                       |
-| 50   | 10 s after beat 40           | "Heroes spend what they earn. Build a market, and the town takes its share." | a free plot                |
-| 60   | first monster seen by a hero | "Tap a monster to put a bounty on its head."                                 | the monster                |
-| 70   | first bounty placed          | "Watch who goes for it. The greedy run, the cowards think twice."            | the flag                   |
-| 80   | first party formed           | "Two who fight together stay together. Tap a hero to see the party."         | a party member             |
-| 90   | first upgrade picked         | "They have grown. They chose what the gods grant them."                      | the party (`level-ups.md`) |
+| Beat | When                         | Hint (`hint-texts.md`) | Points at                  |
+| ---- | ---------------------------- | ---------------------- | -------------------------- |
+| 10   | run start (clock stopped)    | b-temple               | a free plot                |
+| 20   | build menu open              | b-aesir                | the temple button          |
+| 30   | first hero arrives           | b-arrive               | the hero                   |
+| 40   | 10 s later                   | b-gold                 | none                       |
+| 50   | 10 s after beat 40           | b-market               | a free plot                |
+| 60   | first monster seen by a hero | b-bounty               | the monster                |
+| 70   | first bounty placed          | b-watch                | the flag                   |
+| 80   | first party formed           | b-party                | a party member             |
+| 90   | first upgrade picked         | b-levelup              | the party (`level-ups.md`) |
 
 - Beats fire in order; a beat whose trigger already passed fires right after the one before.
-- A player who builds before the Skald speaks skips beat 10 and 20.
+- A player who builds before the first hint shows skips beat 10 and 20.
 - The market beat comes before the bounty beat on purpose: after the temple (150) the player
   has 150 gold, enough for the market (100); a bounty first could leave too little to build
   the shop that brings gold back.
@@ -53,18 +52,9 @@ today's run start (300 gold, temple 150, first hero 5 s after a temple stands).
 
 ## 3. First-time hints (after the first 3 minutes)
 
-| Id            | Trigger (Sim event)               | The Skald says                                                                    | Points at          |
-| ------------- | --------------------------------- | --------------------------------------------------------------------------------- | ------------------ |
-| raid-warning  | first `raidWarning`               | "Horns from the edge of the map. Raiders come. Towers and heroes will meet them." | the arrow          |
-| knockout      | first `knockout`                  | "Down, not dead. They wake at the town hall."                                     | the downed hero    |
-| path-pick     | first `pathOffer`                 | "A path opens. Each god's child walks one of two."                                | the cards          |
-| tier-up       | first `tierUp` to tier 2          | "Look at them now."                                                               | the hero           |
-| lair-tier     | first `lairTierUp`                | "The lair grows. Its brood grows with it."                                        | the lair           |
-| upgrade       | first time gold covers an upgrade | "Your buildings can grow too. Tap one."                                           | a building         |
-| omen          | first `omen`                      | "A sign in the sky. Something is coming."                                         | the banner         |
-| favour        | first full favour bar             | "The gods are pleased. Call on them once."                                        | the miracle button |
-| boss          | boss emerges                      | "There. The one that rules them all."                                             | the boss           |
-| building-down | first `buildingDestroyed`         | "Rubble can be raised again."                                                     | the ruin           |
+The 16 first-time hints (raid warning, knockout, path pick, tier-up, skill, gear, potion, flee,
+argue, building upgrade, lair tier-up, boss, a hero slain, ruin, omen, full favour bar), with
+triggers, targets and text, are in `hint-texts.md` section 3.
 
 ## 4. First-run tuning
 
@@ -77,12 +67,12 @@ The first run (no run finished in the meta save) uses gentler numbers, all tunin
 | events omenFirstMs | 3 min                             | 6 min       |
 
 From the second run on, everything is normal. The end screen of the first run says so in one
-line ("The world will not wait for you next time.").
+line ("The next run will be harder.").
 
 ## 5. What the player sees
 
-- **Skald bubble:** a speech bubble anchored at the town hall (or the screen's top centre
-  when the town hall is off screen), with a small skald portrait, 26 px text, max 2 lines.
+- **Hint bubble:** a plain bubble at the top centre of the screen, 26 px text, max 2 lines, a
+  small arrow toward the target when it is on screen.
 - **Pulse:** a white ring on the target; for a HUD button, the button itself glows.
 
 ## 6. Proposed data rows
@@ -100,7 +90,7 @@ line ("The world will not wait for you next time.").
 | Order | Row                                                                                         |
 | ----- | ------------------------------------------------------------------------------------------- |
 | 10    | Hint engine: HintDef rows, triggers from Sim events, one at a time, 20 s spacing, seen list |
-| 20    | Skald bubble and the pulse on map targets and HUD buttons                                   |
+| 20    | Hint bubble and the pulse on map targets and HUD buttons                                    |
 | 30    | First run: wait for the first temple before starting the clock                              |
 | 40    | Settings: hints on/off, show hints again                                                    |
 
@@ -114,17 +104,10 @@ line ("The world will not wait for you next time.").
 
 | Order | Row                                      |
 | ----- | ---------------------------------------- |
-| 10    | The 9 beats and 10 hints as HintDef rows |
+| 10    | The 9 beats and 16 hints as HintDef rows |
 
-### Art
+## Decided (Stefan, 2026-10-13)
 
-| Order | Row                                                            |
-| ----- | -------------------------------------------------------------- |
-| 10    | Skald portrait, a small bust facing right, for the hint bubble |
-
-## OPEN (Stefan decides)
-
-1. **The Skald** as the narrator (recommendation), or no narrator, plain hint text?
-2. **The first run waits for the first temple** (recommendation), or the clock runs from the
-   start?
-3. **Gentler first run** (raid at 8:00), or the same numbers every run?
+1. **Plain hint text, no narrator** (no Skald, no portrait).
+2. **The first run waits for the first temple.**
+3. **Gentler first run** (raid at 8:00).

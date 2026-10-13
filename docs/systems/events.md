@@ -14,10 +14,10 @@ events.
 - **Omens:** from 3:00, every 100-140 s the run draws one event from a small deck, announced
   20 s ahead by a sign in the sky. Each omen is a short, visible situation with something for
   the heroes to chase: a fallen star, a wandering champion, a merchant caravan.
-- **God favours (the big one, OPEN for Stefan):** built temples fill a favour bar; when full,
-  the player taps a pantheon's miracle (Thor's storm, Athena's aegis, Ra's dawn) on the map.
-  It is a fourth lever next to buildings, flags and path picks, used about once every 3
-  minutes. The alternative: the god acts on its own when the bar fills.
+- **God favours (Stefan, 2026-10-13: the gods act on their own):** built temples fill a favour
+  bar; when it is full, the god casts its miracle by itself (Thor's storm, Athena's aegis, Ra's
+  dawn) where its children are in the most danger. No button: the player never commands, but
+  builds the temples that feed the bars.
 - All three are data rows on one event clock in Sim; Scene draws a banner, a sky tint and a
   map marker for each.
 
@@ -55,16 +55,16 @@ Guard towers already shoot raiders (Sim 130). A tower tier 2 or 3 gets the warni
 
 ### The deck (8 to start)
 
-| Order | Omen               | Pantheon | Lasts        | Effect                                                                                           | Heroes chase it because         |
-| ----- | ------------------ | -------- | ------------ | ------------------------------------------------------------------------------------------------ | ------------------------------- |
-| 10    | Fallen Star        | any      | 60 s         | a star falls in the fog; the first party to reach it gets 60 XP and the spot is revealed         | XP, curious heroes x2 appetite  |
-| 20    | Wandering Champion | any      | until killed | an elite of the strongest monster roams near town; the gods place a 150 gold bounty on it (free) | the bounty                      |
-| 30    | Merchant Caravan   | any      | 60 s         | a caravan stands by the market: potions and charms 30% cheaper, tax still on full price          | cheap gear, greedy heroes go    |
-| 40    | Red Sky            | any      | 60 s         | monsters deal +20% damage; every bounty pays double                                              | double bounties                 |
-| 50    | Fimbul Frost       | aesir    | 60 s         | everyone moves 15% slower; frost damage +25%                                                     | Aesir frost heroes shine        |
-| 60    | Games of Olympia   | greek    | 45 s         | heroes in town compete: the party with most kills in 45 s gets a free card pick (+1 card)        | glory, proud heroes x2 appetite |
-| 70    | Plague of Scarabs  | egyptian | 45 s         | a scarab swarm bursts from the ground at a random plot near town                                 | defend the town                 |
-| 80    | Eclipse of Ra      | egyptian | 45 s         | undead +25% damage, holy damage +50%                                                             | holy heroes shine               |
+| Order | Omen               | Pantheon | Lasts        | Effect                                                                                            | Heroes chase it because         |
+| ----- | ------------------ | -------- | ------------ | ------------------------------------------------------------------------------------------------- | ------------------------------- |
+| 10    | Fallen Star        | any      | 60 s         | a star falls in the fog; the first party to reach it gets 60 XP and the spot is revealed          | XP, curious heroes x2 appetite  |
+| 20    | Wandering Champion | any      | until killed | an elite of the strongest monster roams near town; the gods place a 150 gold bounty on it (free)  | the bounty                      |
+| 30    | Merchant Caravan   | any      | 60 s         | a caravan stands by the market: potions and charms 30% cheaper, tax still on full price           | cheap gear, greedy heroes go    |
+| 40    | Red Sky            | any      | 60 s         | monsters deal +20% damage; every bounty pays double                                               | double bounties                 |
+| 50    | Fimbul Frost       | aesir    | 60 s         | everyone moves 15% slower; frost damage +25%                                                      | Aesir frost heroes shine        |
+| 60    | Games of Olympia   | greek    | 45 s         | heroes in town compete: the party with most kills in 45 s gets a bonus card (picked by the party) | glory, proud heroes x2 appetite |
+| 70    | Plague of Scarabs  | egyptian | 45 s         | a scarab swarm bursts from the ground at a random plot near town                                  | defend the town                 |
+| 80    | Eclipse of Ra      | egyptian | 45 s         | undead +25% damage, holy damage +50%                                                              | holy heroes shine               |
 
 - Omens never command heroes: they place gold, XP or danger where heroes already go, and
   traits decide who bites (the bounty appetite rules from 2026-10-04).
@@ -73,20 +73,22 @@ Guard towers already shoot raiders (Sim 130). A tower tier 2 or 3 gets the warni
 
 ## 3. God favours
 
-### Rules (recommended version: the player calls the miracle)
+### Rules (the gods act on their own)
 
 1. Each built temple fills its pantheon's **favour bar** (0-100): +1 per 4 s per temple tier,
    +10 when a hero of that pantheon tiers up, +15 when a party with that pantheon clears a lair.
-2. When a bar is full, its miracle button lights up at the edge of the HUD (one per built
-   pantheon, max 3 buttons, 80 px touch targets).
-3. **Tap the button, then tap the map** to cast at that spot (a second tap on the button
-   cancels). The game pauses while aiming on a phone (one thumb).
-4. The bar empties. Expected use: one miracle every 3-4 minutes per temple tier 1, faster with
+2. When a bar is full, the god picks its spot: the fight with the most of its pantheon's
+   heroes below 50% hp (ties: the most monsters within 250, then the nearest to the town hall).
+   With no such fight it waits, full, and checks every 1 s; a raid at the town counts as a
+   fight for every pantheon.
+3. A 1.5 s omen-style tell (sky flash in the pantheon colour, the god's sigil over the spot),
+   then the miracle lands. Event `miracle { pantheon, pos }`.
+4. The bar empties. Expected: one miracle every 3-4 minutes per temple tier 1, faster with
    higher temples.
 
 ### The three miracles (one per pantheon)
 
-| Pantheon | Miracle        | Effect at the tapped spot                                                          | Visual                   |
+| Pantheon | Miracle        | Effect at the chosen spot                                                          | Visual                   |
 | -------- | -------------- | ---------------------------------------------------------------------------------- | ------------------------ |
 | Aesir    | Thor's Storm   | 6 lightning pillars over 3 s on random monsters within 250: 60 lightning each, arc | pillars, dark sky flash  |
 | Greek    | Athena's Aegis | every hero within 250: shield 40% max hp for 8 s, +3 armour                        | gold dome, owl cry       |
@@ -95,19 +97,14 @@ Guard towers already shoot raiders (Sim 130). A tower tier 2 or 3 gets the warni
 Miracle damage is flat (gods do not use attributes) and goes through the strike pipeline as a
 spell (no dodge, resisted by Wp).
 
-### Alternative (OPEN): the gods act on their own
-
-When a bar fills, the god casts the miracle by itself on the place with most heroes in
-danger (a hero below 50% hp fighting). No button, no new control. Cheaper for Scene, keeps
-the "you never command" pillar purest, but the player loses a heavy choice.
-
 ## 4. What the player sees
 
 - **Raid warning:** a horn, a red arrow at the map edge for 15 s, then the raiders arrive.
 - **Omen:** a sky tint (red, pale blue, gold, dark), a banner for 3 s with name and line, a
   marker on the map where it has a place; a small icon at the top while it lasts.
 - **Favour:** three thin bars in pantheon colours under the gold counter; a full bar pulses
-  its button. Aiming shows a 250 ring under the finger.
+  while its god waits for a fight. The miracle itself: the tell, then the effect, and a bark
+  from a hero of that pantheon ("Thor hears us!").
 
 ## 5. Proposed data rows
 
@@ -118,8 +115,8 @@ the "you never command" pillar purest, but the player loses a heavy choice.
 | tuning.town   | `raidWarnMs` 15000, `raidBeatenGold` 20, `towerWarnAddMs` 5000                                                                                 |
 | MonsterDef    | raid shape comes from `role` (`monsters-and-bosses.md`), no new field                                                                          |
 | MiracleDef    | `id`, `pantheon`, `radius` 250, `effects` (skill effect ids), `visual`                                                                         |
-| tuning.favour | `perTempleTierS` 4, `tierUpGain` 10, `lairGain` 15, `max` 100, `auto` false                                                                    |
-| Command       | `castMiracle { pantheon, pos }` (new command in `api.ts`)                                                                                      |
+| tuning.favour | `perTempleTierS` 4, `tierUpGain` 10, `lairGain` 15, `max` 100, `dangerHp` 0.5, `tellMs` 1500                                                   |
+| Event         | `miracle { pantheon, pos }` (no new command)                                                                                                   |
 
 ## 6. Proposed backlog rows
 
@@ -129,15 +126,15 @@ the "you never command" pillar purest, but the player loses a heavy choice.
 | ----- | ------------------------------------------------------------------------------------ |
 | 10    | Raid warning event, raid after lair tier-up, raid shapes by role, town cheer gold    |
 | 20    | Omen clock and deck (OmenDef rows, effects as tuning overrides, spawns, free bounty) |
-| 30    | Favour bars per pantheon and the `castMiracle` command (or the `auto` mode)          |
+| 30    | Favour bars per pantheon; the god picks its spot and casts; `miracle` event          |
 
 ### Scene
 
-| Order | Row                                                                |
-| ----- | ------------------------------------------------------------------ |
-| 10    | Raid warning arrow and horn                                        |
-| 20    | Omen banner, sky tint, map marker, top icon                        |
-| 30    | Favour bars, miracle buttons, aim ring with pause, miracle visuals |
+| Order | Row                                         |
+| ----- | ------------------------------------------- |
+| 10    | Raid warning arrow and horn                 |
+| 20    | Omen banner, sky tint, map marker, top icon |
+| 30    | Favour bars, the miracle tell and visuals   |
 
 ### Lead (data)
 
@@ -148,16 +145,13 @@ the "you never command" pillar purest, but the player loses a heavy choice.
 
 ### Art
 
-| Order | Row                                                                      |
-| ----- | ------------------------------------------------------------------------ |
-| 10    | 8 omen icons and 3 miracle buttons (pantheon sigils) in the UI kit style |
-| 20    | Merchant caravan picture (a cart and a mule), facing right               |
+| Order | Row                                                                   |
+| ----- | --------------------------------------------------------------------- |
+| 10    | 8 omen icons and 3 pantheon sigils (miracle tell) in the UI kit style |
+| 20    | Merchant caravan picture (a cart and a mule), facing right            |
 
-## OPEN (Stefan decides)
+## Decided (Stefan, 2026-10-13)
 
-1. **Miracles:** the player taps them (recommendation, a fourth lever) or the gods act on
-   their own (purest "you never command")?
-2. **Omens:** 8 to start; any you want added or cut (Games of Olympia gives a free card, the
-   strongest one)?
-3. **Raid after a lair tier-up:** makes lair growth felt; too punishing on top of the 2-minute
-   raids?
+1. **Miracles:** the gods act on their own (section 3); no tap-to-cast.
+2. **Omens:** the 8 above to start.
+3. **Raid after a lair tier-up:** kept.
