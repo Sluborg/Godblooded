@@ -47,14 +47,21 @@ sits on a celestial node; clearing the lair frees the node; town gatherers walk 
 
 ## 1b. Losing a node and winning it back
 
-| Way      | Warning                                                                                                                         | What happens                                                                                                                                                                                  | Win it back                                                                                                  |
-| -------- | ------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| Defiled  | raiders that pass within 120 of a freed node stop there; the pillar flickers red, event `nodeThreat` with a 10 s countdown ring | after 10 s with raiders still there: the node is **defiled** (event `nodeDefiled`): a red pillar, no gathering, the pool stops refilling but keeps what it holds; the raiders walk on to town | no monster within 150 for 10 s (heroes kill them, towers, guards): freed again (`nodeFreed`), pool as it was |
-| New lair | from 12:00, a 30 s warning (`lairSprouting {node, inMs}`): red cracks spread from the node, a horn, an arrow on the screen edge | a tier 1 lair of the run's lean grows on the node; gatherers there run home                                                                                                                   | destroy the new lair like any lair: the node frees again with its pool x1.25                                 |
+| Way      | Warning                                                                                                                         | What happens                                                                                                                                                                                                                                                                            | Win it back                                                                                                                                                                                                                                       |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Defiled  | raiders that pass within 120 of a freed node stop there; the pillar flickers red, event `nodeThreat` with a 10 s countdown ring | after 10 s with raiders still there: the node is **defiled** (event `nodeDefiled`): a red pillar, no gathering, the pool stops refilling but keeps what it holds; **2 of the raiders stay as defilers** (they leave the raid, so it is that much smaller at the town), the rest walk on | **cleanse:** kill the defilers (heroes, towers, guards; the player can post a bounty on them as on any monster), then a hero or guard stands within 80 of the node for 10 s with no monster within 150: freed again (`nodeFreed`), pool as it was |
+| New lair | from 12:00, a 30 s warning (`lairSprouting {node, inMs}`): red cracks spread from the node, a horn, an arrow on the screen edge | a tier 1 lair of the run's lean grows on the node; gatherers there run home                                                                                                                                                                                                             | destroy the new lair like any lair: the node frees again with its pool x1.25                                                                                                                                                                      |
 
 - **New lairs are rare:** at most one sprouting every 3 minutes, at most 2 a run, only on a
   node that is not being gathered right now and is not the nearest to town. Seeded, so a run
   can be replayed.
+- **Why defilers stay:** without them a defiled node would free itself once the raid moved on;
+  the player has to answer it with guards (sent) or a bounty (heroes may take it).
+- **Raid timing:** raiders that stop at a node reach the town later than `events.md` assumes;
+  Balance checks raid arrival in the M3 bot pass.
+- **Sprouted lairs** sit on existing nodes, so mapgen's 600 from town and 350 apart already hold.
+  They tier up and raid like any lair, but do not count toward lair-count rules (`mapRules.lairs`,
+  the boss seal's `sealLairs`) or the Essence "lair cleared" line, so they cannot be farmed.
 - **Raids pick no node on purpose:** raiders keep their target (`events.md` 1); a node on
   their way is defiled only if they pass close, so a recall plus a guard or an escort is the
   answer.
@@ -167,7 +174,7 @@ the town hall card. **M3 ships T, A and B** (Stefan); C to F stay as ideas for l
 | 30    | Guards from towers (lend, follow, fight, die, 60 s re-lend); Snatch steals jars; dropped jars; harrier target scoring includes workers                                                                                                                       |
 | 40    | Escort bounty: a flag that follows a gatherer, scored as a flag, `escort` intent, paid on return, half back on death                                                                                                                                         |
 | 50    | Ambrosia counter and the T, A and B purchases (temple tier for Ambrosia; Offering fills a favour bar; Recall the Fallen revives a slain hero once); a `fallen` list keeps each slain hero's id, god, pantheon, level and path (today `slain` drops the unit) |
-| 55    | Losing nodes: raiders near a freed node stop and defile it (`nodeThreat`, `nodeDefiled`), cleared area frees it again; sprouting lairs from 12:00 (`lairSprouting`, at most 2 a run, seeded)                                                                 |
+| 55    | Losing nodes: raiders near a freed node stop and defile it (`nodeThreat`, `nodeDefiled`), 2 stay as defilers; cleanse (defilers dead, a hero or guard 10 s on the node) frees it; sprouting lairs from 12:00 (`lairSprouting`, at most 2 a run, seeded)      |
 | 60    | Save: nodes (incl. defiled), workers, jars, Ambrosia, the `fallen` list; version bump and migration                                                                                                                                                          |
 
 ### Scene
@@ -181,10 +188,10 @@ the town hall card. **M3 ships T, A and B** (Stefan); C to F stay as ideas for l
 
 ### Balance (data)
 
-| Order | Row                                                                                        |
-| ----- | ------------------------------------------------------------------------------------------ |
-| 10    | `tuning.nodes` (start, regen, max, distance and tier mults), worker and guard stats, costs |
-| 20    | The node hint row; Ambrosia purchase rows (T, A, B)                                        |
+| Order | Row                                                                                                                                             |
+| ----- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| 10    | `tuning.nodes` (start, regen, max, distance and tier mults), worker and guard stats, costs; check raid arrival with defiling in the M3 bot pass |
+| 20    | The node hint row; Ambrosia purchase rows (T, A, B)                                                                                             |
 
 ### Art
 
@@ -206,8 +213,8 @@ the town hall card. **M3 ships T, A and B** (Stefan); C to F stay as ideas for l
 3. **First purchases:** Temple upgrade, Offering and Recall the Fallen.
 4. **Leftover Ambrosia** is lost at run end.
 5. **Recall the Fallen** works once per hero.
-6. **Freed nodes can be re-corrupted:** a raid that reaches one, or a new lair sprouting on one;
-   both warned, both won back (section 1b).
+6. **Freed nodes can be re-corrupted:** a raid that reaches one (2 defilers stay until cleansed),
+   or a new lair sprouting on one; both warned, both won back (section 1b).
 7. **Escort bounty** pays on a safe return, half back on a death.
 8. **Far nodes hold more** (+25% per 400 beyond 600).
 9. **Essence** is the Altar's currency.
