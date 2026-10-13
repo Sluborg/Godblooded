@@ -52,8 +52,9 @@ docs/         design, collaboration, inboxes, requests, sessions
 ## Git
 
 - Work on a branch, open a PR to `main`. CI (lint, format, test, build) must be green.
-- Self-review the diff before the PR (`code-review` skill). Bigger PRs: comment `@codex review`
-  on the PR and address its findings.
+- Self-review the diff before the PR (`code-review` skill).
+- **Codex: manual only** (Stefan, 2026-10-13). Automatic review is off; it shares Stefan's ChatGPT
+  quota. Lead decides which PRs get `@codex review` and comments it; the author fixes the findings.
 - **Lead merges.** Workers never merge their own PRs. Lead never merges red CI.
 - `main` deploys to https://sluborg.github.io/Godblooded/ automatically.
 - Small PRs, one topic each, conventional commit messages.
