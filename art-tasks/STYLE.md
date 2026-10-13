@@ -12,17 +12,20 @@ earlier look. Older shipped pictures (pixel art) get redrawn over time.
   about 1% of the canvas width.
 - **Painterly shading** inside the shapes: soft shading, a gentle rim light, brush texture on
   wood, fur, stone and fabric, soft highlights on metal. Light from the top left.
-- **Palette: warm, earthy and muted:** ochre, umber, moss and olive greens, rust, faded reds,
-  stone greys, cream. No neon, no pure black, no pure white. Each Godblood keeps one signature
-  accent from its divine parent (Thor: storm blue, Loki: green, ...), a little brighter than the
-  rest.
+- **Palette: warm, only slightly muted** (Stefan 2026-10-14): keep most of the saturation, lean
+  warm: ochre, umber, moss and leaf greens, rust, warm reds, stone greys, cream. Not washed out,
+  no neon, no pure black, no pure white. Each Godblood keeps one signature accent from its divine
+  parent (Thor: storm blue, Loki: green, ...), a little brighter than the rest.
 - **Monsters are grim and scary**, never cute: hunched, sharp silhouettes, glowing eyes, darker
   and colder colours than the heroes.
 - **Small units:** a hero is small next to a building (the town hall is about **5 heroes
   wide**). Units must read at about 30 px tall: strong colour blocks, no fine detail that
   vanishes when small.
-- **Effects are subtle** and mostly added by the game in code (sparks, glow, flames, trails):
-  never draw them into unit parts; on buildings only a soft glow inside the outline at tier 3.
+- **Effects grow with progression** (Stefan 2026-10-14): **subtle at tier 1**, **stronger at
+  tier 2**, **clearly effectful at tier 3**, for bosses and late game. Unit effects (sparks,
+  flames, glow, trails) are drawn by the game, never into unit parts; buildings carry their
+  tier's effect in the picture (none at tier 1, a hint at tier 2, a clear glow inside the
+  outline at tier 3).
 - **Camera:** top-down 3/4, seen from the lower right.
 - **Look reference:** `docs/reference/style-test-1.png` and `style-test-2.png` (fetch raw) show the
   proportions, the unit size and the camera; follow this text, not their thick black outlines.
