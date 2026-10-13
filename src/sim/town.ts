@@ -13,7 +13,7 @@ import { shareXp } from './parties';
 import { earn, tally } from './runstats';
 import { attackStrike, hitEvent, resolveStrike } from './strike';
 import { swing } from './swing';
-import { lairProtected } from './boss';
+import { lairProtected, lairSealed } from './boss';
 import { targetOf, type UnitRuntime, type World } from './world';
 import type { BuildingCore, CommandResult, LairState, UnitState, Vec2 } from './types';
 
@@ -81,6 +81,7 @@ export function pickLair(world: World, unit: UnitState): LairState | null {
   let best: LairState | null = null;
   let bestD = world.tuning.monster.lairAggro;
   for (const l of world.lairs) {
+    if (lairSealed(world, l.id)) continue;
     const d = dist(unit.pos, l.pos);
     if (d <= bestD) {
       best = l;
@@ -99,6 +100,8 @@ export function attackLair(
   stats: Stats,
   lair: LairState,
 ): void {
+  // A sealed boss lair cannot be attacked.
+  if (lairSealed(world, lair.id)) return;
   unit.target = lair.id;
   if (!approach(unit, stats, lair.pos)) {
     rt.swing = undefined;

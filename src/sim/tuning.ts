@@ -121,6 +121,8 @@ export const DEFAULT_TUNING: Tuning = {
     speechEvery: 4,
   },
   boss: {
+    sealUntilMs: 720_000,
+    sealLairs: 2,
     emergeBelow: 0.75,
     cleaveEvery: 3,
     cleaveRadius: 70,

@@ -155,6 +155,10 @@ export interface BossTuning {
   enrageAt: number;
   enrageAttackMult: number;
   enrageCalls: number;
+  // A boss lair is sealed (cannot be attacked, its boss cannot come out) until the run reaches
+  // sealUntilMs or sealLairs other lairs have fallen, whichever comes first.
+  sealUntilMs: number;
+  sealLairs: number;
 }
 
 export interface LairDef {
@@ -1037,6 +1041,8 @@ export type SimEvent =
   // A hero drank a potion (`left` still carried) and healed `amount`.
   | { kind: 'drank'; unit: number; amount: number; left: number }
   | { kind: 'shopped'; unit: number; spent: number; tax: number; item?: string }
+  // The seal on a boss lair broke: it can be attacked now.
+  | { kind: 'bossLairUnsealed'; lair: number; by: 'time' | 'lairs' }
   | { kind: 'bountyPlaced'; bounty: number; gold: number };
 
 export type Command =
@@ -1107,7 +1113,7 @@ export interface Snapshot {
   // Pairs of living heroes who are rivals right now (lower id first).
   readonly rivals: readonly (readonly [number, number])[];
   // This run's map: the pantheons it leans on and the boss lair (null on a fixed map).
-  readonly map: Readonly<{ lean: string[]; boss: number | null }>;
+  readonly map: Readonly<{ lean: string[]; boss: number | null; sealed: boolean }>;
   // The end screen numbers once the run is won or lost; null while it is running. Totals for
   // the run are in `stats`.
   readonly report: Readonly<RunReport> | null;
