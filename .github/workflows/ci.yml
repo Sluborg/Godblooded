@@ -1,17 +1,19 @@
 name: CI
 
-# Checks every pull request the same way the deploy does. Wake-bell PRs (draft PRs used as
-# doorbells, never merged) are skipped by branch name.
+# Checks every pull request and every branch push the same way the deploy does. Wake-bell
+# branches (doorbells, never merged) are skipped by branch name.
 on:
   pull_request:
+  push:
+    branches-ignore: [main, art-inbox]
 
 concurrency:
-  group: ci-${{ github.event.pull_request.number }}
+  group: ci-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
   check:
-    if: ${{ !endsWith(github.head_ref, '-wake') }}
+    if: ${{ !endsWith(github.head_ref || github.ref_name, '-wake') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
