@@ -1,3 +1,4 @@
+import { generateMap } from './mapgen';
 import { swing } from './swing';
 import { buildReport, sampleGold, tally, type HeroRecord } from './runstats';
 import {
@@ -53,6 +54,7 @@ import type {
   CommandResult,
   GameData,
   LairDef,
+  LairSite,
   LairState,
   RunStats,
   SimEvent,
@@ -109,6 +111,9 @@ export interface World {
   nextRaidMs: number;
   stats: RunStats;
   bounties: BountyState[];
+  // Generated map: the boss lair that wins the run and the pantheons the map leans on.
+  bossLair: number | null;
+  mapLean: string[];
   // End screen tallies (src/sim/runstats.ts).
   heroRecords: Map<number, HeroRecord>;
   lairLog: { lair: number; type: string; timeMs: number; by: number }[];
@@ -148,6 +153,8 @@ export function createWorld(seed: number, data: GameData): World {
       taxCollected: 0,
     },
     bounties: [],
+    bossLair: null,
+    mapLean: [],
     heroRecords: new Map(),
     lairLog: [],
     goldLog: [{ timeMs: 0, gold: data.startGold }],
@@ -163,7 +170,15 @@ export function createWorld(seed: number, data: GameData): World {
     maxHp: world.tuning.town.townHallHp,
   });
   world.nextRaidMs = world.tuning.town.raidFirstMs;
-  for (const site of data.lairSites ?? []) {
+  let sites: readonly LairSite[] = data.lairSites ?? [];
+  let bossIndex = -1;
+  if (sites.length === 0 && data.mapRules) {
+    const map = generateMap(seed, data);
+    sites = map.sites;
+    bossIndex = map.bossIndex;
+    world.mapLean = map.lean;
+  }
+  for (const [i, site] of sites.entries()) {
     const def = data.lairs?.find((l) => l.id === site.lair);
     if (!def) throw new Error(`lair site names unknown lair: ${site.lair}`);
     const id = world.nextId++;
@@ -172,12 +187,14 @@ export function createWorld(seed: number, data: GameData): World {
     world.lairs.push({
       id,
       type: def.id,
+      boss: i === bossIndex,
       tier: 1,
       pos: { ...site.pos },
       hp,
       maxHp: hp,
     });
     const every = lt.tierUpEveryMs;
+    if (i === bossIndex) world.bossLair = id;
     world.lairRuntime.set(id, {
       nextSpawnMs: def.spawnS * 1000 * tierValue(lt.spawnMult, 1, 1),
       nextTierMs: every > 0 && world.tuning.lair.maxTier > 1 ? every : Infinity,
@@ -545,6 +562,7 @@ export function snapshot(world: World): Snapshot {
     lairs: world.lairs.map((l) => ({ ...l, pos: { ...l.pos } })),
     units: world.units.map((u) => ({ ...u, pos: { ...u.pos }, facing: { ...u.facing } })),
     bounties: world.bounties.map((b) => ({ ...b, pos: { ...b.pos } })),
+    map: { lean: [...world.mapLean], boss: world.bossLair },
     report: buildReport(world),
     events,
   };
