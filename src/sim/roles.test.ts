@@ -199,3 +199,53 @@ describe('swarm', () => {
     expect(h.gold - before).toBeLessThanOrEqual(5);
   });
 });
+
+describe('review fixes', () => {
+  it('a rooted charger does not start a charge', () => {
+    const w = createWorld(1, data);
+    hero(w, 700);
+    const bull = monster(w, 'minotaur', 500);
+    // bound: speed 0
+    w.unitRuntime.get(bull.id)!.fx = { bind: { until: w.timeMs + 60_000, half: false } } as never;
+    const ev = run(w, 1_000);
+    expect(ev.some((e) => e.kind === 'charge')).toBe(false);
+    expect(w.unitRuntime.get(bull.id)?.charge).toBeUndefined();
+  });
+
+  it('a harrier heals only at its lair, in whole hp', () => {
+    const w = createWorld(1, data);
+    const lair = w.lairs.find((l) => l.type === 'nest')!;
+    const harpy = monster(w, 'harpy', lair.pos.x + 400, lair.pos.y, lair.id);
+    harpy.hp = 30;
+    run(w, 1_000);
+    // still walking home: no healing on the way
+    expect(harpy.hp).toBe(30);
+    run(w, 15_000);
+    expect(Number.isInteger(harpy.hp)).toBe(true);
+    expect(harpy.hp).toBeGreaterThan(30);
+  });
+
+  it('a harrier raider keeps fighting instead of healing in place', () => {
+    const w = createWorld(1, data);
+    const harpy = monster(w, 'harpy', 2000, 2000);
+    w.unitRuntime.get(harpy.id)!.raid = true;
+    harpy.hp = 10;
+    run(w, 3_000);
+    expect(harpy.hp).toBe(10);
+    expect(w.unitRuntime.get(harpy.id)?.retreat).toBeFalsy();
+  });
+
+  it('swarm halves keep the raid of their parent', () => {
+    const w = createWorld(1, data);
+    const h = hero(w, 520);
+    const swarm = monster(w, 'scarab', 560);
+    const rt = w.unitRuntime.get(swarm.id)!;
+    rt.raid = true;
+    rt.raidId = 77;
+    swarm.hp = 0;
+    w.pendingDeaths.push({ victim: swarm.id, by: h.id });
+    const ev = run(w, 50);
+    const [split] = ev.filter((e) => e.kind === 'split') as { into: number[] }[];
+    for (const id of split.into) expect(w.unitRuntime.get(id)?.raidId).toBe(77);
+  });
+});

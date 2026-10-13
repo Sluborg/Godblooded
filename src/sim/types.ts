@@ -782,6 +782,14 @@ export interface TownTuning {
   raidGrowEveryMs: number;
   // A resting hero at or above this hp fraction rejoins the fight when raiders come near.
   defendHp: number;
+  // A raid is announced this long before it arrives (event raidWarning), and a tower of tier 2
+  // or more in town gives the warning towerWarnAddMs earlier still.
+  raidWarnMs: number;
+  towerWarnAddMs: number;
+  // A lair that tiers up sends one raid of its own (announced raidWarnMs ahead).
+  raidOnTierUp: boolean;
+  // Gold the town gets when every raider of a raid is dead ("the town cheers").
+  raidBeatenGold: number;
 }
 
 export interface BountyTuning {
@@ -1094,11 +1102,26 @@ export type SimEvent =
     }
   | { kind: 'tierUp'; unit: number; tier: number; path: string | null }
   | { kind: 'pathOffer'; party: number; hero: number; options: string[] }
-  | { kind: 'raid'; lair: number; size: number }
   // A charger starts its charge toward `to`.
   | { kind: 'charge'; unit: number; to: Vec2 }
   // A swarm splits into two halves.
   | { kind: 'split'; unit: number; into: number[] }
+  // A raid is coming from `from` (the lair) in `inMs`; `early` is the tower's longer warning.
+  | {
+      kind: 'raidWarning';
+      raid: number;
+      lair: number;
+      size: number;
+      inMs: number;
+      from: Vec2;
+      dir: Vec2;
+      early?: boolean;
+    }
+  | { kind: 'raid'; lair: number; size: number; raid?: number }
+  // Every raider of the raid is dead: the town cheers and gets `gold`.
+  | { kind: 'raidBeaten'; raid: number; gold: number }
+  // The lair fell before its announced raid left: no raid comes.
+  | { kind: 'raidCancelled'; raid: number; lair: number }
   // A rider took hold on `target` (burn, chill, wither; arc and sear show in the hit itself).
   | { kind: 'rider'; target: number; rider: RiderId; by: number }
   // A hero starts casting a skill; it lands `inMs` later. `say`: Scene shows the skill name.
