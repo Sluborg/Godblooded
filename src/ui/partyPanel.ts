@@ -1,3 +1,4 @@
+import { getSettings } from './settings';
 import Phaser from 'phaser';
 import { COLORS, GAME_WIDTH } from '../config';
 import { GRAYBOX, UPGRADES } from '../data/graybox';
@@ -50,7 +51,7 @@ export class PartyPanel {
           .map((id) => snap.units.find((u) => u.id === id))
           .filter((u): u is UnitState => !!u)
       : [hero];
-    const key = `${party?.id ?? 0}:${members.map((m) => m.id).join(',')}`;
+    const key = `${party?.id ?? 0}:${members.map((m) => m.id).join(',')}:${getSettings().palette}`;
     if (key !== this.builtFor) {
       this.build(party);
       this.builtFor = key;

@@ -167,6 +167,24 @@ describe('tier effects', () => {
     expect(died).toMatchObject({ kind: 'died', by: id, type: 'imp' });
   });
 
+  it('a monster a tower kills is gone in that very tick', () => {
+    const { w, id } = build(base, 'tower', 0);
+    run(w, 10_000);
+    const mon = w.units.find((u) => u.kind === 'monster');
+    if (!mon) throw new Error('no monster');
+    mon.hp = 1;
+    mon.pos = { x: 700, y: 520 };
+    w.towerNextMs.set(id, 0);
+    snapshot(w);
+    stepOnce(w, 50);
+    const snap = snapshot(w);
+    expect(snap.events.some((e) => e.kind === 'died' && e.unit === mon.id && e.by === id)).toBe(
+      true,
+    );
+    expect(w.pendingDeaths).toHaveLength(0);
+    expect(snap.units.some((u) => u.id === mon.id)).toBe(false);
+  });
+
   it('a tower upgrade raises damage and speeds up the shots', () => {
     const shots = (tier: number) => {
       const { w, id } = build(base, 'tower', 1);

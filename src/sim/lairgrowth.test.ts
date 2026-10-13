@@ -132,6 +132,17 @@ describe('lair growth', () => {
     expect(raiders.every((u) => u.tier === 3)).toBe(true);
   });
 
+  it('the tier 1 entries of hpMult and spawnMult apply from the start', () => {
+    const w = createWorld(1, {
+      ...base,
+      tuning: { ...base.tuning, lair: { ...base.tuning?.lair, hpMult: [2], spawnMult: [0.5] } },
+    });
+    expect(lair(w)).toMatchObject({ tier: 1, hp: 2000, maxHp: 2000 });
+    step(w, 6_000);
+    // the first spawn comes at spawnS 10 s times 0.5
+    expect(snapshot(w).units.filter((u) => u.kind === 'monster')).toHaveLength(1);
+  });
+
   it('is deterministic', () => {
     const run = () => {
       const w = createWorld(7, base);

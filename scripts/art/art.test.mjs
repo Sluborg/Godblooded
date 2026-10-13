@@ -237,17 +237,17 @@ describe('collectUploads', () => {
 
 describe('strike fields', () => {
   // A temp repo with one shipped unit and the given extra manifest fields.
-  function errorsFor(extra) {
+  function errorsFor(extra, id = 'hero_warrior_t1_front') {
     const root = mkdtempSync(join(tmpdir(), 'art-'));
     mkdirSync(join(root, 'public/assets/units'), { recursive: true });
-    const r = processImage(canvas(1024, GREEN, unitRect), 'hero_warrior_t1_front');
-    writePng(join(root, 'public/assets/units/hero_warrior_t1_front.png'), r.image);
+    const r = processImage(canvas(1024, GREEN, unitRect), id);
+    writePng(join(root, `public/assets/units/${id}.png`), r.image);
     const row = {
-      id: 'hero_warrior_t1_front',
+      id,
       kind: 'hero',
-      tier: 1,
+      tier: parseId(id).tier,
       view: 'front',
-      file: 'units/hero_warrior_t1_front.png',
+      file: `units/${id}.png`,
       anchorX: r.anchorX,
       anchorY: r.anchorY,
       license: 'own',
@@ -273,6 +273,16 @@ describe('strike fields', () => {
 
   it('accepts a stomp with the front foot as its point', () => {
     expect(errorsFor({ strike: 'stomp', weaponX: 0.6, weaponY: 0.98 })).toEqual([]);
+  });
+
+  it('heroes: the god alone at tier 1, god-path at tier 2 and 3', () => {
+    const ok = { strike: 'smash', weaponX: 0.5, weaponY: 0.1 };
+    expect(errorsFor(ok, 'hero_thor_t1_front')).toEqual([]);
+    expect(errorsFor(ok, 'hero_thor-hammerborn_t2_front')).toEqual([]);
+    expect(errorsFor(ok, 'hero_thor-hammerborn_t1_front').join()).toMatch(
+      /tier-1 hero has no path/,
+    );
+    expect(errorsFor(ok, 'hero_thor_t3_front').join()).toMatch(/needs a path/);
   });
 
   it('rejects bad strikes and half points', () => {

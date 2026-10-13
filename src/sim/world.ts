@@ -167,17 +167,19 @@ export function createWorld(seed: number, data: GameData): World {
     const def = data.lairs?.find((l) => l.id === site.lair);
     if (!def) throw new Error(`lair site names unknown lair: ${site.lair}`);
     const id = world.nextId++;
+    const lt = world.tuning.lair;
+    const hp = Math.round(def.hp * tierValue(lt.hpMult, 1, 1));
     world.lairs.push({
       id,
       type: def.id,
       tier: 1,
       pos: { ...site.pos },
-      hp: def.hp,
-      maxHp: def.hp,
+      hp,
+      maxHp: hp,
     });
-    const every = world.tuning.lair.tierUpEveryMs;
+    const every = lt.tierUpEveryMs;
     world.lairRuntime.set(id, {
-      nextSpawnMs: def.spawnS * 1000,
+      nextSpawnMs: def.spawnS * 1000 * tierValue(lt.spawnMult, 1, 1),
       nextTierMs: every > 0 && world.tuning.lair.maxTier > 1 ? every : Infinity,
     });
   }
@@ -207,6 +209,8 @@ function runTick(world: World): void {
   sampleGold(world);
   runTemples(world);
   runTowers(world);
+  // Tower victims leave now, before the lairs count their monsters or the units act.
+  settleDeaths(world);
   runLairs(world);
   runRaids(world);
   runHeroes(world);

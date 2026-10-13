@@ -55,78 +55,264 @@ export const CLASSES: readonly ClassDef[] = [
   },
 ];
 
-// Bridge until the 12-god data lands: one Aesir god per old class, in the old class order (a
-// child of a god uses that class as its template, so recruiting and balance are unchanged).
+// Gods (docs/game-design.md, "Gods and paths", decision 2026-10-13): a temple calls a child of
+// one of its pantheon's gods. `template` is the hidden ClassDef a tier 1 child uses.
 export const GODS: readonly GodDef[] = [
-  { id: 'thor', pantheon: 'aesir', name: 'Thor', template: 'warrior' },
-  { id: 'heimdall', pantheon: 'aesir', name: 'Heimdall', template: 'ranger' },
   { id: 'odin', pantheon: 'aesir', name: 'Odin', template: 'wizard' },
-  { id: 'tyr', pantheon: 'aesir', name: 'Tyr', template: 'paladin' },
+  { id: 'thor', pantheon: 'aesir', name: 'Thor', template: 'warrior' },
   { id: 'loki', pantheon: 'aesir', name: 'Loki', template: 'rogue' },
   { id: 'freyja', pantheon: 'aesir', name: 'Freyja', template: 'healer' },
+  { id: 'athena', pantheon: 'greek', name: 'Athena', template: 'paladin' },
+  { id: 'ares', pantheon: 'greek', name: 'Ares', template: 'warrior' },
+  { id: 'apollo', pantheon: 'greek', name: 'Apollo', template: 'ranger' },
+  { id: 'poseidon', pantheon: 'greek', name: 'Poseidon', template: 'warrior' },
+  { id: 'horus', pantheon: 'egyptian', name: 'Horus', template: 'ranger' },
+  { id: 'anubis', pantheon: 'egyptian', name: 'Anubis', template: 'warrior' },
+  { id: 'sekhmet', pantheon: 'egyptian', name: 'Sekhmet', template: 'rogue' },
+  { id: 'isis', pantheon: 'egyptian', name: 'Isis', template: 'healer' },
 ];
 
-// Aesir paths (docs/game-design.md, "Favor paths"); ids match the art (hero_<id>_t2_front).
-// Bonus is [tier 2, tier 3 total], kept modest: the tier is the visual reward.
+// Two paths per god, taken at the first tier-up; ids match the art (hero_<id>_t2_front). Bonus is
+// [tier 2, tier 3 total] on top of the path template, kept modest: the tier is the visual reward.
 export const PATHS: readonly PathDef[] = [
   {
-    id: 'warrior-thor',
-    god: 'thor',
-    template: 'warrior',
-    name: 'Storm Berserker',
-    attrs: [
-      { str: 1, sta: 1 },
-      { str: 2, sta: 2 },
-    ],
-  },
-  {
-    id: 'paladin-tyr',
-    god: 'tyr',
-    template: 'paladin',
-    name: 'Oathsworn',
-    attrs: [
-      { sta: 1, wp: 1 },
-      { sta: 2, wp: 2 },
-    ],
-  },
-  {
-    id: 'ranger-heimdall',
-    god: 'heimdall',
-    template: 'ranger',
-    name: 'Bifrost Warden',
-    attrs: [
-      { dex: 1, per: 1 },
-      { dex: 2, per: 2 },
-    ],
-  },
-  {
-    id: 'rogue-loki',
-    god: 'loki',
-    template: 'rogue',
-    name: 'Rune Trickster',
-    attrs: [
-      { dex: 1, str: 1 },
-      { dex: 2, str: 2 },
-    ],
-  },
-  {
-    id: 'wizard-odin',
+    id: 'odin-seer',
     god: 'odin',
     template: 'wizard',
-    name: 'Raven Seer',
+    name: 'Seer',
     attrs: [
       { str: 1, int: 1 },
       { str: 2, int: 2 },
     ],
   },
   {
-    id: 'healer-freyja',
+    id: 'odin-wanderer',
+    god: 'odin',
+    template: 'warrior',
+    name: 'Wanderer',
+    attrs: [
+      { str: 1, sta: 1 },
+      { str: 2, sta: 2 },
+    ],
+  },
+  {
+    id: 'thor-hammerborn',
+    god: 'thor',
+    template: 'paladin',
+    name: 'Hammerborn',
+    attrs: [
+      { sta: 1, wp: 1 },
+      { sta: 2, wp: 2 },
+    ],
+  },
+  {
+    id: 'thor-stormcaller',
+    god: 'thor',
+    template: 'wizard',
+    name: 'Stormcaller',
+    attrs: [
+      { str: 1, int: 1 },
+      { str: 2, int: 2 },
+    ],
+  },
+  {
+    id: 'loki-trickster',
+    god: 'loki',
+    template: 'rogue',
+    name: 'Trickster',
+    attrs: [
+      { dex: 1, str: 1 },
+      { dex: 2, str: 2 },
+    ],
+  },
+  {
+    id: 'loki-flamebinder',
+    god: 'loki',
+    template: 'wizard',
+    name: 'Flamebinder',
+    attrs: [
+      { str: 1, int: 1 },
+      { str: 2, int: 2 },
+    ],
+  },
+  {
+    id: 'freyja-valkyrie',
+    god: 'freyja',
+    template: 'warrior',
+    name: 'Valkyrie',
+    attrs: [
+      { str: 1, sta: 1 },
+      { str: 2, sta: 2 },
+    ],
+  },
+  {
+    id: 'freyja-seidkona',
     god: 'freyja',
     template: 'healer',
-    name: 'Valkyrie Skald',
+    name: 'Seidkona',
     attrs: [
       { int: 1, wp: 1 },
       { int: 2, wp: 2 },
+    ],
+  },
+  {
+    id: 'athena-aegis',
+    god: 'athena',
+    template: 'paladin',
+    name: 'Aegis',
+    attrs: [
+      { sta: 1, wp: 1 },
+      { sta: 2, wp: 2 },
+    ],
+  },
+  {
+    id: 'athena-owlsage',
+    god: 'athena',
+    template: 'wizard',
+    name: 'Owlsage',
+    attrs: [
+      { str: 1, int: 1 },
+      { str: 2, int: 2 },
+    ],
+  },
+  {
+    id: 'ares-bloodrager',
+    god: 'ares',
+    template: 'rogue',
+    name: 'Bloodrager',
+    attrs: [
+      { dex: 1, str: 1 },
+      { dex: 2, str: 2 },
+    ],
+  },
+  {
+    id: 'ares-warlord',
+    god: 'ares',
+    template: 'warrior',
+    name: 'Warlord',
+    attrs: [
+      { str: 1, sta: 1 },
+      { str: 2, sta: 2 },
+    ],
+  },
+  {
+    id: 'apollo-sunarcher',
+    god: 'apollo',
+    template: 'ranger',
+    name: 'Sunarcher',
+    attrs: [
+      { dex: 1, per: 1 },
+      { dex: 2, per: 2 },
+    ],
+  },
+  {
+    id: 'apollo-paean',
+    god: 'apollo',
+    template: 'healer',
+    name: 'Paean',
+    attrs: [
+      { int: 1, wp: 1 },
+      { int: 2, wp: 2 },
+    ],
+  },
+  {
+    id: 'poseidon-trident',
+    god: 'poseidon',
+    template: 'warrior',
+    name: 'Trident',
+    attrs: [
+      { str: 1, sta: 1 },
+      { str: 2, sta: 2 },
+    ],
+  },
+  {
+    id: 'poseidon-tidecaller',
+    god: 'poseidon',
+    template: 'wizard',
+    name: 'Tidecaller',
+    attrs: [
+      { str: 1, int: 1 },
+      { str: 2, int: 2 },
+    ],
+  },
+  {
+    id: 'horus-falconer',
+    god: 'horus',
+    template: 'ranger',
+    name: 'Falconer',
+    attrs: [
+      { dex: 1, per: 1 },
+      { dex: 2, per: 2 },
+    ],
+  },
+  {
+    id: 'horus-skyguard',
+    god: 'horus',
+    template: 'paladin',
+    name: 'Skyguard',
+    attrs: [
+      { sta: 1, wp: 1 },
+      { sta: 2, wp: 2 },
+    ],
+  },
+  {
+    id: 'anubis-gravewarden',
+    god: 'anubis',
+    template: 'warrior',
+    name: 'Gravewarden',
+    attrs: [
+      { str: 1, sta: 1 },
+      { str: 2, sta: 2 },
+    ],
+  },
+  {
+    id: 'anubis-embalmer',
+    god: 'anubis',
+    template: 'wizard',
+    name: 'Embalmer',
+    attrs: [
+      { str: 1, int: 1 },
+      { str: 2, int: 2 },
+    ],
+  },
+  {
+    id: 'sekhmet-lioness',
+    god: 'sekhmet',
+    template: 'rogue',
+    name: 'Lioness',
+    attrs: [
+      { dex: 1, str: 1 },
+      { dex: 2, str: 2 },
+    ],
+  },
+  {
+    id: 'sekhmet-plaguefire',
+    god: 'sekhmet',
+    template: 'wizard',
+    name: 'Plaguefire',
+    attrs: [
+      { str: 1, int: 1 },
+      { str: 2, int: 2 },
+    ],
+  },
+  {
+    id: 'isis-lifegiver',
+    god: 'isis',
+    template: 'healer',
+    name: 'Lifegiver',
+    attrs: [
+      { int: 1, wp: 1 },
+      { int: 2, wp: 2 },
+    ],
+  },
+  {
+    id: 'isis-enchantress',
+    god: 'isis',
+    template: 'wizard',
+    name: 'Enchantress',
+    attrs: [
+      { str: 1, int: 1 },
+      { str: 2, int: 2 },
     ],
   },
 ];
@@ -151,7 +337,7 @@ export const MONSTERS: readonly MonsterDef[] = [
 // The barrow is the early fight; the troll den is the final lair (win when it falls).
 export const LAIRS: readonly LairDef[] = [
   { id: 'barrow', monster: 'draugr', spawnS: 10, maxAlive: 6, hp: 3500 },
-  { id: 'troll-den', monster: 'troll', spawnS: 25, maxAlive: 6, hp: 27000 },
+  { id: 'troll-den', monster: 'troll', spawnS: 25, maxAlive: 6, hp: 30000 },
 ];
 
 // Level-up cards; a party is offered 3 different ones. Graybox set: stats, sustain, nerve.
@@ -220,7 +406,7 @@ export const GRAYBOX: GameData = {
   // about 17 knockouts per run. Unset keys use DEFAULT_TUNING in src/sim/tuning.ts.
   tuning: {
     hero: { maxPerTemple: 7, recruitMs: 22_000 },
-    town: { raidFirstMs: 400_000, raidEveryMs: 120_000, raidGrowEveryMs: 240_000 },
+    town: { raidFirstMs: 300_000, raidEveryMs: 120_000, raidGrowEveryMs: 240_000 },
   },
   classes: CLASSES,
   gods: GODS,

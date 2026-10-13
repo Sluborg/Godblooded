@@ -5,13 +5,13 @@ concept sheets in `docs/concept/`); this is the technical contract.
 
 ## Ids
 
-| Kind     | Id                                  | Example                      |
-| -------- | ----------------------------------- | ---------------------------- |
-| Hero     | `hero_<class>[-<god>]_t<1-3>_front` | `hero_warrior-thor_t2_front` |
-| Monster  | `mon_<type>[-v2\|-v3]_t1_front`     | `mon_draugr-v2_t1_front`     |
-| Building | `bld_<type>_t<1-3>`                 | `bld_temple_aesir_t3`        |
-| Terrain  | `ter_<name>`                        | `ter_grass_a`                |
-| UI       | `ui_<name>`                         | `ui_flag_bounty`             |
+| Kind     | Id                                 | Example                         |
+| -------- | ---------------------------------- | ------------------------------- |
+| Hero     | `hero_<god>[-<path>]_t<1-3>_front` | `hero_thor-hammerborn_t2_front` |
+| Monster  | `mon_<type>[-v2\|-v3]_t1_front`    | `mon_draugr-v2_t1_front`        |
+| Building | `bld_<type>_t<1-3>`                | `bld_temple_aesir_t3`           |
+| Terrain  | `ter_<name>`                       | `ter_grass_a`                   |
+| UI       | `ui_<name>`                        | `ui_flag_bounty`                |
 
 Rig pieces (test, Lead's motion work): a unit id plus `_body` or `_arm`, and a `side` view
 (profile facing right), e.g. `hero_warrior_t1_side_arm`. See "Rig pieces" below.
@@ -22,9 +22,12 @@ Animation frames: a unit id plus `_walk1`-`_walk4`, `_attack1`-`_attack3` or `_h
 Names are lowercase letters; a name of several words joins them with a hyphen
 (`mon_jackal-man_t1_front`). The underscore only separates the parts of an id.
 
-Hero favor paths (tier 2 and 3): the class name plus a hyphen and the patron god
-(`hero_warrior-thor_t2_front`, `hero_healer-freyja_t3_front`); tier 1 has no god
-(`hero_healer_t1_front`). The base class is the part before the first hyphen.
+Heroes are children of gods (`docs/game-design.md` "Gods and paths", decision 2026-10-13).
+Tier 1 is the god alone (`hero_thor_t1_front`); tier 2 and 3 add a hyphen and the path
+(`hero_thor-hammerborn_t2_front`, `hero_freyja-seidkona_t3_front`), so 5 pictures per god. The
+validator rejects a path at tier 1 and a tier 2 or 3 hero without one. The god is the part
+before the first hyphen. The shipped class pictures (`hero_warrior_t1_front` and the other
+tier-1 classes) stay as fallbacks for the hidden templates until the god art lands.
 
 Monster variants: the type name plus `-v2` or `-v3` (`mon_draugr-v2_t1_front`,
 `mon_jackal-man-v3_t1_front`); the plain name is variant 1. The base type is the name with a
@@ -57,7 +60,7 @@ Each variant is a full manifest row with its own measured weapon point.
 - ChatGPT draws on a square canvas (its normal square size, e.g. 1024 or 1254) on a flat key
   colour: green #00FF00, or magenta #FF00FF when the object has green or mint in it.
 - **Units:** the whole figure fits, feet at about 88% of the canvas height, centred
-  horizontally, figure height about 75% of the canvas. Same framing for every class and tier so
+  horizontally, figure height about 75% of the canvas. Same framing for every hero and tier so
   units line up in game.
 - **Buildings:** 3/4 top-down view, the building's base centred, about 85% of the canvas width.
 - **Shipped** (`scripts/art/ship.mjs`): keyed to alpha, specks dropped, trimmed to the object
