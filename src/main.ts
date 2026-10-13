@@ -3,6 +3,7 @@ import { registerSW } from 'virtual:pwa-register';
 import { COLORS, GAME_HEIGHT, GAME_WIDTH } from './config';
 import { BootScene } from './scenes/BootScene';
 import { HudScene } from './scenes/HudScene';
+import { EndScene } from './scenes/EndScene';
 import { PauseScene } from './scenes/PauseScene';
 import { SettingsScene } from './scenes/SettingsScene';
 import { TitleScene } from './scenes/TitleScene';

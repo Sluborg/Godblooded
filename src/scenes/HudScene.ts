@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { COLORS, GAME_WIDTH, MIN_TOUCH } from '../config';
 import { GRAYBOX } from '../data/graybox';
 import type { CommandResult } from '../sim/api';
+import { formatClock } from '../ui/endReport';
 import { makeButton, type Button } from '../ui/button';
 import { PartyPanel } from '../ui/partyPanel';
 import type { SimEvent } from '../sim/api';
@@ -17,11 +18,6 @@ interface MenuOption {
 }
 const TEXT = { fontFamily: 'Georgia, serif', fontSize: '30px', color: COLORS.text };
 
-function formatClock(ms: number): string {
-  const s = Math.floor(ms / 1000);
-  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
-}
-
 // Screen-space overlay on top of MapScene: gold, run clock, speed buttons, build menu.
 // It reads the numbers MapScene publishes in the registry and sends build commands back
 // through MapScene.tryBuild; it holds no rules.
@@ -31,7 +27,7 @@ export class HudScene extends Phaser.Scene {
   private toast!: Phaser.GameObjects.Text;
   private banner!: Phaser.GameObjects.Text;
   private panel!: PartyPanel;
-  private endObjects: Phaser.GameObjects.GameObject[] = [];
+  private ended = false;
   private speedButtons: Button[] = [];
   private menu: Phaser.GameObjects.GameObject[] = [];
   private menuButtons: { button: Button; cost: number }[] = [];
@@ -44,7 +40,7 @@ export class HudScene extends Phaser.Scene {
   create(): void {
     // Scene instances are reused on restart: drop state that pointed at the old display list.
     this.panel = new PartyPanel(this);
-    this.endObjects = [];
+    this.ended = false;
     this.speedButtons = [];
     this.menu = [];
     this.menuButtons = [];
@@ -102,8 +98,7 @@ export class HudScene extends Phaser.Scene {
     this.goldText.setText(`Gold ${this.registry.get('gold') ?? 0}`);
     this.clockText.setText(formatClock((this.registry.get('timeMs') as number) ?? 0));
     const status = this.registry.get('status') as string | undefined;
-    if ((status === 'won' || status === 'lost') && this.endObjects.length === 0)
-      this.showEnd(status);
+    if ((status === 'won' || status === 'lost') && !this.ended) this.showEnd();
     this.panel.update((this.scene.get('Map') as MapScene).snapshot);
     const gold = (this.registry.get('gold') as number) ?? 0;
     for (const { button, cost } of this.menuButtons) button.setEnabled(gold >= cost);
@@ -111,7 +106,7 @@ export class HudScene extends Phaser.Scene {
 
   // True when a screen point is over HUD controls, so the map ignores the press.
   blocks(x: number, y: number): boolean {
-    if (y < 72 || this.endObjects.length > 0) return true;
+    if (y < 72 || this.ended) return true;
     if (this.panel.isOpen && this.panel.rect.contains(x, y)) return true;
     return this.menuRect?.contains(x, y) ?? false;
   }
@@ -139,49 +134,12 @@ export class HudScene extends Phaser.Scene {
     this.tweens.add({ targets: this.banner, alpha: 0, delay: 3000, duration: 500 });
   }
 
-  // End screen: the sim reports 'won' or 'lost' and has stopped; show the summary and a way
-  // to start over.
-  private showEnd(status: 'won' | 'lost'): void {
+  // The sim reports 'won' or 'lost' and has stopped: the End scene shows the report.
+  private showEnd(): void {
     this.closeMenu();
-    const cx = GAME_WIDTH / 2;
-    const dim = this.add.rectangle(cx, 360, GAME_WIDTH, 720, 0x000000, 0.6).setInteractive();
-    const title = this.add
-      .text(cx, 200, status === 'won' ? 'VICTORY' : 'TOWN LOST', {
-        ...TEXT,
-        fontSize: '84px',
-        color: status === 'won' ? '#f2c14e' : '#d9534f',
-      })
-      .setOrigin(0.5);
-    const time = formatClock((this.registry.get('timeMs') as number) ?? 0);
-    const summary = this.add
-      .text(cx, 300, `Run time ${time}   Gold ${this.registry.get('gold') ?? 0}`, TEXT)
-      .setOrigin(0.5);
-    const st = (this.scene.get('Map') as MapScene).snapshot.stats;
-    const stats: [string, number][] = [
-      ['Monsters slain', st.monstersKilled],
-      ['Lairs destroyed', st.lairsDestroyed],
-      ['Heroes arrived', st.heroesArrived],
-      ['Knockouts', st.knockouts],
-      ['Buildings lost', st.buildingsLost],
-      ['Tax collected', Math.floor(st.taxCollected)],
-    ];
-    const statObjects = stats.map(([label, value], i) =>
-      this.add
-        .text(cx - 360 + (i % 3) * 360, 400 + Math.floor(i / 3) * 44, `${label} ${value}`, {
-          ...TEXT,
-          fontSize: '26px',
-          color: COLORS.textMuted,
-        })
-        .setOrigin(0, 0.5),
-    );
-    const again = makeButton(this, cx, 560, 300, 100, 'Play again', () => this.playAgain());
-    this.endObjects = [dim, title, summary, ...statObjects, again.container];
-  }
-
-  // A new run: stop the HUD and restart the map, which launches a fresh HUD.
-  private playAgain(): void {
-    this.scene.stop();
-    this.scene.get('Map').scene.restart();
+    this.ended = true;
+    this.registry.set('modal', true);
+    this.scene.launch('End');
   }
 
   // Freeze the map and open the pause menu over it.
