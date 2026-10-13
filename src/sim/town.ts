@@ -14,6 +14,7 @@ import { earn, tally } from './runstats';
 import { attackStrike, hitEvent, resolveStrike } from './strike';
 import { swing } from './swing';
 import { lairProtected } from './boss';
+import { grantLairRelic } from './relic';
 import { targetOf, type UnitRuntime, type World } from './world';
 import type { BuildingCore, CommandResult, LairState, UnitState, Vec2 } from './types';
 
@@ -128,6 +129,7 @@ export function attackLair(
       bounty: tm.lairBounty,
     });
     shareXp(world, unit.id, tm.lairXp);
+    grantLairRelic(world, unit, lair.id);
     // A generated map is won by its boss lair; a fixed one when the last lair falls.
     const won =
       world.bossLair !== null

@@ -1,5 +1,5 @@
 import type { World } from './world';
-import type { HeroItems, ItemDef, ItemSlot, UnitState } from './types';
+import type { HeroItems, ItemDef, ItemEffects, ItemSlot, UnitState } from './types';
 
 // Hero gear (Sim 280, docs/systems/items-and-shops.md section 1). Weapon and armour are levels
 // 0 to 3; the item rows say what each level is worth. Level 0 is what a hero arrives with.
@@ -28,3 +28,15 @@ export function armourBonus(world: World, unit: UnitState): { armour: number; wp
   const kit = world.data.classes?.find((c) => c.id === unit.type)?.kit ?? 'heavy';
   return row?.effects.kits?.[kit] ?? { armour: 0, wp: 0 };
 }
+
+const NO_CHARM: ItemEffects = {};
+
+// The charm a hero carries, if its row exists.
+export const charmDef = (world: World, unit: UnitState): ItemDef | undefined => {
+  const id = unit.items?.charm;
+  return id ? world.data.items?.find((i) => i.id === id && i.slot === 'charm') : undefined;
+};
+
+// What the hero's charm does (nothing without one).
+export const charmEffects = (world: World, unit: UnitState): ItemEffects =>
+  charmDef(world, unit)?.effects ?? NO_CHARM;

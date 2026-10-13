@@ -2,7 +2,7 @@ import { avenge, revengeTarget, rivalPairs, vowRevenge } from './rivalry';
 import { runAutosave } from './save';
 import { generateMap } from './mapgen';
 import { buffOf, tauntOf, type UnitFx } from './effects';
-import { armourBonus, weaponPower } from './items';
+import { armourBonus, charmEffects, weaponPower } from './items';
 import { passiveRider } from './passives';
 import { everyNthOf, passiveAggroMult, passiveArmour } from './passives';
 import { noteFight } from './engage';
@@ -118,7 +118,7 @@ export interface UnitRuntime {
   // A potion being drunk: time left (see potions.ts).
   drink?: { ms: number };
   // The fight this unit is in: kills so far, whether its first-hit miss is spent, strikes landed.
-  fight?: { kills: number; missUsed: boolean; strikes: number };
+  fight?: { kills: number; missUsed: boolean; strikes: number; ringUsed?: boolean };
 }
 
 export interface World {
@@ -370,6 +370,7 @@ export function statsOf(world: World, unit: UnitState): Stats | undefined {
           passiveArmour(world, unit) + armourBonus(world, unit).armour,
         ),
         weaponPower: weaponPower(world, unit),
+        types: charmTypes(world, unit),
         spellMult: cls.spellMult,
         slow: slowOf(world, unit.id),
         haste: buffOf(world, unit.id, 'attackSpeed'),
@@ -391,6 +392,30 @@ export function statsOf(world: World, unit: UnitState): Stats | undefined {
       attackMult: bossRt?.enraged ? bossNumbers(world, mon).enrageAttackMult : undefined,
     }
   );
+}
+
+// A bloodstone heals its wearer a share of max hp for each kill.
+function healOnKill(world: World, id: number): void {
+  const hero = world.units.find((u) => u.id === id);
+  const share = hero && hero.kind === 'hero' ? charmEffects(world, hero).healOnKill : undefined;
+  if (!hero || !share || hero.ko || hero.hp <= 0) return;
+  const amount = Math.min(
+    Math.round(share * hero.maxHp * healMult(world, hero.id)),
+    hero.maxHp - hero.hp,
+  );
+  if (amount <= 0) return;
+  hero.hp += amount;
+  tally(world, hero.id, 'healing', amount);
+  world.events.push({ kind: 'heal', healer: hero.id, target: hero.id, amount });
+}
+
+// A charm that softens damage types is a type row on the hero (0.75 for fire 0.25 softer).
+function charmTypes(world: World, unit: UnitState): Partial<Record<string, number>> | undefined {
+  const softer = charmEffects(world, unit).softer;
+  if (!softer) return undefined;
+  const row: Partial<Record<string, number>> = {};
+  for (const [type, cut] of Object.entries(softer)) row[type] = 1 - (cut ?? 0);
+  return row;
 }
 
 // A caster hero strikes with its path's type, else its god's (weapon templates are physical).
@@ -617,6 +642,7 @@ function settleDeaths(world: World): void {
       tally(world, by, 'kills');
       const krt = world.unitRuntime.get(by);
       if (krt?.fight) krt.fight.kills++;
+      healOnKill(world, by);
       payBounty(world, by, bounty);
       shareXp(world, by, xp);
     }

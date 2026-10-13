@@ -35,6 +35,7 @@ export const DEFAULT_TUNING: Tuning = {
     greedySpend: 0.35,
     proudSpend: 0.8,
     potionMax: [2, 2, 3],
+    charmSwapPrice: 200,
     potionDrinkAdd: 0.1,
     cowardDrinkAdd: 0.25,
     neverFleeDrink: 0.3,
