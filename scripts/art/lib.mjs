@@ -54,7 +54,27 @@ export const KINDS = {
     nominal: { axis: 'width', share: 1, px: 256 },
     anchor: 'centre',
   },
+  // Key art (the splash): a full painting, opaque edge to edge.
+  art: {
+    re: /^art_[a-z0-9]+(_[a-z0-9]+)*$/,
+    dir: 'art',
+    nominal: { axis: 'width', share: 1, px: 1280 },
+    anchor: 'centre',
+  },
 };
+
+// Opaque pictures (no key colour): key art and ground tiles (`ter_ground_<name>`). They ship
+// whole: the canvas scaled to the nominal width, nothing keyed or trimmed.
+export function isOpaque(id) {
+  return /^art_/.test(id) || /^ter_ground_/.test(id);
+}
+
+// Pixels with alpha below 255 (an opaque picture must have none).
+export function transparentPixels(img) {
+  let n = 0;
+  for (let i = 3; i < img.data.length; i += 4) if (img.data[i] < 255) n++;
+  return n;
+}
 
 export function kindOf(id) {
   const kind = id.split('_')[0];
@@ -327,6 +347,17 @@ function crop({ keyed, scale }, rect, anchor) {
 // `points` ({ weapon: [x, y], weapon2: [x, y] }, raw canvas pixels) come back as weaponX/weaponY
 // etc., 0..1 of the shipped image.
 export function processImage(raw, id, points = {}) {
+  if (isOpaque(id)) {
+    const k = kindOf(id);
+    if (!k) throw new Error(`${id}: id does not match docs/asset-spec.md`);
+    const clear = transparentPixels(raw);
+    if (clear > 0) throw new Error(`${id}: ${clear} transparent pixels in an opaque upload`);
+    const ow = k.nominal.px;
+    const oh = Math.max(1, Math.round((raw.height * ow) / raw.width));
+    const image = resample(raw, { x: 0, y: 0, w: raw.width, h: raw.height }, ow, oh);
+    for (let i = 3; i < image.data.length; i += 4) image.data[i] = 255;
+    return { image, anchorX: 0.5, anchorY: 0.5, kind: k.kind, dir: k.dir, key: null, specks: 0 };
+  }
   const r = keyRaw(raw, id);
   const anchor = anchorPoint(r.keyed, r.k.anchor);
   if (!anchor) throw new Error(`${id}: nothing left after key-out`);
@@ -542,6 +573,17 @@ export function checkRaw(raw, id) {
   const problems = [];
   const k = kindOf(id);
   if (!k) return [`id "${id}" does not match docs/asset-spec.md`];
+  if (isOpaque(id)) {
+    // Key art may be landscape; a ground tile is square. Neither has a key colour.
+    if (raw.width < 1000) problems.push(`canvas ${raw.width} px wide, expected at least 1000`);
+    const clear = transparentPixels(raw);
+    if (clear > 0) problems.push(`${clear} transparent pixels, expected fully opaque`);
+    if (k.kind === 'ter' && raw.width !== raw.height)
+      problems.push(`canvas ${raw.width}x${raw.height} is not square`);
+    if (k.kind === 'art' && raw.width < raw.height)
+      problems.push(`canvas ${raw.width}x${raw.height} is portrait, expected square or landscape`);
+    return problems;
+  }
   if (raw.width !== raw.height) problems.push(`canvas ${raw.width}x${raw.height} is not square`);
   if (raw.width < 1000) problems.push(`canvas ${raw.width} px wide, expected at least 1000`);
   const { key, share } = detectKey(raw, 0.98);

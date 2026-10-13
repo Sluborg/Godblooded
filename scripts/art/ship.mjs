@@ -68,7 +68,7 @@ const ship = (id, path, r, strike) => {
   });
   const extra = r.pivotX === undefined ? '' : `, shoulder pivot ${r.pivotX},${r.pivotY}`;
   console.log(
-    `shipped ${file} ${r.image.width}x${r.image.height} (${r.key} key, anchor ${r.anchorX},${r.anchorY}${extra}, ${r.specks} speck px dropped)`,
+    `shipped ${file} ${r.image.width}x${r.image.height} (${r.key ?? 'no'} key, anchor ${r.anchorX},${r.anchorY}${extra}, ${r.specks} speck px dropped)`,
   );
 };
 // Animation frames ship per unit with one shared crop, so they stack.
