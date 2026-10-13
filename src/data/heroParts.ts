@@ -4,7 +4,7 @@
 // hair, the palette and the silhouette and ADDS gear (a helm, a shield, plate, a crackling weapon,
 // another raven). Tier 3 is the tier 2 look with `t3` added on top.
 //
-// Owner: Balance (data). Scene reads it. Drawing code: src/ui/parts/heroDraw.ts.
+// Owner: Scene (look rows only, approved by Lead). Drawing code: src/ui/parts/heroDraw.ts.
 
 export type WeaponKind =
   | 'hammer'

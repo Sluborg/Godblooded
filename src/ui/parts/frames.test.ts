@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { FRAME_COUNT, attackFrame, frameState, idleFrame, koFrame, walkFrame } from './frames';
+import {
+  FRAME_COUNT,
+  attackFrame,
+  frameState,
+  idleFrame,
+  koFrame,
+  lookBytes,
+  pxPerUnit,
+  walkFrame,
+} from './frames';
 
 describe('frame choice', () => {
   it('walks through every walk frame once per stride and wraps', () => {
@@ -30,5 +39,15 @@ describe('frame choice', () => {
     expect(frameState('attack', FRAME_COUNT.attack - 1).pose.atkT).toBe(1);
     expect(frameState('ko', FRAME_COUNT.ko - 1).pose.ko).toBe(true);
     expect(frameState('idle', 1).pose.atkT).toBe(-1);
+  });
+});
+
+describe('bake memory', () => {
+  it('a look stays near 2 MB on the GPU at the densest screen', () => {
+    expect(pxPerUnit(1)).toBe(1.2);
+    expect(pxPerUnit(3)).toBe(1.8);
+    expect(lookBytes(pxPerUnit(3))).toBeLessThan(2.5 * 1024 * 1024);
+    // 24 looks (a full run's heroes) with their canvases stay well under 64 MB at dpr 2.
+    expect(24 * 2 * lookBytes(pxPerUnit(2))).toBeLessThan(64 * 1024 * 1024);
   });
 });

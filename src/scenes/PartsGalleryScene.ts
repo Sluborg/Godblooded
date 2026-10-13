@@ -39,17 +39,17 @@ export class PartsGalleryScene extends Phaser.Scene {
           color: '#f4ead5',
         })
         .setOrigin(0, 0);
-      const keys = [
-        set.keys.idle[0],
-        set.keys.idle[2],
-        ...set.keys.walk,
-        ...set.keys.attack,
-        ...set.keys.ko.slice(1),
+      const names = [
+        set.frames.idle[0],
+        set.frames.idle[2],
+        ...set.frames.walk,
+        ...set.frames.attack,
+        ...set.frames.ko.slice(1),
       ];
       const scale = (rowH * 0.9) / 66 / set.pxPerUnit;
-      keys.forEach((k, i) => {
+      names.forEach((name, i) => {
         this.add
-          .image(60 + i * cell, y, k)
+          .image(60 + i * cell, y, set.atlas, name)
           .setOrigin(set.originX, set.originY)
           .setScale(scale);
       });

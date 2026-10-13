@@ -3,7 +3,7 @@ import { GRAYBOX } from '../data/graybox';
 import { lookOf, type UnitLook } from '../data/looks';
 import { bossState } from './bossLook';
 import { heroPartsId, heroPartsRow } from '../data/heroParts';
-import { ensureHeroSet, type BakedSet } from './parts/bake';
+import { ensureHeroSet, sweepSets, type BakedSet } from './parts/bake';
 import { attackFrame, idleFrame, koFrame, walkFrame, type PoseName } from './parts/frames';
 import type { RiderId, SimEvent, UnitState, Vec2 } from '../sim/api';
 import { ASSETS_KEY, type ManifestAsset } from './assets';
@@ -263,20 +263,24 @@ export class UnitView {
     const id = heroPartsId(u.god, u.path, u.tier);
     if (id === this.partsId) return true;
     const set = ensureHeroSet(this.scene, id, row);
-    const first = set.keys.idle[0];
+    const first = set.frames.idle[0];
     this.partsSet = set;
     this.partsId = id;
     this.artId = '';
     if (!this.sprite) {
-      this.sprite = this.scene.add.image(0, 0, first);
-      this.flash = this.scene.add.image(0, 0, first).setVisible(false);
+      this.sprite = this.scene.add.image(0, 0, set.atlas, first);
+      this.flash = this.scene.add.image(0, 0, set.atlas, first).setVisible(false);
       this.body.addAt(this.sprite, 0);
       this.body.add(this.flash);
     }
     // World units per baked pixel: the hero's height over its drawing height, over the bake scale.
     const scale = (UNIT_HEIGHT * this.look.scale) / PARTS_HERO_H / set.pxPerUnit;
     for (const img of [this.sprite, this.flash]) {
-      img?.setTexture(first).setOrigin(set.originX, set.originY).setScale(scale).clearTint();
+      img
+        ?.setTexture(set.atlas, first)
+        .setOrigin(set.originX, set.originY)
+        .setScale(scale)
+        .clearTint();
     }
     this.ax = set.originX;
     this.ay = set.originY;
@@ -292,9 +296,26 @@ export class UnitView {
     if (this.partsSet) {
       this.partsSet = null;
       this.partsId = '';
-      this.artId = ''; // applyArt sets the picture (or the placeholder) back
+      // Drop the parts sprites: applyArt makes a fresh one (with its tier colour) for a picture,
+      // or the placeholder shape comes back.
+      this.sprite?.destroy();
+      this.flash?.destroy();
+      this.sprite = this.flash = null;
+      this.artId = '';
+      this.row = undefined;
+      this.ax = 0.5;
+      this.ay = 1;
+      this.w = PLACEHOLDER.w * this.look.scale;
+      this.h = PLACEHOLDER.h * this.look.scale;
+      this.capsule.setVisible(true);
+      this.nose.setVisible(true);
     }
     return false;
+  }
+
+  // The parts look this hero is drawn with ('' for a picture or the placeholder).
+  get partsLookId(): string {
+    return this.partsId;
   }
 
   // Swaps in the picture for this unit when the manifest has it; else the placeholder stays.
@@ -619,10 +640,10 @@ export class UnitView {
     }
     if (this.partsSet) {
       // The baked frame carries the pose (stride, swing, fall): the body stays upright.
-      const key = this.partsSet.keys[frame.pose][frame.i];
-      if (key && this.sprite?.texture.key !== key) {
-        this.sprite?.setTexture(key);
-        this.flash?.setTexture(key);
+      const name = this.partsSet.frames[frame.pose][frame.i];
+      if (name && this.sprite?.frame.name !== name) {
+        this.sprite?.setTexture(this.partsSet.atlas, name);
+        this.flash?.setTexture(this.partsSet.atlas, name);
       }
       pose = NO_POSE;
     }
@@ -971,6 +992,13 @@ export class UnitViews {
       }
     }
     this.flushQueued();
+    if (this.scene.time.now > this.sweepAt) {
+      this.sweepAt = this.scene.time.now + 5000;
+      const inUse = new Set<string>();
+      for (const v of [...this.views.values(), ...this.dying.values()])
+        if (v.partsLookId) inUse.add(v.partsLookId);
+      sweepSets(this.scene, inUse);
+    }
     this.fx.update(dtS);
   }
 
@@ -979,6 +1007,7 @@ export class UnitViews {
   // Heroes only, rationed by SpeechLimit (one bark in town per few seconds, one per hero per 30 s).
   // A high priority bark that meets the global gap waits up to HIGH_WAIT_MS for it, then drops
   // (barks.md section 2 rule 3). Mid and low barks drop at once.
+  private sweepAt = 0;
   private queued: { e: Extract<SimEvent, { kind: SpeechKind }>; until: number } | null = null;
 
   private onSpeech(e: Extract<SimEvent, { kind: SpeechKind }>): void {

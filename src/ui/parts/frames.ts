@@ -74,3 +74,20 @@ export function frameState(pose: PoseName, i: number): { time: number; pose: Par
   const k = (i + 1) / FRAME_COUNT.ko;
   return { time: 0, pose: { ...base, ko: true, koT: 0.35 * k } };
 }
+
+// Frames per row of a look's atlas.
+export const ATLAS_COLS = 5;
+
+// Bake pixels per drawing unit. A hero is 44 drawing units, so 1.8 gives a 79 px figure: about
+// one screen pixel per baked pixel on a phone. Capped so a look stays near 2 MB (plus the same
+// again in its canvas), however dense the screen.
+export function pxPerUnit(dpr: number = globalThis.devicePixelRatio || 1): number {
+  return Math.round(Math.min(1.8, Math.max(1.2, dpr * 0.8)) * 10) / 10;
+}
+
+// Approximate GPU bytes of one baked look at a pixel scale (for budgeting and tests).
+export function lookBytes(k: number): number {
+  const total = FRAME_COUNT.idle + FRAME_COUNT.walk + FRAME_COUNT.attack + FRAME_COUNT.ko;
+  const rows = Math.ceil(total / ATLAS_COLS);
+  return Math.ceil(FRAME_W * k) * ATLAS_COLS * Math.ceil(FRAME_H * k) * rows * 4;
+}
