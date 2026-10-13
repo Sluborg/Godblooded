@@ -52,6 +52,15 @@ export const DEFAULT_TUNING: Tuning = {
     lairXp: 40,
     lairAggro: 350,
   },
+  lair: {
+    tierUpEveryMs: 480_000,
+    maxTier: 3,
+    spawnMult: [1, 0.85, 0.7],
+    maxAliveAdd: [0, 1, 1],
+    statMult: [1, 1.15, 1.3],
+    hpMult: [1, 1.25, 1.5],
+    rewardMult: [1, 1.5, 2],
+  },
   town: {
     townHallHp: 500,
     buildingHp: 200,
@@ -81,6 +90,7 @@ export function resolveTuning(data: GameData): Tuning {
     hero: { ...DEFAULT_TUNING.hero, ...t?.hero },
     party: { ...DEFAULT_TUNING.party, ...t?.party },
     monster: { ...DEFAULT_TUNING.monster, ...t?.monster },
+    lair: { ...DEFAULT_TUNING.lair, ...t?.lair },
     town: { ...DEFAULT_TUNING.town, ...t?.town },
     bounty: { ...DEFAULT_TUNING.bounty, ...t?.bounty },
   };

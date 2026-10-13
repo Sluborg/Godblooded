@@ -1,4 +1,14 @@
-import { damage, dist, maxHp, speed, stepToward, TICK_MS, type Stats } from './units';
+import {
+  damage,
+  dist,
+  maxHp,
+  scaleAttrs,
+  speed,
+  stepToward,
+  tierValue,
+  TICK_MS,
+  type Stats,
+} from './units';
 import { shareXp } from './parties';
 import { swing } from './swing';
 import type { UnitRuntime, World } from './world';
@@ -133,7 +143,7 @@ export function runRaids(world: World): void {
     if (!def || !mon) continue;
     for (let i = 0; i < size; i++) {
       const id = world.nextId++;
-      const hp = maxHp(mon.attrs);
+      const hp = maxHp(scaleAttrs(mon.attrs, tierValue(world.tuning.lair.statMult, lair.tier, 1)));
       world.units.push({
         id,
         kind: 'monster',

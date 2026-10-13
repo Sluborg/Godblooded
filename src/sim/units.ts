@@ -62,3 +62,16 @@ export function aggroRange(a: Attributes): number {
 export function dist(a: Vec2, b: Vec2): number {
   return Math.hypot(a.x - b.x, a.y - b.y);
 }
+
+// The value of a per-tier tuning array for `tier` (1-based); the last entry holds above it.
+export function tierValue(values: readonly number[], tier: number, fallback: number): number {
+  return values[Math.min(Math.max(tier, 1), values.length) - 1] ?? fallback;
+}
+
+// A monster's attributes at a lair tier: every attribute scaled and rounded.
+export function scaleAttrs(a: Attributes, mult: number): Attributes {
+  if (mult === 1) return a;
+  const out = { ...a };
+  for (const k of Object.keys(out) as (keyof Attributes)[]) out[k] = Math.round(out[k] * mult);
+  return out;
+}
