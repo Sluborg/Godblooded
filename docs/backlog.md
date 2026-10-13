@@ -14,8 +14,8 @@ Review (PR open), Done. A worker takes its top Open row.
 | 40    | Review and merge M1 PRs; when M1 runs end to end, ask Stefan "is it fun to watch?"                                      | Doing   |
 | 50    | Gods and paths data: 12 GODS rows, 24 path rows, templates; balance pass (after Sim 110)                                | Done    |
 | 60    | Building tier data (costs, effects per tier) after Sim 130; lair growth tuning after Sim 120; balance pass              | Open    |
-| 70    | Map pool data after Sim 150: lair rows per monster, boss lair, pantheon lean; balance pass                              | Doing   |
-| 80    | Combat data: armour, `spellMult`, damage types, monster type rows (after Sim 190-200); balance pass                     | Open    |
+| 70    | Map pool data after Sim 150: lair rows per monster, boss lair, pantheon lean; balance pass                              | Done    |
+| 80    | Combat data: armour, `spellMult`, damage types, monster type rows (after Sim 190-200); balance pass                     | Doing   |
 | 90    | Aesir skills (8) and passives (4) as data after Sim 240-260; balance pass with skills on                                | Open    |
 | 100   | Data: item rows, kits on templates, smithy row (after Sim 280); balance pass with items                                 | Open    |
 | 110   | Data: the 30 upgrade cards, lair clock and elite tuning (after Sim 320-350); balance pass against the five beats        | Open    |
@@ -45,11 +45,12 @@ Review (PR open), Done. A worker takes its top Open row.
 | 150   | Seeded map per run: lair layout from a pool (all 6 monster types), 4-6 lairs, a pantheon lean per run, a boss lair (wyrm) as the win goal; map rules as data       | Done    |
 | 160   | Save and load a run: versioned save of the world, migration hook, autosave every 30 s; `loadWorld` for Scene Continue                                              | Done    |
 | 170   | Rivalries: bonds below a threshold make rivals; `argue` events; rivals refuse one party; a vengeful hero hunts what knocked out a friend                           | Done    |
-| 180   | Combat: strike pipeline in one function (dodge, power, crit, type, mitigation, round, rider, down), new curves and K in `tuning.combat` (`docs/systems/combat.md`) | Open    |
-| 190   | Combat: armour on templates and monsters, magic resist from Wp, `spellMult`                                                                                        | Open    |
-| 200   | Combat: damage types on god/path/monster rows, monster type multipliers; `hit` carries `type`, `crit`, `weak`/`resist`                                             | Open    |
-| 210   | Combat: first strike on engage; riders (burn, chill, arc, wither, sear) as data, applied only when a strike carries one                                            | Open    |
-| 220   | Combat: boss unit (emerge, cleave, enrage, immunities); the boss lair cannot fall while the boss lives                                                             | Open    |
+| 175   | Raids: only `tuning.town.raidLairs` random non-boss lairs raid; the boss lair never raids                                                                          | Done    |
+| 180   | Combat: strike pipeline in one function (dodge, power, crit, type, mitigation, round, rider, down), new curves and K in `tuning.combat` (`docs/systems/combat.md`) | Done    |
+| 190   | Combat: armour on templates and monsters, magic resist from Wp, `spellMult`                                                                                        | Done    |
+| 200   | Combat: damage types on god/path/monster rows, monster type multipliers; `hit` carries `type`, `crit`, `weak`/`resist`                                             | Done    |
+| 210   | Combat: first strike on engage; riders (burn, chill, arc, wither, sear) as data, applied only when a strike carries one                                            | Review  |
+| 220   | Combat: boss unit (emerge, cleave, enrage, immunities); the boss lair cannot fall while the boss lives                                                             | Review  |
 | 230   | Combat: knockout cost and boss permadeath roll (waits on Stefan, combat OPEN 2-3)                                                                                  | Blocked |
 | 240   | Skills: engine (SkillDef, cooldowns, 6 triggers, 5 shapes, `cast`/`skill` events, trait nudge) (`docs/systems/paths-and-skills.md`)                                | Open    |
 | 250   | Skills: effects part 1 (damage, heal, shield, buff, stagger, mark, dash, taunt; chain)                                                                             | Open    |
@@ -95,11 +96,11 @@ Review (PR open), Done. A worker takes its top Open row.
 | 100   | Gods and paths in the UI (after Sim 110): hero names "Thor-born" / path name, no class words; path cards show the god's two paths; art lookup path, god, template, placeholder                            | Done    |
 | 110   | Title screen (logo placeholder, Play, Continue if a run exists, Settings) and pause menu (resume, restart, quit); Settings: default speed, reduced motion, party-colour palette                           | Done    |
 | 120   | Watch camera: auto-follow the most interesting fight (toggle on the HUD, any drag cancels it); tap a hero or party to follow it                                                                           | Done    |
-| 130   | Event feed: short toasts from sim events (lair cleared, hero knocked out, party level up, raid on town, tier-up), tap a toast to jump there                                                               | Open    |
-| 140   | Hero roster: side panel listing all heroes and parties (level, hp, gold, state), tap to focus and follow                                                                                                  | Open    |
-| 150   | Phone polish: safe-area insets, touch target audit (>= MIN_TOUCH), loading screen with asset progress, PWA install prompt                                                                                 | Open    |
-| 160   | Juice: damage numbers, screen shake on stomp and boss hits, gold pop on tax, building placement dust                                                                                                      | Open    |
-| 170   | Building panel (after Sim 130): tap a building for info, tier, upgrade button and cost                                                                                                                    | Review  |
+| 130   | Event feed: short toasts from sim events (lair cleared, hero knocked out, party level up, raid on town, tier-up), tap a toast to jump there                                                               | Review  |
+| 140   | Hero roster: side panel listing all heroes and parties (level, hp, gold, state), tap to focus and follow                                                                                                  | Review  |
+| 150   | Phone polish: safe-area insets, touch target audit (>= MIN_TOUCH), loading screen with asset progress, PWA install prompt                                                                                 | Review  |
+| 160   | Juice: damage numbers, screen shake on stomp and boss hits, gold pop on tax, building placement dust                                                                                                      | Review  |
+| 170   | Building panel (after Sim 130): tap a building for info, tier, upgrade button and cost                                                                                                                    | Done    |
 | 180   | End screen v2 (after Sim 140): MVP hero, per-hero stats, gold-over-time sparkline                                                                                                                         | Review  |
 | 190   | Continue after reload (after Sim 160): answer `autosave` events with `saveWorld`, title Continue loads it (`loadWorld`, drop it on `SaveError`)                                                           | Open    |
 | 200   | Splash and menu look: splash scene (key art, logo reveal, loading bar), menu buttons and panels from the UI kit (9-slice, pressed state) with the current code-drawn style as fallback                    | Done    |
@@ -130,26 +131,29 @@ Review (PR open), Done. A worker takes its top Open row.
 | 90    | Queue buildings tier 2 batch (all 8) and Greek + Egyptian temple tier 1, for Sim 130 and M3                                                                                                                            | Done    |
 | 100   | Track `ui`: U2 UI kit now, not waiting on the logo pick: 9-slice panel, buttons (normal, pressed, disabled), icon set (gold, speed, menu, bounty, upgrade, pause), in a bronze-and-iron look that fits any logo option | Doing   |
 | 110   | Track `ui`: U3 splash key art: a wide 16:9 painting of Godbloods of three pantheons facing a monster horde at dusk, no text (the logo goes on top in code)                                                             | Doing   |
-| 120   | Rider icons (flame, snowflake, spark, skull, sun) in the U2 style; grave markers per pantheon (rune stone, stele, ankh slab)                                                                                           | Open    |
-| 130   | Status signs in the U2 style (raven mark, bind chains, shield rune); falcon summon `sum_falcon_t1_front` (if summons stay)                                                                                             | Open    |
-| 140   | Item icons in the U2 style: sword, focus, armour, potion, greater potion, 6 charms                                                                                                                                     | Open    |
-| 150   | Card frames (iron, bronze, gold), 5 card family icons, 3 pantheon sigils                                                                                                                                               | Open    |
-| 160   | 8 omen icons; merchant caravan (cart and mule, facing right)                                                                                                                                                           | Open    |
-| 170   | `bld_ruin` (generic rubble, tinted in code), `bld_scaffold` overlay                                                                                                                                                    | Open    |
+| 120   | Rider icons (flame, snowflake, spark, skull, sun) in the U2 style; grave markers per pantheon (rune stone, stele, ankh slab)                                                                                           | Done    |
+| 130   | Status signs in the U2 style (raven mark, bind chains, shield rune); falcon summon `sum_falcon_t1_front` (if summons stay)                                                                                             | Done    |
+| 140   | Item icons in the U2 style: sword, focus, armour, potion, greater potion, 6 charms                                                                                                                                     | Done    |
+| 150   | Card frames (iron, bronze, gold), 5 card family icons, 3 pantheon sigils                                                                                                                                               | Done    |
+| 160   | 8 omen icons; merchant caravan (cart and mule, facing right)                                                                                                                                                           | Done    |
+| 170   | `bld_ruin` (generic rubble, tinted in code), `bld_scaffold` overlay                                                                                                                                                    | Done    |
 | 180   | Scarab swarm, Hydra, Apep and their lairs; Hearth Hall t1-t3; miracle buttons (wait on Stefan)                                                                                                                         | Blocked |
 
 ## Design
 
-| Order | Item                                                                                                                          | Status  |
-| ----- | ----------------------------------------------------------------------------------------------------------------------------- | ------- |
-| 10    | `docs/systems/combat.md`: damage, armour, dodge, crits, damage types, KO and death, boss rules                                | Done    |
-| 20    | `docs/systems/paths-and-skills.md`: a signature skill per path (24) with a tier 3 upgrade, a passive per god                  | Done    |
-| 30    | `docs/systems/items-and-shops.md`: weapons, armour, potions, charms, item tiers by building tier                              | Done    |
-| 40    | `docs/systems/progression.md`: hero and party levels, upgrade card pool, lair and monster tiers, run curve                    | Done    |
-| 50    | `docs/systems/meta.md`: what persists between runs, options A/B/C with a recommendation                                       | Done    |
-| 60    | `docs/systems/monsters-and-bosses.md`, `events.md`, `buildings.md`                                                            | Done    |
-| 70    | `docs/systems/ui-flows.md`: every screen and panel, navigation map, HUD layout at 1280x720, thumb zones, what each tap does   | Open    |
-| 80    | `docs/systems/onboarding.md`: first run teaching without commanding heroes, tooltip moments, the first 3 minutes beat by beat | Open    |
-| 90    | `docs/systems/audio.md`: music per pantheon and state, SFX list by event, sourcing and license per the manifest rule          | Open    |
-| 100   | `docs/systems/content-roadmap.md`: which gods, monsters, buildings, cards land in M2, M3, M4; what M2 needs to be fun         | Open    |
-| 110   | Fold Stefan's answers to the OPEN questions into the specs (when Lead relays them)                                            | Blocked |
+| Order | Item                                                                                                                                    | Status  |
+| ----- | --------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| 10    | `docs/systems/combat.md`: damage, armour, dodge, crits, damage types, KO and death, boss rules                                          | Done    |
+| 20    | `docs/systems/paths-and-skills.md`: a signature skill per path (24) with a tier 3 upgrade, a passive per god                            | Done    |
+| 30    | `docs/systems/items-and-shops.md`: weapons, armour, potions, charms, item tiers by building tier                                        | Done    |
+| 40    | `docs/systems/progression.md`: hero and party levels, upgrade card pool, lair and monster tiers, run curve                              | Done    |
+| 50    | `docs/systems/meta.md`: what persists between runs, options A/B/C with a recommendation                                                 | Done    |
+| 60    | `docs/systems/monsters-and-bosses.md`, `events.md`, `buildings.md`                                                                      | Done    |
+| 70    | `docs/systems/ui-flows.md`: every screen and panel, navigation map, HUD layout at 1280x720, thumb zones, what each tap does             | Done    |
+| 80    | `docs/systems/onboarding.md`: first run teaching without commanding heroes, tooltip moments, the first 3 minutes beat by beat           | Done    |
+| 90    | `docs/systems/audio.md`: music per pantheon and state, SFX list by event, sourcing and license per the manifest rule                    | Done    |
+| 100   | `docs/systems/content-roadmap.md`: which gods, monsters, buildings, cards land in M2, M3, M4; what M2 needs to be fun                   | Done    |
+| 110   | Fold Stefan's answers to the OPEN questions into the specs (when Lead relays them)                                                      | Blocked |
+| 120   | `docs/systems/hint-texts.md`: every Skald line and the 10 first-time hints as final English text, with triggers                         | Open    |
+| 130   | `docs/systems/hero-ai.md`: how a Godblood decides today (audit of `src/sim`) and proposals for readable intent and visible personality  | Open    |
+| 140   | `docs/systems/aesir-content.md`: M2 content sheet (4 gods, 8 paths, skills, passives, damage types, start numbers) ready for `src/data` | Open    |
