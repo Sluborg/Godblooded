@@ -10,6 +10,7 @@ import { SettingsScene } from './scenes/SettingsScene';
 import { TitleScene } from './scenes/TitleScene';
 import { LevelUpScene } from './scenes/LevelUpScene';
 import { MapScene } from './scenes/MapScene';
+import { SkillGalleryScene } from './scenes/SkillGalleryScene';
 import { PartsGalleryScene } from './scenes/PartsGalleryScene';
 
 // Auto-update: a new deploy is picked up and the page reloads with it.
@@ -51,6 +52,7 @@ const game = new Phaser.Game({
     PauseScene,
     SettingsScene,
     PartsGalleryScene,
+    SkillGalleryScene,
   ],
 });
 
@@ -64,6 +66,10 @@ if (new URLSearchParams(location.search).has('debug')) {
 if (new URLSearchParams(location.search).has('gallery')) {
   game.events.once(Phaser.Core.Events.READY, () => {
     game.scene.stop('Boot');
-    game.scene.start('PartsGallery');
+    game.scene.start(
+      new URLSearchParams(location.search).get('gallery') === 'skills'
+        ? 'SkillGallery'
+        : 'PartsGallery',
+    );
   });
 }
