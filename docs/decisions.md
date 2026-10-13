@@ -191,3 +191,10 @@ text stays readable. Light parchment with dark ink is a later pass, revisited wi
 Stefan: Fafnir is built from **code parts** (no art order). Hero name labels are **off** by
 default; tapping a hero shows the names of everyone in that hero's party. Lair plates show the
 **lair's name** (e.g. "Wolf Den").
+
+## 2026-10-14 Build menu: tap for info, tap again to build
+
+Stefan: in the build menu, the first tap on a building shows what it does (role, what it
+sells or trains, cost, what its next tier unlocks); a second tap on the same building confirms
+and builds. Tapping another building or outside the menu cancels. Nothing is built on a single
+tap.
