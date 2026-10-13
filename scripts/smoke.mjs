@@ -143,6 +143,30 @@ try {
       throw new Error(`building ${type} was not built (step ${n})`);
   }
 
+  // Touch target audit: every interactive object in the UI scenes (not the map) is at least
+  // MIN_TOUCH minus a small slack for the gap between neighbouring rows, in design pixels.
+  const audit = () =>
+    page.evaluate(() => {
+      const out = [];
+      const walk = (scene, o) => {
+        if (o.input?.enabled && o.visible && o.alpha > 0) {
+          const b = o.getBounds();
+          if (Math.min(b.width, b.height) < 72 && b.width < 1200)
+            out.push(
+              `${scene.sys.settings.key}: ${o.type} ${Math.round(b.width)}x${Math.round(b.height)} at ${Math.round(b.x)},${Math.round(b.y)}`,
+            );
+        }
+        if (o.list) for (const c of o.list) walk(scene, c);
+      };
+      for (const scene of window.__game.scene.getScenes(true)) {
+        if (scene.sys.settings.key === 'Map') continue;
+        for (const o of scene.sys.displayList.list) walk(scene, o);
+      }
+      return out;
+    });
+  const small = await audit();
+  if (small.length) throw new Error(`touch targets below 72 px:\n  ${small.join('\n  ')}`);
+
   // A bounty menu can be dismissed: tap bare ground (opens it), tap Close (the last button).
   const menuOpen = () =>
     page.evaluate(() => window.__game.scene.getScene('Hud').menuButtons.length > 0);
