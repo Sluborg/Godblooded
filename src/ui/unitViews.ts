@@ -33,6 +33,8 @@ const UNIT_COOLDOWN_MS = 2500;
 // the `hit` event arrives at impact, so the windup is squeezed into this (docs/api: Scene 70).
 const DEFAULT_LEAD_S = 0.09;
 // The longest frame the motion will simulate, so a stalled tab does not skip whole swings.
+// Where a building's shots leave from, above its feet.
+const TOWER_MUZZLE_Y = 150;
 const MAX_DT_S = 0.05;
 // Rendered position follows the sim with this time constant (the sim steps in 50 ms ticks).
 const SMOOTH_S = 0.06;
@@ -692,7 +694,7 @@ export class UnitViews {
     // Events first: a unit that died this tick is already gone from the snapshot but still
     // has its view, so its last words can be said before the fall.
     for (const e of events) {
-      if (e.kind === 'hit') this.onHit(e, ctx);
+      if (e.kind === 'hit') this.onHit(e, ctx, others);
       else if (e.kind === 'windup') this.onWindup(e);
       else if (e.kind === 'heal') this.onHeal(e, ctx);
       else if (e.kind === 'tierUp') this.onTierUp(e, paths);
@@ -738,10 +740,33 @@ export class UnitViews {
     view.say(pickLine(e.kind, e.unit, view.spoken++));
   }
 
-  private onHit(e: Extract<SimEvent, { kind: 'hit' }>, ctx: FrameCtx): void {
+  private onHit(
+    e: Extract<SimEvent, { kind: 'hit' }>,
+    ctx: FrameCtx,
+    others: (id: number) => Vec2 | undefined,
+  ): void {
     const attacker = this.views.get(e.attacker);
-    if (attacker) attacker.landHit(e.target, e.damage, e.dodged);
-    else ctx.hurt(e.target, Number.NaN, 1, e.damage, e.dodged);
+    if (attacker) return attacker.landHit(e.target, e.damage, e.dodged);
+    // No unit view: a tower (or other building) shooting. An arrow flies from its top to the
+    // target and the hit lands at once, knocked back away from the tower.
+    const from = others(e.attacker);
+    if (!from) return ctx.hurt(e.target, Number.NaN, 1, e.damage, e.dodged);
+    const top = { x: from.x, y: from.y - TOWER_MUZZLE_Y };
+    const to = ctx.chestOf(e.target) ?? top;
+    const dist = Math.hypot(to.x - top.x, to.y - top.y);
+    this.fx.add([
+      {
+        type: 'arrow',
+        x: top.x,
+        y: top.y,
+        tx: to.x,
+        ty: to.y,
+        age: 0,
+        life: Math.max(0.1, Math.min(0.35, dist / 1200)),
+      },
+    ]);
+    this.fx.sparks(top.x, top.y, [255, 225, 160], 4);
+    ctx.hurt(e.target, from.x, 1, e.damage, e.dodged);
   }
 
   private onTierUp(
