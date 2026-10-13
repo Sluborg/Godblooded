@@ -38,10 +38,16 @@ export async function promptInstall(): Promise<boolean> {
   const e = deferred;
   if (!e) return false;
   deferred = null;
-  await e.prompt();
-  const choice = await e.userChoice;
-  listeners.forEach((f) => f());
-  return choice.outcome === 'accepted';
+  try {
+    await e.prompt();
+    const choice = await e.userChoice;
+    return choice.outcome === 'accepted';
+  } catch {
+    return false;
+  } finally {
+    // Whatever happened, the title rebuilds (the button goes away or the browser offers it again).
+    listeners.forEach((f) => f());
+  }
 }
 
 // Called when canInstall may have changed; returns the unsubscribe function.

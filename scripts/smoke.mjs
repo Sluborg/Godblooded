@@ -144,14 +144,14 @@ try {
   }
 
   // Touch target audit: every interactive object in the UI scenes (not the map) is at least
-  // MIN_TOUCH minus a small slack for the gap between neighbouring rows, in design pixels.
+  // MIN_TOUCH minus 2 px of rounding slack, in design pixels.
   const audit = () =>
     page.evaluate(() => {
       const out = [];
       const walk = (scene, o) => {
         if (o.input?.enabled && o.visible && o.alpha > 0) {
           const b = o.getBounds();
-          if (Math.min(b.width, b.height) < 72 && b.width < 1200)
+          if (Math.min(b.width, b.height) < 78 && b.width < 1200)
             out.push(
               `${scene.sys.settings.key}: ${o.type} ${Math.round(b.width)}x${Math.round(b.height)} at ${Math.round(b.x)},${Math.round(b.y)}`,
             );
@@ -165,7 +165,7 @@ try {
       return out;
     });
   const small = await audit();
-  if (small.length) throw new Error(`touch targets below 72 px:\n  ${small.join('\n  ')}`);
+  if (small.length) throw new Error(`touch targets below 78 px:\n  ${small.join('\n  ')}`);
 
   // A bounty menu can be dismissed: tap bare ground (opens it), tap Close (the last button).
   const menuOpen = () =>
