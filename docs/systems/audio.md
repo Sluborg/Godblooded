@@ -43,8 +43,8 @@ early. Follows the manifest rule in `CLAUDE.md`: every asset has a license and a
 
 ## 2. Sound effects by event
 
-Each Sim event (`src/sim/types.ts`, plus the ones the other specs add) maps to one preset.
-Damage-type sounds follow `combat.md`.
+Every Sim event (`src/sim/types.ts`, plus the ones the other specs add) is either mapped to a
+preset below or listed as silent. Damage-type sounds follow `combat.md`.
 
 | Event                                        | Sound                                                    | Preset id                     |
 | -------------------------------------------- | -------------------------------------------------------- | ----------------------------- |
@@ -69,6 +69,16 @@ Damage-type sounds follow `combat.md`.
 | miracle (per pantheon)                       | thunder / owl cry and bell / sunrise swell               | `sfx_miracle_<pantheon>`      |
 | skill cast                                   | by visual (`paths-and-skills.md`): bolt, burst, cone ... | `sfx_skill_<visual>`          |
 | UI                                           | tap, back, disabled (a dull click)                       | `sfx_ui_tap`, `_back`, `_off` |
+| partyFormed                                  | two short drum beats                                     | `sfx_party`                   |
+| upgradePicked / pathOffer                    | UI confirm / the levelUp chord again                     | `sfx_ui_tap`, `sfx_levelup`   |
+| argue                                        | a short grumble (low, 2 notes)                           | `sfx_argue`                   |
+| revenge / avenged                            | a rising war cry tone / a sharp stab and drum            | `sfx_revenge`, `sfx_avenged`  |
+| fled                                         | quick patter of steps                                    | `sfx_flee`                    |
+| revived                                      | soft temple bell, quieter than arrive                    | `sfx_revive`                  |
+| won / lost                                   | the stings `mus_victory` / `mus_defeat` (section 1)      | none                          |
+
+**Silent on purpose:** `spawned` (lairs spawn too often; a quiet ambient loop at each lair
+carries it) and the `windup` of off-screen units (mixing rule 1).
 
 ## 3. Mixing rules
 
@@ -90,7 +100,10 @@ Damage-type sounds follow `combat.md`.
 - **Size:** music at about 96 kbps, about 1.5 MB per 2 min loop; all audio under 12 MB.
   Sound effects are code, about 0 MB.
 - **Caching:** effects need nothing; music is cached at runtime the first time it plays (not
-  pre-cached), so the first install stays small.
+  pre-cached), so the first install stays small. This needs a `vite.config.ts` change: today
+  `workbox.globPatterns` pre-caches every `.mp3` and `.ogg`; music goes to `assets/audio/`,
+  which `globIgnores` skips, and a `runtimeCaching` rule caches `assets/audio/*.{ogg,m4a}`
+  cache-first.
 - **Vibration** (Android): optional, off by default, a short buzz on a knockout, a boss
   emerging and a lost town hall. A Settings toggle.
 
@@ -117,12 +130,13 @@ source }`.
 
 ### Scene
 
-| Order | Row                                                                                               |
-| ----- | ------------------------------------------------------------------------------------------------- |
-| 10    | Audio core: unlock on first tap, settings (music, effects, vibration), pause on hidden            |
-| 20    | Synth for effects: presets as data, wobble, pile-up and distance rules; map Sim events to presets |
-| 30    | Music player: loops with loop points, calm and tension crossfade by danger, stings with ducking   |
-| 40    | Vibration on knockout, boss and loss (Android)                                                    |
+| Order | Row                                                                                                                                       |
+| ----- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| 10    | Audio core: unlock on first tap, settings (music, effects, vibration), pause on hidden                                                    |
+| 15    | Workbox: `globIgnores` for `assets/audio/**`, `runtimeCaching` cache-first for `assets/audio/*.{ogg,m4a}` (`vite.config.ts`, shared file) |
+| 20    | Synth for effects: presets as data, wobble, pile-up and distance rules; map Sim events to presets                                         |
+| 30    | Music player: loops with loop points, calm and tension crossfade by danger, stings with ducking                                           |
+| 40    | Vibration on knockout, boss and loss (Android)                                                                                            |
 
 ### Art (audio becomes an Art track, as it ships into `public/assets/`)
 
