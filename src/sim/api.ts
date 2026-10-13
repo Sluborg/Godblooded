@@ -13,6 +13,7 @@ export type {
   CombatTuning,
   CommandResult,
   GameData,
+  GodDef,
   HeroTuning,
   LairDef,
   LairSite,

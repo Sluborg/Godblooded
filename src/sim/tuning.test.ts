@@ -10,6 +10,7 @@ const base: GameData = {
   startGold: 500,
   map: { width: 2000, height: 1200 },
   townHall: { x: 600, y: 500 },
+  gods: [{ id: 'thor', pantheon: 'aesir', name: 'Thor', template: 'warrior' }],
   classes: [
     {
       id: 'warrior',

@@ -1,4 +1,4 @@
-import { fledParty, fleeThreshold, newParty, TRAITS } from './parties';
+import { fledParty, fleeThreshold, newParty, pantheonOf, TRAITS } from './parties';
 import { aggroRange, dist, maxHp, speed, stepToward, TICK_MS } from './units';
 import type { World } from './world';
 import type { Vec2, UnitState } from './types';
@@ -18,10 +18,12 @@ export interface HeroRuntime {
 const tune = (world: World) => world.tuning.hero;
 const isTemple = (type: string) => type.startsWith('temple');
 
-// Puts a hero of `classId` on the map at `pos`. Used by temples and by tests.
-export function spawnHero(world: World, classId: string, pos: Vec2, temple = 0): number {
-  const cls = world.data.classes?.find((c) => c.id === classId);
-  if (!cls) throw new Error(`unknown class: ${classId}`);
+// Puts a child of god `godId` on the map at `pos`. Used by temples and by tests. An id that is
+// no god but a template (ClassDef) id spawns a hero of that template with no god (dev, tests).
+export function spawnHero(world: World, godId: string, pos: Vec2, temple = 0): number {
+  const god = world.data.gods?.find((g) => g.id === godId);
+  const cls = world.data.classes?.find((c) => c.id === (god ? god.template : godId));
+  if (!cls) throw new Error(`unknown god or template: ${godId}`);
   const id = world.nextId++;
   const hp = maxHp(cls.attrs);
   world.units.push({
@@ -29,6 +31,7 @@ export function spawnHero(world: World, classId: string, pos: Vec2, temple = 0):
     kind: 'hero',
     type: cls.id,
     tier: 1,
+    god: god?.id ?? null,
     path: null,
     pos: { ...pos },
     facing: { x: 0, y: 1 },
@@ -47,14 +50,14 @@ export function spawnHero(world: World, classId: string, pos: Vec2, temple = 0):
   const hero = world.units[world.units.length - 1];
   hero.party = newParty(world, id);
   world.stats.heroesArrived++;
-  world.events.push({ kind: 'arrived', unit: id, type: cls.id });
+  world.events.push({ kind: 'arrived', unit: id, type: cls.id, god: god?.id ?? null });
   return id;
 }
 
-// Temples call a new hero now and then, up to a few alive per temple.
+// Temples call a child of a god of their pantheon now and then, up to a few alive per temple.
 export function runTemples(world: World): void {
-  const classes = world.data.classes ?? [];
-  if (classes.length === 0) return;
+  const gods = world.data.gods ?? [];
+  if (gods.length === 0) return;
   for (const b of world.buildings) {
     if (!isTemple(b.type)) continue;
     const next = world.templeNextMs.get(b.id) ?? world.timeMs + tune(world).firstRecruitMs;
@@ -64,15 +67,18 @@ export function runTemples(world: World): void {
     let alive = 0;
     for (const rt of world.heroRuntime.values()) if (rt.temple === b.id) alive++;
     if (alive >= tune(world).maxPerTemple) continue;
-    // Classes already at the cap are skipped; with none left, nobody comes this cycle.
-    const open = classes.filter(
-      (c) =>
-        world.units.filter((u) => u.kind === 'hero' && u.type === c.id).length <
-        tune(world).maxPerClass,
+    // Gods of the temple's pantheon already at the cap are skipped; with none left, nobody
+    // comes this cycle. A temple with no pantheon calls any god.
+    const pantheon = pantheonOf(world, b.type);
+    const open = gods.filter(
+      (g) =>
+        (pantheon === undefined || g.pantheon === pantheon) &&
+        world.units.filter((u) => u.kind === 'hero' && u.god === g.id).length <
+          tune(world).maxPerGod,
     );
     if (open.length === 0) continue;
-    const cls = open[Math.floor(world.rng() * open.length)];
-    spawnHero(world, cls.id, b.pos, b.id);
+    const god = open[Math.floor(world.rng() * open.length)];
+    spawnHero(world, god.id, b.pos, b.id);
   }
 }
 

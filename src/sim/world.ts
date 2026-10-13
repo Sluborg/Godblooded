@@ -206,6 +206,7 @@ function runLairs(world: World): void {
       kind: 'monster',
       type: mon.id,
       tier: lair.tier,
+      god: null,
       path: null,
       pos: { ...lair.pos },
       facing: { x: 0, y: 1 },
