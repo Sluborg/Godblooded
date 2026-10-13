@@ -54,7 +54,7 @@ export function loadManifest(scene: Phaser.Scene, done: () => void, hooks: LoadH
   scene.load.on(Phaser.Loader.Events.FILE_LOAD_ERROR, (file: Phaser.Loader.File) => {
     diag.failed++;
     const status = (file.xhrLoader as XMLHttpRequest | undefined)?.status ?? 0;
-    diag.firstError ??= `${file.src} ${status}`;
+    diag.firstError ??= `${file.key} ${status}`;
   });
   const count = (): void => {
     diag.loaded = [...rows.keys()].filter((id) => scene.textures.exists(id)).length;
