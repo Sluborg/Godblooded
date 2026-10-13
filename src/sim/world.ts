@@ -1,6 +1,7 @@
 import { avenge, revengeTarget, rivalPairs, vowRevenge } from './rivalry';
 import { runAutosave } from './save';
 import { generateMap } from './mapgen';
+import { buffOf, tauntOf, type UnitFx } from './effects';
 import { noteFight } from './engage';
 import { runStatuses, slowOf, healMult, type UnitStatus } from './riders';
 import { attackStrike, landStrike } from './strike';
@@ -95,6 +96,8 @@ export interface UnitRuntime {
   fightUntilMs?: number;
   // Heroes with a path skill: cooldown and the cast in progress (see skills.ts).
   skill?: SkillRuntime;
+  // Shield, mark, taunt and buffs from skills (see effects.ts).
+  fx?: UnitFx;
 }
 
 export interface World {
@@ -325,9 +328,10 @@ export function statsOf(world: World, unit: UnitState): Stats | undefined {
       cls && {
         weapon: cls.weapon,
         attrs: effectiveAttrs(world, unit, cls.attrs),
-        armour: cls.armour,
+        armour: scaled(cls.armour, buffOf(world, unit.id, 'armour')),
         spellMult: cls.spellMult,
         slow: slowOf(world, unit.id),
+        haste: buffOf(world, unit.id, 'attackSpeed'),
         damageType: cls.spellMult === undefined ? undefined : heroDamageType(world, unit),
       }
     );
@@ -352,10 +356,21 @@ function heroDamageType(world: World, unit: UnitState): string | undefined {
   return path?.damageType ?? world.data.gods?.find((g) => g.id === unit.god)?.damageType;
 }
 
+const scaled = (armour: number | undefined, buff: number) =>
+  armour === undefined || buff === 0 ? armour : armour * (1 + buff);
+
 // What a strike needs to know about a unit it hits.
 export function targetOf(world: World, unit: UnitState) {
   const st = statsOf(world, unit);
-  return st && { attrs: st.attrs, armour: st.armour, types: st.types, tags: st.tags };
+  return (
+    st && {
+      attrs: st.attrs,
+      armour: st.armour,
+      types: st.types,
+      tags: st.tags,
+      dodgeAdd: buffOf(world, unit.id, 'dodge'),
+    }
+  );
 }
 
 function runUnits(world: World): void {
@@ -410,6 +425,11 @@ function runUnits(world: World): void {
 
 // Nearest living enemy inside aggro range (and the leash, for monsters).
 function pickTarget(world: World, unit: UnitState, stats: Stats, home?: Vec2): UnitState | null {
+  // A taunted monster goes for its taunter.
+  if (unit.kind === 'monster') {
+    const taunter = tauntOf(world, unit);
+    if (taunter) return taunter;
+  }
   const reach = aggroRange(stats.attrs);
   // A hero with a sworn enemy in sight goes for it first.
   const sworn = unit.kind === 'hero' ? revengeTarget(world, unit) : undefined;
