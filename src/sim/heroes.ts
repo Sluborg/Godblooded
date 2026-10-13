@@ -1,3 +1,4 @@
+import { earn, newRecord } from './runstats';
 import { fledParty, fleeThreshold, newParty, pantheonOf, TRAITS } from './parties';
 import { revengeTarget } from './rivalry';
 import { aggroRange, dist, maxHp, speed, stepToward, tierValue, TICK_MS } from './units';
@@ -50,6 +51,7 @@ export function spawnHero(world: World, godId: string, pos: Vec2, temple = 0): n
   });
   world.unitRuntime.set(id, { lair: null, cooldownMs: 0, target: null, idleMs: 0 });
   world.heroRuntime.set(id, { dest: null, koMs: 0, temple });
+  world.heroRecords.set(id, newRecord());
   const hero = world.units[world.units.length - 1];
   hero.party = newParty(world, id);
   world.stats.heroesArrived++;
@@ -139,7 +141,7 @@ export function heroKnockedOut(world: World, unit: UnitState): void {
 
 export function payBounty(world: World, killer: number, gold: number): void {
   const hero = world.units.find((u) => u.id === killer && u.kind === 'hero');
-  if (hero) hero.gold += gold;
+  if (hero) earn(world, hero, gold);
 }
 
 // Moves a hero that is not fighting: explore, walk home, rest, shop.
@@ -303,7 +305,7 @@ export function runBounties(world: World): void {
       (u) => u.kind === 'hero' && !u.ko && dist(u.pos, flag.pos) <= t.claimRadius,
     );
     if (!hero || flagDanger(world, flag.pos) > 0) continue;
-    hero.gold += flag.gold;
+    earn(world, hero, flag.gold);
     world.bounties = world.bounties.filter((b) => b.id !== flag.id);
     world.events.push({ kind: 'bountyClaimed', bounty: flag.id, unit: hero.id, gold: flag.gold });
   }

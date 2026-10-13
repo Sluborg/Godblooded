@@ -104,6 +104,19 @@ export function validateAssets(root = '.') {
     if (r.border > 0) err(id, `${r.border} visible pixels on the image border (cut off?)`);
     if (r.keyLeft > r.visible * 0.005) err(id, `${r.keyLeft} pixels still in the key colour`);
     if (r.components > 3) warnings.push(`${id}: ${r.components} separate parts`);
+    // 9-slice insets (pixels of the shipped PNG): all four or none, leaving a middle.
+    const SLICE = ['sliceLeft', 'sliceRight', 'sliceTop', 'sliceBottom'];
+    const sliced = SLICE.filter((f) => row[f] !== undefined);
+    if (sliced.length > 0) {
+      if (sliced.length < 4) err(id, `${SLICE.join(', ')} go together`);
+      else if (SLICE.some((f) => !Number.isInteger(row[f]) || row[f] < 1))
+        err(id, 'slice insets must be whole pixels >= 1');
+      else if (
+        row.sliceLeft + row.sliceRight >= img.width ||
+        row.sliceTop + row.sliceBottom >= img.height
+      )
+        err(id, 'slice insets leave no middle');
+    }
   }
 
   // Every shipped PNG belongs to a manifest row.

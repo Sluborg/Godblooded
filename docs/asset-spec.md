@@ -12,6 +12,7 @@ concept sheets in `docs/concept/`); this is the technical contract.
 | Building | `bld_<type>_t<1-3>`                | `bld_temple_aesir_t3`           |
 | Terrain  | `ter_<name>`                       | `ter_grass_a`                   |
 | UI       | `ui_<name>`                        | `ui_flag_bounty`                |
+| Key art  | `art_<name>`                       | `art_splash`                    |
 
 Rig pieces (test, Lead's motion work): a unit id plus `_body` or `_arm`, and a `side` view
 (profile facing right), e.g. `hero_warrior_t1_side_arm`. See "Rig pieces" below.
@@ -85,6 +86,29 @@ feet as anchor for both, and on the arm row `pivotX`/`pivotY` (0..1 of the image
 shoulder, found as the top of the band where the arm touches the body. Rotate the arm sprite
 around that point.
 
+## Key art
+
+`art_<name>` (the splash, `art_splash`) is the one kind that is a **full painting**: no key
+colour, opaque edge to edge, framed for a 16:9 screen (the batch says how to frame it on a
+square or 3:2 canvas). It ships 1280 px wide to `public/assets/art/`, the crop to 16:9 done by
+Scene (cover-fit, centred). Pipeline and validator support for opaque art lands with the first
+upload (U3).
+
+## 9-slice (panels and buttons)
+
+UI pieces the game stretches (`ui_panel`, `ui_button`, `ui_button_pressed`,
+`ui_button_disabled`) are drawn for 9-slice: ornament only in the four corners (inside the outer
+15% of the shape), plain even edges, a flat even middle. On ship Art measures the corners on the
+shipped PNG and adds four integer fields to the row, in **shipped pixels**:
+
+- `sliceLeft`, `sliceRight`: width of the left and right column (corner art included)
+- `sliceTop`, `sliceBottom`: height of the top and bottom row
+
+Scene draws it with Phaser's NineSlice, whose arguments run left, right, top, bottom:
+`this.add.nineslice(x, y, id, undefined, w, h, row.sliceLeft, row.sliceRight, row.sliceTop,
+row.sliceBottom)`. The validator checks that all four are present together and leave a middle
+(left + right < width, top + bottom < height).
+
 ## Tiers
 
 | Tier | Reads as                                                                   |
@@ -122,6 +146,7 @@ shows a tougher monster by colour (tint) in code.
 
 - `kind`: `hero`, `mon`, `bld`, `ter` or `ui`. `tier` and `view` are `null` when the id has none.
 - Rig pieces add `part` (`body` or `arm`); arm rows add `pivotX`, `pivotY`.
+- 9-slice UI rows add `sliceLeft`, `sliceRight`, `sliceTop`, `sliceBottom` (pixels, see 9-slice).
 - Unit stills (hero and mon rows without `part`) must carry the strike and weapon points (all
   fractions 0..1 of the shipped picture):
   - `strike`: `chop`, `double`, `sweep`, `upward`, `thrust`, `smash`, `stomp`, `bolt` or `shot`

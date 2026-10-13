@@ -293,6 +293,42 @@ describe('strike fields', () => {
   });
 });
 
+describe('9-slice fields', () => {
+  // A temp repo with one shipped ui panel and the given extra manifest fields.
+  function errorsFor(extra) {
+    const root = mkdtempSync(join(tmpdir(), 'art-'));
+    mkdirSync(join(root, 'public/assets/ui'), { recursive: true });
+    const r = processImage(canvas(1024, MAGENTA, { x: 32, y: 32, w: 960, h: 960 }), 'ui_panel');
+    writePng(join(root, 'public/assets/ui/ui_panel.png'), r.image);
+    const row = {
+      id: 'ui_panel',
+      kind: 'ui',
+      tier: null,
+      view: null,
+      file: 'ui/ui_panel.png',
+      anchorX: r.anchorX,
+      anchorY: r.anchorY,
+      license: 'own',
+      source: 'T1',
+      ...extra,
+    };
+    writeFileSync(join(root, 'public/assets/manifest.json'), JSON.stringify({ assets: [row] }));
+    return validateAssets(root).errors;
+  }
+  const four = { sliceLeft: 30, sliceRight: 30, sliceTop: 30, sliceBottom: 30 };
+
+  it('accepts four whole-pixel insets that leave a middle', () => {
+    expect(errorsFor(four)).toEqual([]);
+    expect(errorsFor({})).toEqual([]);
+  });
+
+  it('rejects partial, fractional or oversized insets', () => {
+    expect(errorsFor({ sliceLeft: 30 }).join()).toMatch(/go together/);
+    expect(errorsFor({ ...four, sliceTop: 2.5 }).join()).toMatch(/whole pixels/);
+    expect(errorsFor({ ...four, sliceLeft: 200, sliceRight: 200 }).join()).toMatch(/no middle/);
+  });
+});
+
 describe('shipped assets', () => {
   it('manifest and PNGs match docs/asset-spec.md', () => {
     const { errors } = validateAssets();
