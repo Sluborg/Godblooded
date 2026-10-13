@@ -294,14 +294,34 @@ The bot run after the skill engine lands checks this with the per-fight records
 
 The 9 shipped plus these 6, all common or rare, no pantheon or skill cards in M2:
 
-| Id             | Name           | Family  | Rarity | Effect                                    |
-| -------------- | -------------- | ------- | ------ | ----------------------------------------- |
-| keen-mind      | Keen Mind      | stats   | common | +2 Int (needs a caster in the party)      |
-| giants-blood   | Giant's Blood  | stats   | rare   | +2 Str, +2 Sta, -1 Dex                    |
-| field-dressing | Field Dressing | sustain | common | rest 50% faster                           |
-| deep-pockets   | Deep Pockets   | sustain | rare   | +1 potion slot each                       |
-| oath-brothers  | Oath-Brothers  | nerve   | common | bonds grow twice as fast                  |
-| bounty-hunters | Bounty Hunters | nerve   | common | bounty flags look 50% richer to the party |
+| Id             | Name           | Family  | Rarity | Effect                                     |
+| -------------- | -------------- | ------- | ------ | ------------------------------------------ |
+| keen-mind      | Keen Mind      | stats   | common | +2 Int (needs a caster in the party)       |
+| giants-blood   | Giant's Blood  | stats   | rare   | +2 Str, +2 Sta, -1 Dex                     |
+| field-dressing | Field Dressing | sustain | common | rest 50% faster                            |
+| deep-pockets   | Deep Pockets   | sustain | rare   | +1 potion slot each                        |
+| tight-purse    | Tight Purse    | nerve   | common | knocked-out members lose half as much gold |
+| wolf-blood     | Wolf Blood     | nerve   | common | +25% damage while below 30% hp             |
+
+- **Tight Purse and Wolf Blood replace Oath-Brothers and Bounty Hunters in M2** (Lead,
+  2026-10-14): Sim has no key for bond growth or for how a flag looks, so those two wait for M3.
+  Both new cards use keys Sim reads today (`PassiveKeys`, cards feed `passivesFor`):
+
+```ts
+{ id: 'tight-purse', family: 'nerve', rarity: 'common', god: 'loki', pickTag: 'gold',
+  name: 'Tight Purse', text: 'Knocked-out members lose half as much gold',
+  effect: { keys: { koGoldLoss: 0.5 } } },
+{ id: 'wolf-blood', family: 'nerve', rarity: 'common', god: 'odin', pickTag: 'nerve',
+  name: 'Wolf Blood', text: '+25% damage while below 30% hp',
+  effect: { keys: { belowHp: { below: 0.3, stat: 'damage', amount: 0.25 } } } },
+```
+
+- **Tight Purse** is the M2 pool's only `pickTag: 'gold'` card, so a greedy leader has
+  something to look for (`cards.ts`, `wantedTags`). It multiplies with Freyja's passive
+  (`koGoldLoss: 0` for her mates), so it does nothing extra in a Freyja party. The key
+  multiplies the base loss (`tuning.combat.koGoldLoss` 0.25, `deaths.ts`): 25% becomes 12.5%.
+- **Wolf Blood** adds to the damage buff (`passiveBuff`, `strike.ts`), the same scale as a skill
+  buff (0.25 is +25%).
 
 ## 7. Proposed backlog rows
 

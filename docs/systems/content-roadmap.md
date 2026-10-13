@@ -45,10 +45,10 @@ milestone table in step. It places every spec in `docs/systems/` on milestones M
 
 ### Cards (`progression.md`)
 
-| Milestone | Content                                                                                                                    |
-| --------- | -------------------------------------------------------------------------------------------------------------------------- |
-| M2        | the 9 shipped + keen-mind, giants-blood, field-dressing, deep-pockets, oath-brothers, bounty-hunters (15), rarity by level |
-| M3        | skill cards (4), pantheon cards (9), last-stand, mending-bond, favour cards (12), level cap 8                              |
+| Milestone | Content                                                                                                                      |
+| --------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| M2        | the 9 shipped + keen-mind, giants-blood, field-dressing, deep-pockets, tight-purse, wolf-blood (15), rarity by level         |
+| M3        | skill cards (4), pantheon cards (9), oath-brothers, bounty-hunters, last-stand, mending-bond, favour cards (12), level cap 8 |
 
 ### Systems
 
