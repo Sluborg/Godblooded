@@ -1,4 +1,5 @@
 import { fledParty, fleeThreshold, newParty, pantheonOf, TRAITS } from './parties';
+import { revengeTarget } from './rivalry';
 import { aggroRange, dist, maxHp, speed, stepToward, tierValue, TICK_MS } from './units';
 import type { World } from './world';
 import type { Vec2, UnitState } from './types';
@@ -13,6 +14,8 @@ export interface HeroRuntime {
   bounty?: number;
   koMs: number;
   temple: number;
+  // Sworn revenge: the monster to hunt and when the oath runs out.
+  revenge?: { target: number; untilMs: number };
 }
 
 const tune = (world: World) => world.tuning.hero;
@@ -151,6 +154,13 @@ export function heroMove(world: World, unit: UnitState): void {
   };
   switch (unit.mode) {
     case 'explore': {
+      const avenger = revengeTarget(world, unit);
+      if (avenger) {
+        // An oath comes before the party and the flags.
+        rt.dest = avenger.pos;
+        step(rt.dest);
+        break;
+      }
       const lead = leaderOf(world, unit);
       const flag =
         rt.bounty === undefined ? undefined : world.bounties.find((b) => b.id === rt.bounty);

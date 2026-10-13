@@ -41,6 +41,11 @@ export const DEFAULT_TUNING: Tuning = {
     bondCap: 10,
     // Hp fraction a hero flees at before upgrades and personality.
     baseFlee: 0.3,
+    rivalBelow: -2,
+    argueRange: 200,
+    argueEveryMs: 20_000,
+    friendBond: 3,
+    revengeMs: 90_000,
   },
   monster: {
     wanderRadius: 160,

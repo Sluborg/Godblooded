@@ -1,3 +1,4 @@
+import { partiesHaveRivals, runRivalries } from './rivalry';
 import { dist, maxHp } from './units';
 import type { World } from './world';
 import type { Attributes, PathDef, PathState, TraitId, UnitState, UpgradeDef } from './types';
@@ -90,7 +91,7 @@ export function fleeThreshold(world: World, unit: UnitState): number {
 }
 
 const bondKey = (a: number, b: number) => (a < b ? `${a}:${b}` : `${b}:${a}`);
-const bond = (world: World, a: number, b: number) => world.bonds.get(bondKey(a, b)) ?? 0;
+export const bond = (world: World, a: number, b: number) => world.bonds.get(bondKey(a, b)) ?? 0;
 
 export function addBond(world: World, a: number, b: number, delta: number): void {
   const v = Math.max(-3, Math.min(tune(world).bondCap, bond(world, a, b) + delta));
@@ -309,6 +310,7 @@ export function fledParty(world: World, unit: UnitState): void {
 // member. Runs once a second.
 export function runParties(world: World): void {
   if (world.tick % tune(world).mergeEveryTicks !== 0) return;
+  runRivalries(world);
   const ids = [...world.parties.keys()].sort((a, b) => a - b);
   for (const id of ids) {
     const p = world.parties.get(id);
@@ -325,6 +327,7 @@ export function runParties(world: World): void {
       const b = world.parties.get(bId);
       if (!b || b.id <= a.id || !mergeable(world, b)) continue;
       if (a.members.length + b.members.length > tune(world).maxParty) continue;
+      if (partiesHaveRivals(world, a, b)) continue;
       const leaderB = world.units.find((u) => u.id === b.members[0]);
       const d = leaderB ? dist(leaderA.pos, leaderB.pos) : Infinity;
       if (d <= bestD) {

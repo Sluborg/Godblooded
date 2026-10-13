@@ -1,3 +1,4 @@
+import { avenge, revengeTarget, rivalPairs, vowRevenge } from './rivalry';
 import { swing } from './swing';
 import {
   attackBuilding,
@@ -101,6 +102,8 @@ export interface World {
   heroRuntime: Map<number, HeroRuntime>;
   templeNextMs: Map<number, number>;
   towerNextMs: Map<number, number>;
+  // When a pair of rivals may argue again, by pair key.
+  argueNextMs: Map<string, number>;
   tuning: Tuning;
   parties: Map<number, Party>;
   bonds: Map<string, number>;
@@ -129,6 +132,7 @@ export function createWorld(seed: number, data: GameData): World {
     heroRuntime: new Map(),
     templeNextMs: new Map(),
     towerNextMs: new Map(),
+    argueNextMs: new Map(),
     tuning: resolveTuning(data),
     parties: new Map(),
     bonds: new Map(),
@@ -322,6 +326,9 @@ function runUnits(world: World): void {
 // Nearest living enemy inside aggro range (and the leash, for monsters).
 function pickTarget(world: World, unit: UnitState, stats: Stats, home?: Vec2): UnitState | null {
   const reach = aggroRange(stats.attrs);
+  // A hero with a sworn enemy in sight goes for it first.
+  const sworn = unit.kind === 'hero' ? revengeTarget(world, unit) : undefined;
+  if (sworn && !sworn.ko && dist(unit.pos, sworn.pos) <= reach) return sworn;
   let best: UnitState | null = null;
   let bestD = Infinity;
   for (const other of world.units) {
@@ -402,6 +409,7 @@ function settleDeaths(world: World): void {
       heroKnockedOut(world, unit);
       world.stats.knockouts++;
       world.events.push({ kind: 'knockout', unit: unit.id, by });
+      vowRevenge(world, unit, by);
     } else {
       const mon = world.data.monsters?.find((m) => m.id === unit.type);
       const reward = tierValue(world.tuning.lair.rewardMult, unit.tier, 1);
@@ -409,6 +417,7 @@ function settleDeaths(world: World): void {
       const xp = Math.round((mon?.xp ?? 0) * reward);
       world.events.push({ kind: 'died', unit: unit.id, type: unit.type, by, bounty, xp });
       world.stats.monstersKilled++;
+      avenge(world, unit.id);
       payBounty(world, by, bounty);
       shareXp(world, by, xp);
     }
@@ -532,6 +541,7 @@ export function snapshot(world: World): Snapshot {
     lairs: world.lairs.map((l) => ({ ...l, pos: { ...l.pos } })),
     units: world.units.map((u) => ({ ...u, pos: { ...u.pos }, facing: { ...u.facing } })),
     bounties: world.bounties.map((b) => ({ ...b, pos: { ...b.pos } })),
+    rivals: rivalPairs(world),
     events,
   };
 }
