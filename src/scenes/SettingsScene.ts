@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { COLORS, GAME_HEIGHT, GAME_WIDTH } from '../config';
 import { makeButton, type Button } from '../ui/button';
+import { stepVolume } from '../ui/musicPlan';
 import { makePanel } from '../ui/panel';
 import { PARTY_COLORS, PARTY_COLORS_CB } from '../ui/partyLook';
 import { getSettings, updateSettings, type PaletteId, type Speed } from '../ui/settings';
@@ -18,6 +19,8 @@ export class SettingsScene extends Phaser.Scene {
   private speedButtons: Button[] = [];
   private paletteButtons: Button[] = [];
   private motion!: Button;
+  private musicText!: Phaser.GameObjects.Text;
+  private muteButton!: Button;
   private swatches!: Phaser.GameObjects.Graphics;
 
   constructor() {
@@ -34,26 +37,26 @@ export class SettingsScene extends Phaser.Scene {
       .text(cx, 70, 'Settings', { fontFamily: FONT, fontSize: '56px', color: '#f2c14e' })
       .setOrigin(0.5);
 
-    this.row(170, 'Default speed');
+    this.row(150, 'Default speed');
     SPEEDS.forEach((s, i) =>
       this.speedButtons.push(
-        makeButton(this, 640 + i * 150, 170, 130, 80, `${s}x`, () => {
+        makeButton(this, 640 + i * 150, 150, 130, 80, `${s}x`, () => {
           updateSettings({ speed: s });
           this.refresh();
         }),
       ),
     );
 
-    this.row(290, 'Reduced motion');
-    this.motion = makeButton(this, 640, 290, 280, 80, '', () => {
+    this.row(250, 'Reduced motion');
+    this.motion = makeButton(this, 640, 250, 280, 80, '', () => {
       updateSettings({ reducedMotion: !getSettings().reducedMotion });
       this.refresh();
     });
 
-    this.row(410, 'Party colours');
+    this.row(350, 'Party colours');
     PALETTES.forEach((p, i) =>
       this.paletteButtons.push(
-        makeButton(this, 640 + i * 230, 410, 210, 80, p.label, () => {
+        makeButton(this, 640 + i * 230, 350, 210, 80, p.label, () => {
           updateSettings({ palette: p.id });
           this.refresh();
         }),
@@ -61,7 +64,18 @@ export class SettingsScene extends Phaser.Scene {
     );
     this.swatches = this.add.graphics();
 
-    makeButton(this, cx, 640, 300, 90, 'Back', () => this.scene.stop());
+    this.row(520, 'Music');
+    makeButton(this, 560, 520, 90, 80, '-', () => this.nudgeMusic(-1));
+    this.musicText = this.add
+      .text(670, 520, '', { fontFamily: FONT, fontSize: '32px', color: COLORS.text })
+      .setOrigin(0.5);
+    makeButton(this, 780, 520, 90, 80, '+', () => this.nudgeMusic(1));
+    this.muteButton = makeButton(this, 960, 520, 200, 80, '', () => {
+      updateSettings({ musicMuted: !getSettings().musicMuted });
+      this.refresh();
+    });
+
+    makeButton(this, cx, 636, 300, 80, 'Back', () => this.scene.stop());
     this.refresh();
   }
 
@@ -71,8 +85,16 @@ export class SettingsScene extends Phaser.Scene {
       .setOrigin(0, 0.5);
   }
 
+  private nudgeMusic(dir: 1 | -1): void {
+    updateSettings({ musicVolume: stepVolume(getSettings().musicVolume, dir) });
+    this.refresh();
+  }
+
   private refresh(): void {
     const s = getSettings();
+    this.musicText.setText(`${Math.round(s.musicVolume * 100)}%`);
+    this.muteButton.setLabel(s.musicMuted ? 'Muted' : 'Mute');
+    this.muteButton.setActive(s.musicMuted);
     this.speedButtons.forEach((b, i) => b.setActive(SPEEDS[i] === s.speed));
     this.motion.setLabel(s.reducedMotion ? 'On' : 'Off');
     this.motion.setActive(s.reducedMotion);
@@ -80,8 +102,8 @@ export class SettingsScene extends Phaser.Scene {
     const colors = s.palette === 'colourblind' ? PARTY_COLORS_CB : PARTY_COLORS;
     this.swatches.clear();
     colors.forEach((c, i) => {
-      this.swatches.fillStyle(c, 1).fillCircle(400 + i * 68, 510, 24);
-      this.swatches.lineStyle(2, 0x000000, 0.6).strokeCircle(400 + i * 68, 510, 24);
+      this.swatches.fillStyle(c, 1).fillCircle(400 + i * 68, 430, 24);
+      this.swatches.lineStyle(2, 0x000000, 0.6).strokeCircle(400 + i * 68, 430, 24);
     });
   }
 }

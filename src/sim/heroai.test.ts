@@ -323,3 +323,28 @@ describe('defend', () => {
     expect(ev.some((e) => e.kind === 'defend')).toBe(false);
   });
 });
+
+describe('sealed boss lair', () => {
+  it('is never a hero goal while sealed', () => {
+    const w = createWorld(1, {
+      ...base,
+      monsters: [
+        ...(base.monsters ?? []),
+        {
+          id: 'wyrm',
+          attrs,
+          weapon: { baseAttackS: 2, range: 60 },
+          bounty: 1,
+          xp: 1,
+          boss: {},
+          hp: 500,
+        },
+      ],
+      lairs: [{ id: 'wyrm-nest', monster: 'wyrm', spawnS: 100_000, maxAlive: 0, hp: 1000 }],
+      lairSites: [{ lair: 'wyrm-nest', pos: { x: 700, y: 500 } }],
+    });
+    const h = hero(w);
+    run(w, 3_000);
+    expect(w.heroRuntime.get(h.id)?.goal?.kind).toBe('explore');
+  });
+});
