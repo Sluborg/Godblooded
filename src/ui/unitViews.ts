@@ -26,7 +26,7 @@ import { damageLook, MAX_FLOATS, typeTint, type FloatLook, type HitInfo } from '
 import { getSettings } from './settings';
 import { heroLabel, partyColor, partyRole, type PartyRole } from './partyLook';
 import { SpeechLimit } from './speechLimit';
-import { isSpeechEvent, pickLine, type SpeechKind } from './speechLines';
+import { BARK_META, barkRoll, isSpeechEvent, pickLine, type SpeechKind } from './speechLines';
 import { buildHeal, buildStrike, FxLayer, type Vec } from './strikeFx';
 import { ART_NOMINAL_PX, PLACEHOLDER, UNIT_HEIGHT, artCandidates, baseType } from './unitLook';
 
@@ -123,6 +123,7 @@ export class UnitView {
   private readonly hue: number;
   private readonly unitId: number;
   spoken = 0;
+  barkTries = 0;
 
   // motion state
   private x: number;
@@ -806,7 +807,7 @@ export class UnitViews {
   sync(
     units: readonly Readonly<UnitState>[],
     events: readonly SimEvent[],
-    timeMs: number,
+    _timeMs: number,
     dtMs: number,
     others: (id: number) => Vec2 | undefined = () => undefined,
     parties: readonly { id: number; members: readonly number[] }[] = [],
@@ -850,7 +851,7 @@ export class UnitViews {
       else if (e.kind === 'rider') this.views.get(e.target)?.setRider(e.rider);
       else if (e.kind === 'bossEmerged') this.onBossEmerged(e);
       else if (e.kind === 'enraged') this.onEnraged(e);
-      else if (isSpeechEvent(e)) this.onSpeech(e, timeMs);
+      else if (isSpeechEvent(e)) this.onSpeech(e);
       // Shopping speaks (above) and also pops its tax in gold.
       if (e.kind === 'shopped') this.onShopped(e);
     }
@@ -890,10 +891,17 @@ export class UnitViews {
   private speech = new SpeechLimit();
 
   // Heroes only, rationed by SpeechLimit (one bark in town per few seconds, one per hero per 30 s).
-  private onSpeech(e: Extract<SimEvent, { kind: SpeechKind }>, timeMs: number): void {
+  private onSpeech(e: Extract<SimEvent, { kind: SpeechKind }>): void {
     const view = this.views.get(e.unit);
     if (!view || !view.isHero) return;
-    if (!this.speech.allow(e.unit, timeMs)) return;
+    const meta = BARK_META[e.kind];
+    // Only heroes on screen speak; small events speak only some of the time.
+    const cam = this.scene.cameras.main.worldView;
+    if (!cam.contains(view.container.x, view.container.y)) return;
+    if (meta.chance < 1 && barkRoll(e.unit, view.barkTries++) >= meta.chance) return;
+    let live = 0;
+    for (const v of this.views.values()) if (v.hasBubble) live++;
+    if (!this.speech.allow(e.unit, this.scene.time.now, live, meta.priority)) return;
     view.say(pickLine(e.kind, e.unit, view.spoken++));
   }
 

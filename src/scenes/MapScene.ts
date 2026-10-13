@@ -15,13 +15,13 @@ import {
   type Vec2,
   type World,
 } from '../sim/api';
-import { clearSave, newSeed, readSave, writeSave } from '../ui/saveStore';
+import { clearSave, isNewerSave, newSeed, readSave, writeSave } from '../ui/saveStore';
 import { getSettings } from '../ui/settings';
 import { heroLabel, partyColor } from '../ui/partyLook';
 import { artCandidates } from '../ui/unitLook';
 import { UnitViews } from '../ui/unitViews';
 import { iconScale } from '../ui/icons';
-import { DECAL_DATA, lairDecal, lairPlate, townPatch } from '../ui/groundDecal';
+import { lairDecal, lairPlate, townPatch } from '../ui/groundDecal';
 import { buildingArtCandidates, buildingScale, lairArtCandidates } from '../ui/unitLook';
 import { ASSETS_KEY, type ManifestAsset } from '../ui/assets';
 import { OFFER_KEY, type LevelUpOffer } from './LevelUpScene';
@@ -88,6 +88,12 @@ export class MapScene extends Phaser.Scene {
         return loadWorld(readSave(), GRAYBOX);
       } catch (e) {
         if (!(e instanceof SaveError)) throw e;
+        if (isNewerSave(e)) {
+          // A newer game wrote it: play a fresh run here. The storage layer never clears or
+          // overwrites that save (storedIsNewer), so the newer client can still continue it.
+          this.registry.set('notice', 'This save is from a newer version. Reload to update.');
+          return createWorld(newSeed(), GRAYBOX);
+        }
         clearSave();
       }
     }
@@ -584,6 +590,23 @@ export class MapScene extends Phaser.Scene {
   // The building's picture (its tier, else tier 1) standing on its base, scaled to the plot; the
   // coloured square with the type name when the manifest has none.
   private makeBuilding(type: string, tier: number, pos: Vec2): Phaser.GameObjects.Container {
+    const view = this.makeBuildingView(type, tier, pos);
+    this.groundUnder(view, townPatch(this), pos);
+    return view;
+  }
+
+  // A decal on the ground layer (below every unit and building), positioned at `pos` and destroyed
+  // with its view: inside the depth-sorted view it would draw over units standing behind it.
+  private groundUnder(
+    view: Phaser.GameObjects.Container,
+    decal: Phaser.GameObjects.Graphics,
+    pos: Vec2,
+  ): void {
+    decal.setPosition(pos.x, pos.y).setDepth(0.5);
+    view.once(Phaser.GameObjects.Events.DESTROY, () => decal.destroy());
+  }
+
+  private makeBuildingView(type: string, tier: number, pos: Vec2): Phaser.GameObjects.Container {
     const art = buildingArtCandidates(type, tier).find((id) => this.textures.exists(id));
     if (art) {
       const row = (this.registry.get(ASSETS_KEY) as Map<string, ManifestAsset> | undefined)?.get(
@@ -593,7 +616,7 @@ export class MapScene extends Phaser.Scene {
       const k = buildingScale(img.width, img.height);
       img.setScale(k);
       return this.add
-        .container(pos.x, pos.y, [townPatch(this), img])
+        .container(pos.x, pos.y, [img])
         .setData('top', img.height * k)
         .setDepth(pos.y);
     }
@@ -613,15 +636,17 @@ export class MapScene extends Phaser.Scene {
         color: '#1a1410',
       })
       .setOrigin(0.5);
-    return this.add.container(pos.x, pos.y, [townPatch(this), body, label]).setDepth(pos.y);
+    return this.add.container(pos.x, pos.y, [body, label]).setDepth(pos.y);
   }
 
   // A lair: its picture (`bld_lair_<id>_t<tier>`, tier 1 as the fallback) standing on its base, a
   // boss lair larger; the dark dot with its name when Art has none.
   private makeLair(l: { type: string; tier: number; pos: Vec2; boss: boolean }) {
     const c = this.makeMarker(l.type, l.pos, 44, 0x2b1d33);
-    c.addAt(lairDecal(this, l.boss), 0);
-    c.add(lairPlate(this, l.type));
+    this.groundUnder(c, lairDecal(this, l.boss), l.pos);
+    const plate = lairPlate(this, l.type).setVisible(false);
+    c.add(plate);
+    c.setData('plate', plate);
     this.refreshLair(c, l.type, l.tier, l.boss);
     return c;
   }
@@ -642,10 +667,12 @@ export class MapScene extends Phaser.Scene {
     if (!img) {
       // The first picture replaces the placeholder dot and its name.
       for (const o of [...view.list])
-        if (o !== view.getData('bar') && !o.getData(DECAL_DATA)) o.destroy();
+        if (o !== view.getData('bar') && o !== view.getData('plate')) o.destroy();
       img = this.add.image(0, 0, art);
       view.add(img);
       view.setData('img', img);
+      // With the picture in, the red plate names the lair (the placeholder had its own label).
+      (view.getData('plate') as Phaser.GameObjects.Container | undefined)?.setVisible(true);
     } else img.setTexture(art);
     img.setOrigin(row?.anchorX ?? 0.5, row?.anchorY ?? 1);
     const k = buildingScale(img.width, img.height) * (boss ? 1.35 : 1);

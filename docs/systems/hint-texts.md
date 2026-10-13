@@ -35,7 +35,7 @@ first-time hints, and the few fixed lines around them.
 | 60    | b-bounty  | first monster seen by a hero | the monster    | M2  | Tap a monster to put a bounty on it. |                                          |
 | 70    | b-watch   | first `bountyPlaced`         | the flag       | M2  | Watch who goes for it.               | The greedy run. The cowards think twice. |
 | 80    | b-party   | first `partyFormed`          | a party member | M2  | Those who fight together stay so.    | Tap a hero to see the party.             |
-| 90    | b-levelup | first `levelUp`              | the cards      | M2  | They have grown.                     | Choose what the gods grant them.         |
+| 90    | b-levelup | first `upgradePicked`        | the party      | M2  | They have grown.                     | They chose what the gods grant them.     |
 
 ## 3. First-time hints
 

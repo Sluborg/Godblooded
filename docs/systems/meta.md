@@ -28,7 +28,7 @@ except settings (`src/ui/settings.ts`); the end screen reads `RunReport` (Sim 14
 
 - Earn Ichor per run: 10 per lair cleared, 5 per hero reaching tier 3, 30 for a win.
 - Spend on: unlocks (as A), plus permanent boosts: +50 start gold (3 ranks), temples 10%
-  cheaper (2 ranks), one card reroll per run, a fourth card in offers.
+  cheaper (2 ranks), a fourth card in party offers (more for the party to pick from).
 - Balance needs a moving target: the bot must assume a "typical" Ichor level, or runs get
   easier the longer one plays.
 
