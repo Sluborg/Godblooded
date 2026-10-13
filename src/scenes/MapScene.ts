@@ -83,6 +83,9 @@ export class MapScene extends Phaser.Scene {
         clearSave();
       }
     }
+    // Every fresh run (Play, Play again, Restart) drops the old checkpoint at once, so a reload
+    // before the first autosave cannot bring the abandoned run back.
+    clearSave();
     return createWorld(newSeed(), GRAYBOX);
   }
 
