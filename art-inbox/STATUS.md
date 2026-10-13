@@ -149,3 +149,5 @@ U3 | 2026-10-13T18:39:06.713Z | ui | started
 
 U3 | 2026-10-13T18:42:57.924Z | ui | art_splash | uploaded
 U3 full opaque landscape1536x1024 unchanged built-in PNG, required four references used. https://drive.google.com/file/d/1YD4T591-zMBSnCpIXH8M6BozbSGscvyf/view?usp=drivesdk . Metadata verified PNG MIME size folder. Five Godbloods face horde; stave town sunset troll minotaur draugr jackal harpies wyrm represented; no text or logo. Review: town and far-right harpy approach top crop boundary; heroes spread beyond lower-left third, some feet low near92% crop edge; Odin staff has blue magic glow. Good calm upper-middle sky. No crop resize conversion recompression.
+
+U4 | 2026-10-13T18:43:14.961Z | ui | started
