@@ -779,7 +779,7 @@
       "loudnessLufs": -16,
       "license": "own (Gemini, Stefan's account, 2026-10-13; title \"Throne of Ancient Stone\")",
       "source": "M1",
-      "note": "ends in a fade: loop with a ~2 s crossfade"
+      "note": "ends in a fade: loop with a ~2 s crossfade. Stefan's pick; it deviates from music-prompts.md prompt 10 (72 BPM, D minor, 120 s): later twins follow the prompt numbers, not this track"
     },
     {
       "id": "ui_button",
