@@ -74,7 +74,7 @@ export class TitleScene extends Phaser.Scene {
         .text(GAME_WIDTH - 16, GAME_HEIGHT - 40, formatArtDiag(diag), {
           fontFamily: 'monospace',
           fontSize: '16px',
-          color: diag.loaded < diag.expected ? '#ff9a8a' : COLORS.textMuted,
+          color: diag.loaded < diag.expected || diag.failed > 0 ? '#ff9a8a' : COLORS.textMuted,
         })
         .setOrigin(1, 1);
   }
