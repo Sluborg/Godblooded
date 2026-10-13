@@ -3,6 +3,7 @@ import { COLORS, GAME_WIDTH, MIN_TOUCH } from '../config';
 import { GRAYBOX, UPGRADES } from '../data/graybox';
 import { DEFAULT_TUNING, type BuildingState, type CommandResult } from '../sim/api';
 import { buildingEffect, buildingName, nextTierEffect } from '../ui/buildingInfo';
+import { RAISE_STEPS, flagLines, refundFor } from '../ui/flagCard';
 import { buildInfo, buildTap, type BuildInfo } from '../ui/buildMenu';
 import { formatClock } from '../ui/endReport';
 import { modeLabel, partyColor } from '../ui/partyLook';
@@ -465,6 +466,11 @@ export class HudScene extends Phaser.Scene {
       if (b) this.openBuildingPanel(map, b);
       return;
     }
+    if (tap.flag != null) {
+      this.panel.hide();
+      this.openFlagCard(map, tap.flag);
+      return;
+    }
     this.panel.hide();
     // A tap on bare ground while a menu is open dismisses it (a second tap places a bounty).
     if (this.menu.length > 0 && tap.plot === null && tap.target?.label === 'this spot') {
@@ -484,6 +490,35 @@ export class HudScene extends Phaser.Scene {
         })),
       );
     } else this.closeMenu();
+  }
+
+  // The flag card: how much the flag holds, who is heading for it, raise it or take it down.
+  private openFlagCard(map: MapScene, id: number): void {
+    const flag = map.snapshot.bounties.find((b) => b.id === id);
+    if (!flag) return;
+    const heading = map.snapshot.units.filter((u) => u.bounty === id).length;
+    const rate = DEFAULT_TUNING.bounty.cancelRefund;
+    const options: MenuOption[] = [
+      ...RAISE_STEPS.map((gold) => ({
+        label: `Raise\n+${gold} gold`,
+        cost: gold,
+        pick: () => {
+          const res = map.tryRaiseBounty(id, gold);
+          if (res.ok) this.openFlagCard(map, id);
+          else this.showToast(res.reason);
+        },
+      })),
+      {
+        label: `Cancel\n${refundFor(flag.gold, rate)} back`,
+        cost: 0,
+        pick: () => this.run(map.tryCancelBounty(id)),
+      },
+    ];
+    this.openMenu('Bounty flag', options, {
+      title: `Bounty flag  ·  ${flag.gold} gold`,
+      affordable: true,
+      lines: flagLines(flag.gold, heading, rate),
+    });
   }
 
   // Build menu: the first tap on an item shows what it does, the same item tapped again builds it,
