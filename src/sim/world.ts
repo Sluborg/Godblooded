@@ -138,7 +138,7 @@ export interface World {
   bonds: Map<string, number>;
   pendingDeaths: { victim: number; by: number }[];
   // Monsters that died lately, for `kill` skill triggers.
-  recentKills: { pos: Vec2; timeMs: number }[];
+  recentKills: { pos: Vec2; timeMs: number; by: number }[];
   nextRaidMs: number;
   stats: RunStats;
   bounties: BountyState[];
@@ -532,7 +532,7 @@ function settleDeaths(world: World): void {
       if (world.data.skills?.length) {
         const from = world.timeMs - world.tuning.skill.killWindowMs;
         world.recentKills = world.recentKills.filter((k) => k.timeMs >= from);
-        world.recentKills.push({ pos: { ...unit.pos }, timeMs: world.timeMs });
+        world.recentKills.push({ pos: { ...unit.pos }, timeMs: world.timeMs, by });
       }
       world.stats.monstersKilled++;
       avenge(world, unit.id);
