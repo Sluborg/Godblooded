@@ -42,13 +42,13 @@ armour: 6,
 // ranger
 armour: 3,
 // wizard
-armour: 0, spellMult: 0.8,
+armour: 0, spellMult: 1, // 0.8 in the first draft; Balance 2026-10-14
 // paladin
 armour: 10,
 // rogue
 armour: 3,
 // healer
-armour: 1, spellMult: 0.5,
+armour: 1, spellMult: 0.6, // 0.5 in the first draft; Balance 2026-10-14
 ```
 
 ### Gods (`GODS`, the Aesir four)
@@ -81,9 +81,9 @@ armour: 1, spellMult: 0.5,
   damageType: 'frost', attrs: [{ int: 1, wp: 1 }, { int: 2, wp: 2 }] },
 ```
 
-- Casters' path bonus gives `str` today because the wizard used Str as spell power before
-  `spellMult` existed. With spell power from Int, the Seer, Stormcaller and Flamebinder bonus
-  moves to `{ int: 2 }` / `{ int: 4 }` (decided 2026-10-13) in the balance pass.
+- **Caster paths give Int only** (decided 2026-10-13, in data since #169): the Seer,
+  Stormcaller and Flamebinder bonus is `{ int: 2 }` / `{ int: 4 }`, since spell power is Int
+  times `spellMult`.
 
 ## 3. Passives (paste when Sim ships PassiveDef)
 
@@ -97,8 +97,8 @@ thor:   { id: 'giant-bane', name: 'Giant-Bane', scope: 'self',
           keys: { vsTag: { giant: 1.3 } } },
 loki:   { id: 'slippery', name: 'Slippery', scope: 'self',
           keys: { firstHitMisses: true, dodge: 0.05 } },
-freyja: { id: 'chooser', name: 'Chooser of the Slain', scope: 'party', range: 300,
-          keys: { koGoldLoss: 0, koMult: 0.5 } },
+freyja: { id: 'chooser', name: 'Chooser of the Slain', scope: 'mates', range: 300,
+          keys: { koGoldLoss: 0, koMult: 0.667 } }, // mates revive 50% faster (paths-and-skills.md)
 ```
 
 ## 4. Skills (paste when Sim ships SkillDef, hooks and the decoy)
