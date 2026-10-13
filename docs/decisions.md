@@ -147,3 +147,9 @@ light, texture), crisp at device resolution. Paths are a natural evolution of th
 child: same face, hair, palette and silhouette, plus gear and effects; tier 3 is more of the
 same. Scene renders units from code parts (baked to an atlas); ChatGPT pictures in the same
 style replace them when they exist.
+
+## 2026-10-13 No art orders before Stefan's taste test
+
+Stefan: no ChatGPT art is ordered until he has said what he wants and likes. Every batch stays
+Draft until the A/B taste test results are written into `art-tasks/STYLE.md` and Stefan has seen
+the updated brief.
