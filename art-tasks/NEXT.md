@@ -5,6 +5,7 @@ Take the first **Ready** batch of **your track** that is not in the upload log; 
 
 | Batch | Track     | File     | What                                                                | Images | Status |
 | ----- | --------- | -------- | ------------------------------------------------------------------- | ------ | ------ |
+| S5    | heroes    | `S5.md`  | Style test: cartoon units from parts, temple, barrow (first)        | 8      | Ready  |
 | V1    | monsters  | `V1.md`  | Monster variants: draugr, harpy, jackal-man, minotaur -v2, -v3      | 8      | Done   |
 | A1    | heroes    | `A1.md`  | Aesir gods t1 (Odin, Thor, Loki, Freyja) and their 8 paths t2       | 12     | Done   |
 | A2    | heroes    | `A2.md`  | Aesir paths tier 3: the eight paths made divine (M2)                | 8      | Ready  |
