@@ -128,7 +128,12 @@ export function attackLair(
       bounty: tm.lairBounty,
     });
     shareXp(world, unit.id, tm.lairXp);
-    if ((world.data.lairSites?.length ?? 0) > 0 && world.lairs.length === 0) {
+    // A generated map is won by its boss lair; a fixed one when the last lair falls.
+    const won =
+      world.bossLair !== null
+        ? lair.id === world.bossLair
+        : (world.data.lairSites?.length ?? 0) > 0 && world.lairs.length === 0;
+    if (won) {
       world.status = 'won';
       world.events.push({ kind: 'won' });
     }
