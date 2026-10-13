@@ -3,6 +3,7 @@ import { runAutosave } from './save';
 import { generateMap } from './mapgen';
 import { buffOf, tauntOf, type UnitFx } from './effects';
 import { armourBonus, weaponPower } from './items';
+import { passiveRider } from './passives';
 import { everyNthOf, passiveAggroMult, passiveArmour } from './passives';
 import { noteFight } from './engage';
 import { runStatuses, slowOf, healMult, type UnitStatus } from './riders';
@@ -507,7 +508,11 @@ function fight(world: World, unit: UnitState, rt: UnitRuntime, stats: Stats, foe
     (area) => {
       if (boss) boss.rt.strikes++;
       if (cleave && area) cleaveStrike(world, unit, foe, stats, area);
-      else landStrike(world, unit, foe, attackStrike(stats, targetOf(world, foe)));
+      else {
+        const input = attackStrike(stats, targetOf(world, foe));
+        const rider = unit.kind === 'hero' ? passiveRider(world, unit) : undefined;
+        landStrike(world, unit, foe, rider ? { ...input, rider } : input);
+      }
       // A passive that adds effects to every nth strike.
       const nth = everyNthOf(world, unit);
       if (nth && foe.hp > 0) {
