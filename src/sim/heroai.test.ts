@@ -193,10 +193,37 @@ function party(w: W, n: number): UnitState[] {
   return heroes;
 }
 
+// Puts a tough monster next to the heroes and points their targets at it (they are in combat).
+function engage(w: W, heroes: UnitState[]): void {
+  const id = w.nextId++;
+  w.units.push({
+    id,
+    kind: 'monster',
+    type: 'draugr',
+    tier: 1,
+    god: null,
+    path: null,
+    pos: { x: 1700, y: 1500 },
+    facing: { x: 0, y: 1 },
+    hp: 1e9,
+    maxHp: 1e9,
+    target: null,
+    ko: false,
+    mode: 'wander',
+    party: 0,
+    trait: null,
+    gold: 0,
+    bounty: null,
+  });
+  w.unitRuntime.set(id, { lair: null, cooldownMs: 0, target: null, idleMs: 0 });
+  for (const h of heroes) h.target = id;
+}
+
 describe('party retreat', () => {
   it('half the fighting members below the line send everyone home together, with no bond lost', () => {
     const w = createWorld(1, base);
     const [a, b, c] = party(w, 3);
+    engage(w, [a, b, c]);
     a.hp = Math.floor(a.maxHp * 0.2);
     b.hp = Math.floor(b.maxHp * 0.2);
     const ev = run(w, 100);
@@ -210,7 +237,8 @@ describe('party retreat', () => {
 
   it('one hurt member of three is not enough', () => {
     const w = createWorld(1, base);
-    const [a, b] = party(w, 3);
+    const [a, b, c] = party(w, 3);
+    engage(w, [a, b, c]);
     a.hp = Math.floor(a.maxHp * 0.2);
     const ev = run(w, 100);
     expect(ev.some((e) => e.kind === 'partyRetreat')).toBe(false);
@@ -222,10 +250,11 @@ describe('party retreat', () => {
   it('a proud hero stays until 20% hp', () => {
     const w = createWorld(1, base);
     const [a, b, c] = party(w, 3);
+    engage(w, [a, b, c]);
     c.trait = 'proud';
     a.hp = Math.floor(a.maxHp * 0.2);
     b.hp = Math.floor(b.maxHp * 0.2);
-    c.hp = Math.floor(c.maxHp * 0.25);
+    c.hp = Math.floor(c.maxHp * 0.35);
     run(w, 100);
     expect(a.mode).toBe('return');
     expect(c.mode).toBe('explore');
@@ -273,11 +302,11 @@ describe('defend', () => {
     return w;
   };
 
-  it('a resting hero rejoins when a monster is within 400 of a building', () => {
+  it('a resting hero rejoins when a monster is inside the town (300 of the town hall)', () => {
     const w = withTown();
     const h = hero(w, 520, 500);
     h.mode = 'rest';
-    monster(w, 1000, 500);
+    monster(w, 650, 500);
     const ev = run(w, 200);
     expect(h.mode).not.toBe('rest');
     expect(ev.some((e) => e.kind === 'defend' && e.unit === h.id)).toBe(true);

@@ -134,13 +134,20 @@ function retreatParties(world: World): void {
   for (const party of world.parties.values()) {
     const fighting = party.members
       .map((id) => world.units.find((u) => u.id === id))
-      .filter((u): u is UnitState => !!u && !u.ko && u.mode === 'explore');
-    if (fighting.length < 2) continue;
+      .filter(
+        (u): u is UnitState =>
+          !!u &&
+          !u.ko &&
+          u.mode === 'explore' &&
+          u.target !== null &&
+          world.units.some((m) => m.id === u.target && m.kind === 'monster' && m.hp > 0),
+      );
+    if (fighting.length < world.tuning.party.retreatMinFighting) continue;
     const hurt = fighting.filter((u) => u.hp < u.maxHp * baseFleeOf(world, u)).length;
     if (hurt < Math.ceil(fighting.length * world.tuning.party.retreatShare)) continue;
     const going: number[] = [];
     for (const u of fighting) {
-      if (u.trait === 'proud' && u.hp >= u.maxHp * fleeThreshold(world, u)) continue;
+      if (u.trait === 'proud' && u.hp >= u.maxHp * world.tuning.party.proudRetreatAt) continue;
       if (drinksInsteadOfFleeing(world, u)) continue;
       const rt = world.heroRuntime.get(u.id);
       if (!rt) continue;
@@ -216,10 +223,11 @@ function finishShopping(unit: UnitState, rt: HeroRuntime): void {
 // A rested enough hero rejoins the fight when a monster comes within defendRange of a building.
 function defend(world: World, unit: UnitState, rt: HeroRuntime): void {
   if (unit.hp < unit.maxHp * world.tuning.town.defendHp) return;
+  // Only monsters inside the town call a resting hero back, not ones near an outlying building.
   const range = world.tuning.town.defendRange;
+  const hall = world.data.townHall;
   const threatened = world.units.some(
-    (m) =>
-      m.kind === 'monster' && m.hp > 0 && world.buildings.some((b) => dist(b.pos, m.pos) <= range),
+    (m) => m.kind === 'monster' && m.hp > 0 && dist(hall, m.pos) <= range,
   );
   if (!threatened) return;
   unit.mode = 'explore';

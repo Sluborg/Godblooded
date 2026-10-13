@@ -353,6 +353,8 @@ export interface PartyTuning {
   // Half of the party (rounded up) below baseFlee makes the whole party retreat together; a proud
   // hero holds on until this share of its hp.
   retreatShare: number;
+  // A party retreat needs at least this many members actually in combat.
+  retreatMinFighting: number;
   proudRetreatAt: number;
   // Rivalries: heroes whose bond is at or below this are rivals (bonds run from -3 up).
   rivalBelow: number;
@@ -687,7 +689,7 @@ export interface TownTuning {
   // Raids get one monster bigger per lair every this many ms.
   raidGrowEveryMs: number;
   // A resting hero at or above this hp fraction rejoins the fight when a monster comes within
-  // defendRange of a building.
+  // defendRange of the town hall.
   defendHp: number;
   defendRange: number;
 }
