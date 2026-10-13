@@ -1155,7 +1155,8 @@ export interface HeroReport {
 }
 
 export interface RunReport {
-  outcome: 'won' | 'lost';
+  // 'abandoned': the player quit a run that was still going (api.runReport).
+  outcome: 'won' | 'lost' | 'abandoned';
   timeMs: number;
   mvp: number | null;
   heroes: HeroReport[];
