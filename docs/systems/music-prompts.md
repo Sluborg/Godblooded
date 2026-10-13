@@ -62,6 +62,8 @@ midpoint, then eases back so the end flows into the start. No vocals, no sudden 
 
 ### 20 Aesir calm (`mus_aesir_calm`)
 
+Trim the chosen take to exactly 137.143 s (section 1), not the length the tool gives.
+
 ```text
 Nordic folk ambient, instrumental, 84 BPM, E Dorian, 4/4, 2 minutes 20 seconds, seamless loop.
 Chords, one per two bars: Em, C, D, Em, Em, G, D, Bm, repeating. Frame drum on a soft
@@ -71,6 +73,8 @@ the end flows straight into the start.
 ```
 
 ### 30 Aesir tension (`mus_aesir_tension`)
+
+Trim the chosen take to exactly 137.143 s (section 1), not the length the tool gives.
 
 ```text
 Nordic battle folk, instrumental, 84 BPM, E Dorian, 4/4, 2 minutes 20 seconds, seamless loop.
@@ -101,6 +105,8 @@ energy, no breakdowns, the end flows straight into the start.
 
 ### 60 Egyptian calm (`mus_egyptian_calm`)
 
+Trim the chosen take to exactly 128.0 s (section 1), not the length the tool gives.
+
 ```text
 Ancient Egyptian ambient, instrumental, 90 BPM, D Phrygian dominant (Hijaz), 4/4, 2 minutes
 10 seconds, seamless loop. Chords, one per two bars: D, Eb, D, Cm, D, Eb, Gm, D, repeating. Oud melody,
@@ -109,6 +115,8 @@ waking up. Calm and warm, no build-up, the end flows into the start.
 ```
 
 ### 70 Egyptian tension (`mus_egyptian_tension`)
+
+Trim the chosen take to exactly 128.0 s (section 1), not the length the tool gives.
 
 ```text
 Ancient Egyptian battle music, instrumental, 90 BPM, D Phrygian dominant (Hijaz), 4/4,
@@ -163,9 +171,10 @@ chord that fades. The town hall has fallen.
   switches. Peaks below -1 dB.
 - **Formats:** `.ogg` and `.m4a`, stereo, 44.1 kHz, about 96 kbps (`audio.md` section 4).
 - **File names:** the id plus the extension, for example `mus_aesir_calm.ogg`.
-- **For the manifest:** the tool's name, the date, that it was made on Stefan's account, and
-  the tool's licence terms for use in a game (check them once before the first file). Art adds
-  the row with `loopStartMs`, `loopEndMs`, `bpm` and `key` from section 1.
+- **For the manifest (required for every file, `CLAUDE.md`):** the licence (the tool's terms
+  must allow use in a game; no file ships without it) and the source: the tool's name, the
+  date, and that it was made on Stefan's account. Art adds the row with `loopStartMs`,
+  `loopEndMs`, `bpm` and `key` from section 1.
 
 ## 5. Proposed backlog rows
 
