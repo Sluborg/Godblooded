@@ -5,7 +5,15 @@ import { passiveAttrs } from './passives';
 import { partiesHaveRivals, runRivalries } from './rivalry';
 import { dist, maxHp } from './units';
 import type { World } from './world';
-import type { Attributes, PathDef, PathState, TraitId, UnitState, UpgradeDef } from './types';
+import type {
+  Attributes,
+  PartyIntent,
+  PathDef,
+  PathState,
+  TraitId,
+  UnitState,
+  UpgradeDef,
+} from './types';
 
 // Graybox parties, simplified and logged in docs/decisions.md. Every hero belongs to a party
 // from arrival (a party of one). Parties of level 1 merge when they meet; after the first
@@ -35,6 +43,8 @@ export interface Party {
   // Favor path card for one hero (see PartyState.pathOffer) and the heroes still waiting.
   pathOffer: { hero: number; options: string[] } | null;
   pathQueue: number[];
+  // The party's last announced intent (an `intent` event fires when it changes).
+  intent?: PartyIntent;
 }
 
 export const xpNext = (world: World, level: number) => tune(world).xpPerLevel * level;
@@ -86,13 +96,19 @@ export function effectiveAttrs(world: World, unit: UnitState, base: Attributes):
   return a;
 }
 
-// Hp percent below which a hero flees: the party's upgrade, scaled by personality.
-export function fleeThreshold(world: World, unit: UnitState): number {
+// The party's own flee line: the base, lowered by its upgrades, before personality.
+export function baseFleeOf(world: World, unit: UnitState): number {
   const party = world.parties.get(unit.party);
   let flee = tune(world).baseFlee;
   for (const up of upgradeDefs(world, party?.upgrades ?? [])) {
     if (up.effect.flee !== undefined) flee = Math.min(flee, up.effect.flee);
   }
+  return flee;
+}
+
+// Hp percent below which a hero flees: the party's upgrade, scaled by personality.
+export function fleeThreshold(world: World, unit: UnitState): number {
+  const flee = baseFleeOf(world, unit);
   if (unit.trait === 'brave') return flee * 0.67;
   if (unit.trait === 'coward') return flee * 1.5;
   return flee;

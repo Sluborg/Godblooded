@@ -200,7 +200,7 @@ describe('bounty flags', () => {
       });
       const id = spawnHero(w, 'warrior', { x: 700, y: 500 });
       heroOf(w, id).trait = trait;
-      command(w, { kind: 'placeBounty', pos: { x: 1100, y: 700 }, gold: 60 });
+      command(w, { kind: 'placeBounty', pos: { x: 1100, y: 700 }, gold: 100 });
       step(w, 1_100);
       return w.heroRuntime.get(id)?.bounty;
     };

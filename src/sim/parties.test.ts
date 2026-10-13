@@ -181,8 +181,9 @@ describe('level up', () => {
     ub.party = ua.party;
     party.members.push(b);
     addBond(w, a, b, 2);
-    ub.hp = 1;
-    ub.trait = 'loyal';
+    // A coward flees alone above the party's own line (30%), so only it loses trust.
+    ub.hp = Math.ceil(ub.maxHp * 0.4);
+    ub.trait = 'coward';
     step(w, 100);
     expect(ub.mode).toBe('return');
     expect(w.bonds.get(`${Math.min(a, b)}:${Math.max(a, b)}`)).toBe(1);

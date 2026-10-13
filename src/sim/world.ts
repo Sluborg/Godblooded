@@ -54,6 +54,9 @@ import {
   payBounty,
   runBounties,
   syncFlagView,
+  syncIntent,
+  adoptLair,
+  committedToFlag,
   runHeroes,
   runTemples,
   type HeroRuntime,
@@ -339,6 +342,7 @@ function runTick(world: World): void {
   runFavour(world);
   runParties(world);
   runUnits(world);
+  syncIntent(world);
   // Combat, heroes and the economy hook in here (Sim backlog 30 and up).
 }
 
@@ -544,9 +548,15 @@ function runUnits(world: World): void {
       fight(world, unit, rt, stats, foe);
     } else if (unit.kind === 'hero') {
       // A hero under oath goes for its monster, not for a lair on the way.
-      const lair = busy || revengeTarget(world, unit) ? null : pickLair(world, unit);
-      if (lair) attackLair(world, unit, rt, stats, lair);
-      else heroMove(world, unit);
+      // A hero committed to a flag does not drop it for a lair on the way (the lair competes by score).
+      const lair =
+        busy || revengeTarget(world, unit) || committedToFlag(world, unit)
+          ? null
+          : pickLair(world, unit);
+      if (lair) {
+        adoptLair(world, unit, lair);
+        attackLair(world, unit, rt, stats, lair);
+      } else heroMove(world, unit);
     } else if (rt.raid) {
       const b = nearestBuilding(world, unit.pos);
       if (b) attackBuilding(world, unit, rt, stats, b);
@@ -825,6 +835,30 @@ export function command(world: World, cmd: Command): CommandResult {
       world.events.push({ kind: 'bountyPlaced', bounty: id, gold: cmd.gold });
       return { ok: true, id };
     }
+    case 'cancelBounty': {
+      const flag = world.bounties.find((b) => b.id === cmd.bounty);
+      if (!flag) return { ok: false, reason: 'unknown bounty' };
+      world.bounties = world.bounties.filter((b) => b.id !== flag.id);
+      const refund = Math.floor(flag.gold * world.tuning.bounty.cancelRefund);
+      world.gold += refund;
+      world.events.push({ kind: 'bountyCancelled', bounty: flag.id, gold: flag.gold, refund });
+      return { ok: true, id: flag.id };
+    }
+    case 'raiseBounty': {
+      const flag = world.bounties.find((b) => b.id === cmd.bounty);
+      if (!flag) return { ok: false, reason: 'unknown bounty' };
+      if (!Number.isInteger(cmd.gold) || cmd.gold <= 0) return { ok: false, reason: 'bad amount' };
+      if (world.gold < cmd.gold) return { ok: false, reason: 'not enough gold' };
+      world.gold -= cmd.gold;
+      flag.gold += cmd.gold;
+      world.events.push({
+        kind: 'bountyRaised',
+        bounty: flag.id,
+        gold: cmd.gold,
+        total: flag.gold,
+      });
+      return { ok: true, id: flag.id };
+    }
   }
 }
 
@@ -862,6 +896,7 @@ export function snapshot(world: World): Snapshot {
       upgrades: [...p.upgrades],
       offer: p.offer ? [...p.offer] : null,
       pathOffer: p.pathOffer ? { hero: p.pathOffer.hero, options: [...p.pathOffer.options] } : null,
+      intent: p.intent ? { ...p.intent } : { kind: 'explore' },
     })),
     paths: pathStates(world),
     lairs: world.lairs.map((l) => ({ ...l, pos: { ...l.pos } })),

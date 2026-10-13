@@ -25,6 +25,7 @@ describe('sfxFor', () => {
   it('picks a hit sound by damage type, adds a crit crunch and keeps burn ticks silent', () => {
     expect(sfxFor(hit({ type: 'fire' }), ctx).map((r) => r.id)).toEqual(['sfx_hit_fire']);
     expect(sfxFor(hit({ crit: true }), ctx).map((r) => r.id)).toEqual(['sfx_hit_phys', 'sfx_crit']);
+    expect(sfxFor(hit({ crit: true }), ctx)[1].hit).toBeUndefined();
     expect(sfxFor(hit({ dodged: true }), ctx)[0].id).toBe('sfx_dodge');
     expect(sfxFor(hit({ tick: true }), ctx)).toEqual([]);
     expect(sfxFor(hit({ type: 'unheard-of' }), ctx)[0].id).toBe('sfx_hit_phys');
@@ -51,6 +52,12 @@ describe('sfxFor', () => {
     });
     expect(sfxFor(cast('known'), ctx)[0].id).toBe('sfx_skill_bolt');
     expect(sfxFor(cast('other'), ctx)).toEqual([]);
+  });
+  it('a card pick taps once (the button), an automatic pick taps itself', () => {
+    expect(sfxFor({ kind: 'upgradePicked', party: 1, upgrade: 'x' }, ctx)).toEqual([]);
+    expect(sfxFor({ kind: 'upgradePicked', party: 1, upgrade: 'x', auto: true }, ctx)).toHaveLength(
+      1,
+    );
   });
   it('silent events make no request', () => {
     expect(sfxFor({ kind: 'autosave' }, ctx)).toEqual([]);
@@ -94,6 +101,10 @@ describe('sfxFor', () => {
       { kind: 'revenge', hero: 1, target: 2, victim: 3 },
       { kind: 'avenged', hero: 1, target: 2 },
       { kind: 'fled', unit: 1 },
+      { kind: 'slain', unit: 1, by: 2, type: 'x', god: null, pos: P },
+      { kind: 'bountyRaised', bounty: 1, gold: 1, total: 2 },
+      { kind: 'bountyCancelled', bounty: 1, gold: 1, refund: 1 },
+      { kind: 'upgradePicked', party: 1, upgrade: 'x', auto: true },
       { kind: 'revived', unit: 1 },
     ];
     for (const e of events)

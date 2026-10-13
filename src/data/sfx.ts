@@ -1,4 +1,23 @@
-import type { SfxPreset, SfxVoice, Wave } from '../ui/sfxPlan';
+export type Wave = 'sine' | 'square' | 'saw' | 'tri' | 'noise';
+
+// One sound layer: a wave (or noise) that sweeps from `f` to `f2` Hz over `d` seconds with a
+// fast attack and an exponential fade. `at` delays its start; `lp` and `hp` filter it.
+export interface SfxVoice {
+  w: Wave;
+  f: number;
+  f2?: number;
+  d: number;
+  g: number;
+  a?: number;
+  at?: number;
+  lp?: number;
+  hp?: number;
+}
+
+export interface SfxPreset {
+  id: string;
+  voices: readonly SfxVoice[];
+}
 
 // Sound effect presets (docs/systems/audio.md section 2): small recipes for the Web Audio synth,
 // one per event. Data rows: tune the numbers, add a row for a new event. First pass by Scene,
@@ -79,6 +98,10 @@ export const SFX: readonly SfxPreset[] = [
       v('sine', 660, 0.3, 0.2, { to: 990 }),
       v('sine', 990, 0.3, 0.1, { to: 1320, at: 0.08 }),
     ],
+  },
+  {
+    id: 'sfx_slain',
+    voices: [v('sine', 90, 1.2, 0.5, { to: 45 }), v('noise', 0, 0.6, 0.2, { lp: 300 })],
   },
   {
     id: 'sfx_ko',

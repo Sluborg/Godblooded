@@ -1,29 +1,9 @@
+import type { SfxPreset } from '../data/sfx';
 import type { Vec2 } from '../sim/api';
 
 // Pure rules of the effect synth (docs/systems/audio.md section 3): the preset format, the wobble,
 // how loud a map sound is by where it happens, and the pile-up limits. No Web Audio here, so it
 // is unit-tested; the sound is made in sfxPlayer.ts.
-
-export type Wave = 'sine' | 'square' | 'saw' | 'tri' | 'noise';
-
-// One sound layer: a wave (or noise) that sweeps from `f` to `f2` Hz over `d` seconds with a
-// fast attack and an exponential fade. `at` delays its start; `lp` and `hp` filter it.
-export interface SfxVoice {
-  w: Wave;
-  f: number;
-  f2?: number;
-  d: number;
-  g: number;
-  a?: number;
-  at?: number;
-  lp?: number;
-  hp?: number;
-}
-
-export interface SfxPreset {
-  id: string;
-  voices: readonly SfxVoice[];
-}
 
 // How long a preset sounds, in seconds (its latest voice end).
 export function presetLength(p: SfxPreset): number {
@@ -69,7 +49,7 @@ interface Live {
 }
 
 // Pile-up limits: at most 4 copies of one preset at once, 60 ms between starts of one preset, and
-// at most 12 sounds at once (the quietest request is dropped unless it is high priority).
+// at most 12 sounds at once (further requests are refused unless they are high priority).
 export class SfxLimiter {
   private live: Live[] = [];
   private lastStart = new Map<string, number>();
@@ -86,11 +66,9 @@ export class SfxLimiter {
     const last = this.lastStart.get(id);
     if (!high && last !== undefined && nowMs - last < minGapMs) return false;
     if (!high && this.live.filter((l) => l.id === id).length >= MAX_COPIES) return false;
-    if (this.live.length >= MAX_LIVE) {
-      const quietest = this.live.reduce((m, l) => (l.gain < m.gain ? l : m), this.live[0]);
-      if (!high && gain <= quietest.gain) return false;
-      this.live.splice(this.live.indexOf(quietest), 1);
-    }
+    // Past 12 sounds a new request is refused (a sound that plays cannot be taken back); stings
+    // and horns always get in.
+    if (!high && this.live.length >= MAX_LIVE) return false;
     this.lastStart.set(id, nowMs);
     this.live.push({ id, until: nowMs + lenMs, gain });
     return true;

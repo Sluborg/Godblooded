@@ -1,16 +1,8 @@
 import Phaser from 'phaser';
-import { sfxPreset } from '../data/sfx';
+import { sfxPreset, type SfxPreset } from '../data/sfx';
 import type { SimEvent, Vec2 } from '../sim/api';
 import { sfxFor, type SfxCtx, type SfxRequest } from './sfxEvents';
-import {
-  SfxLimiter,
-  hitRateOk,
-  positionGain,
-  presetLength,
-  wobble,
-  type SfxPreset,
-  type ViewBox,
-} from './sfxPlan';
+import { SfxLimiter, hitRateOk, positionGain, presetLength, wobble, type ViewBox } from './sfxPlan';
 import { getSettings } from './settings';
 
 const REGISTRY_KEY = 'sfxPlayer';
@@ -41,6 +33,10 @@ export class SfxPlayer {
     const ctx = this.context();
     const preset = sfxPreset(req.id);
     if (!ctx || !preset) return;
+    // The game's own mute and volume (and an effects volume of 0) silence it too.
+    const sound = this.game.sound;
+    const level = getSettings().effectsVolume * (sound.mute ? 0 : sound.volume);
+    if (level <= 0) return;
     let gain = 1;
     if ('at' in req) {
       if (!req.at || !this.view) return;
@@ -52,7 +48,7 @@ export class SfxPlayer {
     const len = presetLength(preset) * 1000;
     if (!this.limiter.admit(req.id, now, len, gain, req.high, req.minGapMs)) return;
     const w = wobble(this.n++);
-    this.voice(ctx, preset, gain * w.vol * getSettings().effectsVolume, w.pitch);
+    this.voice(ctx, preset, gain * w.vol * level, w.pitch);
   }
 
   // Sound for a batch of Sim events.
@@ -128,7 +124,10 @@ export class SfxPlayer {
       env.connect(out);
       src.start(start);
       src.stop(end + 0.03);
-      src.onended = () => env.disconnect();
+      src.onended = () => {
+        src.disconnect();
+        env.disconnect();
+      };
     }
   }
 }
@@ -146,7 +145,15 @@ export function getSfx(scene: Phaser.Scene): SfxPlayer {
 // Remembers where units were last seen (a unit that died is gone from the next snapshot) and
 // answers the mapper's questions from the current snapshot.
 export class SfxFeed {
-  private readonly last = new Map<number, Vec2>();
+  // Positions in this snapshot and in the one before it (a unit that died is gone from the new
+  // one but its last place is still in the old one). A new run starts with `reset`.
+  private cur = new Map<number, Vec2>();
+  private prev = new Map<number, Vec2>();
+
+  reset(): void {
+    this.cur = new Map();
+    this.prev = new Map();
+  }
 
   ctx(
     units: readonly { id: number; pos: Vec2 }[],
@@ -154,12 +161,14 @@ export class SfxFeed {
     lairs: readonly { id: number; pos: Vec2 }[],
     skillVisual: (skill: string) => string | undefined,
   ): SfxCtx {
-    for (const u of units) this.last.set(u.id, u.pos);
+    this.prev = this.cur;
+    this.cur = new Map(units.map((u) => [u.id, u.pos]));
     const find = (list: readonly { id: number; pos: Vec2 }[], id: number): Vec2 | undefined =>
       list.find((x) => x.id === id)?.pos;
     return {
       // Hits can land on buildings and lairs too: ids are shared across all of them.
-      unitPos: (id) => this.last.get(id) ?? find(buildings, id) ?? find(lairs, id),
+      unitPos: (id) =>
+        this.cur.get(id) ?? this.prev.get(id) ?? find(buildings, id) ?? find(lairs, id),
       buildingPos: (id) => find(buildings, id),
       lairPos: (id) => find(lairs, id),
       skillVisual,

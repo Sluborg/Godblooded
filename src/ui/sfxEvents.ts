@@ -51,7 +51,8 @@ export function sfxFor(e: SimEvent, ctx: SfxCtx): SfxRequest[] {
       const at = ctx.unitPos(e.target);
       if (e.dodged) return [{ id: 'sfx_dodge', at, hit: true }];
       const out: SfxRequest[] = [{ id: HIT_BY_TYPE[e.type] ?? 'sfx_hit_phys', at, hit: true }];
-      if (e.crit) out.push({ id: 'sfx_crit', at, hit: true });
+      // The crunch rides on the hit: it is not thinned on its own at 4x.
+      if (e.crit) out.push({ id: 'sfx_crit', at });
       return out;
     }
     case 'heal':
@@ -68,6 +69,12 @@ export function sfxFor(e: SimEvent, ctx: SfxCtx): SfxRequest[] {
       return [{ id: 'sfx_upgrade', at: ctx.buildingPos(e.building) }];
     case 'bountyPlaced':
       return [{ id: 'sfx_coin_drop' }];
+    case 'bountyRaised':
+      return [{ id: 'sfx_coin_drop' }];
+    case 'bountyCancelled':
+      return [{ id: 'sfx_coin' }];
+    case 'slain':
+      return [{ id: 'sfx_slain', at: ctx.unitPos(e.unit) }];
     case 'bountyClaimed':
       return [{ id: 'sfx_coin', at: ctx.unitPos(e.unit) }];
     case 'shopped':
@@ -76,7 +83,8 @@ export function sfxFor(e: SimEvent, ctx: SfxCtx): SfxRequest[] {
     case 'pathOffer':
       return [{ id: 'sfx_levelup' }];
     case 'upgradePicked':
-      return [{ id: 'sfx_ui_tap' }];
+      // The card button already tapped; only an automatic pick has no button.
+      return e.auto ? [{ id: 'sfx_ui_tap' }] : [];
     case 'tierUp':
       return [{ id: 'sfx_tierup', at: ctx.unitPos(e.unit) }];
     case 'raid':

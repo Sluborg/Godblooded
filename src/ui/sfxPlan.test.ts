@@ -42,11 +42,11 @@ describe('SfxLimiter', () => {
     expect(l.admit('a', 500, 1000, 1)).toBe(false);
     expect(l.admit('a', 1100, 1000, 1)).toBe(true);
   });
-  it('caps all sounds at 12: a quieter request drops, a louder or high one gets in', () => {
+  it('caps all sounds at 12: more are refused, a high priority one gets in', () => {
     const l = new SfxLimiter();
     for (let i = 0; i < MAX_LIVE; i++) expect(l.admit(`s${i}`, 0, 5000, 0.5)).toBe(true);
     expect(l.admit('x', 10, 5000, 0.3)).toBe(false);
-    expect(l.admit('y', 10, 5000, 0.9)).toBe(true);
+    expect(l.admit('y', 10, 5000, 0.9)).toBe(false);
     expect(l.admit('horn', 10, 5000, 0.1, true)).toBe(true);
   });
 });

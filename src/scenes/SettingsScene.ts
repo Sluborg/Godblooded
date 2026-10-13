@@ -74,25 +74,25 @@ export class SettingsScene extends Phaser.Scene {
     );
     this.swatches = this.add.graphics();
 
-    this.row(470, 'Music');
-    makeButton(this, 560, 470, 90, 80, '-', () => this.nudgeMusic(-1));
+    this.row(450, 'Music');
+    makeButton(this, 560, 450, 90, 80, '-', () => this.nudgeMusic(-1));
     this.musicText = this.add
-      .text(670, 470, '', { fontFamily: FONT, fontSize: '32px', color: COLORS.text })
+      .text(670, 450, '', { fontFamily: FONT, fontSize: '32px', color: COLORS.text })
       .setOrigin(0.5);
-    makeButton(this, 780, 470, 90, 80, '+', () => this.nudgeMusic(1));
-    this.muteButton = makeButton(this, 960, 470, 200, 80, '', () => {
+    makeButton(this, 780, 450, 90, 80, '+', () => this.nudgeMusic(1));
+    this.muteButton = makeButton(this, 960, 450, 200, 80, '', () => {
       updateSettings({ musicMuted: !getSettings().musicMuted });
       this.refresh();
     });
 
-    this.row(555, 'Effects');
-    makeButton(this, 560, 555, 90, 80, '-', () => this.nudgeEffects(-1));
+    this.row(535, 'Effects');
+    makeButton(this, 560, 535, 90, 80, '-', () => this.nudgeEffects(-1));
     this.effectsText = this.add
-      .text(670, 555, '', { fontFamily: FONT, fontSize: '32px', color: COLORS.text })
+      .text(670, 535, '', { fontFamily: FONT, fontSize: '32px', color: COLORS.text })
       .setOrigin(0.5);
-    makeButton(this, 780, 555, 90, 80, '+', () => this.nudgeEffects(1));
+    makeButton(this, 780, 535, 90, 80, '+', () => this.nudgeEffects(1));
 
-    makeButton(this, cx, 645, 300, 80, 'Back', () => this.scene.stop());
+    makeButton(this, cx, 630, 300, 80, 'Back', () => this.scene.stop(), { sfx: 'sfx_ui_back' });
     this.refresh();
   }
 
