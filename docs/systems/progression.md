@@ -154,7 +154,8 @@ The bot reports these times (new run stats), so a balance pass can see which bea
 - **XP bar** under each party banner (thin, party colour).
 - **The picked card** rises over the party banner (`level-ups.md`) with its rarity frame
   colour (iron, bronze, gold) and family icon; a pantheon card shows the pantheon sigil.
-- **Lair tier-up** keeps today's event; Scene adds a short roar shake and the new colour.
+- **Lair tier-up** keeps today's event; Scene adds a short roar and the new colour (no screen
+  shake, decision 2026-10-14).
 - **Elites** have a gold edge and a bigger health bar.
 
 ## 6. Proposed data rows
@@ -182,11 +183,11 @@ The bot reports these times (new run stats), so a balance pass can see which bea
 
 ### Scene
 
-| Order | Row                                                          |
-| ----- | ------------------------------------------------------------ |
-| 10    | Party XP bar under the banner                                |
-| 20    | Card rarity frames and family icons on the picked card       |
-| 30    | Elite look: gold edge, bigger health bar; lair tier-up shake |
+| Order | Row                                                         |
+| ----- | ----------------------------------------------------------- |
+| 10    | Party XP bar under the banner                               |
+| 20    | Card rarity frames and family icons on the picked card      |
+| 30    | Elite look: gold edge, bigger health bar; lair tier-up roar |
 
 ### Art
 
