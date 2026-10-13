@@ -34,7 +34,7 @@ Take the first **Ready** batch of **your track** that is not in the upload log; 
 | B10   | buildings | `B10.md` | Monster lairs tier 1: all six types (wyrm nest is the boss)         | 6      | Done   |
 | B11   | buildings | `B11.md` | Ground tiles (5, seamless) and map props (7)                        | 12     | Ready  |
 | B15   | buildings | `B15.md` | Buildings tier 1 in the new look: all eight (redraw)                | 8      | Ready  |
-| B17   | buildings | `B17.md` | Lairs tier 1 in the new look, on corrupted ground (redraw)          | 6      | Ready  |
+| B17   | buildings | `B17.md` | Lairs tier 1 in the new look (redraw)                               | 6      | Ready  |
 | B13   | buildings | `B13.md` | Map markers: build plot and bounty flag (M2)                        | 2      | Ready  |
 | B16   | buildings | `B16.md` | Buildings tier 2 in the new look: all eight (after B15)             | 8      | Draft  |
 | B14   | buildings | `B14.md` | Buildings tier 3: all eight (after B16)                             | 8      | Draft  |
