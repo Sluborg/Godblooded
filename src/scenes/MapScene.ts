@@ -4,6 +4,9 @@ import { GRAYBOX } from '../data/graybox';
 import {
   command,
   createWorld,
+  loadWorld,
+  saveWorld,
+  SaveError,
   snapshot,
   step,
   type CommandResult,
@@ -12,6 +15,7 @@ import {
   type Vec2,
   type World,
 } from '../sim/api';
+import { clearSave, newSeed, readSave, writeSave } from '../ui/saveStore';
 import { getSettings } from '../ui/settings';
 import { heroLabel, partyColor } from '../ui/partyLook';
 import { UnitViews } from '../ui/unitViews';
@@ -66,9 +70,30 @@ export class MapScene extends Phaser.Scene {
     super('Map');
   }
 
+  // A new run (fresh seed) or, when Continue asked for it, the saved one. A save that cannot be
+  // loaded (damaged, from a newer game) is dropped and a new run starts.
+  private startWorld(): World {
+    const wantSave = this.registry.get('startMode') === 'continue';
+    this.registry.set('startMode', 'new');
+    if (wantSave) {
+      try {
+        return loadWorld(readSave(), GRAYBOX);
+      } catch (e) {
+        if (!(e instanceof SaveError)) throw e;
+        clearSave();
+      }
+    }
+    return createWorld(newSeed(), GRAYBOX);
+  }
+
+  // Writes the run to storage (autosave, and when the player quits to the title).
+  saveNow(): void {
+    if (this.snap.status === 'running') writeSave(saveWorld(this.world));
+  }
+
   create(): void {
     const { width, height } = GRAYBOX.map;
-    this.world = createWorld(1, GRAYBOX);
+    this.world = this.startWorld();
     this.registry.set('speed', getSettings().speed);
     const cam = this.cameras.main;
     const minZoom = Math.max(GAME_WIDTH / width, GAME_HEIGHT / height);
@@ -102,6 +127,8 @@ export class MapScene extends Phaser.Scene {
     const speed = (this.registry.get('speed') as number) ?? 1;
     step(this.world, deltaMs * speed);
     this.snap = snapshot(this.world);
+    if (this.snap.events.some((e) => e.kind === 'autosave')) this.saveNow();
+    if (this.snap.status !== 'running') clearSave();
     this.registry.set('gold', this.snap.gold);
     this.registry.set('timeMs', this.snap.timeMs);
     this.registry.set('status', this.snap.status);
