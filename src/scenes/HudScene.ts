@@ -68,6 +68,7 @@ export class HudScene extends Phaser.Scene {
       );
       this.speedButtons.push(b);
     });
+    makeButton(this, 890, 40, 110, MIN_TOUCH, 'Menu', () => this.openPause());
     this.refreshSpeed();
     this.toast = this.add
       .text(GAME_WIDTH / 2, 640, '', {
@@ -181,6 +182,13 @@ export class HudScene extends Phaser.Scene {
   private playAgain(): void {
     this.scene.stop();
     this.scene.get('Map').scene.restart();
+  }
+
+  // Freeze the map and open the pause menu over it.
+  private openPause(): void {
+    if (this.registry.get('modal') === true || this.scene.isActive('Pause')) return;
+    this.scene.pause('Map');
+    this.scene.launch('Pause');
   }
 
   private refreshSpeed(): void {
