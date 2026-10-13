@@ -15,6 +15,8 @@ export interface BuildingDef {
   // Gold for tier 2 and tier 3 (index = current tier - 1). Missing: the building's cost times
   // tuning.building.upgradeCostMult.
   upgradeCost?: readonly number[];
+  // One plain line for the build menu and tooltips (Design, buildings.md). Display only.
+  text?: string;
 }
 
 // A god: heroes are children of a god, called by a temple of its pantheon. `template` is the
@@ -136,6 +138,8 @@ export interface MonsterDef {
   // A boss: one unit per final lair (docs/systems/combat.md section 7). The object overrides
   // tuning.boss for this boss; `{}` takes the defaults.
   boss?: Partial<BossTuning>;
+  // Boss only: its signature move, which replaces the generic cleave (monsters-and-bosses.md 3).
+  move?: BossMove;
   // Boss only: its own hit points instead of Sta * 8 + Str * 4 (scaled by lair tier).
   hp?: number;
   // How it behaves (docs/systems/monsters-and-bosses.md section 1); missing is a brute.
@@ -168,14 +172,17 @@ export interface RoleTuning {
   harrierHealPctS: number;
   harrierReturnHp: number;
   // Charger: charges a hero chargeMin to chargeMax away at chargeSpeedMult x its speed; the
-  // first strike is chargeMult x with a knockback of chargeKnockback; it charges again after
-  // chargeCooldownMs. A charging raider's buildings hits are buildingMult x.
+  // first strike is chargeMult x with a knockback of chargeKnockback, and it charges once per
+  // fight (again after chargeResetMs without a foe). A charger's hits on buildings are
+  // buildingMult x.
   chargeMin: number;
   chargeMax: number;
   chargeSpeedMult: number;
   chargeMult: number;
   chargeKnockback: number;
-  chargeCooldownMs: number;
+  chargeResetMs: number;
+  // The charge is announced this long before it starts (event windup).
+  chargeWindupMs: number;
   buildingMult: number;
   // Pack: +packBonus damage per other pack mate within packRadius, at most packMax.
   packBonus: number;
@@ -189,6 +196,33 @@ export interface RoleTuning {
   swarmRaidHpMult: number;
   swarmSplitShare: number;
   raidSpeedMult: number;
+}
+
+// A boss's signature move. Only the breath so far (Fafnir); the others arrive as rows of the same
+// shape.
+export interface BossMove {
+  // Fire Breath: every everyN-th strike (enragedEveryN once enraged) is a cone in front of the
+  // boss: range, a full angle in degrees, mult x its strike, of a type with an optional rider.
+  // It is announced windupMs ahead, cannot be dodged, and hits every hero inside the cone.
+  breath?: {
+    everyN: number;
+    enragedEveryN: number;
+    range: number;
+    angleDeg: number;
+    mult: number;
+    type: DamageType;
+    rider?: RiderId;
+    windupMs: number;
+  };
+}
+
+// A cone on the ground a strike hits, fixed when the windup starts.
+export interface ConeArea {
+  from: Vec2;
+  // Unit vector the cone opens along.
+  dir: Vec2;
+  range: number;
+  angleDeg: number;
 }
 
 // Boss numbers. Defaults in tuning.boss; a MonsterDef.boss row can override any of them.
@@ -805,9 +839,10 @@ export interface TownTuning {
   // Raids get one monster bigger per lair every this many ms.
   raidGrowEveryMs: number;
   // A resting hero at or above this hp fraction rejoins the fight when a monster comes within
-  // defendRange of the town hall.
+  // defendRange of the town hall or defendBuildingRange of any building.
   defendHp: number;
   defendRange: number;
+  defendBuildingRange: number;
   // A raid is announced this long before it arrives (event raidWarning), and a tower of tier 2
   // or more in town gives the warning towerWarnAddMs earlier still.
   raidWarnMs: number;
@@ -1107,6 +1142,8 @@ export type SimEvent =
       inMs: number;
       // A cleave: the ground marker Scene draws until the strike lands.
       area?: { x: number; y: number; r: number };
+      // A breath: the cone Scene draws until the strike lands.
+      cone?: ConeArea;
     }
   | { kind: 'bossEmerged'; unit: number; lair: number }
   | { kind: 'enraged'; unit: number }
@@ -1160,6 +1197,8 @@ export type SimEvent =
     }
   | { kind: 'tierUp'; unit: number; tier: number; path: string | null }
   | { kind: 'pathOffer'; party: number; hero: number; options: string[] }
+  // A hero saw a kind of monster or lair for the first time this run (hints, barks).
+  | { kind: 'discovered'; what: 'monster' | 'lair'; type: string; unit: number; pos: Vec2 }
   // A charger starts its charge toward `to`.
   | { kind: 'charge'; unit: number; to: Vec2 }
   // A swarm splits into two halves.
@@ -1292,7 +1331,8 @@ export interface HeroReport {
 }
 
 export interface RunReport {
-  outcome: 'won' | 'lost';
+  // 'abandoned': the player quit a run that was still going (api.runReport).
+  outcome: 'won' | 'lost' | 'abandoned';
   timeMs: number;
   mvp: number | null;
   heroes: HeroReport[];

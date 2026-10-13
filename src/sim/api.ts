@@ -1,6 +1,7 @@
 // The only module Scene imports from src/sim/. Changing it: message Scene first.
 export { createWorld, step, command, snapshot, TICK_MS } from './world';
 export { DEFAULT_TUNING } from './tuning';
+export { runReport } from './runstats';
 export { loadWorld, migrateSave, saveWorld, SAVE_VERSION, SaveError } from './save';
 export type { SaveGame } from './save';
 export type { World } from './world';

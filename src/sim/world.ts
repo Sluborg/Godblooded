@@ -15,6 +15,8 @@ import {
   prefersWeakest,
   raidSpeedMult,
   rewardShare,
+  raidBuilding,
+  raidChase,
   roleTurn,
   splitSwarm,
 } from './roles';
@@ -28,6 +30,7 @@ import { swing, type Area } from './swing';
 import {
   bossNumbers,
   bossSealed,
+  breathStrike,
   cleaveStrike,
   isBoss,
   runBosses,
@@ -39,7 +42,6 @@ import { buildReport, sampleGold, tally, type HeroRecord } from './runstats';
 import {
   attackBuilding,
   attackLair,
-  nearestBuilding,
   pickLair,
   planTierRaid,
   runRaids,
@@ -85,6 +87,7 @@ import {
 } from './units';
 import type {
   BountyState,
+  ConeArea,
   SkillEffect,
   GraveState,
   BuildingCore,
@@ -126,7 +129,8 @@ export interface UnitRuntime {
   // runs and the time left) and when it may charge again, a swarm half (cannot split again).
   retreat?: boolean;
   healAcc?: number;
-  charge?: { dir: Vec2; ms: number };
+  charge?: { dir: Vec2; ms: number; windupMs: number };
+  charged?: boolean;
   chargeCdMs?: number;
   half?: boolean;
   // Quirks: regrowth paused until this time (ms), hp not yet whole, gold snatched so far.
@@ -136,7 +140,7 @@ export interface UnitRuntime {
   // The raid it belongs to (a raid is beaten when none of its raiders is left).
   raidId?: number;
   // A strike in its windup: the target and the time left before it lands.
-  swing?: { target: number; ms: number; area?: Area };
+  swing?: { target: number; ms: number; area?: Area; cone?: ConeArea };
   cooldownMs: number;
   target: Vec2 | null;
   idleMs: number;
@@ -192,6 +196,8 @@ export interface World {
   pendingDeaths: { victim: number; by: number }[];
   // Where heroes were slain.
   graves: GraveState[];
+  // Monster and lair types a hero has already seen (the `discovered` event fires once each).
+  seen: string[];
   // God favour bars by pantheon, and the miracle steps still to run (the landing, spread strikes).
   favour: Record<string, number>;
   miracleSteps: { atMs: number; id: string; pos: Vec2; by: number; effect: number | null }[];
@@ -250,6 +256,7 @@ export function createWorld(seed: number, data: GameData): World {
     bonds: new Map(),
     pendingDeaths: [],
     graves: [],
+    seen: [],
     favour: {},
     miracleSteps: [],
     recentKills: [],
@@ -563,6 +570,7 @@ function runUnits(world: World): void {
     const ally = busy ? null : healTarget(world, unit);
     const foe = busy || ally ? null : pickTarget(world, unit, stats, home?.pos);
     unit.target = ally ? ally.id : foe ? foe.id : null;
+    if (unit.kind === 'hero' && foe) noteSeen(world, unit, 'monster', foe.type, foe.pos);
     // A monster's role may take its turn (a harrier running home, a charger charging).
     if (unit.kind === 'monster' && roleTurn(world, unit, rt, stats, foe)) continue;
     // A hero with a skill ready casts instead of its next strike or step.
@@ -595,11 +603,19 @@ function runUnits(world: World): void {
           : pickLair(world, unit);
       if (lair) {
         adoptLair(world, unit, lair);
+        noteSeen(world, unit, 'lair', lair.type, lair.pos);
         attackLair(world, unit, rt, stats, lair);
       } else heroMove(world, unit);
     } else if (rt.raid) {
-      const b = nearestBuilding(world, unit.pos);
-      if (b) attackBuilding(world, unit, rt, stats, b);
+      const chase = raidChase(world, unit);
+      if (chase) {
+        // A harrier raider heads for a resting hero; its aggro picks the target once close.
+        const dir = stepToward(unit.pos, chase, (speedOf(stats) * TICK_MS) / 1000);
+        if (dir.x !== 0 || dir.y !== 0) unit.facing = dir;
+      } else {
+        const b = raidBuilding(world, unit);
+        if (b) attackBuilding(world, unit, rt, stats, b);
+      }
     } else if (home) {
       wander(world, unit, rt, stats, home.pos);
     }
@@ -634,7 +650,7 @@ function pickTarget(world: World, unit: UnitState, stats: Stats, home?: Vec2): U
     const d = dist(unit.pos, other.pos);
     if (d > reach) continue;
     // A harrier picks the weakest hero in reach, anything else the nearest.
-    const score = weakest && other.kind === 'hero' ? other.hp : d;
+    const score = weakest ? other.hp : d;
     if (score >= bestD) continue;
     if (home && dist(home, other.pos) > world.tuning.monster.leash) continue;
     best = other;
@@ -691,16 +707,37 @@ function fight(world: World, unit: UnitState, rt: UnitRuntime, stats: Stats, foe
   const mon = rt.boss ? world.data.monsters?.find((m) => m.id === unit.type) : undefined;
   const boss = mon && rt.boss ? { n: bossNumbers(world, mon), rt: rt.boss } : undefined;
   // Every cleaveEvery-th strike of a boss is a cleave: long windup, a marked ground area.
-  const cleave = boss && (boss.rt.strikes + 1) % boss.n.cleaveEvery === 0;
+  const breath = mon?.move?.breath;
+  const cleave = boss && !breath && (boss.rt.strikes + 1) % boss.n.cleaveEvery === 0;
+  // A boss with a Fire Breath breathes every everyN-th strike (enragedEveryN once enraged).
+  const breathing =
+    boss &&
+    breath &&
+    (boss.rt.strikes + 1) % Math.max(1, boss.rt.enraged ? breath.enragedEveryN : breath.everyN) ===
+      0;
+  const cone: ConeArea | undefined =
+    breathing && breath
+      ? {
+          from: { x: unit.pos.x, y: unit.pos.y },
+          // On top of the target there is no direction to aim: use the way the boss faces.
+          dir:
+            d > 0
+              ? { x: (foe.pos.x - unit.pos.x) / d, y: (foe.pos.y - unit.pos.y) / d }
+              : { ...unit.facing },
+          range: breath.range,
+          angleDeg: breath.angleDeg,
+        }
+      : undefined;
   swing(
     world,
     unit,
     rt,
     stats,
     foe.id,
-    (area) => {
+    (area, hitCone) => {
       if (boss) boss.rt.strikes++;
-      if (cleave && area) cleaveStrike(world, unit, foe, stats, area);
+      if (hitCone && breath) breathStrike(world, unit, stats, hitCone, breath);
+      else if (cleave && area) cleaveStrike(world, unit, foe, stats, area);
       else {
         const input = attackStrike(stats, targetOf(world, foe));
         const rider = unit.kind === 'hero' ? passiveRider(world, unit) : undefined;
@@ -720,12 +757,14 @@ function fight(world: World, unit: UnitState, rt: UnitRuntime, stats: Stats, foe
         }
       }
     },
-    cleave && boss
-      ? {
-          windupMs: boss.n.cleaveWindupMs,
-          area: { x: foe.pos.x, y: foe.pos.y, r: boss.n.cleaveRadius },
-        }
-      : undefined,
+    cone && breath
+      ? { windupMs: breath.windupMs, cone }
+      : cleave && boss
+        ? {
+            windupMs: boss.n.cleaveWindupMs,
+            area: { x: foe.pos.x, y: foe.pos.y, r: boss.n.cleaveRadius },
+          }
+        : undefined,
   );
 }
 
@@ -813,6 +852,20 @@ function settleDeaths(world: World): void {
     if (gone) world.unitRuntime.delete(u.id);
     return !gone;
   });
+}
+
+// The first time a hero sees a kind of monster or lair, the world says so once (hint triggers).
+function noteSeen(
+  world: World,
+  hero: UnitState,
+  what: 'monster' | 'lair',
+  type: string,
+  pos: Vec2,
+): void {
+  const key = `${what}:${type}`;
+  if (world.seen.includes(key)) return;
+  world.seen.push(key);
+  world.events.push({ kind: 'discovered', what, type, unit: hero.id, pos: { ...pos } });
 }
 
 function flies(world: World, unit: UnitState): boolean {

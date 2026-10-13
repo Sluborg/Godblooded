@@ -14,6 +14,7 @@ import { earn, tally } from './runstats';
 import { attackStrike, hitEvent, resolveStrike } from './strike';
 import { swing } from './swing';
 import { lairProtected, lairSealed } from './boss';
+import { buildingDamageMult } from './roles';
 import { addFavour, partyPantheons } from './favour';
 import { grantLairRelic } from './relic';
 import { targetOf, type UnitRuntime, type World } from './world';
@@ -64,6 +65,7 @@ export function attackBuilding(
   }
   swing(world, unit, rt, stats, b.id, () => {
     const hit = resolveStrike(world, { ...attackStrike(stats), vsBuilding: true });
+    hit.damage = Math.max(1, Math.round(hit.damage * buildingDamageMult(world, unit)));
     const dmg = hit.damage;
     b.hp -= dmg;
     world.events.push(hitEvent(unit.id, b.id, hit));
@@ -224,9 +226,18 @@ function launchRaid(world: World, plan: { id: number; lair: number; size: number
   // A boss lair raids with its escort, never with clones of the boss.
   const mon = world.data.monsters?.find((m) => m.id === (def?.escort ?? def?.monster));
   if (!def || !mon || mon.boss) return;
-  for (let i = 0; i < plan.size; i++) {
+  // A swarm raid has twice as many, each with half the hp.
+  const swarm = mon.role === 'swarm';
+  const count = swarm ? Math.round(plan.size * world.tuning.role.swarmRaidMult) : plan.size;
+  const hpMult = swarm ? world.tuning.role.swarmRaidHpMult : 1;
+  for (let i = 0; i < count; i++) {
     const id = world.nextId++;
-    const hp = maxHp(scaleAttrs(mon.attrs, tierValue(world.tuning.lair.statMult, lair.tier, 1)));
+    const hp = Math.max(
+      1,
+      Math.round(
+        maxHp(scaleAttrs(mon.attrs, tierValue(world.tuning.lair.statMult, lair.tier, 1))) * hpMult,
+      ),
+    );
     world.units.push({
       id,
       kind: 'monster',

@@ -49,7 +49,12 @@ export function sampleGold(world: World): void {
 
 // The end screen numbers; null while the run is still going.
 export function buildReport(world: World): RunReport | null {
-  if (world.status === 'running') return null;
+  return world.status === 'running' ? null : runReport(world);
+}
+
+// The same numbers for a run that may still be going: a running world reports outcome
+// 'abandoned' (the player quit from Pause). Does not touch the world.
+export function runReport(world: World): RunReport {
   const heroes: HeroReport[] = [];
   for (const u of world.units) {
     const rec = world.heroRecords.get(u.id);
@@ -85,7 +90,7 @@ export function buildReport(world: World): RunReport | null {
   );
   if (heroes.length > 0 && score(heroes[0]) > 0) heroes[0].mvp = true;
   return {
-    outcome: world.status,
+    outcome: world.status === 'running' ? 'abandoned' : world.status,
     timeMs: world.timeMs,
     mvp: heroes.find((h) => h.mvp)?.unit ?? null,
     heroes,
