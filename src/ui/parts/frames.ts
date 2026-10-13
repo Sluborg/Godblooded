@@ -18,9 +18,10 @@ export interface PartsPose {
 
 export type PoseName = 'idle' | 'walk' | 'attack' | 'ko';
 
-// Frames per pose. Idle is four steps of the breathing cycle, walk is one full stride.
+// Frames per pose. Idle is eight steps of the full idle loop (two breaths and one sway), walk is
+// one full stride.
 export const FRAME_COUNT: Readonly<Record<PoseName, number>> = {
-  idle: 4,
+  idle: 8,
   walk: 6,
   attack: 6,
   ko: 3,
@@ -31,8 +32,9 @@ export const FRAME_W = 96;
 export const FRAME_H = 96;
 export const ORIGIN = { x: 38, y: 84 };
 
-// Breathing cycle length in seconds (matches the prototype's sin(t * 2.6)).
-const BREATH_S = (Math.PI * 2) / 2.6;
+// The idle loop in seconds: the prototype breathes at sin(t * 1.5) and sways at sin(t * 0.75), so
+// the loop closes after one sway, which is two breaths. Eight frames keep four per breath.
+const BREATH_S = (Math.PI * 2) / 0.75;
 
 export function idleFrame(timeS: number): number {
   const f = (timeS / BREATH_S) % 1;

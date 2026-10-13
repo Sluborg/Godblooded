@@ -3,6 +3,7 @@ import { COLORS, GAME_WIDTH, MIN_TOUCH } from '../config';
 import { GRAYBOX, UPGRADES } from '../data/graybox';
 import { DEFAULT_TUNING, type BuildingState, type CommandResult } from '../sim/api';
 import { buildingEffect, buildingName, nextTierEffect } from '../ui/buildingInfo';
+import { buildInfo, buildTap, type BuildInfo } from '../ui/buildMenu';
 import { formatClock } from '../ui/endReport';
 import { modeLabel, partyColor } from '../ui/partyLook';
 import { buildRoster, paginate } from '../ui/roster';
@@ -25,6 +26,8 @@ interface MenuOption {
   label: string;
   cost: number;
   pick: () => void;
+  // Highlighted (the build menu's selected item).
+  active?: boolean;
 }
 const TEXT = { fontFamily: 'Georgia, serif', fontSize: '30px', color: COLORS.text };
 
@@ -469,15 +472,7 @@ export class HudScene extends Phaser.Scene {
       return;
     }
     if (tap.plot !== null) {
-      const plot = tap.plot;
-      this.openMenu(
-        'Build here',
-        GRAYBOX.buildings.map((def) => ({
-          label: `${def.id.replace('_', ' ')}\n${def.cost} gold`,
-          cost: def.cost,
-          pick: () => this.run(map.tryBuild(def.id, plot)),
-        })),
-      );
+      this.openBuildMenu(map, tap.plot, null);
     } else if (tap.target) {
       const { pos, label } = tap.target;
       this.openMenu(
@@ -491,7 +486,41 @@ export class HudScene extends Phaser.Scene {
     } else this.closeMenu();
   }
 
-  private openMenu(title: string, options: MenuOption[]): void {
+  // Build menu: the first tap on an item shows what it does, the same item tapped again builds it,
+  // another item switches the info, a tap outside cancels. Never builds on a single tap.
+  private openBuildMenu(map: MapScene, plot: number, selected: string | null): void {
+    const gold = (this.registry.get('gold') as number | undefined) ?? 0;
+    const def = GRAYBOX.buildings.find((d) => d.id === selected);
+    const info = def
+      ? buildInfo({
+          name: buildingName(def.id),
+          cost: def.cost,
+          gold,
+          text: (def as { text?: string }).text,
+          effect: buildingEffect(def.id, 1),
+          next: nextTierEffect(def.id, 1),
+        })
+      : null;
+    this.openMenu(
+      'Build here',
+      GRAYBOX.buildings.map((d) => ({
+        label: d.id === selected ? 'Tap again\nto build' : `${buildingName(d.id)}\n${d.cost} gold`,
+        // Cost 0: an item the town cannot afford stays tappable, it still shows its info.
+        cost: 0,
+        active: d.id === selected,
+        pick: () => {
+          const now = (this.registry.get('gold') as number | undefined) ?? 0;
+          const r = buildTap(selected, d.id, now, d.cost);
+          if (r.action === 'build') this.run(map.tryBuild(d.id, plot));
+          else if (r.action === 'need') this.showToast(`Need ${r.need} more gold`);
+          else this.openBuildMenu(map, plot, r.selected);
+        },
+      })),
+      info,
+    );
+  }
+
+  private openMenu(title: string, options: MenuOption[], info: BuildInfo | null = null): void {
     this.closeMenu();
     this.closeRoster();
     // Every menu ends in a Close button: the only other way out used to be a tap on the map,
@@ -507,6 +536,8 @@ export class HudScene extends Phaser.Scene {
     const cx = GAME_WIDTH / 2;
     const cy = 720 - h / 2 - 12;
     this.menuRect = new Phaser.Geom.Rectangle(cx - w / 2, cy - h / 2, w, h);
+    // The info strip of the build menu sits above the buttons.
+    if (info) this.openInfoStrip(info, cx, cy - h / 2, w);
     const panel = makePanel(this, cx, cy, w, h, 0.92);
     const heading = this.add
       .text(cx, cy - h / 2 + 24, title, { ...TEXT, fontSize: '24px', color: COLORS.textMuted })
@@ -516,8 +547,43 @@ export class HudScene extends Phaser.Scene {
       const x = cx - w / 2 + gap + bw / 2 + i * (bw + gap);
       const button = makeButton(this, x, cy + 20, bw, bh, opt.label, opt.pick);
       this.menu.push(button.container);
+      if (opt.active) button.setActive(true);
       this.menuButtons.push({ button, cost: opt.cost });
     });
+  }
+
+  private openInfoStrip(info: BuildInfo, cx: number, bottom: number, w: number): void {
+    const lineH = 26;
+    const h = 54 + info.lines.length * lineH;
+    const cy = bottom - 8 - h / 2;
+    const top = cy - h / 2;
+    this.menuRect = Phaser.Geom.Rectangle.Union(
+      this.menuRect ?? new Phaser.Geom.Rectangle(),
+      new Phaser.Geom.Rectangle(cx - w / 2, top, w, h),
+    );
+    this.menu.push(makePanel(this, cx, cy, w, h, 0.92));
+    this.menu.push(
+      this.add
+        .text(cx, top + 26, info.title, {
+          ...TEXT,
+          fontSize: '26px',
+          color: info.affordable ? '#f2c14e' : '#e0645c',
+        })
+        .setOrigin(0.5),
+    );
+    info.lines.forEach((l, i) =>
+      this.menu.push(
+        this.add
+          .text(cx, top + 56 + i * lineH, l, {
+            ...TEXT,
+            fontSize: '20px',
+            color: i === 0 ? COLORS.text : COLORS.textMuted,
+            align: 'center',
+            wordWrap: { width: w - 40 },
+          })
+          .setOrigin(0.5),
+      ),
+    );
   }
 
   // Info panel for a tapped building: name and tier, hp, what it does, what the next tier adds, and

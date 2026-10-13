@@ -14,6 +14,8 @@ import {
   type StatusKind,
 } from './skillLook';
 import { SkillFx } from './skillFx';
+import { armourOutline, glyphOf, hasGear, potionPips, weaponGlow } from './gearLook';
+import { drawGlyph } from './itemGlyph';
 import { ensureHeroSet, sweepSets, type BakedSet } from './parts/bake';
 import { attackFrame, idleFrame, koFrame, walkFrame, type PoseName } from './parts/frames';
 import type { RiderId, SimEvent, UnitState, Vec2 } from '../sim/api';
@@ -201,6 +203,9 @@ export class UnitView {
   private statusSeq = 0;
   private readonly statusG: Phaser.GameObjects.Graphics;
   private statusDrawn = false;
+  // Carried gear: armour outline, weapon shimmer or glow, flask pips.
+  private readonly gearG: Phaser.GameObjects.Graphics;
+  private gearDrawn = false;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -247,6 +252,7 @@ export class UnitView {
     this.bar = scene.add.graphics();
     this.riderIcon = scene.add.graphics();
     this.statusG = scene.add.graphics();
+    this.gearG = scene.add.graphics();
     // Ring at the feet in the party colour (white and thicker when selected), badge with the
     // party number beside the name.
     this.ring = scene.add.graphics();
@@ -264,6 +270,7 @@ export class UnitView {
       this.ring,
       this.statusG,
       this.body,
+      this.gearG,
       this.bar,
       this.riderIcon,
       this.label,
@@ -513,6 +520,48 @@ export class UnitView {
     return best;
   }
 
+  // Armour as an outline round the body, the weapon level as a shimmer or glow at the weapon
+  // point, one pip per potion over the health bar. Nothing is drawn for a bare hero.
+  private drawGear(u: UnitState, timeMs: number): void {
+    const items = u.kind === 'hero' ? u.items : undefined;
+    const g = this.gearG;
+    if (!hasGear(items) || !items) {
+      if (this.gearDrawn) g.clear();
+      this.gearDrawn = false;
+      return;
+    }
+    this.gearDrawn = true;
+    g.clear();
+    const t = timeMs / 1000;
+    const outline = armourOutline(items.armour);
+    if (outline !== null)
+      g.lineStyle(2, outline, 0.75).strokeEllipse(0, -this.h * 0.48, this.w * 1.05, this.h * 0.95);
+    const wg = weaponGlow(items.weapon, heroDamageType(u));
+    if (wg.kind !== 'none') {
+      const lx = ((this.row?.weaponX ?? PLACEHOLDER.weaponX) - this.ax) * this.w * this.face;
+      const ly = ((this.row?.weaponY ?? PLACEHOLDER.weaponY) - this.ay) * this.h;
+      const pulse = 0.65 + 0.35 * Math.sin(t * 6 + u.id);
+      if (wg.kind === 'glow') {
+        g.fillStyle(wg.color, 0.18 * pulse).fillCircle(lx, ly, 17);
+        g.fillStyle(wg.color, 0.4 * pulse).fillCircle(lx, ly, 9);
+        g.fillStyle(0xffffff, 0.7 * pulse).fillCircle(lx, ly, 3);
+      } else {
+        g.fillStyle(wg.color, 0.8 * pulse);
+        g.fillTriangle(lx, ly - 8, lx - 2, ly, lx + 2, ly);
+        g.fillTriangle(lx, ly + 8, lx - 2, ly, lx + 2, ly);
+        g.fillTriangle(lx - 8, ly, lx, ly - 2, lx, ly + 2);
+        g.fillTriangle(lx + 8, ly, lx, ly - 2, lx, ly + 2);
+      }
+    }
+    const pips = potionPips(items);
+    for (let i = 0; i < pips; i++) {
+      const x = (i - (pips - 1) / 2) * 9;
+      const y = -this.h - 34;
+      g.fillStyle(0x1a1410, 0.8).fillCircle(x, y, 4.5);
+      g.fillStyle(0xcf4f6f, 1).fillCircle(x, y, 3);
+    }
+  }
+
   setStatus(kind: StatusKind, until: number): void {
     this.statuses.set(kind, { until, seq: this.statusSeq++ });
   }
@@ -665,6 +714,7 @@ export class UnitView {
     this.drawBar(u);
     this.drawRider(ctx.dtS);
     this.drawStatus(ctx.timeMs);
+    this.drawGear(u, ctx.timeMs);
     this.showNames =
       u.kind !== 'hero' ||
       getSettings().heroNames ||
@@ -1006,6 +1056,19 @@ export class UnitView {
   }
 }
 
+const GODS = new Map((GRAYBOX.gods ?? []).map((d) => [d.id, d]));
+const PATHS = new Map((GRAYBOX.paths ?? []).map((d) => [d.id, d]));
+const ITEMS = new Map((GRAYBOX.items ?? []).map((d) => [d.id, d]));
+const CLASSES = new Map((GRAYBOX.classes ?? []).map((d) => [d.id, d]));
+// The type a hero strikes with. Sim gives a type only to casters (its class has a spellMult):
+// their path's (tier 2 and up) or else their god's; weapon heroes strike physical. Mirrors
+// sim/world.ts; Scene has no snapshot field for it yet.
+function heroDamageType(u: UnitState): string {
+  const path = u.path ? PATHS.get(u.path) : undefined;
+  const template = path?.template ?? (u.god ? GODS.get(u.god)?.template : undefined);
+  if (!template || CLASSES.get(template)?.spellMult === undefined) return 'physical';
+  return path?.damageType ?? (u.god ? GODS.get(u.god)?.damageType : undefined) ?? 'physical';
+}
 const SKILLS = new Map((GRAYBOX.skills ?? []).map((d) => [d.id, d]));
 const skillDef = (id: string) => SKILLS.get(id);
 
@@ -1079,6 +1142,7 @@ export class UnitViews {
       else if (e.kind === 'upgradePicked' && e.auto) this.onAutoPick(e, parties);
       else if (e.kind === 'built') this.onBuilt(e, others);
       else if (e.kind === 'rider') this.views.get(e.target)?.setRider(e.rider);
+      else if (e.kind === 'drank') this.onDrank(e, ctx);
       else if (e.kind === 'cast') this.onCast(e);
       else if (e.kind === 'skill') this.onSkill(e);
       else if (e.kind === 'status' && isStatusKind(e.status))
@@ -1282,9 +1346,44 @@ export class UnitViews {
     this.views.get(e.unit)?.evolve(this.fx, name ?? `Tier ${e.tier}!`);
   }
 
+  // A hero drank a potion: a green swirl and the healed number.
+  private onDrank(e: Extract<SimEvent, { kind: 'drank' }>, ctx: FrameCtx): void {
+    ctx.healed(e.unit, e.amount);
+    const v = this.views.get(e.unit);
+    if (v)
+      this.fx.add([
+        {
+          type: 'ring',
+          x: v.container.x,
+          y: v.container.y,
+          r: 50,
+          age: 0,
+          life: 0.5,
+          color: 0x7fe08a,
+        },
+      ]);
+  }
+
+  // The item a purchase bought rises over the hero as a small icon.
+  private riseGlyph(v: UnitView, item: string | undefined): void {
+    const slot = item ? ITEMS.get(item)?.slot : undefined;
+    const g = this.scene.add.graphics({ x: v.container.x, y: v.container.y - v.height - 44 });
+    g.setDepth(1_000_000);
+    drawGlyph(g, glyphOf(slot));
+    this.scene.tweens.add({
+      targets: g,
+      y: g.y - 46,
+      alpha: 0,
+      duration: 1200,
+      ease: 'Quad.easeOut',
+      onComplete: () => g.destroy(),
+    });
+  }
+
   // A hero spent gold at the market: the town's tax pops out in gold with a few sparkles.
   private onShopped(e: Extract<SimEvent, { kind: 'shopped' }>): void {
     const v = this.views.get(e.unit);
+    if (v && e.item) this.riseGlyph(v, e.item);
     if (!v || e.tax <= 0) return;
     this.floatText(
       v.container.x,

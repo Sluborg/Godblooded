@@ -55,7 +55,7 @@ export type FxEffect =
       // Colour of a typed bolt (fire, frost, ...); the default blue when absent.
       tint?: number;
     }
-  | { type: 'ring'; x: number; y: number; r: number; age: number; life: number }
+  | { type: 'ring'; x: number; y: number; r: number; age: number; life: number; color?: number }
   // A level-up: a pillar of light in the party colour standing on the ground at x, y.
   | { type: 'pillar'; x: number; y: number; color: number; age: number; life: number }
   // A boss cleave: the red ground marker that fills until the strike lands.
@@ -496,7 +496,7 @@ export class FxLayer {
       g.fillStyle(0xffffff, 0.5 * a).fillRect(e.x - 10, e.y - hgt, 20, hgt);
       g.fillStyle(e.color, 0.35 * a).fillEllipse(e.x, e.y, 150 * (0.6 + p), 54 * (0.6 + p));
     } else if (e.type === 'ring') {
-      g.lineStyle(6 * (1 - p) + 1, 0xe6d2aa, 0.8 * (1 - p));
+      g.lineStyle(6 * (1 - p) + 1, e.color ?? 0xe6d2aa, 0.8 * (1 - p));
       g.strokeEllipse(e.x, e.y, e.r * (0.2 + p) * 2, e.r * (0.2 + p) * 0.64);
     } else {
       // arrow: a short shaft with a head, flying from the bow to the target on a slight arc
