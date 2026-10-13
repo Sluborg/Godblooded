@@ -3,6 +3,7 @@
 import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { PNG } from 'pngjs';
+import sharp from 'sharp';
 
 export function readPng(path) {
   const png = PNG.sync.read(readFileSync(path));
@@ -14,6 +15,16 @@ export function writePng(path, { width, height, data }) {
   png.data = Buffer.from(data);
   mkdirSync(dirname(path), { recursive: true });
   writeFileSync(path, PNG.sync.write(png));
+}
+
+// Shrinks a shipped PNG in place: up to 256 palette colours with alpha, no dithering (crisp
+// pixels stay crisp). Pixel art loses nothing visible; files drop to about a third.
+export async function compressPng(path) {
+  const out = await sharp(readFileSync(path))
+    .png({ palette: true, colors: 256, dither: 0, effort: 10, compressionLevel: 9 })
+    .toBuffer();
+  writeFileSync(path, out);
+  return out.length;
 }
 
 export function blank(width, height) {
