@@ -51,6 +51,8 @@ import {
   payBounty,
   runBounties,
   syncFlagView,
+  syncIntent,
+  committedToFlag,
   runHeroes,
   runTemples,
   type HeroRuntime,
@@ -320,6 +322,7 @@ function runTick(world: World): void {
   runBounties(world);
   runParties(world);
   runUnits(world);
+  syncIntent(world);
   // Combat, heroes and the economy hook in here (Sim backlog 30 and up).
 }
 
@@ -500,7 +503,11 @@ function runUnits(world: World): void {
       fight(world, unit, rt, stats, foe);
     } else if (unit.kind === 'hero') {
       // A hero under oath goes for its monster, not for a lair on the way.
-      const lair = busy || revengeTarget(world, unit) ? null : pickLair(world, unit);
+      // A hero committed to a flag does not drop it for a lair on the way (the lair competes by score).
+      const lair =
+        busy || revengeTarget(world, unit) || committedToFlag(world, unit)
+          ? null
+          : pickLair(world, unit);
       if (lair) attackLair(world, unit, rt, stats, lair);
       else heroMove(world, unit);
     } else if (rt.raid) {
@@ -817,6 +824,7 @@ export function snapshot(world: World): Snapshot {
       upgrades: [...p.upgrades],
       offer: p.offer ? [...p.offer] : null,
       pathOffer: p.pathOffer ? { hero: p.pathOffer.hero, options: [...p.pathOffer.options] } : null,
+      intent: p.intent ? { ...p.intent } : { kind: 'explore' },
     })),
     paths: pathStates(world),
     lairs: world.lairs.map((l) => ({ ...l, pos: { ...l.pos } })),

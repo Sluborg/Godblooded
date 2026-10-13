@@ -4,7 +4,15 @@ import { passiveAttrs } from './passives';
 import { partiesHaveRivals, runRivalries } from './rivalry';
 import { dist, maxHp } from './units';
 import type { World } from './world';
-import type { Attributes, PathDef, PathState, TraitId, UnitState, UpgradeDef } from './types';
+import type {
+  Attributes,
+  PartyIntent,
+  PathDef,
+  PathState,
+  TraitId,
+  UnitState,
+  UpgradeDef,
+} from './types';
 
 // Graybox parties, simplified and logged in docs/decisions.md. Every hero belongs to a party
 // from arrival (a party of one). Parties of level 1 merge when they meet; after the first
@@ -34,6 +42,8 @@ export interface Party {
   // Favor path card for one hero (see PartyState.pathOffer) and the heroes still waiting.
   pathOffer: { hero: number; options: string[] } | null;
   pathQueue: number[];
+  // The party's last announced intent (an `intent` event fires when it changes).
+  intent?: PartyIntent;
 }
 
 export const xpNext = (world: World, level: number) => tune(world).xpPerLevel * level;

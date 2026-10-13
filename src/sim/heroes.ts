@@ -8,7 +8,7 @@ import { isBound } from './effects';
 import { passiveAggroMult, passiveKoMult, passiveRestMult } from './passives';
 import { aggroRange, dist, maxHp, speed, stepToward, tierValue, TICK_MS } from './units';
 import type { World } from './world';
-import type { Vec2, UnitState } from './types';
+import type { LairState, PartyIntent, Vec2, UnitState } from './types';
 
 // Graybox hero life, simplified and logged in docs/decisions.md: temples recruit on a timer,
 // heroes explore and hunt, flee when hurt, rest at the town hall or a shrine, shop at the
@@ -18,6 +18,9 @@ export interface HeroRuntime {
   dest: Vec2 | null;
   // The bounty flag this hero is heading for.
   bounty?: number;
+  // What a leader (or a hero alone) chose to do while exploring: kept for commitMs, replaced only
+  // by something that scores clearly better (docs/systems/hero-ai.md section 3).
+  goal?: { kind: 'flag' | 'lair' | 'explore'; id?: number; score: number; sinceMs: number };
   koMs: number;
   temple: number;
   // Sworn revenge: the monster to hunt and when the oath runs out.
@@ -367,17 +370,46 @@ function flagDanger(world: World, pos: Vec2): number {
   return danger;
 }
 
-// How much a hero wants a flag (null: not worth it). Gold against danger, by personality.
-function flagAppetite(world: World, unit: UnitState, gold: number, pos: Vec2): number | null {
+// The gold side of an option for this hero: trait multipliers on gold and on fear.
+const goldMult = (world: World, unit: UnitState) => {
+  const t = world.tuning.bounty;
+  return unit.trait === 'greedy'
+    ? t.greedyGoldMult
+    : unit.trait === 'curious'
+      ? t.curiousGoldMult
+      : 1;
+};
+const fearMult = (world: World, unit: UnitState) => {
+  const t = world.tuning.bounty;
+  return unit.trait === 'brave' ? t.braveFearMult : unit.trait === 'coward' ? t.cowardFearMult : 1;
+};
+
+// Score of a flag for this hero (null: not worth it): gold against danger and distance.
+function flagScore(world: World, unit: UnitState, gold: number, pos: Vec2): number | null {
   const t = world.tuning.bounty;
   if (unit.trait === 'proud' && gold < t.proudMinGold) return null;
-  const worth =
-    gold *
-    (unit.trait === 'greedy' ? t.greedyGoldMult : unit.trait === 'curious' ? t.curiousGoldMult : 1);
-  const fear =
-    unit.trait === 'brave' ? t.braveFearMult : unit.trait === 'coward' ? t.cowardFearMult : 1;
-  const cost = flagDanger(world, pos) * t.costPerDanger * fear;
-  return worth >= cost ? worth - cost : null;
+  const score =
+    gold * goldMult(world, unit) -
+    flagDanger(world, pos) * t.costPerDanger * fearMult(world, unit) -
+    dist(unit.pos, pos) * world.tuning.ai.distanceCost;
+  return score > 0 ? score : null;
+}
+
+// Score of storming a lair: its gold and half its xp against the danger around it and the walk.
+function lairScore(world: World, unit: UnitState, lair: LairState): number | null {
+  const t = world.tuning.bounty;
+  const tm = world.tuning.monster;
+  let monsters = 0;
+  for (const u of world.units) {
+    if (u.kind === 'monster' && u.hp > 0 && dist(u.pos, lair.pos) <= t.dangerRadius) monsters++;
+  }
+  const reward = tierValue(world.tuning.lair.rewardMult, lair.tier, 1);
+  const score =
+    tm.lairBounty * reward +
+    tm.lairXp * world.tuning.ai.lairXpWeight -
+    (t.lairDanger + monsters) * t.costPerDanger * fearMult(world, unit) -
+    dist(unit.pos, lair.pos) * world.tuning.ai.distanceCost;
+  return score > 0 ? score : null;
 }
 
 // Claims flags a hero stands on once the place is clear, and once a second lets exploring
@@ -393,7 +425,7 @@ export function runBounties(world: World): void {
     world.bounties = world.bounties.filter((b) => b.id !== flag.id);
     world.events.push({ kind: 'bountyClaimed', bounty: flag.id, unit: hero.id, gold: flag.gold });
   }
-  if (world.tick % 20 === 0) chooseFlags(world);
+  if (world.tick % 20 === 0) chooseGoals(world);
 }
 
 // What the snapshot shows: the live flag each exploring hero is heading for. Called when a
@@ -408,23 +440,117 @@ export function syncFlagView(world: World): void {
   }
 }
 
-function chooseFlags(world: World): void {
+// Once a second every exploring party leader (or lone hero) scores its options and keeps the
+// best, holding a choice for commitMs and switching only for a clearly better one.
+function chooseGoals(world: World): void {
+  const ai = world.tuning.ai;
   for (const unit of world.units) {
     const rt = world.heroRuntime.get(unit.id);
     if (unit.kind !== 'hero' || !rt || unit.ko || unit.mode !== 'explore') continue;
     if (leaderOf(world, unit)) continue;
-    let best: number | undefined;
-    let bestScore = 0;
+    // What the current goal is worth now (null: it is gone).
+    const cur = rt.goal;
+    let curScore: number | null = null;
+    if (cur?.kind === 'flag') {
+      const flag = world.bounties.find((b) => b.id === cur.id);
+      curScore = flag ? flagScore(world, unit, flag.gold, flag.pos) : null;
+    } else if (cur?.kind === 'lair') {
+      const lair = world.lairs.find((l) => l.id === cur.id);
+      curScore = lair ? lairScore(world, unit, lair) : null;
+    } else if (cur?.kind === 'explore') {
+      curScore = Math.max(
+        1,
+        ai.exploreValue - (rt.dest ? dist(unit.pos, rt.dest) * ai.exploreDistanceCost : 0),
+      );
+    }
+    if (cur && curScore !== null && world.timeMs - cur.sinceMs < ai.commitMs) {
+      cur.score = curScore;
+      continue;
+    }
+    // The best option now; explore is always there (score at least 1).
+    let best: NonNullable<HeroRuntime['goal']> = {
+      kind: 'explore',
+      score: Math.max(1, ai.exploreValue),
+      sinceMs: world.timeMs,
+    };
     for (const flag of world.bounties) {
-      const score = flagAppetite(world, unit, flag.gold, flag.pos);
-      if (score !== null && score > bestScore) {
-        best = flag.id;
-        bestScore = score;
+      const score = flagScore(world, unit, flag.gold, flag.pos);
+      if (score !== null && score > best.score) {
+        best = { kind: 'flag', id: flag.id, score, sinceMs: world.timeMs };
       }
     }
-    if (best !== rt.bounty) {
-      rt.bounty = best;
+    for (const lair of world.lairs) {
+      const score = lairScore(world, unit, lair);
+      if (score !== null && score > best.score) {
+        best = { kind: 'lair', id: lair.id, score, sinceMs: world.timeMs };
+      }
+    }
+    // Keep the current goal unless the best beats it by the margin.
+    if (cur && curScore !== null) {
+      const margin = Math.max(ai.switchMin, ai.switchMargin * Math.abs(curScore));
+      if (best.kind === cur.kind && best.id === cur.id) {
+        cur.score = curScore;
+        cur.sinceMs = world.timeMs;
+        continue;
+      }
+      if (best.score < curScore + margin) {
+        cur.score = curScore;
+        cur.sinceMs = world.timeMs;
+        continue;
+      }
+    }
+    rt.goal = best;
+    rt.bounty = best.kind === 'flag' ? best.id : undefined;
+    if (best.kind === 'lair') {
+      rt.dest = { ...(world.lairs.find((l) => l.id === best.id)?.pos ?? unit.pos) };
+    } else if (best.kind === 'flag') {
       rt.dest = null;
     }
   }
+}
+
+// What a party is doing, from its leader's mode and goal; an `intent` event when it changes.
+export function syncIntent(world: World): void {
+  for (const party of world.parties.values()) {
+    const lead = world.units.find(
+      (u) =>
+        u.id ===
+        party.members.find((id) => {
+          const m = world.units.find((x) => x.id === id);
+          return m && !m.ko;
+        }),
+    );
+    if (!lead) continue;
+    const rt = world.heroRuntime.get(lead.id);
+    let intent: PartyIntent;
+    if (lead.mode === 'return') intent = { kind: 'retreat' };
+    else if (lead.mode === 'rest') intent = { kind: 'rest' };
+    else if (lead.mode === 'shop') intent = { kind: 'shop' };
+    else if (lead.mode === 'explore') {
+      const sworn = revengeTarget(world, lead);
+      const lair = lead.target !== null ? world.lairs.find((l) => l.id === lead.target) : undefined;
+      if (sworn) intent = { kind: 'revenge', target: sworn.id, pos: { ...sworn.pos } };
+      else if (lair) intent = { kind: 'lair', target: lair.id, pos: { ...lair.pos } };
+      else if (rt?.goal?.kind === 'flag') {
+        const flag = world.bounties.find((b) => b.id === rt.goal?.id);
+        intent = flag
+          ? { kind: 'flag', target: flag.id, pos: { ...flag.pos } }
+          : { kind: 'explore' };
+      } else if (rt?.goal?.kind === 'lair') {
+        const l = world.lairs.find((x) => x.id === rt.goal?.id);
+        intent = l ? { kind: 'lair', target: l.id, pos: { ...l.pos } } : { kind: 'explore' };
+      } else intent = { kind: 'explore' };
+    } else continue;
+    const prev = party.intent;
+    if (prev && prev.kind === intent.kind && prev.target === intent.target) continue;
+    party.intent = intent;
+    world.events.push({ kind: 'intent', party: party.id, intent });
+  }
+}
+
+// Is this hero (or its leader) committed to a bounty flag that still stands?
+export function committedToFlag(world: World, unit: UnitState): boolean {
+  const lead = leaderOf(world, unit) ?? unit;
+  const goal = world.heroRuntime.get(lead.id)?.goal;
+  return goal?.kind === 'flag' && world.bounties.some((b) => b.id === goal.id);
 }

@@ -145,6 +145,15 @@ export const DEFAULT_TUNING: Tuning = {
   },
   save: { autosaveMs: 30_000 },
   stats: { goldSampleMs: 15_000 },
+  ai: {
+    distanceCost: 0.05,
+    exploreDistanceCost: 0.02,
+    commitMs: 6_000,
+    switchMargin: 0.25,
+    switchMin: 10,
+    exploreValue: 20,
+    lairXpWeight: 0.5,
+  },
   town: {
     townHallHp: 500,
     buildingHp: 200,
@@ -182,6 +191,7 @@ export function resolveTuning(data: GameData): Tuning {
     skill: { ...DEFAULT_TUNING.skill, ...t?.skill },
     save: { ...DEFAULT_TUNING.save, ...t?.save },
     stats: { ...DEFAULT_TUNING.stats, ...t?.stats },
+    ai: { ...DEFAULT_TUNING.ai, ...t?.ai },
     town: { ...DEFAULT_TUNING.town, ...t?.town },
     bounty: { ...DEFAULT_TUNING.bounty, ...t?.bounty },
   };

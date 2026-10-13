@@ -1,0 +1,154 @@
+import { describe, expect, it } from 'vitest';
+import { command, createWorld, snapshot, step, TICK_MS, type GameData, type SimEvent } from './api';
+import { spawnHero } from './world';
+import type { UnitState } from './types';
+
+const attrs = { str: 5, dex: 3, sta: 5, cha: 1, per: 3, int: 1, wp: 3 };
+const base: GameData = {
+  buildings: [],
+  plots: [],
+  startGold: 0,
+  map: { width: 4000, height: 4000 },
+  townHall: { x: 500, y: 500 },
+  classes: [
+    {
+      id: 'warrior',
+      attrs: { ...attrs, str: 12, sta: 12 },
+      weapon: { baseAttackS: 1, range: 40 },
+      startGold: 0,
+    },
+  ],
+  monsters: [
+    {
+      id: 'draugr',
+      attrs: { ...attrs, str: 6, sta: 3 },
+      weapon: { baseAttackS: 1, range: 40 },
+      bounty: 12,
+      xp: 10,
+    },
+  ],
+  tuning: {
+    hero: { firstRecruitMs: 10_000_000 },
+    town: { raidFirstMs: 10_000_000 },
+  },
+};
+
+type W = ReturnType<typeof createWorld>;
+
+function hero(w: W, x = 500, y = 500): UnitState {
+  const id = spawnHero(w, 'warrior', { x, y });
+  const u = w.units.find((v) => v.id === id) as UnitState;
+  u.trait = null;
+  u.mode = 'explore';
+  return u;
+}
+
+function run(w: W, ms: number): SimEvent[] {
+  const out: SimEvent[] = [];
+  for (let t = 0; t < ms; t += TICK_MS) {
+    step(w, TICK_MS);
+    out.push(...snapshot(w).events);
+  }
+  return out;
+}
+
+const flag = (w: W, x: number, y: number, gold: number) =>
+  command(w, { kind: 'placeBounty', pos: { x, y }, gold });
+
+describe('score and commit', () => {
+  it('distance counts: a near flag beats a richer far one', () => {
+    const w = createWorld(1, { ...base, startGold: 1000 });
+    const h = hero(w);
+    flag(w, 800, 500, 100);
+    flag(w, 3500, 3500, 150);
+    run(w, 1_100);
+    const goal = w.heroRuntime.get(h.id)?.goal;
+    expect(goal?.kind).toBe('flag');
+    expect(w.bounties.find((b) => b.id === goal?.id)?.pos.x).toBe(800);
+  });
+
+  it('a flag too far to pay for itself is ignored: the hero explores', () => {
+    const w = createWorld(1, { ...base, startGold: 1000 });
+    const h = hero(w);
+    flag(w, 3900, 3900, 50);
+    run(w, 1_100);
+    expect(w.heroRuntime.get(h.id)?.goal?.kind).toBe('explore');
+  });
+
+  it('holds a choice for commitMs and switches only for a clearly better option', () => {
+    const w = createWorld(1, { ...base, startGold: 1000 });
+    const h = hero(w);
+    flag(w, 2000, 500, 100);
+    run(w, 1_100);
+    const first = w.heroRuntime.get(h.id)?.goal;
+    expect(first?.kind).toBe('flag');
+    // a flag only a little better does not tempt it, even after the hold
+    flag(w, 2000, 520, 108);
+    run(w, 8_000);
+    expect(w.heroRuntime.get(h.id)?.goal?.id).toBe(first?.id);
+  });
+
+  it('switches to a much better flag once the hold is over', () => {
+    const w = createWorld(1, { ...base, startGold: 1000 });
+    const h = hero(w);
+    flag(w, 1500, 500, 50);
+    run(w, 1_100);
+    const first = w.heroRuntime.get(h.id)?.goal;
+    flag(w, 1500, 520, 200);
+    // within the hold nothing changes
+    run(w, 3_000);
+    expect(w.heroRuntime.get(h.id)?.goal?.id).toBe(first?.id);
+    run(w, 4_000);
+    const now = w.heroRuntime.get(h.id)?.goal;
+    expect(now?.kind).toBe('flag');
+    expect(now?.id).not.toBe(first?.id);
+  });
+
+  it('a lair is a goal when it pays: the hero heads for it', () => {
+    const w = createWorld(1, {
+      ...base,
+      lairs: [{ id: 'barrow', monster: 'draugr', spawnS: 1000, maxAlive: 0, hp: 5000 }],
+      lairSites: [{ lair: 'barrow', pos: { x: 700, y: 500 } }],
+    });
+    const h = hero(w);
+    const ev = run(w, 1_100);
+    expect(w.heroRuntime.get(h.id)?.goal?.kind).toBe('lair');
+    expect(ev.some((e) => e.kind === 'intent' && e.intent.kind === 'lair')).toBe(true);
+  });
+
+  it('a hero committed to a flag does not drop it for a lair on the way', () => {
+    const w = createWorld(1, {
+      ...base,
+      startGold: 2000,
+      lairs: [{ id: 'barrow', monster: 'draugr', spawnS: 1000, maxAlive: 0, hp: 5000 }],
+      lairSites: [{ lair: 'barrow', pos: { x: 1000, y: 500 } }],
+    });
+    const h = hero(w, 900, 500);
+    flag(w, 1100, 520, 600);
+    run(w, 1_100);
+    expect(w.heroRuntime.get(h.id)?.goal?.kind).toBe('flag');
+    run(w, 1_000);
+    expect(w.lairs[0].hp).toBe(w.lairs[0].maxHp);
+  });
+});
+
+describe('intent', () => {
+  it('announces a party intent when it changes and carries it in the snapshot', () => {
+    const w = createWorld(1, { ...base, startGold: 1000 });
+    const h = hero(w);
+    flag(w, 900, 500, 100);
+    const ev = run(w, 1_100);
+    const intents = ev.filter(
+      (e): e is Extract<SimEvent, { kind: 'intent' }> => e.kind === 'intent',
+    );
+    expect(intents.at(-1)?.intent).toMatchObject({ kind: 'flag', pos: { x: 900, y: 500 } });
+    expect(intents.at(-1)?.party).toBe(h.party);
+    expect(snapshot(w).parties.find((p) => p.id === h.party)?.intent.kind).toBe('flag');
+    // no event while nothing changes
+    expect(run(w, 500).filter((e) => e.kind === 'intent')).toHaveLength(0);
+    // hurt: it heads home, the party's intent turns to retreat
+    h.hp = 1;
+    const ev2 = run(w, 500);
+    expect(ev2.some((e) => e.kind === 'intent' && e.intent.kind === 'retreat')).toBe(true);
+  });
+});

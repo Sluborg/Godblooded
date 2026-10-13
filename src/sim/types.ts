@@ -686,6 +686,22 @@ export interface TownTuning {
   defendHp: number;
 }
 
+// How a hero chooses (docs/systems/hero-ai.md section 3): flag, lair and explore all get a score;
+// the best wins and holds for commitMs, and is replaced only by one that beats it by
+// max(switchMin, switchMargin x |current|).
+export interface AiTuning {
+  // Score lost per world unit to a flag or a lair, and to an explore point.
+  distanceCost: number;
+  exploreDistanceCost: number;
+  commitMs: number;
+  switchMargin: number;
+  switchMin: number;
+  // What exploring is worth.
+  exploreValue: number;
+  // A lair's xp counts this much next to its gold.
+  lairXpWeight: number;
+}
+
 export interface BountyTuning {
   // Monsters within this radius of a flag count as its danger.
   dangerRadius: number;
@@ -755,6 +771,7 @@ export interface Tuning {
   skill: SkillTuning;
   save: SaveTuning;
   stats: StatsTuning;
+  ai: AiTuning;
   town: TownTuning;
   bounty: BountyTuning;
 }
@@ -790,6 +807,7 @@ export interface GameData {
     boss?: Partial<BossTuning>;
     save?: Partial<SaveTuning>;
     stats?: Partial<StatsTuning>;
+    ai?: Partial<AiTuning>;
     town?: Partial<TownTuning>;
     bounty?: Partial<BountyTuning>;
   };
@@ -880,6 +898,15 @@ export interface UnitState {
 
 export type UnitMode = 'wander' | 'explore' | 'return' | 'rest' | 'shop' | 'ko';
 
+export type IntentKind = 'flag' | 'lair' | 'revenge' | 'explore' | 'retreat' | 'shop' | 'rest';
+
+// What a party is heading for: a flag or lair by id, with the place when it has one.
+export interface PartyIntent {
+  kind: IntentKind;
+  target?: number;
+  pos?: Vec2;
+}
+
 export interface PartyState {
   id: number;
   members: number[];
@@ -893,6 +920,8 @@ export interface PartyState {
   // A hero with several free paths waits for pickPath (one hero at a time). While set,
   // pickUpgrade is refused: the path card comes first.
   pathOffer: { hero: number; options: string[] } | null;
+  // What the party is doing now (its leader's intent), for the icon over its banner.
+  intent: PartyIntent;
 }
 
 export interface PathState {
@@ -1037,6 +1066,8 @@ export type SimEvent =
   // A hero drank a potion (`left` still carried) and healed `amount`.
   | { kind: 'drank'; unit: number; amount: number; left: number }
   | { kind: 'shopped'; unit: number; spent: number; tax: number; item?: string }
+  // A party's intent changed (its leader chose a flag or a lair, retreats, rests ...).
+  | { kind: 'intent'; party: number; intent: PartyIntent }
   | { kind: 'bountyPlaced'; bounty: number; gold: number };
 
 export type Command =
