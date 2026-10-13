@@ -829,13 +829,16 @@ export const GRAYBOX: GameData = {
   startGold: 420,
   map: { width: 2400, height: 1600 },
   townHall: { x: 1200, y: 800 },
-  // Balance pass (Aesir skills and passives on, with items, potions, card auto-pick, level cap 8
-  // and knockout cost; 300 runs, seeds 1 and 1001): win rate 62-66%, median run 15.4-15.9 min,
-  // no timeouts. Town income is item tax only: start gold 420 builds a temple, market and smithy,
-  // and tax is 60% of an item's price. Unset keys use DEFAULT_TUNING.
+  // Balance pass (Aesir skills and passives, items, potions, card auto-pick, level cap 8,
+  // knockout cost, sealed boss lair, pacing review; 300 runs, seeds 1 and 1001). Town income is
+  // item tax only: start gold 420 builds a temple, market and smithy, and tax is 60% of an
+  // item's price. Unset keys use DEFAULT_TUNING.
   tuning: {
     hero: { maxPerTemple: 7, recruitMs: 22_000, taxRate: 0.6 },
-    town: { raidFirstMs: 420_000, raidEveryMs: 180_000, raidGrowEveryMs: 240_000, raidSize: 1 },
+    town: { raidFirstMs: 360_000, raidEveryMs: 180_000, raidGrowEveryMs: 300_000, raidSize: 1 },
+    // Pacing (docs/systems/pacing-review.md): slower levels and a staggered lair clock.
+    party: { xpPerLevel: 40 },
+    lair: { firstTierUpMs: 360_000, tierUpStaggerMs: 120_000, tierUpEveryMs: 420_000 },
   },
   classes: CLASSES,
   gods: GODS,
