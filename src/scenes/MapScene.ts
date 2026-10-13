@@ -15,7 +15,7 @@ import {
   type Vec2,
   type World,
 } from '../sim/api';
-import { clearSave, newSeed, readSave, writeSave } from '../ui/saveStore';
+import { clearSave, isNewerSave, newSeed, readSave, writeSave } from '../ui/saveStore';
 import { getSettings } from '../ui/settings';
 import { heroLabel, partyColor } from '../ui/partyLook';
 import { artCandidates } from '../ui/unitLook';
@@ -88,6 +88,12 @@ export class MapScene extends Phaser.Scene {
         return loadWorld(readSave(), GRAYBOX);
       } catch (e) {
         if (!(e instanceof SaveError)) throw e;
+        if (isNewerSave(e)) {
+          // A newer game wrote it: play a fresh run here. The storage layer never clears or
+          // overwrites that save (storedIsNewer), so the newer client can still continue it.
+          this.registry.set('notice', 'This save is from a newer version. Reload to update.');
+          return createWorld(newSeed(), GRAYBOX);
+        }
         clearSave();
       }
     }
