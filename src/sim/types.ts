@@ -12,6 +12,9 @@ export interface BuildingDef {
   // Temples: the pantheon whose gods' children the temple calls. Missing on an id like
   // `temple_aesir` means the part after `temple_`.
   pantheon?: string;
+  // Gold for tier 2 and tier 3 (index = current tier - 1). Missing: the building's cost times
+  // tuning.building.upgradeCostMult.
+  upgradeCost?: readonly number[];
 }
 
 // A god: heroes are children of a god, called by a temple of its pantheon. `template` is the
@@ -151,6 +154,27 @@ export interface LairTuning {
   rewardMult: number[];
 }
 
+// Building tiers: the `upgrade` command takes a building from tier 1 to maxTier. The arrays are
+// indexed by tier - 1 (the last entry holds for higher tiers).
+export interface BuildingTuning {
+  maxTier: number;
+  // Cost of the next tier as a multiple of the building's cost (index = current tier - 1).
+  upgradeCostMult: number[];
+  // Multiplies the building's hp (an upgrade adds the difference to its current hp).
+  hpMult: number[];
+  // Temples: multiplies the recruit timer, and added to maxPerTemple.
+  templeRecruitMult: number[];
+  templeCapAdd: number[];
+  // Markets: multiplies the tax rate, and caps the gold one visit can spend (the stock).
+  marketTaxMult: number[];
+  marketStock: number[];
+  // Towers shoot the nearest monster in range: range in world units, flat damage per shot,
+  // and the time between shots.
+  towerRange: number[];
+  towerDamage: number[];
+  towerCooldownMs: number[];
+}
+
 export interface TownTuning {
   townHallHp: number;
   buildingHp: number;
@@ -198,6 +222,7 @@ export interface Tuning {
   party: PartyTuning;
   monster: MonsterTuning;
   lair: LairTuning;
+  building: BuildingTuning;
   town: TownTuning;
   bounty: BountyTuning;
 }
@@ -221,6 +246,7 @@ export interface GameData {
     party?: Partial<PartyTuning>;
     monster?: Partial<MonsterTuning>;
     lair?: Partial<LairTuning>;
+    building?: Partial<BuildingTuning>;
     town?: Partial<TownTuning>;
     bounty?: Partial<BountyTuning>;
   };
@@ -242,7 +268,12 @@ export interface BuildingState {
   plot: number | null;
   hp: number;
   maxHp: number;
+  // Gold the `upgrade` command costs now; null at the top tier and for the town hall.
+  upgradeCost: number | null;
 }
+
+// A building as the sim keeps it; the snapshot adds the upgrade cost.
+export type BuildingCore = Omit<BuildingState, 'upgradeCost'>;
 
 export interface PlotState {
   // Index into GameData.plots.
@@ -333,6 +364,7 @@ export interface BountyState {
 
 export type SimEvent =
   | { kind: 'built'; building: number; type: string }
+  | { kind: 'upgraded'; building: number; type: string; tier: number }
   | { kind: 'spawned'; unit: number; type: string; lair: number }
   | { kind: 'windup'; attacker: number; target: number; inMs: number }
   | { kind: 'heal'; healer: number; target: number; amount: number }
@@ -361,7 +393,9 @@ export type Command =
   | { kind: 'build'; type: string; plot: number }
   | { kind: 'placeBounty'; pos: Vec2; gold: number }
   | { kind: 'pickUpgrade'; party: number; upgrade: string }
-  | { kind: 'pickPath'; party: number; path: string };
+  | { kind: 'pickPath'; party: number; path: string }
+  // Buy the next tier of a building.
+  | { kind: 'upgrade'; building: number };
 
 export type CommandResult = { ok: true; id: number } | { ok: false; reason: string };
 

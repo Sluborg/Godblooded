@@ -6,6 +6,7 @@ export type {
   BountyState,
   BountyTuning,
   BuildingDef,
+  BuildingTuning,
   Attributes,
   BuildingState,
   Command,

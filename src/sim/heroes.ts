@@ -1,5 +1,5 @@
 import { fledParty, fleeThreshold, newParty, pantheonOf, TRAITS } from './parties';
-import { aggroRange, dist, maxHp, speed, stepToward, TICK_MS } from './units';
+import { aggroRange, dist, maxHp, speed, stepToward, tierValue, TICK_MS } from './units';
 import type { World } from './world';
 import type { Vec2, UnitState } from './types';
 
@@ -63,10 +63,14 @@ export function runTemples(world: World): void {
     const next = world.templeNextMs.get(b.id) ?? world.timeMs + tune(world).firstRecruitMs;
     world.templeNextMs.set(b.id, next);
     if (world.timeMs < next) continue;
-    world.templeNextMs.set(b.id, world.timeMs + tune(world).recruitMs);
+    const bt = world.tuning.building;
+    world.templeNextMs.set(
+      b.id,
+      world.timeMs + tune(world).recruitMs * tierValue(bt.templeRecruitMult, b.tier, 1),
+    );
     let alive = 0;
     for (const rt of world.heroRuntime.values()) if (rt.temple === b.id) alive++;
-    if (alive >= tune(world).maxPerTemple) continue;
+    if (alive >= tune(world).maxPerTemple + tierValue(bt.templeCapAdd, b.tier, 0)) continue;
     // Gods of the temple's pantheon already at the cap are skipped; with none left, nobody
     // comes this cycle. A temple with no pantheon calls any god.
     const pantheon = pantheonOf(world, b.type);
@@ -182,8 +186,14 @@ export function heroMove(world: World, unit: UnitState): void {
         break;
       }
       if (step(market.pos)) {
-        const spent = Math.floor(unit.gold * tune(world).spendShare);
-        const tax = Math.floor(spent * tune(world).taxRate);
+        const bt = world.tuning.building;
+        const spent = Math.min(
+          Math.floor(unit.gold * tune(world).spendShare),
+          tierValue(bt.marketStock, market.tier, Infinity),
+        );
+        const tax = Math.floor(
+          spent * tune(world).taxRate * tierValue(bt.marketTaxMult, market.tier, 1),
+        );
         unit.gold -= spent;
         world.gold += tax;
         world.stats.taxCollected += tax;

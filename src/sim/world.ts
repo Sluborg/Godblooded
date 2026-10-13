@@ -1,5 +1,14 @@
 import { swing } from './swing';
-import { attackBuilding, attackLair, nearestBuilding, pickLair, runRaids } from './town';
+import {
+  attackBuilding,
+  attackLair,
+  nearestBuilding,
+  pickLair,
+  runRaids,
+  runTowers,
+  upgradeBuilding,
+  upgradeCost,
+} from './town';
 import { resolveTuning } from './tuning';
 import { makeRng, type Rng } from './rng';
 import {
@@ -38,7 +47,7 @@ import {
 } from './units';
 import type {
   BountyState,
-  BuildingState,
+  BuildingCore,
   Command,
   CommandResult,
   GameData,
@@ -84,13 +93,14 @@ export interface World {
   gold: number;
   status: Snapshot['status'];
   nextId: number;
-  buildings: BuildingState[];
+  buildings: BuildingCore[];
   lairs: LairState[];
   units: UnitState[];
   lairRuntime: Map<number, LairRuntime>;
   unitRuntime: Map<number, UnitRuntime>;
   heroRuntime: Map<number, HeroRuntime>;
   templeNextMs: Map<number, number>;
+  towerNextMs: Map<number, number>;
   tuning: Tuning;
   parties: Map<number, Party>;
   bonds: Map<string, number>;
@@ -118,6 +128,7 @@ export function createWorld(seed: number, data: GameData): World {
     unitRuntime: new Map(),
     heroRuntime: new Map(),
     templeNextMs: new Map(),
+    towerNextMs: new Map(),
     tuning: resolveTuning(data),
     parties: new Map(),
     bonds: new Map(),
@@ -188,6 +199,9 @@ function runTick(world: World): void {
   world.tick++;
   world.timeMs += TICK_MS;
   runTemples(world);
+  runTowers(world);
+  // Tower victims leave now, before the lairs count their monsters or the units act.
+  settleDeaths(world);
   runLairs(world);
   runRaids(world);
   runHeroes(world);
@@ -460,6 +474,8 @@ export function command(world: World, cmd: Command): CommandResult {
       world.events.push({ kind: 'built', building: id, type: def.id });
       return { ok: true, id };
     }
+    case 'upgrade':
+      return upgradeBuilding(world, cmd.building);
     case 'pickUpgrade':
       return pickUpgrade(world, cmd.party, cmd.upgrade);
     case 'pickPath':
@@ -497,7 +513,11 @@ export function snapshot(world: World): Snapshot {
       const b = world.buildings.find((x) => x.plot === id);
       return { id, pos: { ...pos }, occupied: !!b, building: b ? b.id : null };
     }),
-    buildings: world.buildings.map((b) => ({ ...b, pos: { ...b.pos } })),
+    buildings: world.buildings.map((b) => ({
+      ...b,
+      pos: { ...b.pos },
+      upgradeCost: upgradeCost(world, b),
+    })),
     parties: [...world.parties.values()].map((p) => ({
       id: p.id,
       members: [...p.members],
