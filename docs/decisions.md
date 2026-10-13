@@ -97,3 +97,15 @@ Lead owns this file. One dated line per decision that changes how the game or th
   Scene, Art) are disabled, not deleted.
 - Lead checks after activity at 1 h, 2 h, 4 h with one-shot `send_later`, then stops.
 - Stefan talks to Lead; Lead wakes Art (or another session) when there is work.
+
+## 2026-10-13 | Godbloods: gods and paths replace classes
+
+- Stefan: no classes in the game. A hero is the child of a god; each god has two paths taken at
+  tier-up. 4 gods per pantheon: Aesir Odin, Thor, Loki, Freyja; Greek Athena, Ares, Apollo,
+  Poseidon; Egyptian Horus, Anubis, Sekhmet, Isis. Table in `docs/game-design.md`.
+- The six class rows stay in code as hidden templates (stats, weapon, strike). Players never
+  see them.
+- Cap: at most two children of the same god, on different paths (replaces two per class).
+- Art: `hero_<god>_t1_front`, `hero_<god>-<path>_t<2|3>_front`; 5 pictures per god. The shipped
+  class pictures stay as template fallbacks until god art lands.
+- Superseded: "Heroes structure: six classes and the Aesir paths" (2026-10-05).

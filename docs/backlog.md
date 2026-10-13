@@ -12,21 +12,23 @@ Review (PR open), Done. A worker takes its top Open row.
 | 30    | First `src/data/` rows for the graybox: 2 classes, 2 monsters, 4 buildings, 3 upgrades                 | Done   |
 | 35    | Balance pass on GRAYBOX with `npm run sim`: median run 15-18 min, win rate 55-75%, knockouts every run | Done   |
 | 40    | Review and merge M1 PRs; when M1 runs end to end, ask Stefan "is it fun to watch?"                     | Doing  |
+| 50    | Gods and paths data: 12 GODS rows, 24 path rows, templates; balance pass (after Sim 110)               | Open   |
 
 ## Sim
 
-| Order | Item                                                                                                                        | Status |
-| ----- | --------------------------------------------------------------------------------------------------------------------------- | ------ |
-| 10    | `api.ts` + world: `createWorld(seed, data)`, `step(world, dtMs)`, `snapshot()`, `command()`; tick loop                      | Done   |
-| 20    | Units move on the map (simple steering, no pathfinding yet); lairs spawn monsters on a timer                                | Done   |
-| 30    | Lean real-time combat from the Coda reference math (simplify if needed, log it in decisions)                                | Done   |
-| 35    | Build plots in the sim: `GameData.plots`, `build` takes a plot, refuses occupied plots; snapshot lists plots                | Done   |
-| 40    | Heroes: arrive at temples, explore, fight, return to heal and shop (gold flows to the town by tax)                          | Done   |
-| 45    | Move hero tuning (recruit timer, flee, rest, shop, tax, revive) from `heroes.ts` into `GameData.tuning`; Lead fills the row | Done   |
-| 50    | Parties: form by traits and bonds, move and fight together, share XP; party level up offers 3 upgrades                      | Done   |
-| 60    | Bounty flags: heroes weigh bounty vs danger by trait; win (last lair) and lose (town hall) conditions                       | Done   |
-| 70    | Headless balance sim (`npm run sim`): 100 seeded runs, report run length, win rate, deaths                                  | Done   |
-| 80    | Hero cap: at most `tuning.hero.maxPerClass` (2) heroes of each class alive; temples skip full classes                       | Done   |
+| Order | Item                                                                                                                                 | Status |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------ | ------ |
+| 10    | `api.ts` + world: `createWorld(seed, data)`, `step(world, dtMs)`, `snapshot()`, `command()`; tick loop                               | Done   |
+| 20    | Units move on the map (simple steering, no pathfinding yet); lairs spawn monsters on a timer                                         | Done   |
+| 30    | Lean real-time combat from the Coda reference math (simplify if needed, log it in decisions)                                         | Done   |
+| 35    | Build plots in the sim: `GameData.plots`, `build` takes a plot, refuses occupied plots; snapshot lists plots                         | Done   |
+| 40    | Heroes: arrive at temples, explore, fight, return to heal and shop (gold flows to the town by tax)                                   | Done   |
+| 45    | Move hero tuning (recruit timer, flee, rest, shop, tax, revive) from `heroes.ts` into `GameData.tuning`; Lead fills the row          | Done   |
+| 50    | Parties: form by traits and bonds, move and fight together, share XP; party level up offers 3 upgrades                               | Done   |
+| 60    | Bounty flags: heroes weigh bounty vs danger by trait; win (last lair) and lose (town hall) conditions                                | Done   |
+| 70    | Headless balance sim (`npm run sim`): 100 seeded runs, report run length, win rate, deaths                                           | Done   |
+| 80    | Hero cap: at most `tuning.hero.maxPerClass` (2) heroes of each class alive; temples skip full classes                                | Done   |
+| 110   | Gods and paths (decision 2026-10-13): `GodDef`, path by god with a template, recruit a god's child, cap 2 per god on different paths | Open   |
 
 ## Scene
 
@@ -46,15 +48,17 @@ Review (PR open), Done. A worker takes its top Open row.
 | 85    | Front picture only, mirrored; drop the `_back` lookup                                                                                                                                                     | Done   |
 | 90    | Party colours: ring under each member, banner over the leader, stable colour per party                                                                                                                    | Done   |
 | 95    | Monster tiers by colour (hue shift + size), skin variants `-v2`/`-v3` per unit id, small scale jitter                                                                                                     | Done   |
+| 100   | Gods and paths in the UI (after Sim 110): hero names "Thor-born" / path name, no class words; path cards show the god's two paths; art lookup path, god, template, placeholder                            | Open   |
 
 ## Art
 
-| Order | Item                                                                                                    | Status |
-| ----- | ------------------------------------------------------------------------------------------------------- | ------ |
-| 10    | Pipeline: `scripts/art/` key-out (green and magenta), trim, downscale, `validate:art`, manifest tooling | Done   |
-| 20    | Art-wake draft PR (`art-wake` branch, `art-wake/TRACKS.md`); check `art-tasks/README.md` end to end     | Done   |
-| 30    | Style test B1: Warrior t1 front and back, draugr t1 front, town hall t1. Stefan approves before batches | Done   |
-| 40    | After approval: tier-1 batches for heroes, monsters, buildings (art requests 10-30)                     | Doing  |
-| 50    | Tier-2 and tier-3 batches                                                                               | Open   |
-| 60    | Front only (drop `_back` items); monster variants `-v2`/`-v3` as edits of the base picture              | Open   |
-| 70    | Track `ui`: U1 logo + app icon (3 options for Stefan), then U2 UI kit (panel, buttons, icons)           | Open   |
+| Order | Item                                                                                                     | Status |
+| ----- | -------------------------------------------------------------------------------------------------------- | ------ |
+| 10    | Pipeline: `scripts/art/` key-out (green and magenta), trim, downscale, `validate:art`, manifest tooling  | Done   |
+| 20    | Art-wake draft PR (`art-wake` branch, `art-wake/TRACKS.md`); check `art-tasks/README.md` end to end      | Done   |
+| 30    | Style test B1: Warrior t1 front and back, draugr t1 front, town hall t1. Stefan approves before batches  | Done   |
+| 40    | After approval: tier-1 batches for heroes, monsters, buildings (art requests 10-30)                      | Doing  |
+| 50    | Tier-2 and tier-3 batches                                                                                | Open   |
+| 60    | Front only (drop `_back` items); monster variants `-v2`/`-v3` as edits of the base picture               | Open   |
+| 70    | Track `ui`: U1 logo + app icon (3 options for Stefan), then U2 UI kit (panel, buttons, icons)            | Open   |
+| 80    | Heroes by god: rewrite A1 to 4 Aesir god tier-1 + 8 Aesir path tier-2; ids and asset-spec per 2026-10-13 | Open   |

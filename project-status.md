@@ -10,18 +10,18 @@ Lead keeps this to one screen. Read it first when resuming.
 
 ## Now
 
-- M1 graybox done; M2 first art in progress. Five classes (warrior, ranger, wizard, paladin,
-  rogue) with chunky tier-1 art in the game; at most two of each class. Sim bot: 60% wins,
-  median run 15 min.
-- Motion system in the game: one still per unit, all motion in code (hop walk with foot dust,
-  windup from the sim, strike effects from the manifest weapon point, stomp, hurt, KO). Party
-  colours (ring and pennant), monster tiers by colour, monster variants supported.
-- Art in flight (ChatGPT): monsters B4/B5, buildings B6/B7, logo options U1, Aesir heroes A1
-  (healer tier 1 and the six Aesir tier-2 paths).
-- Sim next: healer class (Sim 90), then favor paths at tier-up (Sim 100).
+- M1 graybox done; M2 first art in progress. Motion system, party colours, monster tiers by
+  colour and variants are in the game. Sim bot: about 62% wins, median run 15 min.
+- **Redesign 2026-10-13: Godbloods.** No classes in the game; a hero is a god's child with two
+  paths. 4 gods per pantheon (`docs/game-design.md`, "Gods and paths"). Sim 110, then Lead data
+  and Scene 100; Art rewrites the heroes batch A1 to the 4 Aesir gods.
+- Art in the game: tier 1 heroes (old class pictures, now fallbacks), 6 monsters, 8 buildings.
+  ChatGPT idle since 2026-10-05: monsters V1 and ui U1 wait on `run all`; heroes waits on Art's
+  new A1.
 
 ## Waiting on Stefan
 
-- Pick a logo when U1 lands (three options, A shield, B weapons, C blood drop).
-- Is the game fun to watch? (decides M3 scope)
-- OPEN design items: `docs/game-design.md`, "OPEN".
+- `run all` in the monsters and ui chats now; in the heroes chat after Art posts the new A1.
+- Pick a logo when U1 lands (three options).
+- What persists between runs (A unlocks only, B currency, C nothing).
+- Is the game fun to watch? (decides M3 vs M4 order)

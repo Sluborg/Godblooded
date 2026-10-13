@@ -19,9 +19,10 @@ falls or your town hall burns.
 3. **Parties, not units.** Heroes group up by bonds and traits. A party levels up together and
    you choose its upgrade (1 of 3, autobattler style).
 4. **Everything has 3 tiers**, and tier reads at a glance (decisions 2026-10-05):
-   - **Heroes:** tier 1 is the class (at most **two of each class** in town). At tier-up a hero
-     takes a **favor path**, the patronage of one god, with its own art; **only one hero per
-     favor path** at a time. Draft paths below.
+   - **Heroes (decision 2026-10-13):** no classes in the game. A hero is a **Godblood**, the
+     child of one god; tier 1 is a picture per god. At tier-up the hero takes one of its god's
+     **two paths**, with its own art at tier 2 and 3. At most two children of the same god in
+     town, and they take different paths. Gods and paths below.
    - **Monsters:** tiers by **colour** (like Rage of Mages: green, yellow, red goblins) plus size,
      done in code on one picture. Common monsters get 2-3 **variants** (same pose, a different
      head or weapon) so a pack never looks cloned.
@@ -74,7 +75,7 @@ persists, and the currency.
 
 | Kind      | First set                                                                    | Tiers |
 | --------- | ---------------------------------------------------------------------------- | ----- |
-| Classes   | Warrior, Paladin, Ranger, Rogue, Wizard, Healer (heals and buffs)            | 3     |
+| Godbloods | 4 gods per pantheon, 2 paths per god (table under "Gods and paths")          | 3     |
 | Monsters  | 6 types, draft: draugr, troll, harpy, minotaur, jackal-man, wyrm (boss)      | 3     |
 | Buildings | Town hall, 3 temples (one per pantheon), market, smithy, shrine, guard tower | 3     |
 | Traits    | Brave, Coward, Greedy, Proud, Loyal, Vengeful, Curious                       | n/a   |
@@ -90,34 +91,43 @@ armor as saturating curves capped at 90%; attack time from weapon base reduced b
 knockout by default, permadeath only against bosses). Sim may simplify for the graybox and
 says so in `docs/decisions.md`.
 
-## Favor paths
+## Gods and paths
 
-Six tier 1 classes shared by every pantheon: two strength (warrior, paladin), two dexterity
-(ranger, rogue), two casters (wizard, healer). At most two heroes of each class in town. At the
-first tier-up (party level 3) a hero takes a **favor path**: one god of a pantheon whose temple
-stands, one hero per path at a time; tier 3 (level 6) is the same path's stronger form. One path
-per class per pantheon, so a second hero of a class needs a second pantheon's temple to tier up.
-If more than one path is free, the player picks it on the level-up card.
+Decision 2026-10-13 (Stefan): classes are gone from the game. The player meets Godbloods: a
+temple calls a child of one of its pantheon's gods, and at the first tier-up (party level 3) the
+hero takes one of that god's two paths; tier 3 (level 6) is the same path's stronger form. At
+most two children of the same god in town, and they take different paths; if both paths are
+free the player picks on the level-up card.
 
-**Aesir (Stefan, 2026-10-05):**
+**Dev only:** each god and each path points to a hidden **template** (the old class rows:
+warrior, paladin, ranger, rogue, wizard, healer) that sets stats, weapon and strike. Templates
+are a tuning tool; the words never show in the game.
 
-| Class   | Path            | God      | Strike | Look                                                     |
-| ------- | --------------- | -------- | ------ | -------------------------------------------------------- |
-| Warrior | Storm Berserker | Thor     | chop   | Daughter of Thor (concept sheet): axe or hammer, storm   |
-| Paladin | Oathsworn       | Tyr      | chop   | one-handed sword, big round shield, iron and honour      |
-| Ranger  | Bifrost Warden  | Heimdall | shot   | watchman with a bow and the Gjallarhorn, rainbow accents |
-| Rogue   | Rune Trickster  | Loki     | double | Son of Loki (concept sheet): twin daggers, green, masks  |
-| Wizard  | Raven Seer      | Odin     | bolt   | spear-staff, one eye, two ravens, runes                  |
-| Healer  | Valkyrie Skald  | Freyja   | bolt   | Son of Freyja (concept sheet): harp, feathered cloak     |
+| Pantheon | God      | Tier 1 template | Path 1                       | Path 2                     |
+| -------- | -------- | --------------- | ---------------------------- | -------------------------- |
+| Aesir    | Odin     | wizard          | Seer (wizard)                | Wanderer (warrior, thrust) |
+| Aesir    | Thor     | warrior         | Hammerborn (paladin, smash)  | Stormcaller (wizard)       |
+| Aesir    | Loki     | rogue           | Trickster (rogue)            | Flamebinder (wizard)       |
+| Aesir    | Freyja   | healer          | Valkyrie (warrior)           | Seidkona (healer)          |
+| Greek    | Athena   | paladin         | Aegis (paladin)              | Owlsage (wizard)           |
+| Greek    | Ares     | warrior         | Bloodrager (rogue, double)   | Warlord (warrior)          |
+| Greek    | Apollo   | ranger          | Sunarcher (ranger)           | Paean (healer)             |
+| Greek    | Poseidon | warrior         | Trident (warrior, thrust)    | Tidecaller (wizard)        |
+| Egyptian | Horus    | ranger          | Falconer (ranger)            | Skyguard (paladin)         |
+| Egyptian | Anubis   | warrior         | Gravewarden (warrior, sweep) | Embalmer (wizard)          |
+| Egyptian | Sekhmet  | rogue           | Lioness (rogue)              | Plaguefire (wizard)        |
+| Egyptian | Isis     | healer          | Lifegiver (healer)           | Enchantress (wizard)       |
 
-Greek and Egyptian paths: later, same shape (one path per class per pantheon).
+Art per god: tier 1 + 2 paths x 2 tiers = 5 pictures, 60 in all. Aesir first (M2), Greek and
+Egyptian with their temples (M3). Some differences can show as effects (strike colour, aura)
+instead of new art.
 
 ## Milestones
 
 | Order | Milestone        | Done when                                                                                                                                                            |
 | ----- | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 10    | M1 Graybox       | Shapes only: town hall, 1 temple, 1 market, 2 lairs. Heroes arrive, form parties, hunt, return, shop. Bounty flag. Level-up pick. Win or lose. Stefan: fun to watch? |
-| 20    | M2 First art     | Tier 1 of 5 classes, 6 monsters and the buildings in (one front picture each, mirrored), party colours, UI kit and logo.                                             |
+| 20    | M2 First art     | Tier 1 of the 4 Aesir gods, 6 monsters and the buildings in (one front picture each, mirrored), party colours, UI kit and logo.                                      |
 | 30    | M3 Tiers and run | Tier 2 and 3 skins, lair growth, party tier-ups, 3 pantheon temples, meta unlocks.                                                                                   |
 | 40    | M4 Feel          | Speech bubbles, hit effects, sound, juice, balance pass.                                                                                                             |
 
