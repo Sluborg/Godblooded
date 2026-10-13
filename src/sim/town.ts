@@ -10,9 +10,9 @@ import {
 } from './units';
 import { shareXp } from './parties';
 import { earn, tally } from './runstats';
-import { resolveStrike } from './strike';
+import { attackStrike, resolveStrike } from './strike';
 import { swing } from './swing';
-import type { UnitRuntime, World } from './world';
+import { targetOf, type UnitRuntime, type World } from './world';
 import type { BuildingCore, CommandResult, LairState, UnitState, Vec2 } from './types';
 
 // The town side of a run, simplified and logged in docs/decisions.md: heroes can destroy
@@ -59,7 +59,7 @@ export function attackBuilding(
     return;
   }
   swing(world, unit, rt, stats, b.id, () => {
-    const hit = resolveStrike(world, { attrs: stats.attrs, canDodge: false });
+    const hit = resolveStrike(world, attackStrike(stats));
     const dmg = hit.damage;
     b.hp -= dmg;
     world.events.push({
@@ -110,7 +110,7 @@ export function attackLair(
     return;
   }
   swing(world, unit, rt, stats, lair.id, () => {
-    const hit = resolveStrike(world, { attrs: stats.attrs, canDodge: false });
+    const hit = resolveStrike(world, attackStrike(stats));
     const dmg = hit.damage;
     lair.hp -= dmg;
     tally(world, unit.id, 'damage', dmg);
@@ -251,6 +251,7 @@ export function runTowers(world: World): void {
       power: tierValue(t.towerDamage, b.tier, 0),
       canDodge: false,
       canCrit: false,
+      target: targetOf(world, foe),
     }).damage;
     foe.hp -= dmg;
     world.events.push({ kind: 'hit', attacker: b.id, target: foe.id, damage: dmg, dodged: false });

@@ -1,7 +1,7 @@
 import { avenge, revengeTarget, rivalPairs, vowRevenge } from './rivalry';
 import { runAutosave } from './save';
 import { generateMap } from './mapgen';
-import { resolveStrike } from './strike';
+import { attackStrike, resolveStrike } from './strike';
 import { swing } from './swing';
 import { buildReport, sampleGold, tally, type HeroRecord } from './runstats';
 import {
@@ -306,15 +306,30 @@ function runLairs(world: World): void {
 function statsOf(world: World, unit: UnitState): Stats | undefined {
   if (unit.kind === 'hero') {
     const cls = world.data.classes?.find((c) => c.id === unit.type);
-    return cls && { weapon: cls.weapon, attrs: effectiveAttrs(world, unit, cls.attrs) };
+    return (
+      cls && {
+        weapon: cls.weapon,
+        attrs: effectiveAttrs(world, unit, cls.attrs),
+        armour: cls.armour,
+        spellMult: cls.spellMult,
+      }
+    );
   }
   const mon = world.data.monsters?.find((m) => m.id === unit.type);
+  const mult = tierValue(world.tuning.lair.statMult, unit.tier, 1);
   return (
     mon && {
       weapon: mon.weapon,
-      attrs: scaleAttrs(mon.attrs, tierValue(world.tuning.lair.statMult, unit.tier, 1)),
+      attrs: scaleAttrs(mon.attrs, mult),
+      armour: Math.round((mon.armour ?? 0) * mult),
     }
   );
+}
+
+// What a strike needs to know about a unit it hits.
+export function targetOf(world: World, unit: UnitState) {
+  const st = statsOf(world, unit);
+  return st && { attrs: st.attrs, armour: st.armour };
 }
 
 function runUnits(world: World): void {
@@ -420,10 +435,10 @@ function fight(world: World, unit: UnitState, rt: UnitRuntime, stats: Stats, foe
   if (d > 0) unit.facing = { x: (foe.pos.x - unit.pos.x) / d, y: (foe.pos.y - unit.pos.y) / d };
   swing(world, unit, rt, stats, foe.id, () => {
     const foeStats = statsOf(world, foe);
-    const hit = resolveStrike(world, {
-      attrs: stats.attrs,
-      target: foeStats && { attrs: foeStats.attrs },
-    });
+    const hit = resolveStrike(
+      world,
+      attackStrike(stats, foeStats && { attrs: foeStats.attrs, armour: foeStats.armour }),
+    );
     const { dodged, damage: dmg } = hit;
     foe.hp -= dmg;
     tally(world, unit.id, 'damage', dmg);
