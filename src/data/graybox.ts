@@ -19,12 +19,14 @@ export const CLASSES: readonly ClassDef[] = [
     attrs: { str: 6, dex: 3, sta: 6, cha: 3, per: 3, int: 2, wp: 5 },
     weapon: { baseAttackS: 1.6, range: 40 },
     startGold: 40,
+    armour: 6,
   },
   {
     id: 'ranger',
     attrs: { str: 4, dex: 6, sta: 4, cha: 3, per: 6, int: 3, wp: 4 },
     weapon: { baseAttackS: 1.4, range: 220 },
     startGold: 50,
+    armour: 3,
   },
   // Wizard: str stands for spell power until magic has its own stat.
   {
@@ -32,18 +34,22 @@ export const CLASSES: readonly ClassDef[] = [
     attrs: { str: 5, dex: 4, sta: 3, cha: 3, per: 5, int: 7, wp: 5 },
     weapon: { baseAttackS: 1.9, range: 200 },
     startGold: 45,
+    armour: 0,
+    spellMult: 1,
   },
   {
     id: 'paladin',
     attrs: { str: 5, dex: 2, sta: 8, cha: 4, per: 3, int: 3, wp: 7 },
     weapon: { baseAttackS: 1.9, range: 40 },
     startGold: 40,
+    armour: 10,
   },
   {
     id: 'rogue',
     attrs: { str: 4, dex: 8, sta: 4, cha: 3, per: 5, int: 3, wp: 3 },
     weapon: { baseAttackS: 1.1, range: 40 },
     startGold: 60,
+    armour: 3,
   },
   // Healer: mends the most hurt party mate below the heal threshold, otherwise casts a bolt.
   {
@@ -52,16 +58,18 @@ export const CLASSES: readonly ClassDef[] = [
     weapon: { baseAttackS: 1.6, range: 200 },
     startGold: 40,
     heals: true,
+    armour: 1,
+    spellMult: 0.6,
   },
 ];
 
 // Gods (docs/game-design.md, "Gods and paths", decision 2026-10-13): a temple calls a child of
 // one of its pantheon's gods. `template` is the hidden ClassDef a tier 1 child uses.
 export const GODS: readonly GodDef[] = [
-  { id: 'odin', pantheon: 'aesir', name: 'Odin', template: 'wizard' },
+  { id: 'odin', pantheon: 'aesir', name: 'Odin', template: 'wizard', damageType: 'death' },
   { id: 'thor', pantheon: 'aesir', name: 'Thor', template: 'warrior' },
   { id: 'loki', pantheon: 'aesir', name: 'Loki', template: 'rogue' },
-  { id: 'freyja', pantheon: 'aesir', name: 'Freyja', template: 'healer' },
+  { id: 'freyja', pantheon: 'aesir', name: 'Freyja', template: 'healer', damageType: 'holy' },
   { id: 'athena', pantheon: 'greek', name: 'Athena', template: 'paladin' },
   { id: 'ares', pantheon: 'greek', name: 'Ares', template: 'warrior' },
   { id: 'apollo', pantheon: 'greek', name: 'Apollo', template: 'ranger' },
@@ -69,7 +77,7 @@ export const GODS: readonly GodDef[] = [
   { id: 'horus', pantheon: 'egyptian', name: 'Horus', template: 'ranger' },
   { id: 'anubis', pantheon: 'egyptian', name: 'Anubis', template: 'warrior' },
   { id: 'sekhmet', pantheon: 'egyptian', name: 'Sekhmet', template: 'rogue' },
-  { id: 'isis', pantheon: 'egyptian', name: 'Isis', template: 'healer' },
+  { id: 'isis', pantheon: 'egyptian', name: 'Isis', template: 'healer', damageType: 'holy' },
 ];
 
 // Two paths per god, taken at the first tier-up; ids match the art (hero_<id>_t2_front). Bonus is
@@ -80,6 +88,7 @@ export const PATHS: readonly PathDef[] = [
     god: 'odin',
     template: 'wizard',
     name: 'Seer',
+    damageType: 'death',
     attrs: [
       { str: 1, int: 1 },
       { str: 2, int: 2 },
@@ -110,6 +119,7 @@ export const PATHS: readonly PathDef[] = [
     god: 'thor',
     template: 'wizard',
     name: 'Stormcaller',
+    damageType: 'lightning',
     attrs: [
       { str: 1, int: 1 },
       { str: 2, int: 2 },
@@ -130,6 +140,7 @@ export const PATHS: readonly PathDef[] = [
     god: 'loki',
     template: 'wizard',
     name: 'Flamebinder',
+    damageType: 'fire',
     attrs: [
       { str: 1, int: 1 },
       { str: 2, int: 2 },
@@ -150,6 +161,7 @@ export const PATHS: readonly PathDef[] = [
     god: 'freyja',
     template: 'healer',
     name: 'Seidkona',
+    damageType: 'frost',
     attrs: [
       { int: 1, wp: 1 },
       { int: 2, wp: 2 },
@@ -170,6 +182,7 @@ export const PATHS: readonly PathDef[] = [
     god: 'athena',
     template: 'wizard',
     name: 'Owlsage',
+    damageType: 'lightning',
     attrs: [
       { str: 1, int: 1 },
       { str: 2, int: 2 },
@@ -210,6 +223,7 @@ export const PATHS: readonly PathDef[] = [
     god: 'apollo',
     template: 'healer',
     name: 'Paean',
+    damageType: 'holy',
     attrs: [
       { int: 1, wp: 1 },
       { int: 2, wp: 2 },
@@ -230,6 +244,7 @@ export const PATHS: readonly PathDef[] = [
     god: 'poseidon',
     template: 'wizard',
     name: 'Tidecaller',
+    damageType: 'frost',
     attrs: [
       { str: 1, int: 1 },
       { str: 2, int: 2 },
@@ -270,6 +285,7 @@ export const PATHS: readonly PathDef[] = [
     god: 'anubis',
     template: 'wizard',
     name: 'Embalmer',
+    damageType: 'death',
     attrs: [
       { str: 1, int: 1 },
       { str: 2, int: 2 },
@@ -290,6 +306,7 @@ export const PATHS: readonly PathDef[] = [
     god: 'sekhmet',
     template: 'wizard',
     name: 'Plaguefire',
+    damageType: 'fire',
     attrs: [
       { str: 1, int: 1 },
       { str: 2, int: 2 },
@@ -300,6 +317,7 @@ export const PATHS: readonly PathDef[] = [
     god: 'isis',
     template: 'healer',
     name: 'Lifegiver',
+    damageType: 'holy',
     attrs: [
       { int: 1, wp: 1 },
       { int: 2, wp: 2 },
@@ -310,6 +328,7 @@ export const PATHS: readonly PathDef[] = [
     god: 'isis',
     template: 'wizard',
     name: 'Enchantress',
+    damageType: 'lightning',
     attrs: [
       { str: 1, int: 1 },
       { str: 2, int: 2 },
@@ -324,6 +343,9 @@ export const MONSTERS: readonly MonsterDef[] = [
     weapon: { baseAttackS: 1.7, range: 40 },
     bounty: 12,
     xp: 10,
+    armour: 2,
+    tags: ['undead'],
+    types: { holy: 1.5, fire: 1.5, death: 0.5, frost: 0.5 },
   },
   {
     id: 'troll',
@@ -331,6 +353,9 @@ export const MONSTERS: readonly MonsterDef[] = [
     weapon: { baseAttackS: 2.4, range: 50 },
     bounty: 40,
     xp: 35,
+    armour: 4,
+    tags: ['giant'],
+    types: { fire: 1.5, frost: 0.5 },
   },
   {
     id: 'harpy',
@@ -338,6 +363,9 @@ export const MONSTERS: readonly MonsterDef[] = [
     weapon: { baseAttackS: 1.3, range: 40 },
     bounty: 14,
     xp: 12,
+    armour: 1,
+    tags: ['beast', 'flyer'],
+    types: { lightning: 1.5 },
   },
   {
     id: 'jackal-man',
@@ -345,6 +373,9 @@ export const MONSTERS: readonly MonsterDef[] = [
     weapon: { baseAttackS: 1.6, range: 45 },
     bounty: 18,
     xp: 15,
+    armour: 2,
+    tags: ['undead'],
+    types: { holy: 1.5, death: 0.5 },
   },
   {
     id: 'minotaur',
@@ -352,6 +383,9 @@ export const MONSTERS: readonly MonsterDef[] = [
     weapon: { baseAttackS: 2.1, range: 50 },
     bounty: 34,
     xp: 30,
+    armour: 5,
+    tags: ['beast', 'giant'],
+    types: { frost: 1.5, physical: 0.75 },
   },
   {
     id: 'wyrm',
@@ -359,6 +393,9 @@ export const MONSTERS: readonly MonsterDef[] = [
     weapon: { baseAttackS: 2.6, range: 70 },
     bounty: 120,
     xp: 100,
+    armour: 7,
+    tags: ['boss'],
+    types: { frost: 1.5, fire: 0.5, physical: 0.75 },
   },
 ];
 
@@ -438,7 +475,7 @@ export const GRAYBOX: GameData = {
   // about 17 knockouts per run. Unset keys use DEFAULT_TUNING in src/sim/tuning.ts.
   tuning: {
     hero: { maxPerTemple: 7, recruitMs: 22_000 },
-    town: { raidFirstMs: 420_000, raidEveryMs: 180_000, raidGrowEveryMs: 480_000, raidSize: 1 },
+    town: { raidFirstMs: 420_000, raidEveryMs: 210_000, raidGrowEveryMs: 480_000, raidSize: 1 },
   },
   classes: CLASSES,
   gods: GODS,
