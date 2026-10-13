@@ -6,11 +6,28 @@ export interface Settings {
   speed: Speed;
   reducedMotion: boolean;
   palette: PaletteId;
+  // Music volume 0..1 in steps of 0.05, and a mute toggle (docs/systems/audio.md section 5).
+  musicVolume: number;
+  musicMuted: boolean;
 }
 
-export const DEFAULT_SETTINGS: Settings = { speed: 1, reducedMotion: false, palette: 'standard' };
+export const DEFAULT_MUSIC_VOLUME = 0.6;
+
+export const DEFAULT_SETTINGS: Settings = {
+  speed: 1,
+  reducedMotion: false,
+  palette: 'standard',
+  musicVolume: DEFAULT_MUSIC_VOLUME,
+  musicMuted: false,
+};
 
 export const SETTINGS_KEY = 'godblooded.settings.v1';
+
+// Snaps to the 5% steps; anything that is not a number falls back to the default.
+function parseVolume(v: unknown): number {
+  if (typeof v !== 'number' || !Number.isFinite(v)) return DEFAULT_MUSIC_VOLUME;
+  return Math.round(Math.min(1, Math.max(0, v)) * 20) / 20;
+}
 
 export function parseSettings(raw: unknown): Settings {
   let v: unknown = raw;
@@ -27,6 +44,8 @@ export function parseSettings(raw: unknown): Settings {
     speed: o.speed === 2 || o.speed === 4 ? o.speed : 1,
     reducedMotion: o.reducedMotion === true,
     palette: o.palette === 'colourblind' ? 'colourblind' : 'standard',
+    musicVolume: parseVolume(o.musicVolume),
+    musicMuted: o.musicMuted === true,
   };
 }
 
