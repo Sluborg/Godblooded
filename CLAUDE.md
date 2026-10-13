@@ -51,20 +51,22 @@ docs/         design, collaboration, inboxes, requests, sessions
 
 ## Git
 
-- Work on a branch, open a **draft** PR to `main`. CI (lint, format, test, build) runs on drafts
-  and must be green.
-- **Never open a non-draft PR.** Opening one or marking a draft ready starts a Codex review
-  automatically, which spends Stefan's ChatGPT quota (Stefan, 2026-10-13). Only Integrator marks
-  a draft ready, and only in the moment it lands it (below).
-- **Codex: manual only.** Lead decides which PRs get `@codex review` and comments it; the author
-  fixes the findings.
-- Self-review the diff before the PR (`code-review` skill).
-- **Integrator lands PRs** (delegated by Lead). Workers never merge their own. Never land red CI.
-  A draft is marked ready only right before it is merged, once CI is green and Review is clear.
-- Stacked work: base every PR on `main`; if a branch builds on another, say "stacked on #N" in
-  the title and Integrator lands them in order.
+- **Pull requests are scarce.** Any PR can start a Codex review that spends Stefan's ChatGPT
+  quota, and it cannot be switched off (Stefan, 2026-10-14). Workers do not open PRs.
+- **Workers:** work on a branch `<role>/<topic>`, base it on `main`, push it. CI (lint, format,
+  test, build) runs on every branch push and must be green. When a topic is done, tell Review
+  and Integrator the branch name (`send_message`). Self-review the diff first (`code-review`
+  skill). If a branch builds on another, say so in that message.
+- **Review** reviews the branch diff against `main` and reports to the author by message.
+- **Integrator lands in batches** (delegated by Lead): merges green, reviewed branches into
+  `integrate/<date>-<n>`, runs the checks, opens **one draft PR per batch**, marks it ready and
+  merges it once CI is green. A few batches a day, not one per topic. Workers never merge to
+  `main`. Never land red CI.
+- **Codex: manual only.** Lead decides which batch gets `@codex review`.
+- **Docs-only commits straight to `main`:** Lead only. Everything else, Design's docs included,
+  goes through a batch.
 - `main` deploys to https://sluborg.github.io/Godblooded/ automatically.
-- Small PRs, one topic each, conventional commit messages.
+- Small commits, one topic per branch, conventional commit messages.
 
 ## Hard stops
 

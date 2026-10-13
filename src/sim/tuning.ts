@@ -176,6 +176,7 @@ export const DEFAULT_TUNING: Tuning = {
     braveFearMult: 0.5,
     cowardFearMult: 2,
     proudMinGold: 40,
+    cancelRefund: 0.5,
   },
 };
 

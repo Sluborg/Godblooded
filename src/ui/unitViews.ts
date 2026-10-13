@@ -3,6 +3,19 @@ import { GRAYBOX } from '../data/graybox';
 import { lookOf, type UnitLook } from '../data/looks';
 import { bossState } from './bossLook';
 import { heroPartsLook } from '../data/heroParts';
+import {
+  STATUS_LOOK,
+  isStatusKind,
+  liveStatuses,
+  newestRing,
+  shapeBox,
+  skillTint,
+  skillVisuals,
+  type StatusKind,
+} from './skillLook';
+import { SkillFx } from './skillFx';
+import { armourOutline, glyphOf, hasGear, potionPips, weaponGlow } from './gearLook';
+import { drawGlyph } from './itemGlyph';
 import { ensureHeroSet, sweepSets, type BakedSet } from './parts/bake';
 import { attackFrame, idleFrame, koFrame, walkFrame, type PoseName } from './parts/frames';
 import type { RiderId, SimEvent, UnitState, Vec2 } from '../sim/api';
@@ -93,6 +106,11 @@ interface Attack {
 // What a view needs from the world around it each frame.
 interface FrameCtx {
   dtS: number;
+  // Run time of the snapshot in ms (statuses end at a run time).
+  timeMs: number;
+  // Hero names show for this party (the selected hero's), or for this one hero when solo.
+  namesParty: number;
+  namesHero: number;
   fx: FxLayer;
   shake: () => void;
   // Chest of a unit, building or lair by sim id, if it is on the map.
@@ -131,6 +149,8 @@ export class UnitView {
   private readonly pennant: Phaser.GameObjects.Graphics;
   private readonly label: Phaser.GameObjects.Text;
   private ringKey = '';
+  // A hero's name, party number and pennant show only when asked (heroNames or a tap).
+  private showNames = true;
   // The tier last seen in the snapshot (a tier 3 monster is a boss-sized threat: its hits shake).
   tierNow = 1;
   private bubble: Phaser.GameObjects.Container | null = null;
@@ -178,6 +198,14 @@ export class UnitView {
   // A rider on this unit (burn, chill, ...): tint and head icon until `msLeft` runs out.
   private riders = new Map<RiderId, number>();
   private readonly riderIcon: Phaser.GameObjects.Graphics;
+  // Shield, mark, buff, taunt, bind, heal over time: until (run time) and arrival order.
+  private statuses = new Map<StatusKind, { until: number; seq: number }>();
+  private statusSeq = 0;
+  private readonly statusG: Phaser.GameObjects.Graphics;
+  private statusDrawn = false;
+  // Carried gear: armour outline, weapon shimmer or glow, flask pips.
+  private readonly gearG: Phaser.GameObjects.Graphics;
+  private gearDrawn = false;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -223,6 +251,8 @@ export class UnitView {
     this.body = scene.add.container(0, 0, [this.capsule, this.nose]);
     this.bar = scene.add.graphics();
     this.riderIcon = scene.add.graphics();
+    this.statusG = scene.add.graphics();
+    this.gearG = scene.add.graphics();
     // Ring at the feet in the party colour (white and thicker when selected), badge with the
     // party number beside the name.
     this.ring = scene.add.graphics();
@@ -238,7 +268,9 @@ export class UnitView {
     this.container = scene.add.container(this.x, this.y, [
       this.shadow,
       this.ring,
+      this.statusG,
       this.body,
+      this.gearG,
       this.bar,
       this.riderIcon,
       this.label,
@@ -274,7 +306,7 @@ export class UnitView {
     if (!look) return this.leaveParts();
     const id = look.id;
     if (id === this.partsId) return true;
-    const set = ensureHeroSet(this.scene, id, look.def);
+    const set = ensureHeroSet(this.scene, id, look.def, u.tier);
     const first = set.frames.idle[0];
     this.partsSet = set;
     this.partsId = id;
@@ -488,6 +520,98 @@ export class UnitView {
     return best;
   }
 
+  // Armour as an outline round the body, the weapon level as a shimmer or glow at the weapon
+  // point, one pip per potion over the health bar. Nothing is drawn for a bare hero.
+  private drawGear(u: UnitState, timeMs: number): void {
+    const items = u.kind === 'hero' ? u.items : undefined;
+    const g = this.gearG;
+    if (!hasGear(items) || !items) {
+      if (this.gearDrawn) g.clear();
+      this.gearDrawn = false;
+      return;
+    }
+    this.gearDrawn = true;
+    g.clear();
+    const t = timeMs / 1000;
+    const outline = armourOutline(items.armour);
+    if (outline !== null)
+      g.lineStyle(2, outline, 0.75).strokeEllipse(0, -this.h * 0.48, this.w * 1.05, this.h * 0.95);
+    const wg = weaponGlow(items.weapon, heroDamageType(u));
+    if (wg.kind !== 'none') {
+      const lx = ((this.row?.weaponX ?? PLACEHOLDER.weaponX) - this.ax) * this.w * this.face;
+      const ly = ((this.row?.weaponY ?? PLACEHOLDER.weaponY) - this.ay) * this.h;
+      const pulse = 0.65 + 0.35 * Math.sin(t * 6 + u.id);
+      if (wg.kind === 'glow') {
+        g.fillStyle(wg.color, 0.18 * pulse).fillCircle(lx, ly, 17);
+        g.fillStyle(wg.color, 0.4 * pulse).fillCircle(lx, ly, 9);
+        g.fillStyle(0xffffff, 0.7 * pulse).fillCircle(lx, ly, 3);
+      } else {
+        g.fillStyle(wg.color, 0.8 * pulse);
+        g.fillTriangle(lx, ly - 8, lx - 2, ly, lx + 2, ly);
+        g.fillTriangle(lx, ly + 8, lx - 2, ly, lx + 2, ly);
+        g.fillTriangle(lx - 8, ly, lx, ly - 2, lx, ly + 2);
+        g.fillTriangle(lx + 8, ly, lx, ly - 2, lx, ly + 2);
+      }
+    }
+    const pips = potionPips(items);
+    for (let i = 0; i < pips; i++) {
+      const x = (i - (pips - 1) / 2) * 9;
+      const y = -this.h - 34;
+      g.fillStyle(0x1a1410, 0.8).fillCircle(x, y, 4.5);
+      g.fillStyle(0xcf4f6f, 1).fillCircle(x, y, 3);
+    }
+  }
+
+  setStatus(kind: StatusKind, until: number): void {
+    this.statuses.set(kind, { until, seq: this.statusSeq++ });
+  }
+
+  // Shield bubble over the unit, mark and bind signs over its head, one ring under its feet (the
+  // newest buff or heal over time). Drawn only while something runs.
+  private drawStatus(timeMs: number): void {
+    const live = liveStatuses(this.statuses, timeMs);
+    if (live.length === 0) {
+      if (this.statusDrawn) this.statusG.clear();
+      this.statusDrawn = false;
+      return;
+    }
+    this.statusDrawn = true;
+    const g = this.statusG;
+    g.clear();
+    const t = timeMs / 1000;
+    const ring = newestRing(this.statuses, live);
+    if (ring) {
+      const c = STATUS_LOOK[ring].color;
+      const pulse = 1 + Math.sin(t * 5) * 0.06;
+      g.lineStyle(3, c, 0.8).strokeEllipse(0, -2, 64 * pulse, 24 * pulse);
+      g.fillStyle(c, 0.12).fillEllipse(0, -2, 64 * pulse, 24 * pulse);
+    }
+    let signs = 0;
+    for (const k of live) {
+      const look = STATUS_LOOK[k];
+      if (look.style === 'bubble') {
+        const r = this.h * 0.62;
+        g.fillStyle(look.color, 0.14).fillEllipse(0, -this.h * 0.5, r * 1.5, r * 2);
+        g.lineStyle(2.5, look.color, 0.75 + Math.sin(t * 6) * 0.15).strokeEllipse(
+          0,
+          -this.h * 0.5,
+          r * 1.5,
+          r * 2,
+        );
+      } else if (look.style === 'sign') {
+        const x =
+          (signs++ - (live.filter((l) => STATUS_LOOK[l].style === 'sign').length - 1) / 2) * 24;
+        const y = -this.h - 52 + Math.sin(t * 4 + signs) * 3;
+        g.fillStyle(0x1a1410, 0.8).fillCircle(x, y, 11);
+        g.lineStyle(2, look.color, 1).strokeCircle(x, y, 11);
+        g.fillStyle(look.color, 1);
+        if (k === 'mark') g.fillTriangle(x - 5, y - 4, x + 5, y - 4, x, y + 5);
+        else if (k === 'taunt') g.fillRect(x - 1.5, y - 6, 3, 8).fillCircle(x, y + 6, 1.8);
+        else g.fillRect(x - 6, y - 1.5, 12, 3).fillRect(x - 1.5, y - 6, 3, 12);
+      }
+    }
+  }
+
   private drawRider(dtS: number): void {
     this.riderIcon.clear();
     for (const [id, ms] of this.riders) {
@@ -589,6 +713,13 @@ export class UnitView {
     this.tick(u.pos, u.facing.x, u.ko, ctx);
     this.drawBar(u);
     this.drawRider(ctx.dtS);
+    this.drawStatus(ctx.timeMs);
+    this.drawGear(u, ctx.timeMs);
+    this.showNames =
+      u.kind !== 'hero' ||
+      getSettings().heroNames ||
+      u.id === ctx.namesHero ||
+      (u.party > 0 && u.party === ctx.namesParty);
     this.drawParty(u, role);
     this.drawPennant(u, role);
   }
@@ -799,7 +930,7 @@ export class UnitView {
   // when selected).
   private drawParty(u: UnitState, role: PartyRole): void {
     const selected = this.scene.registry.get('selectedUnit') === u.id;
-    const key = `${role}:${u.party}:${selected}:${getSettings().palette}:${u.kind}:${u.tier}:${this.boss}`;
+    const key = `${role}:${u.party}:${selected}:${getSettings().palette}:${u.kind}:${u.tier}:${this.boss}:${this.showNames}`;
     if (key === this.ringKey) return;
     this.ringKey = key;
     this.ring.clear();
@@ -827,7 +958,8 @@ export class UnitView {
       return;
     }
     const inParty = role !== 'solo';
-    this.badge.setVisible(inParty);
+    this.label.setVisible(this.showNames);
+    this.badge.setVisible(inParty && this.showNames);
     if (inParty) {
       const c = partyColor(u.party);
       this.badge.setText(`${u.party}`).setBackgroundColor(`#${c.toString(16).padStart(6, '0')}`);
@@ -842,7 +974,7 @@ export class UnitView {
 
   private drawPennant(u: UnitState, role: PartyRole): void {
     this.pennant.clear();
-    if (role !== 'leader') return;
+    if (role !== 'leader' || !this.showNames) return;
     const c = partyColor(u.party);
     const x = this.label.width / 2 + 12;
     const base = this.label.y;
@@ -924,18 +1056,36 @@ export class UnitView {
   }
 }
 
+const GODS = new Map((GRAYBOX.gods ?? []).map((d) => [d.id, d]));
+const PATHS = new Map((GRAYBOX.paths ?? []).map((d) => [d.id, d]));
+const ITEMS = new Map((GRAYBOX.items ?? []).map((d) => [d.id, d]));
+const CLASSES = new Map((GRAYBOX.classes ?? []).map((d) => [d.id, d]));
+// The type a hero strikes with. Sim gives a type only to casters (its class has a spellMult):
+// their path's (tier 2 and up) or else their god's; weapon heroes strike physical. Mirrors
+// sim/world.ts; Scene has no snapshot field for it yet.
+function heroDamageType(u: UnitState): string {
+  const path = u.path ? PATHS.get(u.path) : undefined;
+  const template = path?.template ?? (u.god ? GODS.get(u.god)?.template : undefined);
+  if (!template || CLASSES.get(template)?.spellMult === undefined) return 'physical';
+  return path?.damageType ?? (u.god ? GODS.get(u.god)?.damageType : undefined) ?? 'physical';
+}
+const SKILLS = new Map((GRAYBOX.skills ?? []).map((d) => [d.id, d]));
+const skillDef = (id: string) => SKILLS.get(id);
+
 // Keeps one UnitView per snapshot unit, plays the shared motion system for sim events and owns
 // the strike-effect layer.
 export class UnitViews {
   private readonly views = new Map<number, UnitView>();
   private readonly dying = new Map<number, UnitView>();
   private readonly fx: FxLayer;
+  private readonly skillFx: SkillFx;
 
   constructor(
     private readonly scene: Phaser.Scene,
     private readonly shake: () => void = () => {},
   ) {
     this.fx = new FxLayer(scene);
+    this.skillFx = new SkillFx(scene);
   }
 
   // `others` finds a building or lair by sim id (hits can land on those too); `dtMs` is the
@@ -943,15 +1093,20 @@ export class UnitViews {
   sync(
     units: readonly Readonly<UnitState>[],
     events: readonly SimEvent[],
-    _timeMs: number,
+    timeMs: number,
     dtMs: number,
     others: (id: number) => Vec2 | undefined = () => undefined,
     parties: readonly { id: number; members: readonly number[] }[] = [],
     paths: readonly { id: string; name: string }[] = [],
   ): void {
     const dtS = Math.min(MAX_DT_S, dtMs / 1000);
+    // Names are off unless the player taps a hero: then every hero of its party shows one.
+    const sel = units.find((u) => u.id === this.scene.registry.get('selectedUnit'));
     const ctx: FrameCtx = {
       dtS,
+      timeMs,
+      namesParty: sel && sel.party > 0 ? sel.party : 0,
+      namesHero: sel?.id ?? 0,
       fx: this.fx,
       shake: this.shake,
       chestOf: (id) => {
@@ -987,6 +1142,11 @@ export class UnitViews {
       else if (e.kind === 'upgradePicked' && e.auto) this.onAutoPick(e, parties);
       else if (e.kind === 'built') this.onBuilt(e, others);
       else if (e.kind === 'rider') this.views.get(e.target)?.setRider(e.rider);
+      else if (e.kind === 'drank') this.onDrank(e, ctx);
+      else if (e.kind === 'cast') this.onCast(e);
+      else if (e.kind === 'skill') this.onSkill(e);
+      else if (e.kind === 'status' && isStatusKind(e.status))
+        this.views.get(e.unit)?.setStatus(e.status, e.until);
       else if (e.kind === 'bossEmerged') this.onBossEmerged(e);
       else if (e.kind === 'enraged') this.onEnraged(e);
       else if (isSpeechEvent(e)) this.onSpeech(e);
@@ -1186,9 +1346,44 @@ export class UnitViews {
     this.views.get(e.unit)?.evolve(this.fx, name ?? `Tier ${e.tier}!`);
   }
 
+  // A hero drank a potion: a green swirl and the healed number.
+  private onDrank(e: Extract<SimEvent, { kind: 'drank' }>, ctx: FrameCtx): void {
+    ctx.healed(e.unit, e.amount);
+    const v = this.views.get(e.unit);
+    if (v)
+      this.fx.add([
+        {
+          type: 'ring',
+          x: v.container.x,
+          y: v.container.y,
+          r: 50,
+          age: 0,
+          life: 0.5,
+          color: 0x7fe08a,
+        },
+      ]);
+  }
+
+  // The item a purchase bought rises over the hero as a small icon.
+  private riseGlyph(v: UnitView, item: string | undefined): void {
+    const slot = item ? ITEMS.get(item)?.slot : undefined;
+    const g = this.scene.add.graphics({ x: v.container.x, y: v.container.y - v.height - 44 });
+    g.setDepth(1_000_000);
+    drawGlyph(g, glyphOf(slot));
+    this.scene.tweens.add({
+      targets: g,
+      y: g.y - 46,
+      alpha: 0,
+      duration: 1200,
+      ease: 'Quad.easeOut',
+      onComplete: () => g.destroy(),
+    });
+  }
+
   // A hero spent gold at the market: the town's tax pops out in gold with a few sparkles.
   private onShopped(e: Extract<SimEvent, { kind: 'shopped' }>): void {
     const v = this.views.get(e.unit);
+    if (v && e.item) this.riseGlyph(v, e.item);
     if (!v || e.tax <= 0) return;
     this.floatText(
       v.container.x,
@@ -1239,6 +1434,38 @@ export class UnitViews {
       fontSize: 36,
       tag: null,
     });
+  }
+
+  // The caster glows in its skill's colour for the windup, and now and then says the skill's name.
+  private onCast(e: Extract<SimEvent, { kind: 'cast' }>): void {
+    const def = skillDef(e.skill);
+    const view = this.views.get(e.caster);
+    if (!view) return;
+    view.glow(skillTint(def), 1.2);
+    if (e.say && def) view.say(def.name, 1800);
+  }
+
+  // The skill's pictures, drawn when the cast lands.
+  private onSkill(e: Extract<SimEvent, { kind: 'skill' }>): void {
+    const def = skillDef(e.skill);
+    const caster = this.views.get(e.caster) ?? this.dying.get(e.caster);
+    if (!caster) return;
+    const pos = (id: number): Vec | undefined => {
+      const v = this.views.get(id) ?? this.dying.get(id);
+      return v ? v.chest() : undefined;
+    };
+    const hits = e.hits.filter((id) => id !== e.caster).flatMap((id) => pos(id) ?? []);
+    const o = {
+      tint: skillTint(def),
+      from: caster.chest(),
+      point: e.point,
+      hits: hits.length ? hits : [e.point],
+      shape: shapeBox(def),
+      dashFrom: e.from,
+      seed: e.caster * 31 + e.hits.length,
+    };
+    const k = Math.max(0.8, fxScale(caster.tierNow, caster.boss));
+    for (const v of skillVisuals(def)) this.skillFx.play(v, o, k);
   }
 
   private onWindup(e: Extract<SimEvent, { kind: 'windup' }>): void {

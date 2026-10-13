@@ -825,6 +825,105 @@ export const ITEMS: readonly ItemDef[] = [
   },
 ];
 
+// Gear (docs/systems/items-and-shops.md section 2). Weapon and armour levels come from the
+// smithy, potions from the market; a shop of tier t sells every level up to t. Charms wait for
+// their effects (Sim 310).
+export const ITEMS: readonly ItemDef[] = [
+  {
+    id: 'weapon-1',
+    slot: 'weapon',
+    level: 1,
+    name: 'Tempered',
+    price: 60,
+    shop: 'smithy',
+    shopTier: 1,
+    effects: { power: 2 },
+  },
+  {
+    id: 'weapon-2',
+    slot: 'weapon',
+    level: 2,
+    name: 'Master-forged',
+    price: 150,
+    shop: 'smithy',
+    shopTier: 2,
+    effects: { power: 4 },
+  },
+  {
+    id: 'weapon-3',
+    slot: 'weapon',
+    level: 3,
+    name: 'Godsteel',
+    price: 320,
+    shop: 'smithy',
+    shopTier: 3,
+    effects: { power: 7 },
+  },
+  {
+    id: 'armour-1',
+    slot: 'armour',
+    level: 1,
+    price: 50,
+    shop: 'smithy',
+    shopTier: 1,
+    effects: {
+      kits: {
+        heavy: { armour: 4, wp: 0 },
+        light: { armour: 2, wp: 1 },
+        robe: { armour: 0, wp: 2 },
+      },
+    },
+  },
+  {
+    id: 'armour-2',
+    slot: 'armour',
+    level: 2,
+    price: 130,
+    shop: 'smithy',
+    shopTier: 2,
+    effects: {
+      kits: {
+        heavy: { armour: 8, wp: 1 },
+        light: { armour: 4, wp: 2 },
+        robe: { armour: 1, wp: 4 },
+      },
+    },
+  },
+  {
+    id: 'armour-3',
+    slot: 'armour',
+    level: 3,
+    price: 280,
+    shop: 'smithy',
+    shopTier: 3,
+    effects: {
+      kits: {
+        heavy: { armour: 13, wp: 2 },
+        light: { armour: 7, wp: 3 },
+        robe: { armour: 2, wp: 7 },
+      },
+    },
+  },
+  {
+    id: 'healing',
+    slot: 'potion',
+    name: 'Healing potion',
+    price: 20,
+    shop: 'market',
+    shopTier: 1,
+    effects: { healPct: 40 },
+  },
+  {
+    id: 'greater',
+    slot: 'potion',
+    name: 'Greater potion',
+    price: 40,
+    shop: 'market',
+    shopTier: 2,
+    effects: { healPct: 70 },
+  },
+];
+
 export const GRAYBOX: GameData = {
   startGold: 420,
   map: { width: 2400, height: 1600 },

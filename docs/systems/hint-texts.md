@@ -26,17 +26,17 @@ first-time hints, and the few fixed lines around them.
 
 ## 2. The first 3 minutes (beats)
 
-| Order | Id        | Trigger                      | Points at      | M   | Line 1                              | Line 2                                |
-| ----- | --------- | ---------------------------- | -------------- | --- | ----------------------------------- | ------------------------------------- |
-| 10    | b-temple  | run start (clock stopped)    | a free plot    | M2  | Build a temple on a free plot.      | Heroes come to temples, not to you.   |
-| 20    | b-aesir   | build menu open              | temple button  | M2  | The Aesir temple calls the children | of Odin, Thor, Loki and Freyja.       |
-| 30    | b-arrive  | first `arrived`              | the hero       | M2  | A hero has arrived.                 | Heroes act on their own.              |
-| 40    | b-gold    | 10 s after beat 30           | none           | M2  | You can't command heroes.           | Gold and bounties guide them.         |
-| 50    | b-market  | 10 s after beat 40           | a free plot    | M2  | Heroes spend their gold in shops.   | Build a market: the town takes a tax. |
-| 60    | b-bounty  | first monster seen by a hero | the monster    | M2  | Tap a monster to place a bounty.    |                                       |
-| 70    | b-watch   | first `bountyPlaced`         | the flag       | M2  | Heroes pick bounties by trait.      | The greedy run, cowards wait.         |
-| 80    | b-party   | first `partyFormed`          | a party member | M2  | Heroes have formed a party.         | Tap a hero to see it.                 |
-| 90    | b-levelup | first `upgradePicked`        | the party      | M2  | The party levelled up               | and chose its own upgrade.            |
+| Order | Id        | Trigger                      | Points at      | M   | Line 1                            | Line 2                                |
+| ----- | --------- | ---------------------------- | -------------- | --- | --------------------------------- | ------------------------------------- |
+| 10    | b-temple  | run start (clock stopped)    | a free plot    | M2  | Build a temple on a free plot.    | Heroes come to temples, not to you.   |
+| 20    | b-aesir   | build menu open              | temple button  | M2  | Tap the Aesir temple to see it,   | then tap it again to build.           |
+| 30    | b-arrive  | first `arrived`              | the hero       | M2  | A hero has arrived.               | Heroes act on their own.              |
+| 40    | b-gold    | 10 s after beat 30           | none           | M2  | You can't command heroes.         | Gold and bounties guide them.         |
+| 50    | b-market  | 10 s after beat 40           | a free plot    | M2  | Heroes spend their gold in shops. | Build a market: the town takes a tax. |
+| 60    | b-bounty  | first monster seen by a hero | the monster    | M2  | Tap a monster to place a bounty.  |                                       |
+| 70    | b-watch   | first `bountyPlaced`         | the flag       | M2  | Heroes pick bounties by trait.    | The greedy run, cowards wait.         |
+| 80    | b-party   | first `partyFormed`          | a party member | M2  | Heroes have formed a party.       | Tap a hero to see it.                 |
+| 90    | b-levelup | first `upgradePicked`        | the party      | M2  | The party levelled up             | and chose its own upgrade.            |
 
 ## 3. First-time hints
 

@@ -42,7 +42,8 @@ Map + Hud ──Menu──> Pause ──Resume / Restart / Settings / Quit to ti
 **wood-and-parchment frame** (dark wood border, parchment fill, iron studs). Damage numbers are
 big and coloured by type; **hit effects grow with progression** (subtle at tier 1, stronger at tier
 2, clearly effectful at tier 3, for bosses and late in a run) and **there is no screen shake**. Heroes carry
-their party ring and a small name label; a level-up is a pillar of light with a banner.
+their party ring; name labels are off by default, and tapping a hero shows the names of everyone in
+its party while its Party panel is open (Stefan, 2026-10-14); a level-up is a pillar of light with a banner.
 
 | Zone              | Where (px)               | Holds                                                                                 |
 | ----------------- | ------------------------ | ------------------------------------------------------------------------------------- |
@@ -74,6 +75,14 @@ hero stands on its building's spot, and the hero is the more specific target.
 | 60    | a monster or lair (within 70)    | bounty menu on it (today)                                   |
 | 70    | bare ground                      | bounty menu on the spot (today)                             |
 
+- **Build menu: tap for info, tap again to build** (Stefan, 2026-10-14). The first tap on an
+  item selects it and shows its info strip above the menu: name and cost; its role in one line
+  (`text`, `buildings.md` section 4); what it sells or trains and its numbers now
+  (`buildingEffect` in `src/ui/buildingInfo.ts`); and what its next tier unlocks
+  (`nextTierEffect`). A building row without `text` shows the effect line in its place. A second tap on the same item builds it. A tap on another item
+  switches the selection; a tap outside the menu cancels. An item the town can't afford still
+  shows its info, with the cost in red; the second tap shows "Need 40 more gold" and builds
+  nothing.
 - **With a menu open:** a tap on bare ground closes it (today).
 - Drag pans, pinch zooms, any camera move stops the watch camera (today). No long-press: every
   action stays one tap, to be predictable on a phone.
@@ -87,13 +96,13 @@ opened from another card.
 XP bar, upgrades as one row of small icons), then 4 member rows of 80 px = 470 of the 480 px
 slot. Today's header is 190 px and the fourth row spills below the slot.
 
-| Card     | Opened by                | Shows                                                                           | Buttons                                                                   |
-| -------- | ------------------------ | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| Party    | tap a hero (today)       | level, XP, upgrades, member rows (today)                                        | member row tap opens the Hero card                                        |
-| Hero     | tap a member row         | god, path, tier, trait, the four item slots, gold, kills (`items-and-shops.md`) | back                                                                      |
-| Building | tap a building           | name, tier, what it does now, what the next tier adds, hp                       | Upgrade (cost; greyed with the reason: gold, or "needs town hall tier 2") |
-| Shop     | tap the market or smithy | the building card plus what it sells now                                        | Upgrade                                                                   |
-| Flag     | tap a bounty flag        | amount, heroes heading for it (party dots), time placed                         | Raise (+25, +50), Cancel (50% back)                                       |
+| Card     | Opened by                | Shows                                                                              | Buttons                                                                   |
+| -------- | ------------------------ | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| Party    | tap a hero (today)       | level, XP, upgrades, member rows (today); name labels show over the party's heroes | member row tap opens the Hero card                                        |
+| Hero     | tap a member row         | god, path, tier, trait, the four item slots, gold, kills (`items-and-shops.md`)    | back                                                                      |
+| Building | tap a building           | name, tier, what it does now, what the next tier adds, hp                          | Upgrade (cost; greyed with the reason: gold, or "needs town hall tier 2") |
+| Shop     | tap the market or smithy | the building card plus what it sells now                                           | Upgrade                                                                   |
+| Flag     | tap a bounty flag        | amount, heroes heading for it (party dots), time placed                            | Raise (+25, +50), Cancel (50% back)                                       |
 
 ## 5. Menus in the bottom strip
 
@@ -105,14 +114,14 @@ slot. Today's header is 190 px and the fourth row spills below the slot.
 
 ## 6. Modal screens
 
-| Screen          | Today                                                 | Change                                                                                                                                      |
-| --------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| LevelUp         | path cards, then 3 upgrade cards; no close            | replaced: upgrades are auto-picked and celebrated on the map; paths use a tray at the bottom, the run at 30% (`level-ups.md`)               |
-| Pause           | Resume, Restart, Settings, Quit to title              | unchanged                                                                                                                                   |
-| Settings        | default speed, reduced motion, party colours, Back    | music and effects volume (`audio.md`); the HUD speed choice is saved as the default                                                         |
-| End screen      | VICTORY or TOWN LOST, time, gold, 6 stats, Play again | per `meta-ui.md` section 2: THE TOWN HAS FALLEN, MVP line, Ichor tally, unlock cards, Saga lines, Run details tab; Play again, Altar, Title |
-| Hall (new)      |                                                       | tabs: Altar, Saga, Unlocks (`meta-ui.md` section 4); Back                                                                                   |
-| Run setup (new) |                                                       | portent of the coming lean, Trials after the first win, Start (`meta-ui.md` section 5)                                                      |
+| Screen          | Today                                                 | Change                                                                                                                                        |
+| --------------- | ----------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| LevelUp         | path cards, then 3 upgrade cards; no close            | replaced: upgrades are auto-picked and celebrated on the map; paths use a tray at the bottom, the run at 30% (`level-ups.md`)                 |
+| Pause           | Resume, Restart, Settings, Quit to title              | unchanged                                                                                                                                     |
+| Settings        | default speed, reduced motion, party colours, Back    | music and effects volume (`audio.md`); the HUD speed choice is saved as the default                                                           |
+| End screen      | VICTORY or TOWN LOST, time, gold, 6 stats, Play again | per `meta-ui.md` section 2: THE TOWN HAS FALLEN, MVP line, Essence tally, unlock cards, Saga lines, Run details tab; Play again, Altar, Title |
+| Hall (new)      |                                                       | tabs: Altar, Saga, Unlocks (`meta-ui.md` section 4); Back                                                                                     |
+| Run setup (new) |                                                       | portent of the coming lean, Trials after the first win, Start (`meta-ui.md` section 5)                                                        |
 
 ## 7. Proposed backlog rows
 
@@ -121,6 +130,7 @@ slot. Today's header is 190 px and the fourth row spills below the slot.
 | Order | Row                                                                          |
 | ----- | ---------------------------------------------------------------------------- |
 | 10    | Tap a building: building card with the upgrade button (Sim `upgrade` exists) |
+| 15    | Build menu: tap selects and shows the info strip, the same tap again builds  |
 | 20    | Inspect slot: one card at a time; party member rows open a Hero card         |
 | 30    | End screen: Title button, MVP line                                           |
 | 40    | Flag card: raise and cancel (needs Sim 10)                                   |

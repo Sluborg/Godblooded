@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { GRAYBOX } from '../data/graybox';
 import {
   command,
@@ -16,6 +16,9 @@ import {
 } from './api';
 import { shareXp } from './parties';
 import { spawnHero } from './world';
+
+// These tests play minutes of the graybox with a snapshot every tick: slow under a loaded runner.
+vi.setConfig({ testTimeout: 60_000 });
 
 type W = ReturnType<typeof createWorld>;
 
@@ -186,18 +189,25 @@ describe('autosave and damaged saves', () => {
   });
 
   it('pending card ids must still exist in the data', () => {
-    const a = createWorld(3, GRAYBOX);
-    play(a, 200_000);
-    const party = [...a.parties.values()][0];
-    shareXp(a, party.members[0], 200);
+    // A fixed party, independent of the graybox balance: one hero, levelled by hand with the
+    // auto-pick off so the offer stays open.
+    const manual: GameData = {
+      ...GRAYBOX,
+      tuning: { ...GRAYBOX.tuning, party: { ...GRAYBOX.tuning?.party, autoPick: false } },
+    };
+    const a = createWorld(3, manual);
+    const god = manual.gods?.[0]?.id;
+    if (!god) throw new Error('no god in the data');
+    const hero = spawnHero(a, god, { ...manual.townHall });
+    shareXp(a, hero, 30);
     const save = JSON.parse(JSON.stringify(saveWorld(a))) as SaveGame;
     const open = [...a.parties.values()].find((p) => p.offer || p.pathOffer);
     expect(open).toBeDefined();
     if (open?.pathOffer) {
-      const noPaths: GameData = { ...GRAYBOX, paths: [] };
+      const noPaths: GameData = { ...manual, paths: [] };
       expect(() => loadWorld(save, noPaths)).toThrow(/unknown path/);
     } else {
-      const noUpgrades: GameData = { ...GRAYBOX, upgrades: [] };
+      const noUpgrades: GameData = { ...manual, upgrades: [] };
       expect(() => loadWorld(save, noUpgrades)).toThrow(/unknown upgrade/);
     }
   });

@@ -1,5 +1,8 @@
 # How the sessions work together
 
+> **PRs are scarce (2026-10-14).** Workers push branches and message Review and Integrator;
+> Integrator lands them in batch PRs. `CLAUDE.md` "Git" wins over anything below about PRs.
+
 Five Claude Code sessions build Godblooded in parallel, plus ChatGPT chats that draw the art.
 Every session reads this file at the start of every wake.
 
@@ -12,8 +15,8 @@ Every session reads this file at the start of every wake.
 | Scene      | Phaser: map, camera, rendering the sim, input, HUD, menus, phone feel          | Lead, Sim, Art              |
 | Art        | Writes ChatGPT batches, checks and ships images, the asset spec                | Lead, Scene, ChatGPT chats  |
 | Design     | Plans systems and features (combat, skills, items, progression, meta) as specs | Lead                        |
-| Integrator | Integration tests and lands every PR (merge right delegated by Lead)           | Lead, all sessions          |
-| Review     | Reviews every PR instead of Codex; blocking findings stop a merge              | Integrator, authors         |
+| Integrator | Integration tests and lands branches in batch PRs (merge right from Lead)      | Lead, all sessions          |
+| Review     | Reviews every branch instead of Codex; blocking findings stop a merge          | Integrator, authors         |
 | Balance    | The numbers in `src/data/` and the balance passes with the bot                 | Lead, Sim, Integrator       |
 | GPT        | ChatGPT chats, one per art track; fetch `art-tasks/README.md` and draw         | Art (via the art wake bell) |
 
@@ -32,9 +35,9 @@ Only the owner edits. Everyone else asks through the owner's inbox.
   `docs/asset-spec.md`, `docs/art-requests.md` (status column; anyone adds rows).
 - **Design:** `docs/systems/` and `docs/playtest-m2.md` (specs; Lead turns them into backlog rows).
 - **Balance:** `src/data/` (numbers and rows; Lead keeps the say on what content exists).
-- **Scene also:** look rows in `src/data/` (`heroParts.ts` and later part/look files): colours and
-  shapes only, no game numbers.
-- **Integrator, Review:** no files; Integrator may push merge commits to PR branches.
+- **Scene also:** look rows in `src/data/` (`heroParts.ts` and later part/look files) and the
+  sound presets `src/data/sfx.ts`: colours, shapes and sounds only, no game numbers.
+- **Integrator, Review:** no files; Integrator may push merge commits to work branches.
 - **Lead also:** `docs/sessions.md`, `docs/inbox/*.md` (see "Talking").
 - **Shared, small careful commits:** `package.json`, `vite.config.ts`, `.github/`.
 

@@ -5,6 +5,7 @@
 import Phaser from 'phaser';
 import type { PartsDef } from '../../data/heroParts';
 import { drawHuman, setState } from './proto.gen';
+import { gradePixels } from './partsStyle';
 import {
   ATLAS_COLS as COLS,
   FRAME_COUNT,
@@ -33,7 +34,7 @@ const POSES: PoseName[] = ['idle', 'walk', 'attack', 'ko'];
 const sets = new Map<string, BakedSet>();
 
 // Returns the baked set for a look, baking it now if it is not there yet.
-export function ensureHeroSet(scene: Phaser.Scene, id: string, def: PartsDef): BakedSet {
+export function ensureHeroSet(scene: Phaser.Scene, id: string, def: PartsDef, tier = 1): BakedSet {
   const have = sets.get(id);
   if (have && scene.textures.exists(have.atlas)) {
     have.lastUsed = scene.time.now;
@@ -76,11 +77,26 @@ export function ensureHeroSet(scene: Phaser.Scene, id: string, def: PartsDef): B
       c.translate(ORIGIN.x, ORIGIN.y);
       const st = frameState(pose, i);
       setState({ ctx: c, T: st.time, FL: 0 });
-      drawHuman({ ...st.pose, d: def, x: 0, y: 0, face: 1, alpha: 1, hits: 0 });
+      // The prototype scales effects by the hero's tier (sel.t): subtle at 1, clearly effectful at 3.
+      drawHuman({
+        ...st.pose,
+        d: def,
+        kind: 'hero',
+        sel: { t: Math.min(3, Math.max(1, Math.round(tier))), p: 0 },
+        x: 0,
+        y: 0,
+        face: 1,
+        alpha: 1,
+        hits: 0,
+      });
       setState({ ctx: null });
       c.restore();
     }
   }
+  // The palette grade, once over the whole atlas.
+  const img = c.getImageData(0, 0, tex.width, tex.height);
+  gradePixels(img.data);
+  c.putImageData(img, 0, 0);
   tex.refresh();
   tex.setFilter(Phaser.Textures.FilterMode.LINEAR);
   sets.set(id, set);
