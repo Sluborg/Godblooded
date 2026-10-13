@@ -1,10 +1,12 @@
 import Phaser from 'phaser';
 import { COLORS, GAME_WIDTH, MIN_TOUCH } from '../config';
-import { GRAYBOX } from '../data/graybox';
+import { GRAYBOX, UPGRADES } from '../data/graybox';
 import { DEFAULT_TUNING, type BuildingState, type CommandResult } from '../sim/api';
 import { buildingEffect, buildingName, nextTierEffect } from '../ui/buildingInfo';
 import { formatClock } from '../ui/endReport';
 import { makePanel } from '../ui/panel';
+import { pickToast } from '../ui/levelUpLook';
+import { heroLabel } from '../ui/partyLook';
 import { makeButton, type Button } from '../ui/button';
 import { PartyPanel } from '../ui/partyPanel';
 import type { SimEvent } from '../sim/api';
@@ -128,6 +130,12 @@ export class HudScene extends Phaser.Scene {
           `RAID! ${e.size} ${lair?.type ?? 'monsters'} march on the town`,
           '#8a1c2bdd',
         );
+      } else if (e.kind === 'upgradePicked') {
+        const party = map.snapshot.parties.find((p) => p.id === e.party);
+        const lead = map.snapshot.units.find((u) => u.id === party?.members[0]);
+        const name =
+          (GRAYBOX.upgrades ?? UPGRADES).find((u) => u.id === e.upgrade)?.name ?? e.upgrade;
+        this.showToast(pickToast(lead ? heroLabel(lead) : `Party ${e.party}`, name));
       } else if (e.kind === 'buildingDestroyed') {
         this.showBanner(`${e.type.replace('_', ' ')} destroyed!`, '#8a1c2bdd');
       } else if (e.kind === 'lairDestroyed') {
