@@ -143,6 +143,14 @@ export const DEFAULT_TUNING: Tuning = {
   },
   save: { autosaveMs: 30_000 },
   stats: { goldSampleMs: 15_000 },
+  favour: {
+    perTempleTierS: 4,
+    tierUpGain: 10,
+    lairGain: 15,
+    max: 100,
+    dangerHp: 0.5,
+    tellMs: 1500,
+  },
   town: {
     townHallHp: 500,
     buildingHp: 200,
@@ -180,6 +188,7 @@ export function resolveTuning(data: GameData): Tuning {
     skill: { ...DEFAULT_TUNING.skill, ...t?.skill },
     save: { ...DEFAULT_TUNING.save, ...t?.save },
     stats: { ...DEFAULT_TUNING.stats, ...t?.stats },
+    favour: { ...DEFAULT_TUNING.favour, ...t?.favour },
     town: { ...DEFAULT_TUNING.town, ...t?.town },
     bounty: { ...DEFAULT_TUNING.bounty, ...t?.bounty },
   };

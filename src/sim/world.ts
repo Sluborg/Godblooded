@@ -7,6 +7,7 @@ import { armourBonus, weaponPower } from './items';
 import { passiveRider } from './passives';
 import { everyNthOf, passiveAggroMult, passiveArmour } from './passives';
 import { noteFight } from './engage';
+import { runFavour } from './favour';
 import { runStatuses, slowOf, healMult, type UnitStatus } from './riders';
 import { attackStrike, landStrike } from './strike';
 import { cancelDrink, runDrink } from './potions';
@@ -151,6 +152,9 @@ export interface World {
   pendingDeaths: { victim: number; by: number }[];
   // Where heroes were slain.
   graves: GraveState[];
+  // God favour bars by pantheon, and the miracle steps still to run (the landing, spread strikes).
+  favour: Record<string, number>;
+  miracleSteps: { atMs: number; id: string; pos: Vec2; by: number; effect: number | null }[];
   // Monsters that died lately, for `kill` skill triggers.
   recentKills: { pos: Vec2; timeMs: number; by: number }[];
   nextRaidMs: number;
@@ -192,6 +196,8 @@ export function createWorld(seed: number, data: GameData): World {
     bonds: new Map(),
     pendingDeaths: [],
     graves: [],
+    favour: {},
+    miracleSteps: [],
     recentKills: [],
     nextRaidMs: 0,
     stats: {
@@ -297,6 +303,7 @@ function runTick(world: World): void {
   runRaids(world);
   runHeroes(world);
   runBounties(world);
+  runFavour(world);
   runParties(world);
   runUnits(world);
   // Combat, heroes and the economy hook in here (Sim backlog 30 and up).
@@ -775,6 +782,11 @@ export function snapshot(world: World): Snapshot {
       ...(u.items ? { items: { ...u.items } } : {}),
     })),
     bounties: world.bounties.map((b) => ({ ...b, pos: { ...b.pos } })),
+    favour: Object.entries(world.favour).map(([pantheon, value]) => ({
+      pantheon,
+      value,
+      max: world.tuning.favour.max,
+    })),
     graves: world.graves.map((g) => ({ ...g, pos: { ...g.pos } })),
     rivals: rivalPairs(world),
     map: { lean: [...world.mapLean], boss: world.bossLair },
