@@ -5,14 +5,14 @@ concept sheets in `docs/concept/`); this is the technical contract.
 
 ## Ids
 
-| Kind     | Id                                 | Example                         |
-| -------- | ---------------------------------- | ------------------------------- |
-| Hero     | `hero_<god>[-<path>]_t<1-3>_front` | `hero_thor-hammerborn_t2_front` |
-| Monster  | `mon_<type>[-v2\|-v3]_t1_front`    | `mon_draugr-v2_t1_front`        |
-| Building | `bld_<type>_t<1-3>`                | `bld_temple_aesir_t3`           |
-| Terrain  | `ter_<name>`                       | `ter_grass_a`                   |
-| UI       | `ui_<name>`                        | `ui_flag_bounty`                |
-| Key art  | `art_<name>`                       | `art_splash`                    |
+| Kind     | Id                                 | Example                           |
+| -------- | ---------------------------------- | --------------------------------- |
+| Hero     | `hero_<god>[-<path>]_t<1-3>_front` | `hero_thor-hammerborn_t2_front`   |
+| Monster  | `mon_<type>[-v2\|-v3]_t1_front`    | `mon_draugr-v2_t1_front`          |
+| Building | `bld_<type>[_t<1-3>]`              | `bld_temple_aesir_t3`, `bld_ruin` |
+| Terrain  | `ter_<name>`                       | `ter_grass_a`                     |
+| UI       | `ui_<name>`                        | `ui_flag_bounty`                  |
+| Key art  | `art_<name>`                       | `art_splash`                      |
 
 Rig pieces (test, Lead's motion work): a unit id plus `_body` or `_arm`, and a `side` view
 (profile facing right), e.g. `hero_warrior_t1_side_arm`. See "Rig pieces" below.
@@ -29,6 +29,9 @@ Tier 1 is the god alone (`hero_thor_t1_front`); tier 2 and 3 add a hyphen and th
 validator rejects a path at tier 1 and a tier 2 or 3 hero without one. The god is the part
 before the first hyphen. The shipped class pictures (`hero_warrior_t1_front` and the other
 tier-1 classes) stay as fallbacks for the hidden templates until the god art lands.
+
+Buildings carry a tier; a few map pieces have none: `bld_ruin` (a destroyed building, tinted in
+code), `bld_scaffold` (laid over a building while it is built or upgraded) and `bld_caravan`.
 
 Monster variants: the type name plus `-v2` or `-v3` (`mon_draugr-v2_t1_front`,
 `mon_jackal-man-v3_t1_front`); the plain name is variant 1. The base type is the name with a
@@ -104,7 +107,7 @@ any unit or building.
 ## 9-slice (panels and buttons)
 
 UI pieces the game stretches (`ui_panel`, `ui_button`, `ui_button_pressed`,
-`ui_button_disabled`) are drawn for 9-slice: ornament only in the four corners (inside the outer
+`ui_button_disabled`, the card frames `ui_card_<metal>`) are drawn for 9-slice: ornament only in the four corners (inside the outer
 15% of the shape), plain even edges, a flat even middle. On ship Art measures the corners on the
 shipped PNG and adds four integer fields to the row, in **shipped pixels**:
 

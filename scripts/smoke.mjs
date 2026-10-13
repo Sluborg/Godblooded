@@ -146,9 +146,22 @@ try {
   // A bounty menu can be dismissed: tap bare ground (opens it), tap Close (the last button).
   const menuOpen = () =>
     page.evaluate(() => window.__game.scene.getScene('Hud').menuButtons.length > 0);
+  // A spot in view that is clear of plots, buildings, lairs and units (a tap there is bare ground).
   const ground = await page.evaluate(() => {
     const m = window.__game.scene.getScene('Map');
     const c = m.cameras.main.midPoint;
+    const near = [...m.snap.plots, ...m.snap.buildings, ...m.snap.lairs, ...m.snap.units];
+    const clear = (x, y) => near.every((e) => Math.hypot(e.pos.x - x, e.pos.y - y) > 160);
+    for (let r = 0; r < 600; r += 40)
+      for (const [dx, dy] of [
+        [1, -0.4],
+        [-1, -0.4],
+        [0.6, -1],
+        [-0.6, -1],
+        [1, 0.2],
+        [-1, 0.2],
+      ])
+        if (clear(c.x + dx * r, c.y + dy * r)) return [c.x + dx * r, c.y + dy * r];
     return [c.x + 300, c.y - 100];
   });
   await tap(await worldToScreen(ground));
