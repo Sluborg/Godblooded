@@ -138,6 +138,41 @@ export interface MonsterDef {
   boss?: Partial<BossTuning>;
   // Boss only: its own hit points instead of Sta * 8 + Str * 4 (scaled by lair tier).
   hp?: number;
+  // How it behaves (docs/systems/monsters-and-bosses.md section 1); missing is a brute.
+  role?: MonsterRole;
+}
+
+export type MonsterRole = 'brute' | 'harrier' | 'charger' | 'pack' | 'swarm';
+
+// Monster roles. Raiders of a harrier or swarm role walk raidSpeedMult faster.
+export interface RoleTuning {
+  // Harrier: flees to its lair below this share of max hp, heals healPctS of max hp per second
+  // there, and comes back at returnHp.
+  harrierFleeHp: number;
+  harrierHealPctS: number;
+  harrierReturnHp: number;
+  // Charger: charges a hero chargeMin to chargeMax away at chargeSpeedMult x its speed; the
+  // first strike is chargeMult x with a knockback of chargeKnockback; it charges again after
+  // chargeCooldownMs. A charging raider's buildings hits are buildingMult x.
+  chargeMin: number;
+  chargeMax: number;
+  chargeSpeedMult: number;
+  chargeMult: number;
+  chargeKnockback: number;
+  chargeCooldownMs: number;
+  buildingMult: number;
+  // Pack: +packBonus damage per other pack mate within packRadius, at most packMax.
+  packBonus: number;
+  packRadius: number;
+  packMax: number;
+  // Swarm: its lair keeps swarmAliveMult x as many alive; a raid has swarmRaidMult x as many
+  // with swarmRaidHpMult of the hp; at 0 hp it splits once into two halves of swarmSplitShare
+  // of the hp and damage, worth swarmSplitShare of the reward each.
+  swarmAliveMult: number;
+  swarmRaidMult: number;
+  swarmRaidHpMult: number;
+  swarmSplitShare: number;
+  raidSpeedMult: number;
 }
 
 // Boss numbers. Defaults in tuning.boss; a MonsterDef.boss row can override any of them.
@@ -755,6 +790,7 @@ export interface Tuning {
   skill: SkillTuning;
   save: SaveTuning;
   stats: StatsTuning;
+  role: RoleTuning;
   town: TownTuning;
   bounty: BountyTuning;
 }
@@ -790,6 +826,7 @@ export interface GameData {
     boss?: Partial<BossTuning>;
     save?: Partial<SaveTuning>;
     stats?: Partial<StatsTuning>;
+    role?: Partial<RoleTuning>;
     town?: Partial<TownTuning>;
     bounty?: Partial<BountyTuning>;
   };
@@ -988,6 +1025,10 @@ export type SimEvent =
   | { kind: 'tierUp'; unit: number; tier: number; path: string | null }
   | { kind: 'pathOffer'; party: number; hero: number; options: string[] }
   | { kind: 'raid'; lair: number; size: number }
+  // A charger starts its charge toward `to`.
+  | { kind: 'charge'; unit: number; to: Vec2 }
+  // A swarm splits into two halves.
+  | { kind: 'split'; unit: number; into: number[] }
   // A rider took hold on `target` (burn, chill, wither; arc and sear show in the hit itself).
   | { kind: 'rider'; target: number; rider: RiderId; by: number }
   // A hero starts casting a skill; it lands `inMs` later. `say`: Scene shows the skill name.
