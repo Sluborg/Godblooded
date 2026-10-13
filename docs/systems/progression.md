@@ -89,6 +89,8 @@ tiers) and on `combat.md`, `paths-and-skills.md` and `items-and-shops.md`.
 | berserker      | Berserker        | nerve    | rare   |          | +3 Str, never flee (kept)                                  |
 | oath-brothers  | Oath-Brothers    | nerve    | common |          | bonds grow twice as fast; a loyal member never flees alone |
 | bounty-hunters | Bounty Hunters   | nerve    | common |          | bounty flags look 50% richer to this party                 |
+| tight-purse    | Tight Purse      | nerve    | common |          | a knocked-out member loses half the gold                   |
+| wolf-blood     | Wolf Blood       | nerve    | common |          | +25% damage while below 30% hp                             |
 | quick-hands    | Quick Hands      | skill    | rare   | tier 2   | signature skill cooldowns -20%                             |
 | wide-reach     | Wide Reach       | skill    | rare   | tier 2   | skill radius and range +25%                                |
 | twin-cast      | Twin Cast        | skill    | epic   | tier 2   | 25% chance a skill casts twice                             |
