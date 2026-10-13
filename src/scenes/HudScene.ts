@@ -1,7 +1,8 @@
 import Phaser from 'phaser';
 import { COLORS, GAME_WIDTH, MIN_TOUCH } from '../config';
 import { GRAYBOX } from '../data/graybox';
-import type { CommandResult } from '../sim/api';
+import { DEFAULT_TUNING, type BuildingState, type CommandResult } from '../sim/api';
+import { buildingEffect, buildingName, nextTierEffect } from '../ui/buildingInfo';
 import { makeButton, type Button } from '../ui/button';
 import { PartyPanel } from '../ui/partyPanel';
 import type { SimEvent } from '../sim/api';
@@ -202,6 +203,12 @@ export class HudScene extends Phaser.Scene {
       this.panel.show(tap.hero);
       return;
     }
+    if (tap.building != null) {
+      const b = map.snapshot.buildings.find((x) => x.id === tap.building);
+      this.panel.hide();
+      if (b) this.openBuildingPanel(map, b);
+      return;
+    }
     this.panel.hide();
     if (tap.plot !== null) {
       const plot = tap.plot;
@@ -250,6 +257,59 @@ export class HudScene extends Phaser.Scene {
       this.menu.push(button.container);
       this.menuButtons.push({ button, cost: opt.cost });
     });
+  }
+
+  // Info panel for a tapped building: name and tier, hp, what it does, what the next tier adds, and
+  // an Upgrade button with its cost (the sim refuses when it cannot, and says why).
+  private openBuildingPanel(map: MapScene, b: BuildingState): void {
+    this.closeMenu();
+    const cx = GAME_WIDTH / 2;
+    const w = 860;
+    const h = 330;
+    const cy = 720 - h / 2 - 12;
+    this.menuRect = new Phaser.Geom.Rectangle(cx - w / 2, cy - h / 2, w, h);
+    const maxTier = DEFAULT_TUNING.building.maxTier;
+    const line = (y: number, text: string, size: number, color: string) =>
+      this.add
+        .text(cx, cy - h / 2 + y, text, {
+          ...TEXT,
+          fontSize: `${size}px`,
+          color,
+          align: 'center',
+          wordWrap: { width: w - 60 },
+        })
+        .setOrigin(0.5);
+    this.menu.push(
+      this.add.rectangle(cx, cy, w, h, 0x120d09, 0.94).setStrokeStyle(3, COLORS.gold, 0.8),
+      line(34, `${buildingName(b.type)}  ·  Tier ${b.tier}/${maxTier}`, 32, '#f2c14e'),
+      line(76, `HP ${Math.ceil(b.hp)} / ${b.maxHp}`, 22, COLORS.text),
+      line(112, buildingEffect(b.type, b.tier), 22, COLORS.text),
+      line(150, nextTierEffect(b.type, b.tier), 20, COLORS.textMuted),
+    );
+    const y = cy + h / 2 - 60;
+    if (b.upgradeCost !== null) {
+      const cost = b.upgradeCost;
+      const up = makeButton(this, cx - 150, y, 280, 90, `Upgrade\n${cost} gold`, () => {
+        const res = map.tryUpgrade(b.id);
+        if (res.ok) {
+          this.closeMenu();
+          this.showToast(`${buildingName(b.type)} upgraded to tier ${b.tier + 1}`);
+        } else this.showToast(res.reason);
+      });
+      this.menu.push(up.container);
+      this.menuButtons.push({ button: up, cost });
+    }
+    const close = makeButton(
+      this,
+      b.upgradeCost !== null ? cx + 150 : cx,
+      y,
+      240,
+      90,
+      'Close',
+      () => this.closeMenu(),
+    );
+    this.menu.push(close.container);
+    this.menuButtons.push({ button: close, cost: 0 });
   }
 
   private closeMenu(): void {
