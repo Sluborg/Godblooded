@@ -27,24 +27,24 @@ State: **done** (on `main`), **PR #n** (open), **not started**. Owner: the role 
 
 ### Systems (game rules, `src/sim`)
 
-| Order | Item                                                                            | Spec                             | State                         | Owner |
-| ----- | ------------------------------------------------------------------------------- | -------------------------------- | ----------------------------- | ----- |
-| 10    | Combat pipeline: damage types, armour, crits, riders, first strike              | `combat.md`                      | done                          | Sim   |
-| 20    | Boss unit (Fafnir): emerge, cleave, enrage, immunities                          | `combat.md` 7                    | done                          | Sim   |
-| 30    | Knockout cost 25% gold; permadeath (boss 20%, tier 3 lair 10%), graves          | `combat.md` 6                    | done                          | Sim   |
-| 40    | Skill engine and effects part 1                                                 | `paths-and-skills.md`            | done                          | Sim   |
-| 50    | Effects part 2 (knockback, bind, revive, execute, cleanse, hot)                 | `paths-and-skills.md` 3          | PR #188                       | Sim   |
-| 60    | Summons, the Trickster's decoy                                                  | `paths-and-skills.md`            | PR #194                       | Sim   |
-| 70    | God passives engine                                                             | `paths-and-skills.md` 5          | done                          | Sim   |
-| 80    | Items, shopping, potions                                                        | `items-and-shops.md`             | done                          | Sim   |
-| 90    | Card offers, auto-pick weighted by trait, card effects                          | `level-ups.md`, `progression.md` | done                          | Sim   |
-| 100   | Path pick slows the run to 30%                                                  | `level-ups.md` 4                 | done                          | Sim   |
-| 110   | Lair clock: staggered tier-ups                                                  | `progression.md` 3               | done                          | Sim   |
-| 120   | Raid warning (15 s), raid after a lair tier-up, raid shapes by role             | `events.md` 1                    | not started (Sim 380)         | Sim   |
-| 130   | Monster roles (harrier, charger, pack) and quirks (regen, snatch, grave-cold)   | `monsters-and-bosses.md` 1       | not started (Sim 360, 370)    | Sim   |
-| 140   | Hero intent event, score-and-commit, party retreat, trait behaviours            | `hero-ai.md`                     | not started (no backlog rows) | Sim   |
-| 150   | Run stats for the fun checks: per-fight record, decisions per minute, quiet gap | `content-roadmap.md` 2           | not started                   | Sim   |
-| 160   | First run waits for the first temple; first-run tuning                          | `onboarding.md` 4                | not started                   | Sim   |
+| Order | Item                                                                            | Spec                             | State                                                                                       | Owner |
+| ----- | ------------------------------------------------------------------------------- | -------------------------------- | ------------------------------------------------------------------------------------------- | ----- |
+| 10    | Combat pipeline: damage types, armour, crits, riders, first strike              | `combat.md`                      | done                                                                                        | Sim   |
+| 20    | Boss unit (Fafnir): emerge, cleave, enrage, immunities                          | `combat.md` 7                    | done                                                                                        | Sim   |
+| 30    | Knockout cost 25% gold; permadeath (boss 20%, tier 3 lair 10%), graves          | `combat.md` 6                    | partly done: one 20% chance for both, full cuts (needs `lairDeathChance` 0.1, cuts at half) | Sim   |
+| 40    | Skill engine and effects part 1                                                 | `paths-and-skills.md`            | done                                                                                        | Sim   |
+| 50    | Effects part 2 (knockback, bind, revive, execute, cleanse, hot)                 | `paths-and-skills.md` 3          | done (#188)                                                                                 | Sim   |
+| 60    | Summons, the Trickster's decoy                                                  | `paths-and-skills.md`            | PR #194                                                                                     | Sim   |
+| 70    | God passives engine                                                             | `paths-and-skills.md` 5          | done                                                                                        | Sim   |
+| 80    | Items, shopping, potions                                                        | `items-and-shops.md`             | done                                                                                        | Sim   |
+| 90    | Card offers, auto-pick weighted by trait, card effects                          | `level-ups.md`, `progression.md` | done                                                                                        | Sim   |
+| 100   | Path pick slows the run to 30%                                                  | `level-ups.md` 4                 | done                                                                                        | Sim   |
+| 110   | Lair clock: staggered tier-ups                                                  | `progression.md` 3               | done                                                                                        | Sim   |
+| 120   | Raid warning (15 s), raid after a lair tier-up, raid shapes by role             | `events.md` 1                    | not started (Sim 380)                                                                       | Sim   |
+| 130   | Monster roles (harrier, charger, pack) and quirks (regen, snatch, grave-cold)   | `monsters-and-bosses.md` 1       | not started (Sim 360, 370)                                                                  | Sim   |
+| 140   | Hero intent event, score-and-commit, party retreat, trait behaviours            | `hero-ai.md`                     | not started (no backlog rows)                                                               | Sim   |
+| 150   | Run stats for the fun checks: per-fight record, decisions per minute, quiet gap | `content-roadmap.md` 2           | not started                                                                                 | Sim   |
+| 160   | First run waits for the first temple; first-run tuning                          | `onboarding.md` 4                | not started                                                                                 | Sim   |
 
 ### Content (data rows, `src/data`)
 
@@ -62,21 +62,21 @@ State: **done** (on `main`), **PR #n** (open), **not started**. Owner: the role 
 
 ### Screen and UI (`src/scenes`, `src/ui`)
 
-| Order | Item                                                                      | Spec                             | State                                       | Owner      |
-| ----- | ------------------------------------------------------------------------- | -------------------------------- | ------------------------------------------- | ---------- |
-| 260   | Level-up celebration on the map; party XP bar                             | `level-ups.md` 2                 | done                                        | Scene      |
-| 270   | Barks with the decided tempo                                              | `barks.md`                       | done                                        | Scene      |
-| 280   | Path pick on the map at 30% speed                                         | `level-ups.md` 4                 | done                                        | Scene      |
-| 290   | Building card with upgrade                                                | `ui-flows.md` 4                  | done                                        | Scene      |
-| 300   | Continue after reload                                                     | backlog Scene 190                | done                                        | Scene      |
-| 310   | Damage numbers by type, crit and miss; rider tint; boss hp bar and cleave | `combat.md` 8                    | partly done (verify against Scene 210, 220) | Scene      |
-| 320   | Skill visuals: windup glow, the skill shapes, shield and mark display     | `paths-and-skills.md` 4          | not started (Scene 230)                     | Scene      |
-| 330   | Gear on the map and shopping feedback                                     | `items-and-shops.md`             | not started (Scene 250)                     | Scene      |
-| 340   | Raid warning arrow and horn                                               | `events.md`                      | not started (Scene 280)                     | Scene      |
-| 350   | Monster role motion (harpy dart, minotaur charge, pack clump)             | `monsters-and-bosses.md` 5       | not started (Scene 270)                     | Scene      |
-| 360   | Intent icon over the party banner; trait icon and arrival line            | `hero-ai.md` 2, 4                | not started                                 | Scene      |
-| 370   | Flag card: raise and cancel a bounty (50% back)                           | `ui-flows.md` 3                  | not started (Scene 40 + Sim 10 of ui-flows) | Scene, Sim |
-| 380   | Hint engine and bubble, settings toggle                                   | `onboarding.md`, `hint-texts.md` | not started                                 | Scene      |
+| Order | Item                                                                      | Spec                             | State                                                                         | Owner      |
+| ----- | ------------------------------------------------------------------------- | -------------------------------- | ----------------------------------------------------------------------------- | ---------- |
+| 260   | Level-up celebration on the map; party XP bar                             | `level-ups.md` 2                 | done                                                                          | Scene      |
+| 270   | Barks with the decided tempo                                              | `barks.md`                       | done                                                                          | Scene      |
+| 280   | Path pick tray on the map at 30% speed                                    | `level-ups.md` 4                 | partly done: 30% speed is in, the pick is still the full-screen LevelUp modal | Scene      |
+| 290   | Building card with upgrade                                                | `ui-flows.md` 4                  | done                                                                          | Scene      |
+| 300   | Continue after reload                                                     | backlog Scene 190                | done                                                                          | Scene      |
+| 310   | Damage numbers by type, crit and miss; rider tint; boss hp bar and cleave | `combat.md` 8                    | partly done (verify against Scene 210, 220)                                   | Scene      |
+| 320   | Skill visuals: windup glow, the skill shapes, shield and mark display     | `paths-and-skills.md` 4          | not started (Scene 230)                                                       | Scene      |
+| 330   | Gear on the map and shopping feedback                                     | `items-and-shops.md`             | not started (Scene 250)                                                       | Scene      |
+| 340   | Raid warning arrow and horn                                               | `events.md`                      | not started (Scene 280)                                                       | Scene      |
+| 350   | Monster role motion (harpy dart, minotaur charge, pack clump)             | `monsters-and-bosses.md` 5       | not started (Scene 270)                                                       | Scene      |
+| 360   | Intent icon over the party banner; trait icon and arrival line            | `hero-ai.md` 2, 4                | not started                                                                   | Scene      |
+| 370   | Flag card: raise and cancel a bounty (50% back)                           | `ui-flows.md` 3                  | not started (Scene 40 + Sim 10 of ui-flows)                                   | Scene, Sim |
+| 380   | Hint engine and bubble, settings toggle                                   | `onboarding.md`, `hint-texts.md` | not started                                                                   | Scene      |
 
 ### Art in the new look (parts style)
 
@@ -135,9 +135,11 @@ proposes the fix.
 
 ## 5. Proposed backlog rows
 
-| Role    | Order | Row                                                                        |
-| ------- | ----- | -------------------------------------------------------------------------- |
-| Lead    | 10    | Add `hero-ai.md` rows to the backlog (Sim 10-60, Scene 10-30) as M2        |
-| Lead    | 20    | Tag every backlog row M2 / M3 / M4 from this page; update its state weekly |
-| Balance | 10    | Rows 180-240 in that order, then the balance pass (row 250)                |
-| Scene   | 10    | Verify row 310 against Scene 210 and 220 and close or finish them          |
+| Role    | Order | Row                                                                         |
+| ------- | ----- | --------------------------------------------------------------------------- |
+| Lead    | 10    | Add `hero-ai.md` rows to the backlog (Sim 10-60, Scene 10-30) as M2         |
+| Lead    | 20    | Tag every backlog row M2 / M3 / M4 from this page; update its state weekly  |
+| Balance | 10    | Rows 180-240 in that order, then the balance pass (row 250)                 |
+| Scene   | 10    | Verify row 310 against Scene 210 and 220 and close or finish them           |
+| Sim     | 10    | Tier 3 lair death: `lairDeathChance` 0.1, every cut at half (`combat.md` 6) |
+| Scene   | 20    | Path pick tray on the map instead of the LevelUp modal (`level-ups.md` 4)   |
