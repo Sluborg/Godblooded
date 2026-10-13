@@ -912,10 +912,23 @@ export const GRAYBOX: GameData = {
     { x: 1476, y: 588 },
   ],
   buildings: [
-    { id: 'temple_aesir', cost: 150 },
-    { id: 'market', cost: 100 },
-    { id: 'shrine', cost: 120 },
-    { id: 'tower', cost: 80 },
-    { id: 'smithy', cost: 120 },
+    // `text`: one plain line for the build menu (docs/systems/buildings.md section 4).
+    {
+      id: 'temple_aesir',
+      cost: 150,
+      text: 'Calls the children of Odin, Thor, Loki and Freyja to your town.',
+    },
+    {
+      id: 'market',
+      cost: 100,
+      text: 'Sells potions to heroes; the town takes a tax on every sale.',
+    },
+    { id: 'shrine', cost: 120, text: 'Wounded heroes rest here and heal fast.' },
+    { id: 'tower', cost: 80, text: 'Shoots monsters that come near the town.' },
+    {
+      id: 'smithy',
+      cost: 120,
+      text: 'Sells weapons and armour to heroes; the town takes a tax.',
+    },
   ],
 };
