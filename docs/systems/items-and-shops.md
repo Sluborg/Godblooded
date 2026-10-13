@@ -9,8 +9,8 @@ Design owns this spec. Lead turns the proposed rows into backlog rows and data. 
 
 - **Heroes buy four things:** a weapon level, an armour level, healing potions and one charm.
   No inventory screen, no loot tables: every hero has the same four slots.
-- **Item level = shop tier.** A tier 1 smithy sells level 1 gear, tier 2 sells level 2, tier 3
-  sells level 3. Upgrading a shop is how the player buys power for heroes nobody commands.
+- **Item level capped by shop tier.** A tier 1 smithy sells level 1 gear, tier 2 up to level 2,
+  tier 3 up to level 3; heroes climb one level per purchase. Upgrading a shop is how the player buys power for heroes nobody commands.
 - **The town lives on tax.** A hero pays the item's price; the town keeps the shop's tax share
   (50% at tier 1, more at higher tiers); the rest vanishes. Same Majesty loop as today, but
   heroes now spend on something that shows.
@@ -53,8 +53,8 @@ Design owns this spec. Lead turns the proposed rows into backlog rows and data. 
 | 2     | 130   | +8 / +1            | +4 / +2            | +1 / +4           | 2           |
 | 3     | 280   | +13 / +2           | +7 / +3            | +2 / +7           | 3           |
 
-With `combat.md` K 20, a paladin (base 10) goes from 30% to 43% physical mitigation with
-level 3 armour; a wizard's magic resist goes from 13% to 25%.
+With `combat.md` K 20, a paladin (base 10) goes from 30% to 48% physical mitigation with
+level 3 armour; a wizard's magic resist (Wp 5) goes from 13% to 26%.
 
 ### Potions (market)
 
@@ -85,10 +85,12 @@ Charms are generic, not per pantheon: pantheon flavour lives in passives and ski
 ## 3. Shopping rules
 
 1. **When:** after resting in town, a hero with at least `shopMinGold` (20) goes shopping, as
-   today. It visits the smithy, then the market, if they are built.
+   today. It first plans its buys in town (steps 2 and 3), then walks to the shops that hold
+   them: the market first when the plan has a potion, else the nearest; each shop once.
 2. **Budget:** today's `spendShare` (60%) of carried gold, by trait: greedy 35% (hoards),
    proud 80% (wants the best). The rest stays carried (and is at risk on a knockout).
-3. **What first,** the first affordable of:
+3. **What first:** it walks this list in order and plans every item it can still afford from
+   the budget:
    1. a potion, if it holds none;
    2. the next weapon or armour level (the cheaper of the two; proud: weapon first, coward:
       armour first);
@@ -97,9 +99,12 @@ Charms are generic, not per pantheon: pantheon flavour lives in passives and ski
 4. **Tax:** the town gets `price x taxRate x shop tier multiplier` per item (today's
    `marketTaxMult` 1, 1.25, 1.5, now also on the smithy). The event `shopped` carries the
    item id.
-5. **No stock caps:** today's `marketStock` (a spend cap per visit) goes; the budget and the
+5. **Stock:** a shop of tier t sells every level up to t, so a hero arriving late with level 0
+   gear buys level 1 first, then 2, at their own prices (one level per purchase, several per
+   visit if the budget allows).
+6. **No stock caps:** today's `marketStock` (a spend cap per visit) goes; the budget and the
    item prices do that job now.
-6. **Lair relic:** when a party destroys a lair, its leader gets a free charm (the best one it
+7. **Lair relic:** when a party destroys a lair, its leader gets a free charm (the best one it
    lacks). A small, visible reward for the big fight.
 
 ## 4. Gold flow (one run, rough)
