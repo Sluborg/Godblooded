@@ -35,7 +35,8 @@ Lead owns this file. One dated line per decision that changes how the game or th
 - 2026-10-04: Graybox parties (Sim 50): every hero starts as a party of one with a random trait;
   level-1 parties merge on meeting (max 4); party level n needs 30n shared XP; bonds grow on
   shared kills and drop when a hero flees; a level up freezes the run until the player picks 1 of
-  3 different upgrades; tiers at party levels 3 and 6. Lead keeps 9 graybox upgrade cards.
+  3 different upgrades (superseded 2026-10-13: parties pick their own card); tiers at party
+  levels 3 and 6. Lead keeps 9 graybox upgrade cards.
 - 2026-10-04: Graybox siege and win/lose (Sim 60): heroes storm lairs within 350; a lair pays 60
   gold and 40 party XP; the run is won when the last lair falls and lost when the town hall
   (500 hp) falls; raids start at 4 min, every 2 min, 2 monsters per lair (+1 per 5 min) and
@@ -131,3 +132,9 @@ on screen; art style test toward cartoony units built from parts (S5 batch, code
 - Tutorial: plain hints, no Skald narrator.
 - Music: Stefan makes it himself with an AI tool from prompts we prepare.
 - Every other OPEN question in `docs/systems/` takes the spec's recommendation.
+
+## 2026-10-13 Level-up details
+
+The party's card is a seeded draw weighted by personality: the leader trait's card counts x3
+(Design's rule in `level-ups.md`, not first-match). The path tray slows the run to 30% instead of
+freezing it.
