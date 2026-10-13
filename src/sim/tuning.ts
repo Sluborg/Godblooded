@@ -74,6 +74,7 @@ export const DEFAULT_TUNING: Tuning = {
     towerCooldownMs: [2000, 1800, 1600],
   },
   save: { autosaveMs: 30_000 },
+  stats: { goldSampleMs: 15_000 },
   town: {
     townHallHp: 500,
     buildingHp: 200,
@@ -106,6 +107,7 @@ export function resolveTuning(data: GameData): Tuning {
     lair: { ...DEFAULT_TUNING.lair, ...t?.lair },
     building: { ...DEFAULT_TUNING.building, ...t?.building },
     save: { ...DEFAULT_TUNING.save, ...t?.save },
+    stats: { ...DEFAULT_TUNING.stats, ...t?.stats },
     town: { ...DEFAULT_TUNING.town, ...t?.town },
     bounty: { ...DEFAULT_TUNING.bounty, ...t?.bounty },
   };

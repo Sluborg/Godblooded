@@ -61,18 +61,36 @@ export function migrateSave(raw: unknown): SaveGame {
 // from a newer game, or names content the data no longer has (the game should drop such a save).
 export function loadWorld(raw: unknown, data: GameData): World {
   const save = migrateSave(raw);
-  const world = createWorld(save.seed, data);
-  const target = world as unknown as Record<string, unknown>;
-  for (const [key, value] of Object.entries(save.world)) {
-    if (SKIP.has(key) || !(key in target)) continue;
-    target[key] = decode(value);
+  try {
+    const world = createWorld(save.seed, data);
+    const target = world as unknown as Record<string, unknown>;
+    for (const [key, value] of Object.entries(save.world)) {
+      if (SKIP.has(key) || !(key in target)) continue;
+      const saved = decode(value);
+      // A field must keep the kind it has in a fresh world (a Map stays a Map, a list a list);
+      // only a plain value may switch between null and a number or string (bossLair, say).
+      const fresh = kindOf(target[key]);
+      const got = kindOf(saved);
+      const plain = (k: string) => k === 'null' || k === 'number' || k === 'string';
+      if (fresh !== got && !(plain(fresh) && plain(got))) {
+        throw new SaveError(`save is damaged: ${key}`);
+      }
+      target[key] = saved;
+    }
+    world.rng.restore(save.rng);
+    world.tuning = resolveTuning(data);
+    world.events = [];
+    check(world, data);
+    return world;
+  } catch (e) {
+    // Anything else that goes wrong on damaged data is a damaged save to the caller.
+    if (e instanceof SaveError) throw e;
+    throw new SaveError(`save is damaged: ${e instanceof Error ? e.message : String(e)}`);
   }
-  world.rng.restore(save.rng);
-  world.tuning = resolveTuning(data);
-  world.events = [];
-  check(world, data);
-  return world;
 }
+
+const kindOf = (v: unknown): string =>
+  v instanceof Map ? 'map' : Array.isArray(v) ? 'list' : v === null ? 'null' : typeof v;
 
 // The saved run must fit the content it is loaded into.
 function check(world: World, data: GameData): void {
@@ -93,8 +111,16 @@ function check(world: World, data: GameData): void {
     if (u.god && !data.gods?.some((g) => g.id === u.god)) bad('god', u.god);
     if (u.path && !data.paths?.some((p) => p.id === u.path)) bad('path', u.path);
   }
+  const upgrade = (id: string) => {
+    if (!data.upgrades?.some((d) => d.id === id)) bad('upgrade', id);
+  };
   for (const p of world.parties.values()) {
-    for (const up of p.upgrades) if (!data.upgrades?.some((d) => d.id === up)) bad('upgrade', up);
+    p.upgrades.forEach(upgrade);
+    // Cards waiting for a pick must still be offerable.
+    p.offer?.forEach(upgrade);
+    for (const id of p.pathOffer?.options ?? []) {
+      if (!data.paths?.some((d) => d.id === id)) bad('path', id);
+    }
   }
 }
 
@@ -133,7 +159,11 @@ function decode(value: unknown): unknown {
 // Once every autosaveMs of run time the sim says so; the game saves in answer.
 export function runAutosave(world: World): void {
   const every = world.tuning.save.autosaveMs;
-  if (every > 0 && world.timeMs > 0 && world.timeMs % every === 0) {
-    world.events.push({ kind: 'autosave' });
-  }
+  if (every <= 0) return;
+  if (world.nextAutosaveMs <= 0) world.nextAutosaveMs = every;
+  if (world.timeMs < world.nextAutosaveMs) return;
+  world.events.push({ kind: 'autosave' });
+  // The next deadline is kept, not derived, so any interval works (a save made before the
+  // deadline moved on still fires once and carries on).
+  while (world.nextAutosaveMs <= world.timeMs) world.nextAutosaveMs += every;
 }

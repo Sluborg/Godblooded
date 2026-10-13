@@ -139,6 +139,63 @@ describe('save and load', () => {
   });
 });
 
+describe('autosave and damaged saves', () => {
+  it('autosaves on a deadline, so an interval that is no multiple of the tick still works', () => {
+    const w = createWorld(1, {
+      ...GRAYBOX,
+      tuning: { ...GRAYBOX.tuning, save: { autosaveMs: 30_025 } },
+    });
+    const times: number[] = [];
+    for (let t = 0; t < 95_000; t += 100) {
+      for (const e of play(w, 100)) if (e.kind === 'autosave') times.push(w.timeMs);
+    }
+    expect(times).toHaveLength(3);
+    expect(times[0]).toBeGreaterThanOrEqual(30_025);
+    expect(times[0]).toBeLessThan(30_200);
+    expect(times[1] - times[0]).toBeGreaterThanOrEqual(30_000);
+    expect(times[1] - times[0]).toBeLessThan(30_300);
+  });
+
+  const played = () => {
+    const w = createWorld(1, GRAYBOX);
+    play(w, 60_000);
+    return JSON.parse(JSON.stringify(saveWorld(w))) as SaveGame;
+  };
+
+  it('a field of the wrong kind is a SaveError, not a crash', () => {
+    for (const key of ['parties', 'units', 'bonds', 'buildings']) {
+      const save = played();
+      save.world[key] = null;
+      expect(() => loadWorld(save, GRAYBOX), key).toThrow(SaveError);
+      save.world[key] = 7;
+      expect(() => loadWorld(save, GRAYBOX), key).toThrow(SaveError);
+    }
+  });
+
+  it('garbage inside a field is a SaveError too', () => {
+    const save = played();
+    save.world.units = [null];
+    expect(() => loadWorld(save, GRAYBOX)).toThrow(SaveError);
+  });
+
+  it('pending card ids must still exist in the data', () => {
+    const a = createWorld(3, GRAYBOX);
+    play(a, 200_000);
+    const party = [...a.parties.values()][0];
+    shareXp(a, party.members[0], 200);
+    const save = JSON.parse(JSON.stringify(saveWorld(a))) as SaveGame;
+    const open = [...a.parties.values()].find((p) => p.offer || p.pathOffer);
+    expect(open).toBeDefined();
+    if (open?.pathOffer) {
+      const noPaths: GameData = { ...GRAYBOX, paths: [] };
+      expect(() => loadWorld(save, noPaths)).toThrow(/unknown path/);
+    } else {
+      const noUpgrades: GameData = { ...GRAYBOX, upgrades: [] };
+      expect(() => loadWorld(save, noUpgrades)).toThrow(/unknown upgrade/);
+    }
+  });
+});
+
 describe('save checks', () => {
   const good = () => JSON.parse(JSON.stringify(saveWorld(createWorld(1, GRAYBOX)))) as SaveGame;
 

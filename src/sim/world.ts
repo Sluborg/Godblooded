@@ -1,5 +1,6 @@
 import { runAutosave } from './save';
 import { swing } from './swing';
+import { buildReport, sampleGold, tally, type HeroRecord } from './runstats';
 import {
   attackBuilding,
   attackLair,
@@ -103,6 +104,8 @@ export interface World {
   heroRuntime: Map<number, HeroRuntime>;
   templeNextMs: Map<number, number>;
   towerNextMs: Map<number, number>;
+  // Run time of the next autosave event (0: not set yet).
+  nextAutosaveMs: number;
   tuning: Tuning;
   parties: Map<number, Party>;
   bonds: Map<string, number>;
@@ -110,6 +113,10 @@ export interface World {
   nextRaidMs: number;
   stats: RunStats;
   bounties: BountyState[];
+  // End screen tallies (src/sim/runstats.ts).
+  heroRecords: Map<number, HeroRecord>;
+  lairLog: { lair: number; type: string; timeMs: number; by: number }[];
+  goldLog: { timeMs: number; gold: number }[];
   events: SimEvent[];
 }
 
@@ -132,6 +139,7 @@ export function createWorld(seed: number, data: GameData): World {
     heroRuntime: new Map(),
     templeNextMs: new Map(),
     towerNextMs: new Map(),
+    nextAutosaveMs: 0,
     tuning: resolveTuning(data),
     parties: new Map(),
     bonds: new Map(),
@@ -146,6 +154,9 @@ export function createWorld(seed: number, data: GameData): World {
       taxCollected: 0,
     },
     bounties: [],
+    heroRecords: new Map(),
+    lairLog: [],
+    goldLog: [{ timeMs: 0, gold: data.startGold }],
     events: [],
   };
   world.buildings.push({
@@ -202,6 +213,7 @@ function runTick(world: World): void {
   world.tick++;
   world.timeMs += TICK_MS;
   runAutosave(world);
+  sampleGold(world);
   runTemples(world);
   runTowers(world);
   // Tower victims leave now, before the lairs count their monsters or the units act.
@@ -368,6 +380,7 @@ function heal(world: World, unit: UnitState, rt: UnitRuntime, stats: Stats, ally
     const amount = Math.min(gain, ally.maxHp - ally.hp);
     if (amount <= 0 || ally.ko) return;
     ally.hp += amount;
+    tally(world, unit.id, 'healing', amount);
     world.events.push({ kind: 'heal', healer: unit.id, target: ally.id, amount });
   });
 }
@@ -386,6 +399,7 @@ function fight(world: World, unit: UnitState, rt: UnitRuntime, stats: Stats, foe
     const dodged = !!foeStats && world.rng() < dodgeChance(foeStats.attrs);
     const dmg = dodged ? 0 : damage(stats.attrs);
     foe.hp -= dmg;
+    tally(world, unit.id, 'damage', dmg);
     world.events.push({ kind: 'hit', attacker: unit.id, target: foe.id, damage: dmg, dodged });
     if (foe.hp <= 0) {
       foe.hp = 0;
@@ -405,6 +419,7 @@ function settleDeaths(world: World): void {
       unit.target = null;
       heroKnockedOut(world, unit);
       world.stats.knockouts++;
+      tally(world, unit.id, 'knockouts');
       world.events.push({ kind: 'knockout', unit: unit.id, by });
     } else {
       const mon = world.data.monsters?.find((m) => m.id === unit.type);
@@ -413,6 +428,7 @@ function settleDeaths(world: World): void {
       const xp = Math.round((mon?.xp ?? 0) * reward);
       world.events.push({ kind: 'died', unit: unit.id, type: unit.type, by, bounty, xp });
       world.stats.monstersKilled++;
+      tally(world, by, 'kills');
       payBounty(world, by, bounty);
       shareXp(world, by, xp);
     }
@@ -536,6 +552,7 @@ export function snapshot(world: World): Snapshot {
     lairs: world.lairs.map((l) => ({ ...l, pos: { ...l.pos } })),
     units: world.units.map((u) => ({ ...u, pos: { ...u.pos }, facing: { ...u.facing } })),
     bounties: world.bounties.map((b) => ({ ...b, pos: { ...b.pos } })),
+    report: buildReport(world),
     events,
   };
 }

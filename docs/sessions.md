@@ -4,12 +4,13 @@ Each session fills in its own row on first start (`get_session` with no argument
 and records its old safety-net Routine id (all disabled 2026-10-08, see `docs/collaboration.md`). Ring a session with a one-shot
 `create_trigger` into its id (`docs/collaboration.md`, "Waking each other").
 
-| Role  | Session id                       | Model      | Old safety-net (disabled)     | Started    |
-| ----- | -------------------------------- | ---------- | ----------------------------- | ---------- |
-| Lead  | session_01QJ7Eau77boWNn7Xu4LueGq | Opus 5.5   | trig_01Lh3btH7Ase83C5cLexvKYH | 2026-10-04 |
-| Sim   | session_01PnzfK6QeRX8oN5s2jT3phh | Sonnet 5.5 | trig_01GNDL57954FgLpV7cABZyqu | 2026-10-04 |
-| Scene | session_01EDKMoTWRabZMeHFkhrUDvd | Sonnet 5.5 | trig_01Q4WUTXAKqa2Fo2KFMPTmUo | 2026-10-04 |
-| Art   | session_01M68g8NmB4aDf4xUYCS1Xop | Opus 5.5   | trig_013jxwXaNesMAgNnVYefuwfN | 2026-10-04 |
+| Role   | Session id                       | Model      | Old safety-net (disabled)     | Started    |
+| ------ | -------------------------------- | ---------- | ----------------------------- | ---------- |
+| Lead   | session_01QJ7Eau77boWNn7Xu4LueGq | Opus 5.5   | trig_01Lh3btH7Ase83C5cLexvKYH | 2026-10-04 |
+| Sim    | session_01PnzfK6QeRX8oN5s2jT3phh | Sonnet 5.5 | trig_01GNDL57954FgLpV7cABZyqu | 2026-10-04 |
+| Scene  | session_01EDKMoTWRabZMeHFkhrUDvd | Sonnet 5.5 | trig_01Q4WUTXAKqa2Fo2KFMPTmUo | 2026-10-04 |
+| Art    | session_01M68g8NmB4aDf4xUYCS1Xop | Opus 5.5   | trig_013jxwXaNesMAgNnVYefuwfN | 2026-10-04 |
+| Design | session_01UDBhJXCrdXiYfi6aTi25i5 | Opus 5.5   | none                          | 2026-10-13 |
 
 ## ChatGPT chats (one per art track, all in the ChatGPT project "Godblooded art")
 
