@@ -39,7 +39,8 @@ export function applyRider(
       };
       break;
     case 'chill': {
-      const boss = world.data.monsters?.find((m) => m.id === target.type)?.tags?.includes('boss');
+      const mon = world.data.monsters?.find((m) => m.id === target.type);
+      const boss = !!mon?.boss || mon?.tags?.includes('boss');
       statusOf(rt).chill = {
         untilMs: world.timeMs + t.chillMs,
         slow: t.chillSlow * (boss ? t.chillBossMult : 1),
