@@ -3,6 +3,9 @@ import { registerSW } from 'virtual:pwa-register';
 import { COLORS, GAME_HEIGHT, GAME_WIDTH } from './config';
 import { BootScene } from './scenes/BootScene';
 import { HudScene } from './scenes/HudScene';
+import { PauseScene } from './scenes/PauseScene';
+import { SettingsScene } from './scenes/SettingsScene';
+import { TitleScene } from './scenes/TitleScene';
 import { LevelUpScene } from './scenes/LevelUpScene';
 import { MapScene } from './scenes/MapScene';
 
@@ -33,7 +36,7 @@ const game = new Phaser.Game({
     height: GAME_HEIGHT,
   },
   input: { activePointers: 2 },
-  scene: [BootScene, MapScene, HudScene, LevelUpScene],
+  scene: [BootScene, TitleScene, MapScene, HudScene, LevelUpScene, PauseScene, SettingsScene],
 });
 
 // Test hook: with ?debug in the URL the game object is reachable from the console and from

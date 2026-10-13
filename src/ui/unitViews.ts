@@ -19,6 +19,7 @@ import {
   type Strike,
 } from './motionPose';
 import { pickVariant, rotateHue, sizeJitter, tierStyle } from './monsterLook';
+import { getSettings } from './settings';
 import { partyColor, partyRole, type PartyRole } from './partyLook';
 import { isSpeechEvent, pickLine, type SpeechKind } from './speechLines';
 import { buildHeal, buildStrike, FxLayer, type Vec } from './strikeFx';
@@ -548,7 +549,7 @@ export class UnitView {
   // when selected).
   private drawParty(u: UnitState, role: PartyRole): void {
     const selected = this.scene.registry.get('selectedUnit') === u.id;
-    const key = `${role}:${u.party}:${selected}`;
+    const key = `${role}:${u.party}:${selected}:${getSettings().palette}`;
     if (key === this.ringKey) return;
     this.ringKey = key;
     this.ring.clear();

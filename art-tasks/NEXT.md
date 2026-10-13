@@ -6,7 +6,7 @@ Take the first **Ready** batch of **your track** that is not in the upload log; 
 | Batch | Track     | File    | What                                                            | Images | Status |
 | ----- | --------- | ------- | --------------------------------------------------------------- | ------ | ------ |
 | V1    | monsters  | `V1.md` | Monster variants: draugr, harpy, jackal-man, minotaur -v2, -v3  | 8      | Ready  |
-| A1    | heroes    | `A1.md` | Healer t1 and the six Aesir tier-2 favor paths                  | 7      | Ready  |
+| A1    | heroes    | `A1.md` | Aesir gods t1 (Odin, Thor, Loki, Freyja) and their 8 paths t2   | 12     | Ready  |
 | U1    | ui        | `U1.md` | Logo and app icon: three options                                | 6      | Ready  |
 | S4    | heroes    | `S4.md` | Chunky test: warrior, duelist, oracle, draugr, troll (priority) | 5      | Done   |
 | S3    | heroes    | `S3.md` | Storm Berserker t1 in concept style: idle, walk, attack, hurt   | 9      | Void   |
@@ -21,3 +21,4 @@ Take the first **Ready** batch of **your track** that is not in the upload log; 
 | B6    | buildings | `B6.md` | Temples t1: Aesir, Greek, Egyptian                              | 3      | Done   |
 | B7    | buildings | `B7.md` | Town hall, market, smithy, shrine, tower t1                     | 5      | Done   |
 | B8    | heroes    | `B8.md` | Warrior t1 back (front = S4 chunky warrior)                     | 1      | Done   |
+| B9    | buildings | `B9.md` | Buildings tier 2: all eight, the three temples included         | 8      | Ready  |

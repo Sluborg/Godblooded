@@ -105,8 +105,12 @@ try {
   await page.waitForFunction(() => window.__game?.scene.isActive('Boot'), null, {
     timeout: 15_000,
   });
-  await sleep(1500);
-  await tap(await designToScreen([640, 360]));
+  await page.waitForFunction(() => window.__game?.scene.isActive('Title'), null, {
+    timeout: 15_000,
+  });
+  await sleep(500);
+  // Title: Play is the first button (design y 420 when there is no run to continue).
+  await tap(await designToScreen([640, 420]));
   await page.waitForFunction(
     () => window.__game.scene.isActive('Map') && window.__game.scene.isActive('Hud'),
   );

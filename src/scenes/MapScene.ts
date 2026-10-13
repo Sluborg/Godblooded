@@ -12,6 +12,7 @@ import {
   type Vec2,
   type World,
 } from '../sim/api';
+import { getSettings } from '../ui/settings';
 import { partyColor } from '../ui/partyLook';
 import { UnitViews } from '../ui/unitViews';
 import { OFFER_KEY, type LevelUpOffer } from './LevelUpScene';
@@ -59,7 +60,7 @@ export class MapScene extends Phaser.Scene {
   create(): void {
     const { width, height } = GRAYBOX.map;
     this.world = createWorld(1, GRAYBOX);
-    this.registry.set('speed', 1);
+    this.registry.set('speed', getSettings().speed);
     const cam = this.cameras.main;
     const minZoom = Math.max(GAME_WIDTH / width, GAME_HEIGHT / height);
     cam.setBounds(0, 0, width, height).setZoom(Math.max(minZoom, 0.8));
@@ -74,7 +75,9 @@ export class MapScene extends Phaser.Scene {
     });
     this.offerKey = null;
     this.registry.set('modal', false);
-    this.unitViews = new UnitViews(this, () => this.cameras.main.shake(130, 0.004));
+    this.unitViews = new UnitViews(this, () => {
+      if (!getSettings().reducedMotion) this.cameras.main.shake(130, 0.004);
+    });
     this.links = this.add.graphics().setDepth(1_000_000);
     this.snap = snapshot(this.world);
     this.sync();
