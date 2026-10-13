@@ -131,7 +131,11 @@ export class MapScene extends Phaser.Scene {
       if (!u) return this.setWatch(false);
       target = u.pos;
     } else {
-      target = this.director.update(this.snap.units, dtMs)?.center ?? null;
+      target =
+        this.director.update(this.snap.units, dtMs, [
+          ...this.snap.lairs.map((l) => l.id),
+          ...this.snap.buildings.map((b) => b.id),
+        ])?.center ?? null;
     }
     if (!target) return;
     const cam = this.cameras.main;

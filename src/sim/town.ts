@@ -1,16 +1,27 @@
-import { damage, dist, maxHp, speed, stepToward, TICK_MS, type Stats } from './units';
+import {
+  damage,
+  dist,
+  maxHp,
+  scaleAttrs,
+  speed,
+  stepToward,
+  tierValue,
+  TICK_MS,
+  type Stats,
+} from './units';
 import { shareXp } from './parties';
+import { earn, tally } from './runstats';
 import { swing } from './swing';
 import type { UnitRuntime, World } from './world';
-import type { BuildingState, LairState, UnitState, Vec2 } from './types';
+import type { BuildingCore, CommandResult, LairState, UnitState, Vec2 } from './types';
 
 // The town side of a run, simplified and logged in docs/decisions.md: heroes can destroy
 // lairs, raiders march on the town and can destroy buildings, the run is won when the last
 // lair falls and lost when the town hall does. Numbers come from GameData.tuning.
 
 // Nearest building to `from` (raiders go for whatever stands closest).
-export function nearestBuilding(world: World, from: Vec2): BuildingState | undefined {
-  let best: BuildingState | undefined;
+export function nearestBuilding(world: World, from: Vec2): BuildingCore | undefined {
+  let best: BuildingCore | undefined;
   let bestD = Infinity;
   for (const b of world.buildings) {
     const d = dist(from, b.pos);
@@ -40,7 +51,7 @@ export function attackBuilding(
   unit: UnitState,
   rt: UnitRuntime,
   stats: Stats,
-  b: BuildingState,
+  b: BuildingCore,
 ): void {
   unit.target = b.id;
   if (!approach(unit, stats, b.pos)) {
@@ -93,6 +104,7 @@ export function attackLair(
   swing(world, unit, rt, stats, lair.id, () => {
     const dmg = damage(stats.attrs);
     lair.hp -= dmg;
+    tally(world, unit.id, 'damage', dmg);
     world.events.push({
       kind: 'hit',
       attacker: unit.id,
@@ -105,7 +117,9 @@ export function attackLair(
     world.lairs = world.lairs.filter((l) => l.id !== lair.id);
     world.lairRuntime.delete(lair.id);
     world.stats.lairsDestroyed++;
-    unit.gold += tm.lairBounty;
+    earn(world, unit, tm.lairBounty);
+    tally(world, unit.id, 'lairKills');
+    world.lairLog.push({ lair: lair.id, type: lair.type, timeMs: world.timeMs, by: unit.id });
     world.events.push({
       kind: 'lairDestroyed',
       lair: lair.id,
@@ -133,7 +147,7 @@ export function runRaids(world: World): void {
     if (!def || !mon) continue;
     for (let i = 0; i < size; i++) {
       const id = world.nextId++;
-      const hp = maxHp(mon.attrs);
+      const hp = maxHp(scaleAttrs(mon.attrs, tierValue(world.tuning.lair.statMult, lair.tier, 1)));
       world.units.push({
         id,
         kind: 'monster',
@@ -162,5 +176,64 @@ export function runRaids(world: World): void {
       });
     }
     world.events.push({ kind: 'raid', lair: lair.id, size });
+  }
+}
+
+// Gold the next tier of a building costs; null for the town hall and at the top tier.
+export function upgradeCost(world: World, b: BuildingCore): number | null {
+  const t = world.tuning.building;
+  const def = world.data.buildings.find((d) => d.id === b.type);
+  if (!def || b.type === 'townhall' || b.tier >= t.maxTier) return null;
+  return (
+    def.upgradeCost?.[b.tier - 1] ?? Math.round(def.cost * tierValue(t.upgradeCostMult, b.tier, 1))
+  );
+}
+
+// The `upgrade` command: pay for the next tier. Hp goes up by the difference, damage stays.
+export function upgradeBuilding(world: World, id: number): CommandResult {
+  const b = world.buildings.find((x) => x.id === id);
+  if (!b) return { ok: false, reason: 'unknown building' };
+  if (b.type === 'townhall') return { ok: false, reason: 'cannot upgrade the town hall' };
+  const cost = upgradeCost(world, b);
+  if (cost === null) return { ok: false, reason: 'already at the top tier' };
+  if (world.gold < cost) return { ok: false, reason: 'not enough gold' };
+  world.gold -= cost;
+  b.tier++;
+  const maxHp = Math.round(
+    world.tuning.town.buildingHp * tierValue(world.tuning.building.hpMult, b.tier, 1),
+  );
+  b.hp += maxHp - b.maxHp;
+  b.maxHp = maxHp;
+  world.events.push({ kind: 'upgraded', building: b.id, type: b.type, tier: b.tier });
+  return { ok: true, id: b.id };
+}
+
+// Towers shoot the nearest monster in range on their own cooldown, by building tier.
+export function runTowers(world: World): void {
+  const t = world.tuning.building;
+  for (const b of world.buildings) {
+    if (b.type !== 'tower') continue;
+    const next = world.towerNextMs.get(b.id) ?? 0;
+    if (world.timeMs < next) continue;
+    const range = tierValue(t.towerRange, b.tier, 0);
+    let foe: UnitState | undefined;
+    let best = Infinity;
+    for (const u of world.units) {
+      if (u.kind !== 'monster' || u.hp <= 0) continue;
+      const d = dist(b.pos, u.pos);
+      if (d <= range && d < best) {
+        foe = u;
+        best = d;
+      }
+    }
+    if (!foe) continue;
+    world.towerNextMs.set(b.id, world.timeMs + tierValue(t.towerCooldownMs, b.tier, 2000));
+    const dmg = tierValue(t.towerDamage, b.tier, 0);
+    foe.hp -= dmg;
+    world.events.push({ kind: 'hit', attacker: b.id, target: foe.id, damage: dmg, dodged: false });
+    if (foe.hp <= 0) {
+      foe.hp = 0;
+      world.pendingDeaths.push({ victim: foe.id, by: b.id });
+    }
   }
 }

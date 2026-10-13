@@ -72,7 +72,7 @@ export class HudScene extends Phaser.Scene {
     makeButton(this, 890, 40, 110, MIN_TOUCH, 'Menu', () => this.openPause());
     this.watchBtn = makeButton(this, 770, 40, 110, MIN_TOUCH, 'Watch', () => {
       const m = map.registry.get('camMode');
-      map.setWatch(m === 'off' || m === undefined);
+      map.setWatch(m !== 'watch');
     });
     this.refreshSpeed();
     this.toast = this.add

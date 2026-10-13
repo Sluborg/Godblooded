@@ -48,6 +48,16 @@ describe('findFights', () => {
   });
 });
 
+describe('structure fights and healing', () => {
+  it('counts an attack on a lair or building, but not a heal on a party mate', () => {
+    const raider = unit(1, 0, 0, { kind: 'monster', target: 500 });
+    expect(findFights([raider])).toEqual([]);
+    expect(findFights([raider], [500])).toHaveLength(1);
+    const healer = unit(2, 0, 0, { target: 3 });
+    expect(findFights([healer, unit(3, 20, 0)])).toEqual([]);
+  });
+});
+
 describe('WatchDirector', () => {
   it('returns null with no fight', () => {
     expect(new WatchDirector().update([unit(1, 0, 0)], 16)).toBeNull();

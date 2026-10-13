@@ -18,17 +18,24 @@ export interface Fight {
   score: number;
 }
 
-function engaged(u: UnitState, byId: Map<number, UnitState>): boolean {
+// Fighting means attacking a live enemy unit or a structure (a lair under assault, a building
+// under raid). A healer tending a party mate also has a unit target, but it is not a fight.
+function engaged(u: UnitState, byId: Map<number, UnitState>, structures: Set<number>): boolean {
   if (u.ko || u.target === null) return false;
+  if (structures.has(u.target)) return true;
   const t = byId.get(u.target);
-  return t !== undefined && !t.ko;
+  return t !== undefined && !t.ko && t.kind !== u.kind;
 }
 
 // Every group of units in combat. Score: bodies in the fight, plus weight for high tiers
 // (a boss or a tier 3 hero is worth watching) and for a hero close to falling.
-export function findFights(units: readonly UnitState[]): Fight[] {
+export function findFights(
+  units: readonly UnitState[],
+  structureIds: readonly number[] = [],
+): Fight[] {
   const byId = new Map(units.map((u) => [u.id, u]));
-  const fighters = units.filter((u) => engaged(u, byId));
+  const structures = new Set(structureIds);
+  const fighters = units.filter((u) => engaged(u, byId, structures));
   const groups: UnitState[][] = [];
   for (const u of fighters) {
     const near = groups.filter((g) =>
@@ -63,8 +70,12 @@ export class WatchDirector {
   private heldMs = 0;
 
   // The fight to look at this frame, or null when nothing is fighting (the camera stays put).
-  update(units: readonly UnitState[], dtMs: number): Fight | null {
-    const fights = findFights(units);
+  update(
+    units: readonly UnitState[],
+    dtMs: number,
+    structureIds: readonly number[] = [],
+  ): Fight | null {
+    const fights = findFights(units, structureIds);
     this.heldMs += dtMs;
     const best = fights.reduce<Fight | null>((a, f) => (a && a.score >= f.score ? a : f), null);
     const current = this.key === null ? undefined : fights.find((f) => f.key === this.key);

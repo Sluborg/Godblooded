@@ -1,6 +1,6 @@
 // Headless balance sim: plays seeded runs of the graybox with a simple bot (builds, picks the
-// first upgrade offered) and reports run length, win rate and deaths.
-//   npm run sim -- --runs 100 --seed 1 --max-min 30 [--data path.json] [--json]
+// first upgrade offered, buys building tiers) and reports run length, win rate and deaths.
+//   npm run sim -- --runs 100 --seed 1 --max-min 30 [--data path.json] [--json] [--no-upgrade]
 // --data takes a JSON file that overrides GRAYBOX fields (top level; `tuning` groups are
 // merged one by one), so data passes can be tried without editing src/data.
 import { readFileSync } from 'node:fs';
@@ -15,6 +15,8 @@ const runs = opt('runs', 100);
 const seed0 = opt('seed', 1);
 const maxMin = opt('max-min', 30);
 const json = args.includes('--json');
+// The bot buys building tiers unless --no-upgrade is given.
+const UPGRADE = !args.includes('--no-upgrade');
 const dataIdx = args.indexOf('--data');
 const dataFile = dataIdx >= 0 ? args[dataIdx + 1] : undefined;
 
@@ -76,6 +78,13 @@ try {
       const plot = snap.plots.find((p) => !p.occupied);
       if (!plot) break;
       sim.command(w, { kind: 'build', type, plot: plot.id });
+    }
+    // With gold to spare, buy the next tier of a temple, tower or market (cheapest first).
+    if (UPGRADE) {
+      const ups = snap.buildings
+        .filter((b) => b.upgradeCost !== null && b.upgradeCost + 150 <= snap.gold)
+        .sort((a, b) => a.upgradeCost - b.upgradeCost);
+      if (ups.length > 0) sim.command(w, { kind: 'upgrade', building: ups[0].id });
     }
     if (snap.gold > 150 && snap.bounties.length === 0 && snap.lairs.length > 0) {
       const hall = GRAYBOX.townHall;

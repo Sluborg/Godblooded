@@ -12,6 +12,9 @@ export interface BuildingDef {
   // Temples: the pantheon whose gods' children the temple calls. Missing on an id like
   // `temple_aesir` means the part after `temple_`.
   pantheon?: string;
+  // Gold for tier 2 and tier 3 (index = current tier - 1). Missing: the building's cost times
+  // tuning.building.upgradeCostMult.
+  upgradeCost?: readonly number[];
 }
 
 // A god: heroes are children of a god, called by a temple of its pantheon. `template` is the
@@ -133,6 +136,50 @@ export interface MonsterTuning {
   lairAggro: number;
 }
 
+// Lair growth: every tierUpEveryMs a lair goes up one tier (to maxTier). The arrays are indexed
+// by tier - 1 (the last entry holds for higher tiers).
+export interface LairTuning {
+  // 0 turns growth off.
+  tierUpEveryMs: number;
+  maxTier: number;
+  // Multiplies the lair's spawn interval.
+  spawnMult: number[];
+  // Added to the lair's maxAlive.
+  maxAliveAdd: number[];
+  // Multiplies every attribute of the monsters the lair spawns (they keep the tier they spawned at).
+  statMult: number[];
+  // Multiplies the lair's own hp (a tier up adds the difference to its current hp).
+  hpMult: number[];
+  // Multiplies the bounty and xp of the monsters of that tier.
+  rewardMult: number[];
+}
+
+// Building tiers: the `upgrade` command takes a building from tier 1 to maxTier. The arrays are
+// indexed by tier - 1 (the last entry holds for higher tiers).
+export interface BuildingTuning {
+  maxTier: number;
+  // Cost of the next tier as a multiple of the building's cost (index = current tier - 1).
+  upgradeCostMult: number[];
+  // Multiplies the building's hp (an upgrade adds the difference to its current hp).
+  hpMult: number[];
+  // Temples: multiplies the recruit timer, and added to maxPerTemple.
+  templeRecruitMult: number[];
+  templeCapAdd: number[];
+  // Markets: multiplies the tax rate, and caps the gold one visit can spend (the stock).
+  marketTaxMult: number[];
+  marketStock: number[];
+  // Towers shoot the nearest monster in range: range in world units, flat damage per shot,
+  // and the time between shots.
+  towerRange: number[];
+  towerDamage: number[];
+  towerCooldownMs: number[];
+}
+
+export interface StatsTuning {
+  // Town gold is sampled this often for the end screen's gold curve (0 turns it off).
+  goldSampleMs: number;
+}
+
 export interface TownTuning {
   townHallHp: number;
   buildingHp: number;
@@ -179,6 +226,9 @@ export interface Tuning {
   hero: HeroTuning;
   party: PartyTuning;
   monster: MonsterTuning;
+  lair: LairTuning;
+  building: BuildingTuning;
+  stats: StatsTuning;
   town: TownTuning;
   bounty: BountyTuning;
 }
@@ -201,6 +251,9 @@ export interface GameData {
     hero?: Partial<HeroTuning>;
     party?: Partial<PartyTuning>;
     monster?: Partial<MonsterTuning>;
+    lair?: Partial<LairTuning>;
+    building?: Partial<BuildingTuning>;
+    stats?: Partial<StatsTuning>;
     town?: Partial<TownTuning>;
     bounty?: Partial<BountyTuning>;
   };
@@ -222,7 +275,12 @@ export interface BuildingState {
   plot: number | null;
   hp: number;
   maxHp: number;
+  // Gold the `upgrade` command costs now; null at the top tier and for the town hall.
+  upgradeCost: number | null;
 }
+
+// A building as the sim keeps it; the snapshot adds the upgrade cost.
+export type BuildingCore = Omit<BuildingState, 'upgradeCost'>;
 
 export interface PlotState {
   // Index into GameData.plots.
@@ -313,6 +371,7 @@ export interface BountyState {
 
 export type SimEvent =
   | { kind: 'built'; building: number; type: string }
+  | { kind: 'upgraded'; building: number; type: string; tier: number }
   | { kind: 'spawned'; unit: number; type: string; lair: number }
   | { kind: 'windup'; attacker: number; target: number; inMs: number }
   | { kind: 'heal'; healer: number; target: number; amount: number }
@@ -325,6 +384,7 @@ export type SimEvent =
   | { kind: 'tierUp'; unit: number; tier: number; path: string | null }
   | { kind: 'pathOffer'; party: number; hero: number; options: string[] }
   | { kind: 'raid'; lair: number; size: number }
+  | { kind: 'lairTierUp'; lair: number; tier: number }
   | { kind: 'lairDestroyed'; lair: number; type: string; by: number; bounty: number }
   | { kind: 'buildingDestroyed'; building: number; type: string }
   | { kind: 'bountyClaimed'; bounty: number; unit: number; gold: number }
@@ -340,7 +400,9 @@ export type Command =
   | { kind: 'build'; type: string; plot: number }
   | { kind: 'placeBounty'; pos: Vec2; gold: number }
   | { kind: 'pickUpgrade'; party: number; upgrade: string }
-  | { kind: 'pickPath'; party: number; path: string };
+  | { kind: 'pickPath'; party: number; path: string }
+  // Buy the next tier of a building.
+  | { kind: 'upgrade'; building: number };
 
 export type CommandResult = { ok: true; id: number } | { ok: false; reason: string };
 
@@ -351,6 +413,35 @@ export interface RunStats {
   knockouts: number;
   buildingsLost: number;
   taxCollected: number;
+}
+
+// One hero's line on the end screen. `mvp` marks the best hero of the run (kills, five per
+// lair destroyed, damage as tie-breaker); heroes come sorted best first.
+export interface HeroReport {
+  unit: number;
+  type: string;
+  god: string | null;
+  path: string | null;
+  tier: number;
+  kills: number;
+  lairKills: number;
+  // Gold from monster bounties, lair bounties and bounty flags (not shop spending).
+  goldEarned: number;
+  knockouts: number;
+  damage: number;
+  healing: number;
+  mvp: boolean;
+}
+
+export interface RunReport {
+  outcome: 'won' | 'lost';
+  timeMs: number;
+  mvp: number | null;
+  heroes: HeroReport[];
+  // Lairs destroyed, in order: the lair id and type, when, and the hero that did it.
+  lairsCleared: { lair: number; type: string; timeMs: number; by: number }[];
+  // Town gold over the run, sampled every tuning.stats.goldSampleMs plus the final value.
+  goldHistory: { timeMs: number; gold: number }[];
 }
 
 export interface Snapshot {
@@ -366,6 +457,9 @@ export interface Snapshot {
   readonly parties: readonly Readonly<PartyState>[];
   readonly paths: readonly Readonly<PathState>[];
   readonly bounties: readonly Readonly<BountyState>[];
+  // The end screen numbers once the run is won or lost; null while it is running. Totals for
+  // the run are in `stats`.
+  readonly report: Readonly<RunReport> | null;
   // Events since the previous snapshot() call (speech bubbles, sounds, juice).
   readonly events: readonly SimEvent[];
 }

@@ -1,5 +1,6 @@
+import { earn, newRecord } from './runstats';
 import { fledParty, fleeThreshold, newParty, pantheonOf, TRAITS } from './parties';
-import { aggroRange, dist, maxHp, speed, stepToward, TICK_MS } from './units';
+import { aggroRange, dist, maxHp, speed, stepToward, tierValue, TICK_MS } from './units';
 import type { World } from './world';
 import type { Vec2, UnitState } from './types';
 
@@ -47,6 +48,7 @@ export function spawnHero(world: World, godId: string, pos: Vec2, temple = 0): n
   });
   world.unitRuntime.set(id, { lair: null, cooldownMs: 0, target: null, idleMs: 0 });
   world.heroRuntime.set(id, { dest: null, koMs: 0, temple });
+  world.heroRecords.set(id, newRecord());
   const hero = world.units[world.units.length - 1];
   hero.party = newParty(world, id);
   world.stats.heroesArrived++;
@@ -63,10 +65,14 @@ export function runTemples(world: World): void {
     const next = world.templeNextMs.get(b.id) ?? world.timeMs + tune(world).firstRecruitMs;
     world.templeNextMs.set(b.id, next);
     if (world.timeMs < next) continue;
-    world.templeNextMs.set(b.id, world.timeMs + tune(world).recruitMs);
+    const bt = world.tuning.building;
+    world.templeNextMs.set(
+      b.id,
+      world.timeMs + tune(world).recruitMs * tierValue(bt.templeRecruitMult, b.tier, 1),
+    );
     let alive = 0;
     for (const rt of world.heroRuntime.values()) if (rt.temple === b.id) alive++;
-    if (alive >= tune(world).maxPerTemple) continue;
+    if (alive >= tune(world).maxPerTemple + tierValue(bt.templeCapAdd, b.tier, 0)) continue;
     // Gods of the temple's pantheon already at the cap are skipped; with none left, nobody
     // comes this cycle. A temple with no pantheon calls any god.
     const pantheon = pantheonOf(world, b.type);
@@ -132,7 +138,7 @@ export function heroKnockedOut(world: World, unit: UnitState): void {
 
 export function payBounty(world: World, killer: number, gold: number): void {
   const hero = world.units.find((u) => u.id === killer && u.kind === 'hero');
-  if (hero) hero.gold += gold;
+  if (hero) earn(world, hero, gold);
 }
 
 // Moves a hero that is not fighting: explore, walk home, rest, shop.
@@ -182,8 +188,14 @@ export function heroMove(world: World, unit: UnitState): void {
         break;
       }
       if (step(market.pos)) {
-        const spent = Math.floor(unit.gold * tune(world).spendShare);
-        const tax = Math.floor(spent * tune(world).taxRate);
+        const bt = world.tuning.building;
+        const spent = Math.min(
+          Math.floor(unit.gold * tune(world).spendShare),
+          tierValue(bt.marketStock, market.tier, Infinity),
+        );
+        const tax = Math.floor(
+          spent * tune(world).taxRate * tierValue(bt.marketTaxMult, market.tier, 1),
+        );
         unit.gold -= spent;
         world.gold += tax;
         world.stats.taxCollected += tax;
@@ -283,7 +295,7 @@ export function runBounties(world: World): void {
       (u) => u.kind === 'hero' && !u.ko && dist(u.pos, flag.pos) <= t.claimRadius,
     );
     if (!hero || flagDanger(world, flag.pos) > 0) continue;
-    hero.gold += flag.gold;
+    earn(world, hero, flag.gold);
     world.bounties = world.bounties.filter((b) => b.id !== flag.id);
     world.events.push({ kind: 'bountyClaimed', bounty: flag.id, unit: hero.id, gold: flag.gold });
   }
