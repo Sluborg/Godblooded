@@ -23,6 +23,8 @@ interface Found {
   foe?: UnitState;
   ally?: UnitState;
   point: Vec2;
+  // Where a cone or line should face when the cast sits on the caster.
+  aim?: Vec2;
 }
 
 // The hero's skill, with the tier 3 form merged over it from tier 3.
@@ -72,7 +74,7 @@ export function runSkill(
   sr.cast = { target: at.unit?.id ?? null, point: at.point, ms: t.castWindupMs };
   rt.swing = undefined;
   // A skill sitting on the caster still points at the foe: cones and lines aim along facing.
-  face(hero, at.unit?.pos ?? found.foe?.pos ?? at.point);
+  face(hero, found.aim ?? at.unit?.pos ?? found.foe?.pos ?? at.point);
   world.events.push({
     kind: 'cast',
     skill: def.id,
@@ -171,9 +173,10 @@ function evalTrigger(
       // Counted around the skill's centre: the caster, or the foe it fights. A cone opens from
       // the caster toward the foe (the nearest one when the skill sits on the caster).
       const all = foesOf(world);
-      const toward = foe ?? (self ? pickNearest(all, hero.pos, trig.radius) : undefined);
+      // Only for a hero in a fight (it has a foe), not one passing by.
+      if (!foe) return undefined;
+      const toward = foe;
       const centre = self ? hero : foe;
-      if (!centre || !toward) return undefined;
       const inside = all.filter((f) =>
         trig.angle === undefined
           ? dist(centre.pos, f.pos) <= trig.radius
@@ -181,7 +184,7 @@ function evalTrigger(
       );
       if (inside.length < trig.n) return undefined;
       const at = self || hero.trait === 'proud' ? pickFoe(hero, hero.pos, inside) : foe;
-      return { foe: at ?? undefined, point: { ...centre.pos } };
+      return { foe: at ?? undefined, point: { ...centre.pos }, aim: { ...toward.pos } };
     }
     case 'allyHurt': {
       const hurt = alliesOf(world, hero).filter(
@@ -200,10 +203,19 @@ function evalTrigger(
       return hurt || hunted ? { foe: foe ?? undefined, point: { ...hero.pos } } : undefined;
     }
     case 'kill': {
+      // A kill by the hero or its party only, not by a party passing by.
+      const mine = (by: number) => {
+        const killer = world.units.find((u) => u.id === by);
+        return (
+          by === hero.id ||
+          (killer !== undefined && killer.party !== 0 && killer.party === hero.party)
+        );
+      };
       const near = world.recentKills.find(
         (k) =>
           k.timeMs >= world.timeMs - world.tuning.skill.killWindowMs &&
-          dist(hero.pos, k.pos) <= trig.radius,
+          dist(hero.pos, k.pos) <= trig.radius &&
+          mine(k.by),
       );
       return near ? { point: { ...near.pos } } : undefined;
     }
