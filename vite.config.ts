@@ -85,20 +85,6 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,json,png,webp,mp3,ogg}'],
-        // Music is not precached (docs/systems/audio.md): it is cached the first time it plays.
-        globIgnores: ['assets/audio/**'],
-        runtimeCaching: [
-          {
-            urlPattern: /\/assets\/audio\/[^/]+\.(ogg|m4a)$/,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'audio',
-              expiration: { maxEntries: 30 },
-              cacheableResponse: { statuses: [0, 200] },
-              rangeRequests: true,
-            },
-          },
-        ],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         cleanupOutdatedCaches: true,
         clientsClaim: true,
