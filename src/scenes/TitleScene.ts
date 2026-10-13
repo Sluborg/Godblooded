@@ -3,7 +3,7 @@ import { COLORS, GAME_HEIGHT, GAME_WIDTH } from '../config';
 import { ASSETS_KEY, type ManifestAsset } from '../ui/assets';
 import { pickLogoId } from '../ui/assetPriority';
 import { drawBackdrop } from '../ui/backdrop';
-import { canInstall, promptInstall } from '../ui/install';
+import { canInstall, onInstallChange, promptInstall } from '../ui/install';
 import { makeButton } from '../ui/button';
 
 const FONT = 'Georgia, serif';
@@ -43,9 +43,12 @@ export class TitleScene extends Phaser.Scene {
     const labels: [string, () => void][] = [['Play', () => this.play()]];
     if (canContinue) labels.push(['Continue', () => this.continueRun()]);
     labels.push(['Settings', () => this.scene.launch('Settings')]);
+    // The browser may decide the app is installable after the title is up (or the player may
+    // install): rebuild the title then so the button appears or goes away.
+    const off = onInstallChange(() => this.scene.restart());
+    this.events.once('shutdown', off);
     // Offer the PWA install only when the browser says the app can be installed.
-    if (canInstall())
-      labels.push(['Install app', () => void promptInstall().then(() => this.scene.restart())]);
+    if (canInstall()) labels.push(['Install app', () => void promptInstall()]);
     // Four buttons need a tighter stack to stay clear of the bottom edge.
     const tight = labels.length > 3;
     const gap = tight ? 92 : 110;
