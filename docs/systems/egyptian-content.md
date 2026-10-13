@@ -124,13 +124,13 @@ export const EGYPTIAN_SKILLS: readonly SkillDef[] = [
     target: 'self',
     shape: { kind: 'circle', radius: 150 },
     effects: [
-      { kind: 'buff', stat: 'armour', amount: 0.5, s: 5, to: 'allies' },
+      { kind: 'buff', stat: 'armour', amount: 0.5, s: 5, to: 'allies' }, // stand-in, see note
       { kind: 'damage', mult: 0.8, type: 'holy' },
     ],
     visual: ['aura', 'burst'],
     t3: {
       effects: [
-        { kind: 'buff', stat: 'armour', amount: 0.5, s: 5, to: 'allies' },
+        { kind: 'buff', stat: 'armour', amount: 0.5, s: 5, to: 'allies' }, // stand-in, see note
         { kind: 'damage', mult: 0.8, type: 'holy', rider: 'sear' },
         { kind: 'shield', pct: 0.05, s: 5, to: 'allies' },
       ],
@@ -251,6 +251,11 @@ export const EGYPTIAN_SKILLS: readonly SkillDef[] = [
 - **Binding Spell's target** is "the foe on a party healer, else the foe with most hp"
   (`paths-and-skills.md`). Today `target: 'foe'` takes the hero's own target; a `pick` rule
   (`onHealer`, `mostHp`) is a small Sim field shared with the Aesir Seer (`pick: 'mostHp'`).
+- **Sun Disk's -25% damage taken** is armour x1.5 until Sim adds a `damageTaken` BuffStat
+  (new shape below). It is a known gap: armour cuts only physical hits and does nothing for
+  0-armour wizards.
+- **Raise the Dead: do not paste** until `summon` ships (Sim #194); with empty effects the
+  skill would fire and do nothing.
 - **Sun Disk tier 3** heals the party 5% (`paths-and-skills.md`); today's shapes have no heal
   by share of max hp, so it is a 5% shield, which plays the same.
 - **Falcon without summons:** until Sim ships `summon`, the falcon is a sure 0.6 hit that
@@ -258,30 +263,32 @@ export const EGYPTIAN_SKILLS: readonly SkillDef[] = [
 
 ### New Sim shapes (one row, section 7)
 
-| Shape                 | Fields                          | Used by                                  |
-| --------------------- | ------------------------------- | ---------------------------------------- |
-| `summon`              | `summon`, `count`, `s`          | Falcon, Raise the Dead (and Aesir decoy) |
-| `drain`               | `pct`                           | Reaping Sweep                            |
-| `execute`             | `below` (bosses immune)         | Reaping Sweep tier 3                     |
-| `critBelow` (damage)  | share of max hp                 | Pounce                                   |
-| `chainOnKill` (skill) | radius                          | Pounce tier 3                            |
-| `death` hook          | runs an effect where a foe died | Plague Breath tier 3                     |
-| `revive`              | `hp`, `perFight`                | Breath of Life tier 3                    |
-| `bind`                | `s` (bosses half)               | Binding Spell                            |
-| `pick` (skill)        | `mostHp`, `onHealer`            | Binding Spell (and Aesir Seer)           |
+| Shape                    | Fields                          | Used by                                  |
+| ------------------------ | ------------------------------- | ---------------------------------------- |
+| `summon`                 | `summon`, `count`, `s`          | Falcon, Raise the Dead (and Aesir decoy) |
+| `drain`                  | `pct`                           | Reaping Sweep                            |
+| `execute`                | `below` (bosses immune)         | Reaping Sweep tier 3                     |
+| `critBelow` (damage)     | share of max hp                 | Pounce                                   |
+| `chainOnKill` (skill)    | radius                          | Pounce tier 3                            |
+| `death` hook             | runs an effect where a foe died | Plague Breath tier 3                     |
+| effect `shape`           | per-effect shape (circle 60)    | Plague Breath tier 3 burst               |
+| `damageTaken` (BuffStat) | share less damage taken         | Sun Disk                                 |
+| `revive`                 | `hp`, `perFight`                | Breath of Life tier 3                    |
+| `bind`                   | `s` (bosses half)               | Binding Spell                            |
+| `pick` (skill)           | `mostHp`, `onHealer`            | Binding Spell (and Aesir Seer)           |
 
 ## 5. Budget check (for the Sim bot)
 
-| Path        | Casts per 25 s fight | Skill share of output                      | Within 15-25%? |
-| ----------- | -------------------- | ------------------------------------------ | -------------- |
-| Falconer    | 2                    | about 20% (falcon hits plus no-dodge)      | yes            |
-| Skyguard    | 1-2                  | about 15% plus the party armour            | yes, low end   |
-| Gravewarden | 2, in crowds         | about 22% plus self heal                   | yes            |
-| Embalmer    | 1-2 (needs kills)    | about 20% (a thrall at 50% stats for 10 s) | yes            |
-| Lioness     | 2-3 (CD 9)           | about 25%                                  | yes, top end   |
-| Plaguefire  | 2                    | about 20% plus wither on the targets       | yes            |
-| Lifegiver   | 1-2                  | about 25% of healing                       | yes            |
-| Enchantress | 2                    | about 15% plus 3 s of a foe out            | yes            |
+| Path        | Casts per 25 s fight | Skill share of output                                    | Within 15-25%?     |
+| ----------- | -------------------- | -------------------------------------------------------- | ------------------ |
+| Falconer    | 2                    | about 20% with the summon (the stand-in hit is far less) | yes, with `summon` |
+| Skyguard    | 1-2                  | about 15% plus the party armour                          | yes, low end       |
+| Gravewarden | 2, in crowds         | about 22% plus self heal                                 | yes                |
+| Embalmer    | 1-2 (needs kills)    | about 20% (a thrall at 50% stats for 10 s)               | yes                |
+| Lioness     | 2-3 (CD 9)           | about 25%                                                | yes, top end       |
+| Plaguefire  | 2                    | about 20% plus wither on the targets                     | yes                |
+| Lifegiver   | 1-2                  | about 25% of healing                                     | yes                |
+| Enchantress | 2                    | about 15% plus 3 s of a foe out                          | yes                |
 
 ## 6. Egyptian cards (from `progression.md`)
 
