@@ -198,3 +198,15 @@ Stefan: in the build menu, the first tap on a building shows what it does (role,
 sells or trains, cost, what its next tier unlocks); a second tap on the same building confirms
 and builds. Tapping another building or outside the menu cancels. Nothing is built on a single
 tap.
+
+## 2026-10-14 Celestial nodes and gatherers (M3)
+
+Stefan: every lair sits on a **celestial node**. Clearing the lair frees the node. The player
+sends **gatherers** (town workers, not heroes) to collect **Ambrosia** from freed nodes.
+Gatherers can be attacked on the way. The player can send weak **guards** with them, or post an
+**escort bounty** (gold on the route, like a bounty flag) that a party may take; the player
+never commands a party. Ambrosia from nodes is an **in-run** currency only (spent during the
+run). Lands in **M3**, with the meta.
+
+Follow-on (Lead, Stefan to veto): since Ambrosia is now in-run, the meta currency for the Altar
+between runs is renamed **Essence** (Stefan's other suggestion).
