@@ -9,6 +9,7 @@ import {
   liveStatuses,
   newestRing,
   shapeBox,
+  skillAtTier,
   skillTint,
   skillVisuals,
   type StatusKind,
@@ -1438,18 +1439,19 @@ export class UnitViews {
 
   // The caster glows in its skill's colour for the windup, and now and then says the skill's name.
   private onCast(e: Extract<SimEvent, { kind: 'cast' }>): void {
-    const def = skillDef(e.skill);
     const view = this.views.get(e.caster);
     if (!view) return;
+    const def = skillAtTier(skillDef(e.skill), view.tierNow);
     view.glow(skillTint(def), 1.2);
     if (e.say && def) view.say(def.name, 1800);
   }
 
   // The skill's pictures, drawn when the cast lands.
   private onSkill(e: Extract<SimEvent, { kind: 'skill' }>): void {
-    const def = skillDef(e.skill);
     const caster = this.views.get(e.caster) ?? this.dying.get(e.caster);
     if (!caster) return;
+    // Sim merges the tier 3 fields over the row for a tier 3 caster; so does the picture.
+    const def = skillAtTier(skillDef(e.skill), caster.tierNow);
     const pos = (id: number): Vec | undefined => {
       const v = this.views.get(id) ?? this.dying.get(id);
       return v ? v.chest() : undefined;
@@ -1461,7 +1463,11 @@ export class UnitViews {
       point: e.point,
       hits: hits.length ? hits : [e.point],
       shape: shapeBox(def),
-      dashFrom: e.from,
+      // The dash starts at the caster's old feet: lift it to chest height like the end point.
+      dashFrom: e.from && {
+        x: e.from.x,
+        y: e.from.y + (caster.chest().y - caster.container.y),
+      },
       seed: e.caster * 31 + e.hits.length,
     };
     const k = Math.max(0.8, fxScale(caster.tierNow, caster.boss));

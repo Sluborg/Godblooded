@@ -1,6 +1,6 @@
 import { attackMs, TICK_MS, type Stats } from './units';
 import type { UnitRuntime, World } from './world';
-import type { UnitState } from './types';
+import type { ConeArea, UnitState } from './types';
 
 // A ground area a strike hits (a boss cleave), fixed when the windup starts.
 export interface Area {
@@ -19,8 +19,8 @@ export function swing(
   rt: UnitRuntime,
   stats: Stats,
   targetId: number,
-  resolve: (area?: Area) => void,
-  opts?: { windupMs?: number; area?: Area },
+  resolve: (area?: Area, cone?: ConeArea) => void,
+  opts?: { windupMs?: number; area?: Area; cone?: ConeArea },
 ): void {
   if (rt.swing) {
     if (rt.swing.target !== targetId) {
@@ -29,9 +29,9 @@ export function swing(
     }
     rt.swing.ms -= TICK_MS;
     if (rt.swing.ms <= 0) {
-      const area = rt.swing.area;
+      const { area, cone } = rt.swing;
       rt.swing = undefined;
-      resolve(area);
+      resolve(area, cone);
     }
     return;
   }
@@ -39,12 +39,13 @@ export function swing(
   const cycle = attackMs(stats, world.tuning.combat.attackK);
   rt.cooldownMs = cycle;
   const ms = opts?.windupMs ?? Math.min(world.tuning.combat.windupMs, cycle * 0.4);
-  rt.swing = { target: targetId, ms, area: opts?.area };
+  rt.swing = { target: targetId, ms, area: opts?.area, cone: opts?.cone };
   world.events.push({
     kind: 'windup',
     attacker: unit.id,
     target: targetId,
     inMs: ms,
     ...(opts?.area ? { area: opts.area } : {}),
+    ...(opts?.cone ? { cone: opts.cone } : {}),
   });
 }
