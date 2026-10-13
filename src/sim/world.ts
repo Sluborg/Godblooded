@@ -16,9 +16,11 @@ import { cancelCast, runSkill, supportEffect, tickSkill, type SkillRuntime } fro
 import { swing, type Area } from './swing';
 import {
   bossNumbers,
+  bossSealed,
   cleaveStrike,
   isBoss,
   runBosses,
+  runBossSeal,
   spawnMonster,
   type BossRuntime,
 } from './boss';
@@ -180,6 +182,8 @@ export interface World {
   bounties: BountyState[];
   // Generated map: the boss lair that wins the run and the pantheons the map leans on.
   bossLair: number | null;
+  // The seal on the boss lairs has broken (runBossSeal).
+  bossUnsealed: boolean;
   mapLean: string[];
   // End screen tallies (src/sim/runstats.ts).
   heroRecords: Map<number, HeroRecord>;
@@ -229,6 +233,7 @@ export function createWorld(seed: number, data: GameData): World {
     },
     bounties: [],
     bossLair: null,
+    bossUnsealed: false,
     mapLean: [],
     heroRecords: new Map(),
     lairLog: [],
@@ -324,6 +329,7 @@ function runTick(world: World): void {
   });
   // Burn victims leave now, before heroes flee or units act on a dead unit's turn.
   settleDeaths(world);
+  runBossSeal(world);
   runBosses(world);
   runLairs(world);
   runRaids(world);
@@ -874,7 +880,7 @@ export function snapshot(world: World): Snapshot {
     })),
     graves: world.graves.map((g) => ({ ...g, pos: { ...g.pos } })),
     rivals: rivalPairs(world),
-    map: { lean: [...world.mapLean], boss: world.bossLair },
+    map: { lean: [...world.mapLean], boss: world.bossLair, sealed: bossSealed(world) },
     report: buildReport(world),
     events,
   };

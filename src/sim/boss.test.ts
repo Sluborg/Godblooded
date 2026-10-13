@@ -41,6 +41,8 @@ const data = (over: Partial<GameData> = {}): GameData => ({
     hero: { firstRecruitMs: 10_000_000 },
     town: { raidFirstMs: 10_000_000 },
     lair: { tierUpEveryMs: 0 },
+    // these tests are about the fight, not the seal
+    boss: { sealUntilMs: 0 },
   },
   ...over,
 });
