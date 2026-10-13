@@ -21,6 +21,7 @@ import { heroLabel, partyColor } from '../ui/partyLook';
 import { artCandidates } from '../ui/unitLook';
 import { UnitViews } from '../ui/unitViews';
 import { iconScale } from '../ui/icons';
+import { DECAL_DATA, lairDecal, lairPlate, townPatch } from '../ui/groundDecal';
 import { buildingArtCandidates, buildingScale, lairArtCandidates } from '../ui/unitLook';
 import { ASSETS_KEY, type ManifestAsset } from '../ui/assets';
 import { OFFER_KEY, type LevelUpOffer } from './LevelUpScene';
@@ -592,7 +593,7 @@ export class MapScene extends Phaser.Scene {
       const k = buildingScale(img.width, img.height);
       img.setScale(k);
       return this.add
-        .container(pos.x, pos.y, [img])
+        .container(pos.x, pos.y, [townPatch(this), img])
         .setData('top', img.height * k)
         .setDepth(pos.y);
     }
@@ -612,13 +613,15 @@ export class MapScene extends Phaser.Scene {
         color: '#1a1410',
       })
       .setOrigin(0.5);
-    return this.add.container(pos.x, pos.y, [body, label]).setDepth(pos.y);
+    return this.add.container(pos.x, pos.y, [townPatch(this), body, label]).setDepth(pos.y);
   }
 
   // A lair: its picture (`bld_lair_<id>_t<tier>`, tier 1 as the fallback) standing on its base, a
   // boss lair larger; the dark dot with its name when Art has none.
   private makeLair(l: { type: string; tier: number; pos: Vec2; boss: boolean }) {
     const c = this.makeMarker(l.type, l.pos, 44, 0x2b1d33);
+    c.addAt(lairDecal(this, l.boss), 0);
+    c.add(lairPlate(this, l.type));
     this.refreshLair(c, l.type, l.tier, l.boss);
     return c;
   }
@@ -638,7 +641,8 @@ export class MapScene extends Phaser.Scene {
     let img = view.getData('img') as Phaser.GameObjects.Image | undefined;
     if (!img) {
       // The first picture replaces the placeholder dot and its name.
-      for (const o of [...view.list]) if (o !== view.getData('bar')) o.destroy();
+      for (const o of [...view.list])
+        if (o !== view.getData('bar') && !o.getData(DECAL_DATA)) o.destroy();
       img = this.add.image(0, 0, art);
       view.add(img);
       view.setData('img', img);
