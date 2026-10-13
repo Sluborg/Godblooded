@@ -5,6 +5,7 @@ import {
   baseType,
   buildingArtCandidates,
   buildingScale,
+  lairArtCandidates,
   unitArtId,
 } from './unitLook';
 
@@ -61,6 +62,13 @@ describe('artCandidates', () => {
       'mon_troll_t2_front',
       'mon_troll_t1_front',
     ]);
+  });
+});
+
+describe('lair art', () => {
+  it('tries the tier, then tier 1', () => {
+    expect(lairArtCandidates('barrow', 1)).toEqual(['bld_lair_barrow_t1']);
+    expect(lairArtCandidates('barrow', 2)).toEqual(['bld_lair_barrow_t2', 'bld_lair_barrow_t1']);
   });
 });
 
