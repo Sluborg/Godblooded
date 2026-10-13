@@ -1,3 +1,5 @@
+import { GRAYBOX } from '../data/graybox';
+import type { GodDef, PathDef } from '../sim/types';
 import { getSettings, type PaletteId } from './settings';
 import type { TraitId, UnitMode } from '../sim/api';
 
@@ -68,6 +70,25 @@ export function traitLabel(trait: TraitId | null): string {
   return trait ? trait[0].toUpperCase() + trait.slice(1) : 'No trait';
 }
 
-export function classLabel(type: string): string {
-  return type[0].toUpperCase() + type.slice(1);
+function capital(id: string): string {
+  return id.charAt(0).toUpperCase() + id.slice(1);
+}
+
+export function godName(god: string, gods: readonly GodDef[] = GRAYBOX.gods ?? []): string {
+  return gods.find((g) => g.id === god)?.name ?? capital(god);
+}
+
+export function pathName(path: string, paths: readonly PathDef[] = GRAYBOX.paths ?? []): string {
+  return paths.find((p) => p.id === path)?.name ?? capital(path.slice(path.indexOf('-') + 1));
+}
+
+// The one place a hero's name on screen comes from: "<God>-born" at tier 1 (and for a hero with
+// no path yet), the path's name from tier 2 ("Hammerborn"). No class words.
+export function heroLabel(
+  u: { god: string | null; path: string | null; tier: number },
+  gods?: readonly GodDef[],
+  paths?: readonly PathDef[],
+): string {
+  if (u.path && u.tier > 1) return pathName(u.path, paths);
+  return u.god ? `${godName(u.god, gods)}-born` : 'Godborn';
 }

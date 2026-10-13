@@ -1,0 +1,193 @@
+# Monsters and bosses
+
+Design owns this spec. Lead turns the proposed rows into backlog rows and data. Builds on
+`combat.md` (types, armour, boss rules), `paths-and-skills.md` (the skill engine, reused for
+monsters), `progression.md` (lair tiers, elites) and Sim 150 (seeded map: lairs drawn from a
+pool with a pantheon lean, one boss lair as the win goal).
+
+## Bottom line
+
+- **Two monsters per pantheon plus one boss each:** Aesir draugr and troll, Greek harpy and
+  minotaur, Egyptian jackal-man and a new **scarab swarm**; bosses **Fafnir the wyrm** (Aesir,
+  art exists), **the Hydra** (Greek) and **Apep** (Egyptian).
+- **Monsters differ by behaviour, not just numbers:** five roles (brute, harrier, charger,
+  pack, swarm), each one small Sim rule. A player can tell a harpy raid from a troll raid
+  without reading anything.
+- **Each boss has one signature move** the player learns to watch for: Fafnir's fire breath,
+  the Hydra's three heads that regrow, Apep swallowing a hero whole.
+- **The boss comes from the run's lean:** the leaning pantheon's boss guards the boss lair.
+- **New art:** scarab swarm, Hydra, Apep and three lairs (scarab pit, hydra marsh, Apep's tomb).
+
+## 1. Roles
+
+| Role    | Rule (Sim)                                                                                     | Who           |
+| ------- | ---------------------------------------------------------------------------------------------- | ------------- |
+| brute   | today's behaviour: nearest hero, melee until it drops                                          | draugr, troll |
+| harrier | targets the hero with the least hp in aggro range; flees to its lair at 30% hp, returns healed | harpy         |
+| charger | from 150-300 away, charges in a line: first strike 200% plus knockback 60; then a brute        | minotaur      |
+| pack    | +10% damage per other pack mate within 100 (max +30%); packs move together                     | jackal-man    |
+| swarm   | many and weak: `maxAlive` x2, splits once into two halves at 0 hp (half hp, half damage)       | scarab swarm  |
+
+Roles are a field on the monster row; a new monster picks one of the five.
+
+## 2. Monster rows (tier 1, lair tier scales them)
+
+Combat values from `combat.md` (armour, tags, type rows) are repeated here for one place.
+
+| Monster      | Pantheon | Role    | Str | Dex | Sta | Per | Wp  | Hp  | Weapon s / range | Armour | Tags         | Weak       | Resist         | Bounty | XP  |
+| ------------ | -------- | ------- | --- | --- | --- | --- | --- | --- | ---------------- | ------ | ------------ | ---------- | -------------- | ------ | --- |
+| draugr       | aesir    | brute   | 5   | 3   | 5   | 3   | 6   | 60  | 1.7 / 40         | 4      | undead       | holy, fire | death, frost   | 12     | 10  |
+| troll        | aesir    | brute   | 10  | 2   | 11  | 2   | 4   | 128 | 2.4 / 50         | 8      | giant        | fire       | frost          | 40     | 35  |
+| harpy        | greek    | harrier | 4   | 7   | 3   | 6   | 3   | 40  | 1.2 / 40         | 1      | beast, flyer | lightning  | none           | 14     | 10  |
+| minotaur     | greek    | charger | 9   | 3   | 10  | 3   | 5   | 116 | 2.2 / 45         | 10     | beast, giant | frost      | physical x0.75 | 38     | 32  |
+| jackal-man   | egyptian | pack    | 5   | 5   | 4   | 5   | 4   | 52  | 1.4 / 40         | 3      | undead       | holy       | death          | 12     | 10  |
+| scarab swarm | egyptian | swarm   | 3   | 4   | 3   | 2   | 2   | 36  | 0.9 / 30         | 2      | beast        | fire       | physical x0.75 | 6      | 5   |
+
+Draugr and troll are today's rows unchanged (armour and types from `combat.md`).
+
+### Monster quirks (one each, always on)
+
+| Monster      | Quirk                                                                                       |
+| ------------ | ------------------------------------------------------------------------------------------- |
+| draugr       | **Grave-cold:** a hero it knocks out wakes 50% slower                                       |
+| troll        | **Regrowth:** heals 1% max hp per second; a fire hit stops it for 5 s                       |
+| harpy        | **Snatch:** a landed strike steals 5 gold from the hero (shown as a coin); returned on kill |
+| minotaur     | **Bull rush:** the charge (role) cannot be dodged                                           |
+| jackal-man   | **Scavenger:** heals 10% of max hp when its pack knocks out a hero                          |
+| scarab swarm | **Splitting:** the swarm role's split                                                       |
+
+Quirks reuse passive keys (`paths-and-skills.md`) where they can; Snatch and Regrowth are two
+new keys (`stealGold`, `regen` with `stopOnType`), Scavenger a third (`healOnKo`).
+
+### Elite skills (elites from lair tier 3, `progression.md`)
+
+Monster skills are SkillDef rows with an `owner: 'monster'`, run by the same engine as hero
+skills.
+
+| Monster      | Skill        | Trigger               | CD  | Effect                                         | Visual        |
+| ------------ | ------------ | --------------------- | --- | ---------------------------------------------- | ------------- |
+| draugr       | Grave Breath | crowd 2 in a 100 cone | 12  | 100% frost, chill                              | cone (blue)   |
+| troll        | Boulder      | engage 120-300        | 14  | 180% physical, stagger                         | bolt (grey)   |
+| harpy        | Shriek       | crowd 2 in 100        | 15  | stagger every hero in r 100                    | burst         |
+| minotaur     | Gore         | ready                 | 10  | 220% physical, knockback 80                    | line          |
+| jackal-man   | Howl         | ready, fighting       | 18  | pack mates in r 150: +25% attack speed for 6 s | aura (red)    |
+| scarab swarm | Devour       | ready                 | 8   | 80% death, wither                              | burst (green) |
+
+## 3. Bosses
+
+The `combat.md` boss rules hold for all three: emerge at 75% lair hp, the lair cannot fall
+while the boss lives, enrage at 50% (attack x0.7, calls 2 monsters), immune to crits, chill at
+half strength, a boss knockout rolls death. Each boss replaces the generic cleave with its own
+signature move.
+
+| Boss   | Pantheon | Hp   | Str | Armour | Strike s / range | Type     | Weak  | Resist               | Bounty | XP  |
+| ------ | -------- | ---- | --- | ------ | ---------------- | -------- | ----- | -------------------- | ------ | --- |
+| Fafnir | aesir    | 2400 | 22  | 14     | 2.0 / 70         | physical | frost | fire, physical x0.75 | 400    | 300 |
+| Hydra  | greek    | 2200 | 14  | 8      | 1.6 / 80         | physical | fire  | frost                | 400    | 300 |
+| Apep   | egyptian | 2600 | 18  | 10     | 2.2 / 70         | death    | holy  | death                | 400    | 300 |
+
+Boss hp is a data value, not Sta x 8 + Str x 4 (`combat.md`). A party of four tier 3 heroes
+does about 30-40 damage per second, so a boss fight lasts 60-90 s.
+
+### Signature moves
+
+| Boss   | Move        | Rule                                                                                                                                                                                           | Telegraph (Scene)                                      |
+| ------ | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| Fafnir | Fire Breath | every third strike: a 160, 70-degree cone, 120% fire with burn; cannot be dodged                                                                                                               | 1.2 s: head rears back, red cone on the ground         |
+| Hydra  | Three Heads | every strike hits up to 3 heroes in reach; at 66% and 33% hp a head is cut and regrows in 8 s (one fewer target meanwhile) unless a fire hit lands on it within those 8 s (then it stays cut)  | heads shown as 3 pips over the boss; a cut head smokes |
+| Apep   | Swallow     | every 15 s: the hero with the most hp in reach is swallowed for 4 s (off the map, 8% of its max hp per second as death damage); 25% of Apep's max hp in damage within those 4 s frees it early | 1.0 s: coils tighten, a dark ring under the target     |
+
+- **Enrage** adds to the move: Fafnir breathes every second strike, the Hydra regrows in 5 s,
+  Apep swallows every 10 s.
+- **Death roll:** a hero knocked out while swallowed counts as a boss knockout.
+
+### Which boss
+
+- The boss lair's monster is the boss of the run's first lean pantheon (Sim 150 picks the
+  lean). With no lean, draw one of the three.
+- Until the Hydra and Apep have art, the data keeps Fafnir (the existing `wyrm`) as the only
+  boss; the rule needs no code change when the others arrive (rows only).
+
+## 4. Lairs
+
+| Lair        | Monster      | Pantheon | Size  | Hp    | Spawn s | Max alive | Art                        |
+| ----------- | ------------ | -------- | ----- | ----- | ------- | --------- | -------------------------- |
+| barrow      | draugr       | aesir    | small | 3500  | 10      | 6         | `bld_lair_barrow_t1` (B10) |
+| troll-den   | troll        | aesir    | big   | 9000  | 25      | 4         | `bld_lair_troll-den_t1`    |
+| harpy-roost | harpy        | greek    | small | 3000  | 9       | 6         | `bld_lair_harpy-roost_t1`  |
+| labyrinth   | minotaur     | greek    | big   | 9000  | 24      | 4         | `bld_lair_labyrinth_t1`    |
+| jackal-camp | jackal-man   | egyptian | small | 3500  | 10      | 6         | `bld_lair_jackal-camp_t1`  |
+| scarab-pit  | scarab swarm | egyptian | small | 3000  | 6       | 10        | new                        |
+| wyrm-nest   | Fafnir       | aesir    | boss  | 16000 | 30      | 3 guards  | `bld_lair_wyrm-nest_t1`    |
+| hydra-marsh | Hydra        | greek    | boss  | 16000 | 30      | 3 guards  | new                        |
+| apep-tomb   | Apep         | egyptian | boss  | 16000 | 30      | 3 guards  | new                        |
+
+- **Troll den changes:** today it is the final lair (24000 hp). With the boss lair as the win
+  goal (Sim 150) it becomes a big normal lair: 9000 hp, 4 alive.
+- **Boss lair guards:** a boss lair spawns the pantheon's big monster (troll, minotaur) or, for
+  Egyptian, jackal-men, as guards until the boss emerges.
+- **Raids** come from every lair as today; harriers and swarms raid faster (1.5x walk speed).
+
+## 5. What the player sees
+
+- **Roles read from motion:** harpies dart in and out, minotaurs paw the ground then charge
+  (0.6 s windup with a dust puff), jackal packs move as a clump, scarabs spill out in numbers.
+- **Quirks:** a coin flying from hero to harpy; a troll's green regen sparkle that stops when
+  fire hits; a scarab splitting into two smaller ones.
+- **Bosses:** the boss hp bar at the top (`combat.md`), the signature move's telegraph, head
+  pips on the Hydra, a swallowed hero's portrait shown in a small ring over Apep.
+
+## 6. Proposed data rows
+
+| Row            | Change                                                                                                                              |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| MonsterDef     | `pantheon`, `role`, `quirk` (passive keys), `eliteSkill` (SkillDef id), `boss`, `hp` (boss only), `move` (boss only)                |
+| BossMove       | `breath` { everyN, cone, mult, type, rider }, `heads` { count, cutAt, regrowS, stopType }, `swallow` { everyS, s, dotPct, freePct } |
+| LairDef        | `pantheon`, `size`, `guards` (boss lairs)                                                                                           |
+| MapRules       | `boss` becomes `bossByPantheon` { aesir: 'wyrm-nest', greek: 'hydra-marsh', egyptian: 'apep-tomb' }                                 |
+| tuning.monster | `raidSpeedMult` for harrier and swarm 1.5                                                                                           |
+
+## 7. Proposed backlog rows
+
+### Sim
+
+| Order | Row                                                                           |
+| ----- | ----------------------------------------------------------------------------- |
+| 10    | Monster roles: harrier, charger, pack, swarm (brute is today's)               |
+| 20    | Quirks: regen with fire stop, snatch gold, grave-cold, scavenger (heal on KO) |
+| 30    | Monster skills through the skill engine (`owner: 'monster'`), on elites       |
+| 40    | Boss moves: breath, heads, swallow; enrage variants                           |
+| 50    | Boss by lean pantheon (`bossByPantheon`), boss lair guards                    |
+
+### Lead (data)
+
+| Order | Row                                                                                     |
+| ----- | --------------------------------------------------------------------------------------- |
+| 10    | Monster rows for harpy, minotaur, jackal-man (art exists) and the troll den change      |
+| 20    | Scarab swarm, Hydra, Apep and their lairs when their art lands                          |
+| 30    | Balance pass: one bot batch per lean pantheon; win rates within 10 points of each other |
+
+### Scene
+
+| Order | Row                                                                           |
+| ----- | ----------------------------------------------------------------------------- |
+| 10    | Role motion: harpy dart, minotaur paw and charge, pack clumping, swarm spill  |
+| 20    | Quirk effects: snatched coin, regen sparkle, scarab split                     |
+| 30    | Boss telegraphs: breath cone, Hydra head pips, Apep swallow ring and portrait |
+
+### Art (requests)
+
+| Order | Row                                                                                        |
+| ----- | ------------------------------------------------------------------------------------------ |
+| 10    | `mon_scarab-swarm_t1_front`: a knot of a dozen fist-sized black-gold scarabs, one picture  |
+| 20    | `mon_hydra_t1_front` and `mon_apep_t1_front`: bosses, bigger canvas like the wyrm          |
+| 30    | Lairs tier 1: `bld_lair_scarab-pit_t1`, `bld_lair_hydra-marsh_t1`, `bld_lair_apep-tomb_t1` |
+
+## OPEN (Stefan decides)
+
+1. **Bosses:** Fafnir, the Hydra and Apep. Any you would rather have (Jormungandr, Cerberus,
+   the Sphinx)?
+2. **Scarab swarm** as the second Egyptian monster (recommendation), or a mummy?
+3. **Harpies steal gold:** fun to watch or annoying?
+4. **Apep's swallow** takes a hero off the map for 4 s. Too mean on a phone screen?
+5. **The boss follows the lean** (recommendation), or every run ends with the same boss?

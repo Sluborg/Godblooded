@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { COLORS, GAME_HEIGHT, GAME_WIDTH } from '../config';
 import { GRAYBOX, UPGRADES } from '../data/graybox';
+import { godName } from '../ui/partyLook';
 import type { MapScene } from './MapScene';
 
 // What MapScene publishes when a party has an offer pending (the sim is frozen meanwhile).
@@ -9,8 +10,9 @@ export interface LevelUpOffer {
   level: number;
   size: number;
   upgrades: string[];
-  // A favor path offer instead of upgrades: the hero's class and the paths it can take.
+  // A path offer instead of upgrades: the hero's label ("Thor-born"), its god and the free paths.
   pathHero?: string;
+  pathGod?: string | null;
   paths?: { id: string; god: string; name: string; pantheon: string }[];
 }
 
@@ -82,18 +84,18 @@ export class LevelUpScene extends Phaser.Scene {
       .setAlpha(0);
   }
 
-  // The favor path pick: one card per free path of the hero's class, god and path name with a
-  // small portrait when the art exists. The sim refuses upgrades until one is picked.
+  // The path pick: one card per free path of the hero's god, with the god, both of its paths
+  // and a small portrait when the art exists. The sim refuses upgrades until one is picked.
   private pathCards(offer: LevelUpOffer, paths: NonNullable<LevelUpOffer['paths']>): void {
     const cx = GAME_WIDTH / 2;
     this.add
       .rectangle(cx, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.7)
       .setInteractive();
     this.add
-      .text(cx, 70, 'A god answers', { fontFamily: FONT, fontSize: '56px', color: '#f2c14e' })
+      .text(cx, 70, 'A path opens', { fontFamily: FONT, fontSize: '56px', color: '#f2c14e' })
       .setOrigin(0.5);
     this.add
-      .text(cx, 128, `A ${offer.pathHero ?? 'hero'} is called. Choose a patron.`, {
+      .text(cx, 128, `${offer.pathHero ?? 'A hero'} reaches tier 2. Choose a path.`, {
         fontFamily: FONT,
         fontSize: '26px',
         color: COLORS.text,
@@ -120,7 +122,7 @@ export class LevelUpScene extends Phaser.Scene {
       .setStrokeStyle(4, COLORS.gold, 0.9)
       .setInteractive({ useHandCursor: true });
     this.add
-      .text(x, y - CARD_H / 2 + 36, p.god.charAt(0).toUpperCase() + p.god.slice(1), {
+      .text(x, y - CARD_H / 2 + 36, godName(p.god), {
         fontFamily: FONT,
         fontSize: '36px',
         color: '#f2c14e',
@@ -138,8 +140,10 @@ export class LevelUpScene extends Phaser.Scene {
       })
       .setOrigin(0.5);
     // Portrait of the tier 2 picture when it exists (the card still works without art).
-    const art = `hero_${p.id}_t2_front`;
-    if (this.textures.exists(art)) {
+    const art = [`hero_${p.id}_t2_front`, `hero_${p.god}_t1_front`].find((id) =>
+      this.textures.exists(id),
+    );
+    if (art) {
       const frame = this.textures.get(art).getSourceImage();
       const k = Math.min(210 / frame.height, (w - 40) / frame.width);
       this.add
@@ -147,6 +151,19 @@ export class LevelUpScene extends Phaser.Scene {
         .setOrigin(0.5, 0.5)
         .setScale(k);
     }
+    const siblings = (GRAYBOX.paths ?? [])
+      .filter((q) => q.god === p.god)
+      .map((q) => (q.id === p.id ? `[${q.name}]` : q.name))
+      .join('  ·  ');
+    this.add
+      .text(x, y + CARD_H / 2 - 80, `${godName(p.god)}'s paths: ${siblings}`, {
+        fontFamily: FONT,
+        fontSize: '18px',
+        color: COLORS.textMuted,
+        align: 'center',
+        wordWrap: { width: w - 24 },
+      })
+      .setOrigin(0.5);
     this.add
       .text(x, y + CARD_H / 2 - 40, 'Tap to choose', {
         fontFamily: FONT,

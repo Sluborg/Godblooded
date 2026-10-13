@@ -41,6 +41,11 @@ export const DEFAULT_TUNING: Tuning = {
     bondCap: 10,
     // Hp fraction a hero flees at before upgrades and personality.
     baseFlee: 0.3,
+    rivalBelow: -2,
+    argueRange: 200,
+    argueEveryMs: 20_000,
+    friendBond: 3,
+    revengeMs: 90_000,
   },
   monster: {
     wanderRadius: 160,
@@ -73,6 +78,7 @@ export const DEFAULT_TUNING: Tuning = {
     towerDamage: [8, 14, 22],
     towerCooldownMs: [2000, 1800, 1600],
   },
+  save: { autosaveMs: 30_000 },
   stats: { goldSampleMs: 15_000 },
   town: {
     townHallHp: 500,
@@ -80,6 +86,7 @@ export const DEFAULT_TUNING: Tuning = {
     raidFirstMs: 240_000,
     raidEveryMs: 120_000,
     raidSize: 2,
+    raidLairs: 1,
     raidGrowEveryMs: 300_000,
     defendHp: 0.5,
   },
@@ -105,6 +112,7 @@ export function resolveTuning(data: GameData): Tuning {
     monster: { ...DEFAULT_TUNING.monster, ...t?.monster },
     lair: { ...DEFAULT_TUNING.lair, ...t?.lair },
     building: { ...DEFAULT_TUNING.building, ...t?.building },
+    save: { ...DEFAULT_TUNING.save, ...t?.save },
     stats: { ...DEFAULT_TUNING.stats, ...t?.stats },
     town: { ...DEFAULT_TUNING.town, ...t?.town },
     bounty: { ...DEFAULT_TUNING.bounty, ...t?.bounty },

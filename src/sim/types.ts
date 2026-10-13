@@ -142,6 +142,15 @@ export interface PartyTuning {
   offerSize: number;
   bondCap: number;
   baseFlee: number;
+  // Rivalries: heroes whose bond is at or below this are rivals (bonds run from -3 up).
+  rivalBelow: number;
+  // Rivals this close argue, at most once per argueEveryMs per pair.
+  argueRange: number;
+  argueEveryMs: number;
+  // A vengeful hero whose bond with a knocked-out hero is at least this swears revenge on the
+  // monster that did it, and hunts it for up to revengeMs.
+  friendBond: number;
+  revengeMs: number;
 }
 
 export interface MonsterTuning {
@@ -195,6 +204,12 @@ export interface BuildingTuning {
   towerCooldownMs: number[];
 }
 
+export interface SaveTuning {
+  // The sim emits an `autosave` event every this many ms of run time (0 = never); Scene answers
+  // it with saveWorld(). Not emitted while the world waits for a card pick.
+  autosaveMs: number;
+}
+
 export interface StatsTuning {
   // Town gold is sampled this often for the end screen's gold curve (0 turns it off).
   goldSampleMs: number;
@@ -207,6 +222,8 @@ export interface TownTuning {
   raidFirstMs: number;
   raidEveryMs: number;
   raidSize: number;
+  // How many standing lairs send a raid each time (picked at random; the boss lair never does).
+  raidLairs: number;
   // Raids get one monster bigger per lair every this many ms.
   raidGrowEveryMs: number;
   // A resting hero at or above this hp fraction rejoins the fight when raiders come near.
@@ -248,6 +265,7 @@ export interface Tuning {
   monster: MonsterTuning;
   lair: LairTuning;
   building: BuildingTuning;
+  save: SaveTuning;
   stats: StatsTuning;
   town: TownTuning;
   bounty: BountyTuning;
@@ -273,6 +291,7 @@ export interface GameData {
     monster?: Partial<MonsterTuning>;
     lair?: Partial<LairTuning>;
     building?: Partial<BuildingTuning>;
+    save?: Partial<SaveTuning>;
     stats?: Partial<StatsTuning>;
     town?: Partial<TownTuning>;
     bounty?: Partial<BountyTuning>;
@@ -408,6 +427,10 @@ export type SimEvent =
   | { kind: 'tierUp'; unit: number; tier: number; path: string | null }
   | { kind: 'pathOffer'; party: number; hero: number; options: string[] }
   | { kind: 'raid'; lair: number; size: number }
+  | { kind: 'argue'; a: number; b: number }
+  | { kind: 'revenge'; hero: number; target: number; victim: number }
+  | { kind: 'avenged'; hero: number; target: number }
+  | { kind: 'autosave' }
   | { kind: 'lairTierUp'; lair: number; tier: number }
   | { kind: 'lairDestroyed'; lair: number; type: string; by: number; bounty: number }
   | { kind: 'buildingDestroyed'; building: number; type: string }
@@ -481,6 +504,8 @@ export interface Snapshot {
   readonly parties: readonly Readonly<PartyState>[];
   readonly paths: readonly Readonly<PathState>[];
   readonly bounties: readonly Readonly<BountyState>[];
+  // Pairs of living heroes who are rivals right now (lower id first).
+  readonly rivals: readonly (readonly [number, number])[];
   // This run's map: the pantheons it leans on and the boss lair (null on a fixed map).
   readonly map: Readonly<{ lean: string[]; boss: number | null }>;
   // The end screen numbers once the run is won or lost; null while it is running. Totals for
