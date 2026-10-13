@@ -52,11 +52,11 @@ milestone table in step. It places every spec in `docs/systems/` on milestones M
 
 ### Systems
 
-| Milestone | Systems                                                                                                                                                                                                                                                                  |
-| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| M2        | combat pipeline, damage types, armour, crits (if Stefan says yes); skills engine for the 8 Aesir skills (incl. the decoy summon); god passives; items: weapon, armour, potions (no charms); raid warning and shapes; building card; onboarding beats 10-90; effect synth |
-| M3        | other summons (falcon, thrall); charms and lair relic; elites and the staggered lair clock; omens; favour and miracles; meta option chosen by Stefan (unlocks, Saga, Trials); Hall screen; town hall tiers; Hearth Hall                                                  |
-| M4        | music (calm, tension, boss, stings); vibration; juice (crit freeze, hit pauses, screen shake); first-time hints beyond the first 3 minutes; balance passes per pantheon                                                                                                  |
+| Milestone | Systems                                                                                                                                                                                                                                                                                                                |
+| --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| M2        | combat pipeline, damage types, armour, crits (if Stefan says yes); skills engine for the 8 Aesir skills (incl. the decoy summon); god passives; items: weapon, armour, potions (no charms); raid warning and shapes; building card; onboarding beats 10-90 and the M2 first-time hints (`hint-texts.md`); effect synth |
+| M3        | other summons (falcon, thrall); charms and lair relic; elites and the staggered lair clock; omens; favour and miracles; meta option chosen by Stefan (unlocks, Saga, Trials); Hall screen; town hall tiers; Hearth Hall                                                                                                |
+| M4        | music (calm, tension, boss, stings); vibration; juice (crit freeze, hit pauses, screen shake); first-time hints for M4 features; balance passes per pantheon                                                                                                                                                           |
 
 ## 2. What M2 needs to be fun
 
