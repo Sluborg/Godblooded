@@ -3,10 +3,12 @@ import { runAutosave } from './save';
 import { generateMap } from './mapgen';
 import { buffOf, isBound, runHots, tauntOf, type UnitFx } from './effects';
 import { armourBonus, weaponPower } from './items';
+import { passiveRider } from './passives';
 import { everyNthOf, passiveAggroMult, passiveArmour } from './passives';
 import { noteFight } from './engage';
 import { runStatuses, slowOf, healMult, type UnitStatus } from './riders';
 import { attackStrike, landStrike } from './strike';
+import { cancelDrink, runDrink } from './potions';
 import { cancelCast, runSkill, supportEffect, tickSkill, type SkillRuntime } from './skills';
 import { swing, type Area } from './swing';
 import {
@@ -113,6 +115,8 @@ export interface UnitRuntime {
   skill?: SkillRuntime;
   // Shield, mark, taunt and buffs from skills (see effects.ts).
   fx?: UnitFx;
+  // A potion being drunk: time left (see potions.ts).
+  drink?: { ms: number };
   // The fight this unit is in: kills so far, whether its first-hit miss is spent, strikes landed.
   fight?: { kills: number; missUsed: boolean; strikes: number; revived?: boolean };
 }
@@ -253,13 +257,18 @@ export function step(world: World, dtMs: number): void {
   if (world.status !== 'running' || dtMs <= 0) return;
   world.accumulatorMs += dtMs;
   let ticks = 0;
-  // The run waits while a party has a level-up pick pending.
-  while (world.accumulatorMs >= TICK_MS && ticks < MAX_TICKS_PER_STEP) {
-    if (hasPendingPick(world)) {
+  // The run slows to `offerSlowdown` of its speed while a party has a pick pending (0: it
+  // waits). A tick then costs TICK_MS / slowdown of real time.
+  const slow = world.tuning.party.offerSlowdown;
+  for (;;) {
+    const pending = hasPendingPick(world);
+    if (pending && slow <= 0) {
       world.accumulatorMs = 0;
       return;
     }
-    world.accumulatorMs -= TICK_MS;
+    const cost = pending ? TICK_MS / slow : TICK_MS;
+    if (world.accumulatorMs + 1e-6 < cost || ticks >= MAX_TICKS_PER_STEP) break;
+    world.accumulatorMs -= cost;
     runTick(world);
     ticks++;
   }
@@ -431,6 +440,7 @@ function runUnits(world: World): void {
     if (unit.ko) {
       rt.swing = undefined;
       cancelCast(rt);
+      cancelDrink(rt);
       continue;
     }
     rt.cooldownMs = Math.max(0, rt.cooldownMs - TICK_MS);
@@ -446,8 +456,16 @@ function runUnits(world: World): void {
     // A hero with a skill ready casts instead of its next strike or step.
     let casting = false;
     if (unit.kind === 'hero') {
-      if (busy) cancelCast(rt);
-      else casting = runSkill(world, unit, rt, foe);
+      if (busy) {
+        cancelCast(rt);
+        cancelDrink(rt);
+      } else if (runDrink(world, unit, rt, foe)) {
+        // Drinking comes before casting, striking and moving.
+        cancelCast(rt);
+        casting = true;
+      } else {
+        casting = runSkill(world, unit, rt, foe);
+      }
     }
     if (casting) {
       rt.swing = undefined;
@@ -556,7 +574,11 @@ function fight(world: World, unit: UnitState, rt: UnitRuntime, stats: Stats, foe
     (area) => {
       if (boss) boss.rt.strikes++;
       if (cleave && area) cleaveStrike(world, unit, foe, stats, area);
-      else landStrike(world, unit, foe, attackStrike(stats, targetOf(world, foe)));
+      else {
+        const input = attackStrike(stats, targetOf(world, foe));
+        const rider = unit.kind === 'hero' ? passiveRider(world, unit) : undefined;
+        landStrike(world, unit, foe, rider ? { ...input, rider } : input);
+      }
       // A passive that adds effects to every nth strike.
       const nth = everyNthOf(world, unit);
       if (nth && foe.hp > 0) {

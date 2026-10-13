@@ -7,16 +7,19 @@ pool with a pantheon lean, one boss lair as the win goal).
 
 ## Bottom line
 
-- **Two monsters per pantheon plus one boss each:** Aesir draugr and troll, Greek harpy and
-  minotaur, Egyptian jackal-man and a new **scarab swarm**; bosses **Fafnir the wyrm** (Aesir,
-  art exists), **the Hydra** (Greek) and **Apep** (Egyptian).
+- **Two monsters and two bosses per pantheon** (Stefan, 2026-10-13: all six bosses): Aesir
+  draugr and troll, Greek harpy and minotaur, Egyptian jackal-man and a new **scarab swarm**;
+  bosses **Fafnir the wyrm** (art exists) and **Jormungandr** (Aesir), **the Hydra** and
+  **Cerberus** (Greek), **Apep** and **the Sphinx** (Egyptian).
 - **Monsters differ by behaviour, not just numbers:** five roles (brute, harrier, charger,
   pack, swarm), each one small Sim rule. A player can tell a harpy raid from a troll raid
   without reading anything.
 - **Each boss has one signature move** the player learns to watch for: Fafnir's fire breath,
-  the Hydra's three heads that regrow, Apep swallowing a hero whole.
-- **The boss comes from the run's lean:** the leaning pantheon's boss guards the boss lair.
-- **New art:** scarab swarm, Hydra, Apep and three lairs (scarab pit, hydra marsh, Apep's tomb).
+  Jormungandr's venom, the Hydra's heads that regrow, Cerberus's howl that breaks nerve, Apep
+  swallowing a hero whole, the Sphinx's riddle.
+- **Which boss:** the run's lean pantheon picks the pair, a seeded draw picks one of its two,
+  and the same boss never comes twice in a row (section 3).
+- **New art:** scarab swarm, five bosses (all but Fafnir) and their lairs.
 
 ## 1. Roles
 
@@ -75,52 +78,64 @@ skills.
 
 ## 3. Bosses
 
-The `combat.md` boss rules hold for all three: emerge at 75% lair hp, the lair cannot fall
+The `combat.md` boss rules hold for all six: emerge at 75% lair hp, the lair cannot fall
 while the boss lives, enrage at 50% (attack x0.7, calls 2 monsters), immune to crits, chill at
 half strength, a boss knockout rolls death. Each boss replaces the generic cleave with its own
 signature move.
 
-| Boss   | Pantheon | Hp   | Str | Armour | Strike s / range | Type     | Weak  | Resist               | Bounty | XP  |
-| ------ | -------- | ---- | --- | ------ | ---------------- | -------- | ----- | -------------------- | ------ | --- |
-| Fafnir | aesir    | 2400 | 22  | 14     | 2.0 / 70         | physical | frost | fire, physical x0.75 | 400    | 300 |
-| Hydra  | greek    | 2200 | 14  | 8      | 1.6 / 80         | physical | fire  | frost                | 400    | 300 |
-| Apep   | egyptian | 2600 | 18  | 10     | 2.2 / 70         | death    | holy  | death                | 400    | 300 |
+| Boss        | Pantheon | Hp   | Str | Armour | Strike s / range | Type     | Weak      | Resist               | Bounty | XP  |
+| ----------- | -------- | ---- | --- | ------ | ---------------- | -------- | --------- | -------------------- | ------ | --- |
+| Fafnir      | aesir    | 2400 | 22  | 14     | 2.0 / 70         | physical | frost     | fire, physical x0.75 | 400    | 300 |
+| Hydra       | greek    | 2200 | 14  | 8      | 1.6 / 80         | physical | fire      | frost                | 400    | 300 |
+| Apep        | egyptian | 2600 | 18  | 10     | 2.2 / 70         | death    | holy      | death                | 400    | 300 |
+| Jormungandr | aesir    | 2600 | 20  | 10     | 2.2 / 90         | death    | lightning | frost, death         | 400    | 300 |
+| Cerberus    | greek    | 2300 | 16  | 9      | 1.4 / 70         | fire     | holy      | fire                 | 400    | 300 |
+| Sphinx      | egyptian | 2400 | 17  | 12     | 2.0 / 70         | physical | frost     | holy, physical x0.8  | 400    | 300 |
 
 Boss hp is a data value, not Sta x 8 + Str x 4 (`combat.md`). A party of four tier 3 heroes
 does about 30-40 damage per second, so a boss fight lasts 60-90 s.
 
 ### Signature moves
 
-| Boss   | Move        | Rule                                                                                                                                                                                           | Telegraph (Scene)                                      |
-| ------ | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
-| Fafnir | Fire Breath | every third strike: a 160, 70-degree cone, 120% fire with burn; cannot be dodged                                                                                                               | 1.2 s: head rears back, red cone on the ground         |
-| Hydra  | Three Heads | every strike hits up to 3 heroes in reach; at 66% and 33% hp a head is cut and regrows in 8 s (one fewer target meanwhile) unless a fire hit lands on it within those 8 s (then it stays cut)  | heads shown as 3 pips over the boss; a cut head smokes |
-| Apep   | Swallow     | every 15 s: the hero with the most hp in reach is swallowed for 4 s (off the map, 8% of its max hp per second as death damage); 25% of Apep's max hp in damage within those 4 s frees it early | 1.0 s: coils tighten, a dark ring under the target     |
+| Boss        | Move        | Rule                                                                                                                                                                                           | Telegraph (Scene)                                         |
+| ----------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| Fafnir      | Fire Breath | every third strike: a 160, 70-degree cone, 120% fire with burn; cannot be dodged                                                                                                               | 1.2 s: head rears back, red cone on the ground            |
+| Hydra       | Three Heads | every strike hits up to 3 heroes in reach; at 66% and 33% hp a head is cut and regrows in 8 s (one fewer target meanwhile) unless a fire hit lands on it within those 8 s (then it stays cut)  | heads shown as 3 pips over the boss; a cut head smokes    |
+| Apep        | Swallow     | every 15 s: the hero with the most hp in reach is swallowed for 4 s (off the map, 8% of its max hp per second as death damage); 25% of Apep's max hp in damage within those 4 s frees it early | 1.0 s: coils tighten, a dark ring under the target        |
+| Jormungandr | Venom       | every 12 s: spits on the hero with the most hp in reach; it and every hero within 60 of it are poisoned, 3% max hp per second as death for 8 s; any heal on a hero ends its poison             | 1.0 s: the head lifts, green drops fall on the target     |
+| Cerberus    | Howl        | every 15 s: heroes within 200 below 50% hp break and flee for 3 s (brave and proud heroes and Berserker parties ignore it); the howl also calls 1 guard from the lair                          | 0.8 s: three heads lift, a red shock ring spreads         |
+| Sphinx      | Riddle      | every 18 s: asks the hero in reach with the lowest Int; Int 8 or more answers (that hero +30% damage for 6 s, gold "!"), less is turned to stone for 3 s (no actions, takes half damage)       | 1.2 s: a "?" over the hero, then "!" or a grey stone tint |
 
 - **Enrage** adds to the move: Fafnir breathes every second strike, the Hydra regrows in 5 s,
-  Apep swallows every 10 s.
+  Apep swallows every 10 s, Jormungandr spits every 8 s, Cerberus howls every 10 s, the
+  Sphinx asks every 12 s.
 - **Death roll:** a hero knocked out while swallowed counts as a boss knockout.
 
 ### Which boss
 
-- The boss lair's monster is the boss of the run's first lean pantheon (Sim 150 picks the
-  lean). With no lean, draw one of the three.
-- Until the Hydra and Apep have art, the data keeps Fafnir (the existing `wyrm`) as the only
-  boss; the rule needs no code change when the others arrive (rows only).
+- **Pantheon:** the run's first lean pantheon (Sim 150 picks the lean); with no lean, a seeded
+  draw of a pantheon whose temple is unlocked (`meta.md`).
+- **Boss:** a seeded draw of the two bosses of that pantheon, skipping the boss of the
+  previous run when the other one is available (the meta save keeps `lastBoss`).
+- **Only bosses with art and rows are drawn:** until the others land, Fafnir (the existing
+  `wyrm`) is the only boss; the rule needs no code change when the others arrive (rows only).
 
 ## 4. Lairs
 
-| Lair        | Monster      | Pantheon | Size  | Hp    | Spawn s | Max alive | Art                        |
-| ----------- | ------------ | -------- | ----- | ----- | ------- | --------- | -------------------------- |
-| barrow      | draugr       | aesir    | small | 3500  | 10      | 6         | `bld_lair_barrow_t1` (B10) |
-| troll-den   | troll        | aesir    | big   | 9000  | 25      | 4         | `bld_lair_troll-den_t1`    |
-| harpy-roost | harpy        | greek    | small | 3000  | 9       | 6         | `bld_lair_harpy-roost_t1`  |
-| labyrinth   | minotaur     | greek    | big   | 9000  | 24      | 4         | `bld_lair_labyrinth_t1`    |
-| jackal-camp | jackal-man   | egyptian | small | 3500  | 10      | 6         | `bld_lair_jackal-camp_t1`  |
-| scarab-pit  | scarab swarm | egyptian | small | 3000  | 6       | 10        | new                        |
-| wyrm-nest   | Fafnir       | aesir    | boss  | 16000 | 30      | 3 guards  | `bld_lair_wyrm-nest_t1`    |
-| hydra-marsh | Hydra        | greek    | boss  | 16000 | 30      | 3 guards  | new                        |
-| apep-tomb   | Apep         | egyptian | boss  | 16000 | 30      | 3 guards  | new                        |
+| Lair          | Monster      | Pantheon | Size  | Hp    | Spawn s | Max alive | Art                        |
+| ------------- | ------------ | -------- | ----- | ----- | ------- | --------- | -------------------------- |
+| barrow        | draugr       | aesir    | small | 3500  | 10      | 6         | `bld_lair_barrow_t1` (B10) |
+| troll-den     | troll        | aesir    | big   | 9000  | 25      | 4         | `bld_lair_troll-den_t1`    |
+| harpy-roost   | harpy        | greek    | small | 3000  | 9       | 6         | `bld_lair_harpy-roost_t1`  |
+| labyrinth     | minotaur     | greek    | big   | 9000  | 24      | 4         | `bld_lair_labyrinth_t1`    |
+| jackal-camp   | jackal-man   | egyptian | small | 3500  | 10      | 6         | `bld_lair_jackal-camp_t1`  |
+| scarab-pit    | scarab swarm | egyptian | small | 3000  | 6       | 10        | new                        |
+| wyrm-nest     | Fafnir       | aesir    | boss  | 16000 | 30      | 3 guards  | `bld_lair_wyrm-nest_t1`    |
+| hydra-marsh   | Hydra        | greek    | boss  | 16000 | 30      | 3 guards  | new                        |
+| apep-tomb     | Apep         | egyptian | boss  | 16000 | 30      | 3 guards  | new                        |
+| serpent-shore | Jormungandr  | aesir    | boss  | 16000 | 30      | 3 guards  | new                        |
+| gate-of-hades | Cerberus     | greek    | boss  | 16000 | 30      | 3 guards  | new                        |
+| sphinx-plinth | Sphinx       | egyptian | boss  | 16000 | 30      | 3 guards  | new                        |
 
 - **Troll den changes:** today it is the final lair (24000 hp). With the boss lair as the win
   goal (Sim 150) it becomes a big normal lair: 9000 hp, 4 alive.
@@ -135,17 +150,20 @@ does about 30-40 damage per second, so a boss fight lasts 60-90 s.
 - **Quirks:** a coin flying from hero to harpy; a troll's green regen sparkle that stops when
   fire hits; a scarab splitting into two smaller ones.
 - **Bosses:** the boss hp bar at the top (`combat.md`), the signature move's telegraph, head
-  pips on the Hydra, a swallowed hero's portrait shown in a small ring over Apep.
+  pips on the Hydra, a swallowed hero's portrait shown in a small ring over Apep, a green
+  poison tint, a fleeing hero's broken-shield icon after the howl, a stone-grey hero after a
+  failed riddle.
 
 ## 6. Proposed data rows
 
-| Row            | Change                                                                                                                              |
-| -------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| MonsterDef     | `pantheon`, `role`, `quirk` (passive keys), `eliteSkill` (SkillDef id), `boss`, `hp` (boss only), `move` (boss only)                |
-| BossMove       | `breath` { everyN, cone, mult, type, rider }, `heads` { count, cutAt, regrowS, stopType }, `swallow` { everyS, s, dotPct, freePct } |
-| LairDef        | `pantheon`, `size`, `guards` (boss lairs)                                                                                           |
-| MapRules       | `boss` becomes `bossByPantheon` { aesir: 'wyrm-nest', greek: 'hydra-marsh', egyptian: 'apep-tomb' }                                 |
-| tuning.monster | `raidSpeedMult` for harrier and swarm 1.5                                                                                           |
+| Row            | Change                                                                                                                                                                                                                                                                             |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| MonsterDef     | `pantheon`, `role`, `quirk` (passive keys), `eliteSkill` (SkillDef id), `boss`, `hp` (boss only), `move` (boss only)                                                                                                                                                               |
+| BossMove       | `breath` { everyN, cone, mult, type, rider }, `heads` { count, cutAt, regrowS, stopType }, `swallow` { everyS, s, dotPct, freePct }, `venom` { everyS, radius, dotPct, s }, `howl` { everyS, radius, belowHp, fleeS, calls }, `riddle` { everyS, intAtLeast, buff, buffS, stoneS } |
+| LairDef        | `pantheon`, `size`, `guards` (boss lairs)                                                                                                                                                                                                                                          |
+| MapRules       | `boss` becomes `bossesByPantheon` { aesir: ['wyrm-nest', 'serpent-shore'], greek: ['hydra-marsh', 'gate-of-hades'], egyptian: ['apep-tomb', 'sphinx-plinth'] }                                                                                                                     |
+| meta save      | `lastBoss` (`meta.md`)                                                                                                                                                                                                                                                             |
+| tuning.monster | `raidSpeedMult` for harrier and swarm 1.5                                                                                                                                                                                                                                          |
 
 ## 7. Proposed backlog rows
 
@@ -156,38 +174,37 @@ does about 30-40 damage per second, so a boss fight lasts 60-90 s.
 | 10    | Monster roles: harrier, charger, pack, swarm (brute is today's)               |
 | 20    | Quirks: regen with fire stop, snatch gold, grave-cold, scavenger (heal on KO) |
 | 30    | Monster skills through the skill engine (`owner: 'monster'`), on elites       |
-| 40    | Boss moves: breath, heads, swallow; enrage variants                           |
-| 50    | Boss by lean pantheon (`bossByPantheon`), boss lair guards                    |
+| 40    | Boss moves: breath, heads, swallow, venom, howl, riddle; enrage variants      |
+| 50    | Boss pick: lean pantheon, seeded one of two, no repeat; boss lair guards      |
 
 ### Lead (data)
 
 | Order | Row                                                                                     |
 | ----- | --------------------------------------------------------------------------------------- |
 | 10    | Monster rows for harpy, minotaur, jackal-man (art exists) and the troll den change      |
-| 20    | Scarab swarm, Hydra, Apep and their lairs when their art lands                          |
+| 20    | Scarab swarm, the five new bosses and their lairs when their art lands                  |
 | 30    | Balance pass: one bot batch per lean pantheon; win rates within 10 points of each other |
 
 ### Scene
 
-| Order | Row                                                                           |
-| ----- | ----------------------------------------------------------------------------- |
-| 10    | Role motion: harpy dart, minotaur paw and charge, pack clumping, swarm spill  |
-| 20    | Quirk effects: snatched coin, regen sparkle, scarab split                     |
-| 30    | Boss telegraphs: breath cone, Hydra head pips, Apep swallow ring and portrait |
+| Order | Row                                                                          |
+| ----- | ---------------------------------------------------------------------------- |
+| 10    | Role motion: harpy dart, minotaur paw and charge, pack clumping, swarm spill |
+| 20    | Quirk effects: snatched coin, regen sparkle, scarab split                    |
+| 30    | Boss telegraphs: breath, head pips, swallow ring, venom, howl ring, riddle   |
 
 ### Art (requests)
 
-| Order | Row                                                                                        |
-| ----- | ------------------------------------------------------------------------------------------ |
-| 10    | `mon_scarab-swarm_t1_front`: a knot of a dozen fist-sized black-gold scarabs, one picture  |
-| 20    | `mon_hydra_t1_front` and `mon_apep_t1_front`: bosses, bigger canvas like the wyrm          |
-| 30    | Lairs tier 1: `bld_lair_scarab-pit_t1`, `bld_lair_hydra-marsh_t1`, `bld_lair_apep-tomb_t1` |
+| Order | Row                                                                                                                         |
+| ----- | --------------------------------------------------------------------------------------------------------------------------- |
+| 10    | `mon_scarab-swarm_t1_front`: a knot of a dozen fist-sized black-gold scarabs, one picture                                   |
+| 20    | Bosses, bigger canvas like the wyrm: `mon_hydra`, `mon_apep`, `mon_jormungandr`, `mon_cerberus`, `mon_sphinx` (`_t1_front`) |
+| 30    | Lairs tier 1: scarab-pit, hydra-marsh, apep-tomb, serpent-shore, gate-of-hades, sphinx-plinth (`bld_lair_<id>_t1`)          |
 
-## OPEN (Stefan decides)
+## Decided (Stefan, 2026-10-13)
 
-1. **Bosses:** Fafnir, the Hydra and Apep. Any you would rather have (Jormungandr, Cerberus,
-   the Sphinx)?
-2. **Scarab swarm** as the second Egyptian monster (recommendation), or a mummy?
-3. **Harpies steal gold:** fun to watch or annoying?
-4. **Apep's swallow** takes a hero off the map for 4 s. Too mean on a phone screen?
-5. **The boss follows the lean** (recommendation), or every run ends with the same boss?
+1. **Bosses:** all six, two per pantheon (section 3).
+2. **Scarab swarm** as the second Egyptian monster.
+3. **Harpies steal gold:** kept.
+4. **Apep's swallow:** kept at 4 s.
+5. **The boss follows the lean,** one of its pantheon's two, no repeat in a row.

@@ -7,6 +7,7 @@ import {
   applyTaunt,
   refreshFrom,
 } from './effects';
+import { passiveCooldownMult, passiveRangeMult } from './passives';
 import { applyRider, healMult } from './riders';
 import { tally } from './runstats';
 import { attackStrike, landStrike } from './strike';
@@ -49,7 +50,43 @@ interface Found {
 export function skillOf(world: World, hero: UnitState): SkillDef | undefined {
   if (hero.kind !== 'hero' || !hero.path || hero.tier < 2) return undefined;
   const def = world.data.skills?.find((s) => s.path === hero.path);
-  return def && hero.tier >= 3 && def.t3 ? { ...def, ...def.t3 } : def;
+  const merged = def && hero.tier >= 3 && def.t3 ? { ...def, ...def.t3 } : def;
+  const reach = passiveRangeMult(world, hero);
+  return merged && reach !== 1 ? widen(merged, reach) : merged;
+}
+
+// A skill with its radii and ranges multiplied (Wide Reach).
+function widen(def: SkillDef, k: number): SkillDef {
+  const trigger = (t: SkillTrigger): SkillTrigger => {
+    if ('any' in t) return { any: t.any.map(trigger) };
+    switch (t.kind) {
+      case 'ready':
+        return { ...t, range: (t.range ?? 300) * k };
+      case 'crowd':
+      case 'allyHurt':
+      case 'kill':
+        return { ...t, radius: t.radius * k };
+      case 'engage':
+        return { ...t, max: t.max * k };
+      default:
+        return t;
+    }
+  };
+  const shape = (sh: SkillShape): SkillShape => {
+    switch (sh.kind) {
+      case 'circle':
+        return { ...sh, radius: sh.radius * k };
+      case 'cone':
+        return { ...sh, radius: sh.radius * k };
+      case 'line':
+        return { ...sh, length: sh.length * k };
+      case 'chain':
+        return { ...sh, radius: sh.radius * k };
+      default:
+        return sh;
+    }
+  };
+  return { ...def, trigger: trigger(def.trigger), shape: shape(def.shape) };
 }
 
 // Cooldowns run whether or not the hero may cast right now.
@@ -87,7 +124,7 @@ export function runSkill(
   const at = centre(hero, def, found, foe);
   if (!at) return false;
   const t = world.tuning.skill;
-  sr.cdMs = def.cooldownS * 1000;
+  sr.cdMs = def.cooldownS * 1000 * passiveCooldownMult(world, hero);
   sr.casts++;
   sr.cast = { target: at.unit?.id ?? null, point: at.point, ms: t.castWindupMs };
   rt.swing = undefined;
