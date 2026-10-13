@@ -176,6 +176,12 @@ cooldown in seconds. Radius and range in world units (melee reach is about 40, a
 
 ### How each path looks (tier 1 child, tier 2, tier 3)
 
+**Style (Stefan's taste test, decision 2026-10-14):** big-head cartoon proportions, **thin
+outlines in a darker shade of the part's own colour** (no thick black ink), painterly shading,
+a **warm, earthy, muted palette**, smooth and weighty motion. Units are small next to buildings
+(a hall is about 5 heroes wide). Glows, auras and trails in the tables below stay **subtle and
+close to the body**; each hero has its party ring and a name label.
+
 Rule (decision 2026-10-13, cartoon units from parts): a path is a natural evolution of the
 god's tier 1 child. The **face, hair, skin and the god's signature pieces** (the "keeps"
 column below) **never change**; tier 2 adds gear and one effect (armour or a robe may replace
@@ -215,7 +221,7 @@ skill effects (rule under the paths table).
 | Freyja   | Seidkona    | frost hood, frost staff, ice-blue cape                        | a ring of floating ice shards, frosted cape hem                                       | frost     |
 | Athena   | Aegis       | crested bronze helm (open face), Medusa-faced shield          | the shield's face glows, silver cape                                                  | steel     |
 | Athena   | Owlsage     | owl on the shoulder, scroll staff, grey stola                 | the owl's wings open when casting, silver laurel                                      | lightning |
-| Ares     | Bloodrager  | second sword, bare chest with war paint                       | red aura when fighting, a torn crimson cloak                                          | steel     |
+| Ares     | Bloodrager  | second sword, bare chest with war paint                       | a faint red haze when fighting, a torn crimson cloak                                  | steel     |
 | Ares     | Warlord     | red-crested helm, bronze cuirass, battle standard on the back | larger crest and a gold-edged standard                                                | steel     |
 | Apollo   | Sunarcher   | longbow, gold quiver, sun disc clasp                          | a halo behind the head, glowing arrows                                                | holy      |
 | Apollo   | Paean       | lyre in hand, longer chiton, gold laurel                      | music-note motes that drift, a gold lyre                                              | holy      |
