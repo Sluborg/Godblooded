@@ -19,6 +19,7 @@ export type {
   LairDef,
   LairSite,
   LairState,
+  MapRules,
   LairTuning,
   MonsterDef,
   MonsterTuning,
