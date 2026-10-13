@@ -56,7 +56,7 @@ falls or your town hall burns.
 
 1. Start: a town hall, a little gold, fog around the town, 2-3 monster lairs out in it.
 2. **Build** (tap a plot): temples (recruit), market (income), smithy and alchemist (heroes buy
-   gear and potions, taxed for your income), healer's shrine, guard tower, walls.
+   gear and potions, taxed for your income), healer's shrine, guard tower, Hearth Hall (no walls).
 3. **Heroes arrive** at the temples, pay nothing to you, and spend their loot in your shops: your
    income is their spending, exactly like Majesty.
 4. **Parties form** by traits and bonds (2-4 heroes). They explore, hunt, return to heal and shop.
@@ -77,12 +77,12 @@ intervenes in the fight where its children are most hurt; the player never casts
 
 ## Content draft (first set)
 
-| Kind      | First set                                                                    | Tiers |
-| --------- | ---------------------------------------------------------------------------- | ----- |
-| Godbloods | 4 gods per pantheon, 2 paths per god (table under "Gods and paths")          | 3     |
-| Monsters  | 6 types, draft: draugr, troll, harpy, minotaur, jackal-man, wyrm (boss)      | 3     |
-| Buildings | Town hall, 3 temples (one per pantheon), market, smithy, shrine, guard tower | 3     |
-| Traits    | Brave, Coward, Greedy, Proud, Loyal, Vengeful, Curious                       | n/a   |
+| Kind      | First set                                                                     | Tiers |
+| --------- | ----------------------------------------------------------------------------- | ----- |
+| Godbloods | 4 gods per pantheon, 2 paths per god (table under "Gods and paths")           | 3     |
+| Monsters  | 6 types plus 6 bosses (2 per pantheon, `docs/systems/monsters-and-bosses.md`) | 3     |
+| Buildings | Town hall, 3 temples (one per pantheon), market, smithy, shrine, guard tower  | 3     |
+| Traits    | Brave, Coward, Greedy, Proud, Loyal, Vengeful, Curious                        | n/a   |
 
 Personality traits drive behaviour (which flag, flee threshold, who they party with, what they
 say). Visible bonds: heroes who win together like each other; a coward who flees costs trust.
@@ -92,7 +92,7 @@ say). Visible bonds: heroes who win together like each other; a coward who flees
 Real-time on the map, each unit attacking on its own cooldown. Reference: Coda "Combat System"
 (7 attributes Str, Dex, Sta, Cha, Per, Int, Wp; hp = Sta*8 + Str*4; damage = Str; dodge and
 armor as saturating curves capped at 90%; attack time from weapon base reduced by Dex;
-knockout by default, permadeath only against bosses). Sim may simplify for the graybox and
+knockout by default, permadeath on a knockout by a boss or in a tier 3 lair). Sim may simplify for the graybox and
 says so in `docs/decisions.md`.
 
 ## Gods and paths
