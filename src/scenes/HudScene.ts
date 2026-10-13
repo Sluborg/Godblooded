@@ -63,6 +63,12 @@ export class HudScene extends Phaser.Scene {
     this.menu = [];
     this.menuButtons = [];
     this.menuRect = null;
+    this.rosterOpen = false;
+    this.rosterPage = 0;
+    this.rosterKey = '';
+    this.rosterObjects = [];
+    this.rosterRect = null;
+    this.rosterNextAt = 0;
     const map = this.scene.get('Map') as MapScene;
     this.add.rectangle(GAME_WIDTH / 2, 36, GAME_WIDTH, 72, 0x000000, 0.45);
     this.goldText = this.add.text(20, 36, '', { ...TEXT, color: '#f2c14e' }).setOrigin(0, 0.5);
@@ -100,7 +106,8 @@ export class HudScene extends Phaser.Scene {
         padding: { x: 14, y: 8 },
       })
       .setOrigin(0.5)
-      .setAlpha(0);
+      .setAlpha(0)
+      .setDepth(50);
     this.banner = this.add
       .text(GAME_WIDTH / 2, 112, '', {
         ...TEXT,
@@ -109,7 +116,8 @@ export class HudScene extends Phaser.Scene {
         padding: { x: 20, y: 8 },
       })
       .setOrigin(0.5)
-      .setAlpha(0);
+      .setAlpha(0)
+      .setDepth(50);
 
     const onTap = (tap: MapTap) => this.onMapTap(map, tap);
     const onEvents = (events: readonly SimEvent[]) => this.onSimEvents(map, events);
@@ -226,7 +234,7 @@ export class HudScene extends Phaser.Scene {
     const pg = paginate(all, this.rosterPage, ROSTER_PER_PAGE);
     this.rosterPage = pg.page;
     const selected = (this.registry.get('selectedUnit') as number) ?? 0;
-    const key = `${pg.page}/${pg.pages}|${selected}|${pg.rows.map((r) => `${r.unit}:${r.hp}:${r.mode}:${r.gold}:${r.tier}`).join(',')}`;
+    const key = `${pg.page}/${pg.pages}|${selected}|${pg.rows.map((r) => `${r.unit}:${r.label}:${r.party}:${r.partyLevel}:${r.hp}:${r.maxHp}:${r.mode}:${r.gold}:${r.tier}:${r.ko}`).join(',')}`;
     if (key === this.rosterKey) return;
     this.rosterNextAt = this.time.now + 300;
     this.rosterKey = key;
