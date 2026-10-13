@@ -1,7 +1,6 @@
 import Phaser from 'phaser';
 import { GAME_HEIGHT, GAME_WIDTH } from '../config';
-import { GOD_PARTS, PATH_PARTS, heroPartsId, heroPartsRow } from '../data/heroParts';
-import { GRAYBOX } from '../data/graybox';
+import { heroPartsLook, partsGods } from '../data/heroParts';
 import { ensureHeroSet } from '../ui/parts/bake';
 
 // A review page for the part-based heroes (`?gallery=thor`, `?gallery=all` for the gods in a
@@ -15,22 +14,19 @@ export class PartsGalleryScene extends Phaser.Scene {
   create(): void {
     this.cameras.main.setBackgroundColor(0x3d5a2e);
     const q = new URLSearchParams(location.search).get('gallery') || 'thor';
-    const gods = q === 'all' ? Object.keys(GOD_PARTS) : [q];
+    const all = partsGods();
+    const gods = q === 'all' ? all : all.filter((g) => g.god === q);
     const looks: { god: string; path: string | null; tier: number }[] = [];
-    for (const god of gods) {
+    for (const { god, paths } of gods) {
       looks.push({ god, path: null, tier: 1 });
-      for (const p of GRAYBOX.paths ?? []) {
-        if (p.god !== god || !PATH_PARTS[p.id]) continue;
-        looks.push({ god, path: p.id, tier: 2 }, { god, path: p.id, tier: 3 });
-      }
+      for (const path of paths) looks.push({ god, path, tier: 2 }, { god, path, tier: 3 });
     }
     const cell = 82;
     const rowH = Math.min(130, (GAME_HEIGHT - 20) / looks.length);
     looks.forEach((lk, r) => {
-      const row = heroPartsRow(lk.god, lk.path, lk.tier);
-      if (!row) return;
-      const id = heroPartsId(lk.god, lk.path, lk.tier);
-      const set = ensureHeroSet(this.scene.scene, id, row);
+      const look = heroPartsLook(lk.god, lk.path, lk.tier);
+      if (!look) return;
+      const set = ensureHeroSet(this.scene.scene, look.id, look.def);
       const y = 14 + r * rowH + rowH * 0.78;
       this.add
         .text(8, y - rowH * 0.7, `${lk.path ?? lk.god} t${lk.tier}`, {

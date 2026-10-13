@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { GRAYBOX } from '../data/graybox';
 import { lookOf, type UnitLook } from '../data/looks';
 import { bossState } from './bossLook';
-import { heroPartsId, heroPartsRow } from '../data/heroParts';
+import { heroPartsLook } from '../data/heroParts';
 import { ensureHeroSet, sweepSets, type BakedSet } from './parts/bake';
 import { attackFrame, idleFrame, koFrame, walkFrame, type PoseName } from './parts/frames';
 import type { RiderId, SimEvent, UnitState, Vec2 } from '../sim/api';
@@ -258,11 +258,11 @@ export class UnitView {
   // A hero with a parts row is drawn from baked parts frames; false when it has none.
   private applyParts(u: UnitState): boolean {
     if (!USE_PARTS || u.kind !== 'hero' || !u.god) return this.leaveParts();
-    const row = heroPartsRow(u.god, u.path, u.tier);
-    if (!row) return this.leaveParts();
-    const id = heroPartsId(u.god, u.path, u.tier);
+    const look = heroPartsLook(u.god, u.path, u.tier);
+    if (!look) return this.leaveParts();
+    const id = look.id;
     if (id === this.partsId) return true;
-    const set = ensureHeroSet(this.scene, id, row);
+    const set = ensureHeroSet(this.scene, id, look.def);
     const first = set.frames.idle[0];
     this.partsSet = set;
     this.partsId = id;

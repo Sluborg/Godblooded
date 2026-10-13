@@ -3,9 +3,8 @@
 // image draw. Memory is kept small on purpose (a phone has a hard canvas budget): a modest bake
 // scale, one canvas per look (not one per frame), and looks nobody uses any more are released.
 import Phaser from 'phaser';
-import type { HeroPartsRow } from '../../data/heroParts';
-import { withCtx } from './gfx';
-import { drawHero } from './heroDraw';
+import type { PartsDef } from '../../data/heroParts';
+import { drawHuman, setState } from './proto.gen';
 import {
   ATLAS_COLS as COLS,
   FRAME_COUNT,
@@ -33,14 +32,8 @@ export interface BakedSet {
 const POSES: PoseName[] = ['idle', 'walk', 'attack', 'ko'];
 const sets = new Map<string, BakedSet>();
 
-function seedOf(id: string, pose: string, i: number): number {
-  let h = 2166136261;
-  for (const c of `${id}${pose}${i}`) h = Math.imul(h ^ c.charCodeAt(0), 16777619);
-  return h | 0;
-}
-
 // Returns the baked set for a look, baking it now if it is not there yet.
-export function ensureHeroSet(scene: Phaser.Scene, id: string, row: HeroPartsRow): BakedSet {
+export function ensureHeroSet(scene: Phaser.Scene, id: string, def: PartsDef): BakedSet {
   const have = sets.get(id);
   if (have && scene.textures.exists(have.atlas)) {
     have.lastUsed = scene.time.now;
@@ -82,7 +75,9 @@ export function ensureHeroSet(scene: Phaser.Scene, id: string, row: HeroPartsRow
       c.scale(k, k);
       c.translate(ORIGIN.x, ORIGIN.y);
       const st = frameState(pose, i);
-      withCtx(c, st.time, seedOf(id, pose, i), () => drawHero(st.pose, row));
+      setState({ ctx: c, T: st.time, FL: 0 });
+      drawHuman({ ...st.pose, d: def, x: 0, y: 0, face: 1, alpha: 1, hits: 0 });
+      setState({ ctx: null });
       c.restore();
     }
   }

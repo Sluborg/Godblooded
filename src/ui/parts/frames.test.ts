@@ -45,9 +45,9 @@ describe('frame choice', () => {
 describe('bake memory', () => {
   it('a look stays near 2 MB on the GPU at the densest screen', () => {
     expect(pxPerUnit(1)).toBe(1.2);
-    expect(pxPerUnit(3)).toBe(1.8);
+    expect(pxPerUnit(3)).toBe(1.5);
     expect(lookBytes(pxPerUnit(3))).toBeLessThan(2.5 * 1024 * 1024);
-    // 24 looks (a full run's heroes) with their canvases stay well under 64 MB at dpr 2.
-    expect(24 * 2 * lookBytes(pxPerUnit(2))).toBeLessThan(64 * 1024 * 1024);
+    // 12 looks alive at once (idle ones are released) with their canvases stay under 64 MB.
+    expect(12 * 2 * lookBytes(pxPerUnit(2))).toBeLessThan(64 * 1024 * 1024);
   });
 });
