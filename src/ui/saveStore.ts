@@ -1,4 +1,4 @@
-import type { SaveGame } from '../sim/api';
+import { SAVE_VERSION, type SaveGame } from '../sim/api';
 
 // The run save in localStorage (Scene 190): the sim makes the save (saveWorld), this keeps it. All
 // storage access is guarded: a blocked or full storage means no Continue, never a crash.
@@ -24,7 +24,17 @@ export function readSave(store: Store | null = defaultStore()): unknown | null {
   }
 }
 
+// True when storage holds a save from a newer game than this client (an old tab or a stale
+// cached client). It is never overwritten or cleared from here: that run belongs to the newer
+// client, and a reload gets this one updated.
+export function storedIsNewer(store: Store | null = defaultStore()): boolean {
+  const raw = readSave(store);
+  const v = (raw as { version?: unknown } | null)?.version;
+  return typeof v === 'number' && v > SAVE_VERSION;
+}
+
 export function writeSave(save: SaveGame, store: Store | null = defaultStore()): boolean {
+  if (storedIsNewer(store)) return false;
   try {
     store?.setItem(SAVE_KEY, JSON.stringify(save));
     return store !== null;
@@ -34,6 +44,7 @@ export function writeSave(save: SaveGame, store: Store | null = defaultStore()):
 }
 
 export function clearSave(store: Store | null = defaultStore()): void {
+  if (storedIsNewer(store)) return;
   try {
     store?.removeItem(SAVE_KEY);
   } catch {
@@ -50,4 +61,10 @@ export function hasSave(store: Store | null = defaultStore()): boolean {
 export function newSeed(now: number = Date.now(), rand: number = Math.random()): number {
   const s = (Math.floor(now) ^ Math.floor(rand * 0x7fffffff)) & 0x7fffffff;
   return s === 0 ? 1 : s;
+}
+
+// A save written by a newer game than this client: it must stay in storage (an old tab or a
+// stale cached client must not delete a newer run), unlike a damaged or unusable save.
+export function isNewerSave(e: unknown): boolean {
+  return e instanceof Error && e.message.startsWith('save is from a newer game');
 }

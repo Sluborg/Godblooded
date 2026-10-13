@@ -32,17 +32,17 @@ today's run start (300 gold, temple 150, first hero 5 s after a temple stands).
 
 ## 2. The first 3 minutes
 
-| Beat | When                         | The Skald says                                                               | Points at                                  |
-| ---- | ---------------------------- | ---------------------------------------------------------------------------- | ------------------------------------------ |
-| 10   | run start (clock stopped)    | "The gods have children among us. Raise a temple, and they will come."       | a free plot                                |
-| 20   | build menu open              | "The Aesir temple. Odin, Thor, Loki and Freyja will hear it."                | the temple button                          |
-| 30   | first hero arrives           | "A Godblood. They answer to no king, not even you."                          | the hero                                   |
-| 40   | 10 s later                   | "You cannot command them. But gold speaks to every child of a god."          | none                                       |
-| 50   | 10 s after beat 40           | "Heroes spend what they earn. Build a market, and the town takes its share." | a free plot                                |
-| 60   | first monster seen by a hero | "Tap a monster to put a bounty on its head."                                 | the monster                                |
-| 70   | first bounty placed          | "Watch who goes for it. The greedy run, the cowards think twice."            | the flag                                   |
-| 80   | first party formed           | "Two who fight together stay together. Tap a hero to see the party."         | a party member                             |
-| 90   | first level-up offer         | "They have grown. Choose what the gods grant them."                          | the cards (top line on the LevelUp screen) |
+| Beat | When                         | The Skald says                                                               | Points at                  |
+| ---- | ---------------------------- | ---------------------------------------------------------------------------- | -------------------------- |
+| 10   | run start (clock stopped)    | "The gods have children among us. Raise a temple, and they will come."       | a free plot                |
+| 20   | build menu open              | "The Aesir temple. Odin, Thor, Loki and Freyja will hear it."                | the temple button          |
+| 30   | first hero arrives           | "A Godblood. They answer to no king, not even you."                          | the hero                   |
+| 40   | 10 s later                   | "You cannot command them. But gold speaks to every child of a god."          | none                       |
+| 50   | 10 s after beat 40           | "Heroes spend what they earn. Build a market, and the town takes its share." | a free plot                |
+| 60   | first monster seen by a hero | "Tap a monster to put a bounty on its head."                                 | the monster                |
+| 70   | first bounty placed          | "Watch who goes for it. The greedy run, the cowards think twice."            | the flag                   |
+| 80   | first party formed           | "Two who fight together stay together. Tap a hero to see the party."         | a party member             |
+| 90   | first upgrade picked         | "They have grown. They chose what the gods grant them."                      | the party (`level-ups.md`) |
 
 - Beats fire in order; a beat whose trigger already passed fires right after the one before.
 - A player who builds before the Skald speaks skips beat 10 and 20.
@@ -84,7 +84,6 @@ line ("The world will not wait for you next time.").
 - **Skald bubble:** a speech bubble anchored at the town hall (or the screen's top centre
   when the town hall is off screen), with a small skald portrait, 26 px text, max 2 lines.
 - **Pulse:** a white ring on the target; for a HUD button, the button itself glows.
-- **LevelUp first time:** the Skald's line replaces the subtitle once.
 
 ## 6. Proposed data rows
 
