@@ -317,7 +317,8 @@ function runUnits(world: World): void {
     } else if (foe) {
       fight(world, unit, rt, stats, foe);
     } else if (unit.kind === 'hero') {
-      const lair = busy ? null : pickLair(world, unit);
+      // A hero under oath goes for its monster, not for a lair on the way.
+      const lair = busy || revengeTarget(world, unit) ? null : pickLair(world, unit);
       if (lair) attackLair(world, unit, rt, stats, lair);
       else heroMove(world, unit);
     } else if (rt.raid) {

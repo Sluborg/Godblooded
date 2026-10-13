@@ -71,7 +71,7 @@ export function vowRevenge(world: World, victim: UnitState, by: number): void {
 // A monster died: whoever swore to hunt it is avenged.
 export function avenge(world: World, monster: number): void {
   for (const [id, rt] of world.heroRuntime) {
-    if (rt.revenge?.target !== monster) continue;
+    if (rt.revenge?.target !== monster || world.timeMs >= rt.revenge.untilMs) continue;
     rt.revenge = undefined;
     world.events.push({ kind: 'avenged', hero: id, target: monster });
   }
@@ -79,7 +79,9 @@ export function avenge(world: World, monster: number): void {
 
 // The living monster a hero has sworn to hunt, if any.
 export function revengeTarget(world: World, hero: UnitState): UnitState | undefined {
-  const target = world.heroRuntime.get(hero.id)?.revenge?.target;
-  if (target === undefined) return undefined;
+  const oath = world.heroRuntime.get(hero.id)?.revenge;
+  // Expiry is checked here, every time, not only when the party scan runs.
+  if (!oath || world.timeMs >= oath.untilMs) return undefined;
+  const target = oath.target;
   return world.units.find((u) => u.id === target && u.kind === 'monster' && u.hp > 0);
 }

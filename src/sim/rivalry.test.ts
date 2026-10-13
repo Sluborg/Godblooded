@@ -8,6 +8,7 @@ import {
   type SimEvent,
 } from './api';
 import { addBond } from './parties';
+import { revengeTarget } from './rivalry';
 import { spawnHero } from './world';
 
 const attrs = { str: 5, dex: 3, sta: 5, cha: 1, per: 3, int: 1, wp: 3 };
@@ -155,8 +156,8 @@ describe('rivals', () => {
 });
 
 describe('revenge', () => {
-  function setup(trait: 'vengeful' | 'brave' = 'vengeful', bondTo = 4) {
-    const w = createWorld(1, data);
+  function setup(trait: 'vengeful' | 'brave' = 'vengeful', bondTo = 4, world: GameData = data) {
+    const w = createWorld(1, world);
     const victim = spawnHero(w, 'warrior', { x: 400, y: 400 });
     const friend = spawnHero(w, 'warrior', { x: 420, y: 400 });
     unit(w, friend).trait = trait;
@@ -218,6 +219,31 @@ describe('revenge', () => {
     };
     expect(far(60_000)).toBeDefined();
     expect(far(2_000)).toBeUndefined();
+  });
+
+  it('an oath ends at its deadline even when the party scan runs rarely', () => {
+    const { w, victim, friend, ogre } = setup();
+    w.tuning.party.mergeEveryTicks = 100_000;
+    w.tuning.party.revengeMs = 2_000;
+    knock(w, victim, ogre);
+    run(w, 3_000);
+    expect(revengeTarget(w, unit(w, friend))).toBeUndefined();
+    unit(w, ogre).hp = 0;
+    w.pendingDeaths.push({ victim: ogre, by: friend });
+    expect(run(w, TICK_MS).some((e) => e.kind === 'avenged')).toBe(false);
+  });
+
+  it('an oath outranks a lair in reach: the hero keeps walking to the monster', () => {
+    // a lair right next to the hero, the sworn monster far off
+    const { w, victim, friend, ogre } = setup('vengeful', 4, {
+      ...data,
+      lairs: [{ id: 'nest', monster: 'ogre', spawnS: 100_000, maxAlive: 0, hp: 5_000 }],
+      lairSites: [{ lair: 'nest', pos: { x: 430, y: 400 } }],
+    });
+    knock(w, victim, ogre);
+    const ev = run(w, 8_000);
+    expect(ev.some((e) => e.kind === 'hit' && e.attacker === friend)).toBe(false);
+    expect(unit(w, friend).pos.x).toBeGreaterThan(520);
   });
 
   it('is deterministic', () => {
