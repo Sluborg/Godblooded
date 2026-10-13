@@ -199,6 +199,7 @@ export const DEFAULT_TUNING: Tuning = {
     raidGrowEveryMs: 300_000,
     defendHp: 0.5,
     defendRange: 300,
+    defendBuildingRange: 120,
     raidWarnMs: 15_000,
     towerWarnAddMs: 5_000,
     // Off by default: it adds a raid per tier-up (Lead's balance pass decides).

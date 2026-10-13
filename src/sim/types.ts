@@ -805,9 +805,10 @@ export interface TownTuning {
   // Raids get one monster bigger per lair every this many ms.
   raidGrowEveryMs: number;
   // A resting hero at or above this hp fraction rejoins the fight when a monster comes within
-  // defendRange of the town hall.
+  // defendRange of the town hall or defendBuildingRange of any building.
   defendHp: number;
   defendRange: number;
+  defendBuildingRange: number;
   // A raid is announced this long before it arrives (event raidWarning), and a tower of tier 2
   // or more in town gives the warning towerWarnAddMs earlier still.
   raidWarnMs: number;
