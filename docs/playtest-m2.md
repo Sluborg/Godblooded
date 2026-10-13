@@ -7,7 +7,7 @@ runs, about 25 minutes in all; then one chat message to Lead.
 ## Bottom line
 
 - **Run 1, Watch (8 min, 1x):** follow the hints, build, place no bounties. Is it fun to watch?
-- **Run 2, Steer (8 min, 1x):** bounties all the time, read every level-up. Do you steer?
+- **Run 2, Steer (8 min, 1x):** bounties all the time, pick each path when asked. Do you steer?
 - **Run 3, To the end (4x after minute 3):** play until you win or fall. Does it hold up late?
 - **After:** answer 6 questions, send 2 screenshots (run 3's end screen, and one moment you liked).
 - **We read alongside:** the end screen, plus a bot run of the same build (section 4).
@@ -30,11 +30,11 @@ Then Pause, Quit to title.
 
 ## 2. Run 2: Steer (8 minutes, 1x)
 
-| Min | Do                                                | Notice                                  |
-| --- | ------------------------------------------------- | --------------------------------------- |
-| 0-3 | Build fast. Place a bounty as soon as you can.    | Who goes for it, and can you guess why? |
-| 3-6 | A bounty every minute, on monsters and on a lair. | Does a bounty change who goes where?    |
-| 6-8 | At every level-up, read the cards before picking. | Is the choice hard in a good way?       |
+| Min | Do                                                           | Notice                                                                                            |
+| --- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------- |
+| 0-3 | Build fast. Place a bounty as soon as you can.               | Who goes for it, and can you guess why?                                                           |
+| 3-6 | A bounty every minute, on monsters and on a lair.            | Does a bounty change who goes where?                                                              |
+| 6-8 | Watch each level-up; when a party offers its path, pick one. | Can you read the card the party chose itself (the banner)? Is the path choice hard in a good way? |
 
 Then Pause, Quit to title.
 
@@ -61,7 +61,7 @@ Then Pause, Quit to title.
 | ------------------------------------ | --------------- | -------------------------------------------------------------------- |
 | A skill in 60%+ of fights after 6:00 | 5               | share of fights with a cast (run stats, Sim row 150)                 |
 | A decision every minute              | 1, 4            | decisions per minute (run stats, row 150)                            |
-| No 60 s quiet                        | 4               | longest quiet gap (row 150; bot `maxQuietS` until then)              |
+| No 60 s quiet                        | 4               | longest quiet gap (row 150; Design's pacing probe until then)        |
 | 2+ damage types after tier 2         | 5               | share of fights with 2+ types (row 150)                              |
 | Gear level 1+ by 8:00                | 5               | average gear level at 8:00 (Design adds it to the pacing probe)      |
 | A hero to remember                   | 2               | run 3 end screen: MVP, kills, lairs, KOs per hero                    |
