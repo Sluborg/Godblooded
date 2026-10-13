@@ -829,8 +829,24 @@ export function command(world: World, cmd: Command): CommandResult {
       const flag = world.bounties.find((b) => b.id === cmd.bounty);
       if (!flag) return { ok: false, reason: 'unknown bounty' };
       world.bounties = world.bounties.filter((b) => b.id !== flag.id);
-      world.gold += flag.gold;
-      world.events.push({ kind: 'bountyCancelled', bounty: flag.id, gold: flag.gold });
+      const refund = Math.floor(flag.gold * world.tuning.bounty.cancelRefund);
+      world.gold += refund;
+      world.events.push({ kind: 'bountyCancelled', bounty: flag.id, gold: flag.gold, refund });
+      return { ok: true, id: flag.id };
+    }
+    case 'raiseBounty': {
+      const flag = world.bounties.find((b) => b.id === cmd.bounty);
+      if (!flag) return { ok: false, reason: 'unknown bounty' };
+      if (!Number.isInteger(cmd.gold) || cmd.gold <= 0) return { ok: false, reason: 'bad amount' };
+      if (world.gold < cmd.gold) return { ok: false, reason: 'not enough gold' };
+      world.gold -= cmd.gold;
+      flag.gold += cmd.gold;
+      world.events.push({
+        kind: 'bountyRaised',
+        bounty: flag.id,
+        gold: cmd.gold,
+        total: flag.gold,
+      });
       return { ok: true, id: flag.id };
     }
   }

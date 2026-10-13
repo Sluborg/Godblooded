@@ -13,7 +13,7 @@ const data: GameData = {
 };
 
 describe('cancelBounty', () => {
-  it('takes the flag down and refunds its gold in full', () => {
+  it('takes the flag down and refunds half its gold', () => {
     const w = createWorld(1, data);
     const placed = command(w, { kind: 'placeBounty', pos: { x: 900, y: 500 }, gold: 120 });
     if (!placed.ok) throw new Error('place failed');
@@ -21,12 +21,13 @@ describe('cancelBounty', () => {
     snapshot(w);
     const res = command(w, { kind: 'cancelBounty', bounty: placed.id });
     expect(res).toEqual({ ok: true, id: placed.id });
-    expect(w.gold).toBe(500);
+    expect(w.gold).toBe(440);
     expect(w.bounties).toHaveLength(0);
     expect(snapshot(w).events).toContainEqual({
       kind: 'bountyCancelled',
       bounty: placed.id,
       gold: 120,
+      refund: 60,
     });
   });
 
@@ -39,7 +40,8 @@ describe('cancelBounty', () => {
       ok: false,
       reason: 'unknown bounty',
     });
-    expect(w.gold).toBe(500);
+    // 450 left after placing, 25 back once: never refunded twice
+    expect(w.gold).toBe(475);
   });
 
   it('a hero heading for the flag drops it', () => {
@@ -55,5 +57,51 @@ describe('cancelBounty', () => {
     step(w, 1_500);
     expect(w.heroRuntime.get(id)?.bounty).toBeUndefined();
     expect(snapshot(w).units.find((u) => u.id === id)?.bounty).toBeNull();
+  });
+});
+
+describe('raiseBounty', () => {
+  it('adds gold to a standing flag and tells Scene the new total', () => {
+    const w = createWorld(1, data);
+    const placed = command(w, { kind: 'placeBounty', pos: { x: 900, y: 500 }, gold: 100 });
+    if (!placed.ok) throw new Error('place failed');
+    snapshot(w);
+    expect(command(w, { kind: 'raiseBounty', bounty: placed.id, gold: 50 })).toEqual({
+      ok: true,
+      id: placed.id,
+    });
+    expect(w.gold).toBe(350);
+    expect(w.bounties[0].gold).toBe(150);
+    expect(snapshot(w).events).toContainEqual({
+      kind: 'bountyRaised',
+      bounty: placed.id,
+      gold: 50,
+      total: 150,
+    });
+  });
+
+  it('refuses an unknown flag, a bad amount and a poor town', () => {
+    const w = createWorld(1, data);
+    const placed = command(w, { kind: 'placeBounty', pos: { x: 900, y: 500 }, gold: 100 });
+    if (!placed.ok) throw new Error('place failed');
+    expect(command(w, { kind: 'raiseBounty', bounty: 999, gold: 10 })).toEqual({
+      ok: false,
+      reason: 'unknown bounty',
+    });
+    expect(command(w, { kind: 'raiseBounty', bounty: placed.id, gold: 0 }).ok).toBe(false);
+    expect(command(w, { kind: 'raiseBounty', bounty: placed.id, gold: 9999 })).toEqual({
+      ok: false,
+      reason: 'not enough gold',
+    });
+    expect(w.bounties[0].gold).toBe(100);
+  });
+
+  it('a cancel after a raise refunds half of the new total', () => {
+    const w = createWorld(1, data);
+    const placed = command(w, { kind: 'placeBounty', pos: { x: 900, y: 500 }, gold: 100 });
+    if (!placed.ok) throw new Error('place failed');
+    command(w, { kind: 'raiseBounty', bounty: placed.id, gold: 100 });
+    command(w, { kind: 'cancelBounty', bounty: placed.id });
+    expect(w.gold).toBe(300 + 100);
   });
 });
