@@ -73,7 +73,7 @@ describe('healer', () => {
     expect(first).toMatchObject({ kind: 'heal', amount: 4, target: m.id });
     expect(m.hp).toBe(10);
     m.maxHp = 100;
-    m.hp = 1;
+    m.hp = 40;
     const next = run(w, 3_000).find((e) => e.kind === 'heal');
     expect(next).toMatchObject({ amount: 10 });
   });
