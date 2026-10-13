@@ -40,6 +40,8 @@ export interface MapTap {
   plot: number | null;
   // Id of a tapped hero (opens the party panel), or null.
   hero?: number | null;
+  // Id of a tapped building (opens the building panel), or null.
+  building?: number | null;
   target: { pos: Vec2; label: string } | null;
 }
 
@@ -204,6 +206,10 @@ export class MapScene extends Phaser.Scene {
   }
 
   // Bounty amounts are the HUD's choice; the sim validates and spends.
+  tryUpgrade(building: number): CommandResult {
+    return command(this.world, { kind: 'upgrade', building });
+  }
+
   tryBounty(pos: Vec2, gold: number): CommandResult {
     return command(this.world, { kind: 'placeBounty', pos, gold });
   }
@@ -222,6 +228,8 @@ export class MapScene extends Phaser.Scene {
       this.followUnit(hero.u.id);
       return { plot: null, hero: hero.u.id, target: null };
     }
+    const building = this.buildingAt(w);
+    if (building !== null) return { plot: null, building, target: null };
     const hit = [...this.snap.units, ...this.snap.lairs]
       .map((e) => ({ e, d: Math.hypot(e.pos.x - w.x, e.pos.y - w.y) }))
       .filter(({ d }) => d < TARGET_RADIUS)
@@ -239,6 +247,18 @@ export class MapScene extends Phaser.Scene {
 
   private hud(): HudScene | null {
     return this.scene.get('Hud') as HudScene | null;
+  }
+
+  // The building whose picture covers a world position (the frontmost one), or null.
+  private buildingAt(w: Phaser.Math.Vector2): number | null {
+    let best: { id: number; y: number } | null = null;
+    for (const b of this.snap.buildings) {
+      const top =
+        (this.views.get(`b${b.id}t${b.tier}`)?.getData('top') as number | undefined) ?? 96;
+      const inside = Math.abs(w.x - b.pos.x) < 95 && w.y > b.pos.y - top && w.y < b.pos.y + 20;
+      if (inside && (!best || b.pos.y > best.y)) best = { id: b.id, y: b.pos.y };
+    }
+    return best?.id ?? null;
   }
 
   // The id of the free plot under a world position, or null.

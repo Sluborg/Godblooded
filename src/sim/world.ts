@@ -256,6 +256,8 @@ function runTick(world: World): void {
   // Tower victims leave now, before the lairs count their monsters or the units act.
   settleDeaths(world);
   runStatuses(world);
+  // Burn victims leave now, before heroes flee or units act on a dead unit's turn.
+  settleDeaths(world);
   runBosses(world);
   runLairs(world);
   runRaids(world);

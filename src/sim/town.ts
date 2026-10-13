@@ -139,13 +139,19 @@ export function attackLair(
   });
 }
 
-// Every raidEveryMs each lair sends a few of its monsters to march on the town.
+// Every raidEveryMs a few of the standing lairs (tuning.town.raidLairs, picked at random) send
+// some of their monsters to march on the town. The boss lair of a generated map never raids.
 export function runRaids(world: World): void {
   const t = world.tuning.town;
   if (world.timeMs < world.nextRaidMs) return;
   world.nextRaidMs += t.raidEveryMs;
   const size = t.raidSize + Math.floor(world.timeMs / t.raidGrowEveryMs);
-  for (const lair of world.lairs) {
+  const eligible = world.lairs.filter((l) => !l.boss);
+  const sending: LairState[] = [];
+  for (let n = 0; n < t.raidLairs && eligible.length > 0; n++) {
+    sending.push(...eligible.splice(Math.floor(world.rng() * eligible.length), 1));
+  }
+  for (const lair of sending) {
     const def = world.data.lairs?.find((l) => l.id === lair.type);
     const mon = world.data.monsters?.find((m) => m.id === def?.monster);
     if (!def || !mon) continue;

@@ -1,4 +1,5 @@
 import { resolveStrike, hitEvent, type StrikeOut } from './strike';
+import { tally } from './runstats';
 import { dist } from './units';
 import type { UnitRuntime, World } from './world';
 import { targetOf } from './world';
@@ -82,6 +83,7 @@ function arc(world: World, attacker: number, target: UnitState, out: StrikeOut):
     target: dest,
   });
   next.hp -= jump.damage;
+  tally(world, attacker, 'damage', jump.damage);
   world.events.push(hitEvent(attacker, next.id, jump));
   if (next.hp <= 0) {
     next.hp = 0;
@@ -100,6 +102,7 @@ export function runStatuses(world: World): void {
     const burn = st.burn;
     if (burn && !unit.ko && unit.hp > 0 && world.timeMs >= burn.nextMs) {
       unit.hp -= burn.tick;
+      tally(world, burn.by, 'damage', burn.tick);
       world.events.push({
         kind: 'hit',
         attacker: burn.by,
