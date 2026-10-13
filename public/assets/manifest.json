@@ -315,6 +315,127 @@
       "weaponY": 0.321,
       "license": "own (ChatGPT, Stefan's account)",
       "source": "B5"
+    },
+    {
+      "id": "ui_item_armour",
+      "kind": "ui",
+      "tier": null,
+      "view": null,
+      "file": "ui/ui_item_armour.png",
+      "anchorX": 0.5,
+      "anchorY": 0.5,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "U4"
+    },
+    {
+      "id": "ui_item_charm_bloodstone",
+      "kind": "ui",
+      "tier": null,
+      "view": null,
+      "file": "ui/ui_item_charm_bloodstone.png",
+      "anchorX": 0.5,
+      "anchorY": 0.5,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "U4"
+    },
+    {
+      "id": "ui_item_charm_emberward",
+      "kind": "ui",
+      "tier": null,
+      "view": null,
+      "file": "ui/ui_item_charm_emberward.png",
+      "anchorX": 0.5,
+      "anchorY": 0.5,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "U4"
+    },
+    {
+      "id": "ui_item_charm_foxtail",
+      "kind": "ui",
+      "tier": null,
+      "view": null,
+      "file": "ui/ui_item_charm_foxtail.png",
+      "anchorX": 0.5,
+      "anchorY": 0.5,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "U4"
+    },
+    {
+      "id": "ui_item_charm_graveward",
+      "kind": "ui",
+      "tier": null,
+      "view": null,
+      "file": "ui/ui_item_charm_graveward.png",
+      "anchorX": 0.5,
+      "anchorY": 0.5,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "U4"
+    },
+    {
+      "id": "ui_item_charm_hawkeye",
+      "kind": "ui",
+      "tier": null,
+      "view": null,
+      "file": "ui/ui_item_charm_hawkeye.png",
+      "anchorX": 0.5,
+      "anchorY": 0.5,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "U4"
+    },
+    {
+      "id": "ui_item_charm_wardring",
+      "kind": "ui",
+      "tier": null,
+      "view": null,
+      "file": "ui/ui_item_charm_wardring.png",
+      "anchorX": 0.5,
+      "anchorY": 0.5,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "U4"
+    },
+    {
+      "id": "ui_item_focus",
+      "kind": "ui",
+      "tier": null,
+      "view": null,
+      "file": "ui/ui_item_focus.png",
+      "anchorX": 0.5,
+      "anchorY": 0.5,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "U4"
+    },
+    {
+      "id": "ui_item_potion",
+      "kind": "ui",
+      "tier": null,
+      "view": null,
+      "file": "ui/ui_item_potion.png",
+      "anchorX": 0.5,
+      "anchorY": 0.5,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "U4"
+    },
+    {
+      "id": "ui_item_potion_greater",
+      "kind": "ui",
+      "tier": null,
+      "view": null,
+      "file": "ui/ui_item_potion_greater.png",
+      "anchorX": 0.5,
+      "anchorY": 0.5,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "U4"
+    },
+    {
+      "id": "ui_item_sword",
+      "kind": "ui",
+      "tier": null,
+      "view": null,
+      "file": "ui/ui_item_sword.png",
+      "anchorX": 0.5,
+      "anchorY": 0.5,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "U4"
     }
   ]
 }
