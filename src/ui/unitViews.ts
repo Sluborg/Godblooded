@@ -2,6 +2,9 @@ import Phaser from 'phaser';
 import { GRAYBOX } from '../data/graybox';
 import { lookOf, type UnitLook } from '../data/looks';
 import { bossState } from './bossLook';
+import { heroPartsLook } from '../data/heroParts';
+import { ensureHeroSet, sweepSets, type BakedSet } from './parts/bake';
+import { attackFrame, idleFrame, koFrame, walkFrame, type PoseName } from './parts/frames';
 import type { RiderId, SimEvent, UnitState, Vec2 } from '../sim/api';
 import { ASSETS_KEY, type ManifestAsset } from './assets';
 import {
@@ -27,11 +30,20 @@ import { getSettings } from './settings';
 import { heroLabel, partyColor, partyRole, type PartyRole } from './partyLook';
 import { SpeechLimit } from './speechLimit';
 import { cardColor } from './levelUpLook';
+import { summonName } from './summonLook';
+import { fxScale, scaledCount } from './style';
 import { BARK_META, barkRoll, isSpeechEvent, pickLine, type SpeechKind } from './speechLines';
 import { buildHeal, buildStrike, FxLayer, type Vec } from './strikeFx';
 import { ART_NOMINAL_PX, PLACEHOLDER, UNIT_HEIGHT, artCandidates, baseType } from './unitLook';
 
 // Speech bubbles: how long one stays, the most on screen at once, and the quiet time per unit.
+// Heroes drawn from parts (src/ui/parts/) instead of a picture; `?noparts` in the URL turns it off.
+const USE_PARTS =
+  typeof location === 'undefined' || !new URLSearchParams(location.search).has('noparts');
+// A standard hero is about this tall in the parts drawing units (head to feet).
+const PARTS_HERO_H = 44;
+const NO_POSE: Pose = { rot: 0, dx: 0, dy: 0, sx: 1, sy: 1 };
+
 const BUBBLE_MS = 2200;
 const HIGH_BUBBLE_MS = 3000;
 const HIGH_WAIT_MS = 1500;
@@ -95,6 +107,8 @@ interface FrameCtx {
     info?: HitInfo,
     // The second blow of a double strike: it animates but shows no number of its own.
     silent?: boolean,
+    // Effect strength of the attacker (tier, boss): see style.ts.
+    fxK?: number,
   ) => void;
   // Receives the visual side of a landed heal (green tint, sparkles, number).
   healed: (targetId: number, amount: number) => void;
@@ -121,6 +135,8 @@ export class UnitView {
   tierNow = 1;
   private bubble: Phaser.GameObjects.Container | null = null;
   readonly isHero: boolean;
+  // On the heroes' side: a hero or a summon (a decoy, falcon or thrall a skill called).
+  readonly friendly: boolean;
   readonly look: UnitLook;
   // Monster tier hue shift in degrees (0 for heroes and tier 1) and its stable variant roll.
   private readonly hue: number;
@@ -149,6 +165,10 @@ export class UnitView {
   private ay = 1;
   private row: ManifestAsset | undefined;
   private artId = '';
+  // The baked parts look this hero is drawn with (null: a picture or the placeholder).
+  private partsSet: BakedSet | null = null;
+  private partsId = '';
+  private attackProgress = -1;
   // Green heal tint, 1 right after a heal and fading to 0.
   private healGlow = 0;
   private glowColor = 0x7dff9a;
@@ -175,6 +195,7 @@ export class UnitView {
       scale: look.scale * tier.scale * (u.kind === 'monster' ? sizeJitter(u.id) : 1),
     };
     this.isHero = u.kind === 'hero';
+    this.friendly = u.kind !== 'monster';
     this.x = u.pos.x;
     this.y = u.pos.y;
     this.face = u.facing.x < 0 ? -1 : 1;
@@ -188,11 +209,16 @@ export class UnitView {
       .setStrokeStyle(3, 0x000000, 0.6);
     this.nose = scene.add.triangle(w * 0.3, -h * 0.62, 0, -9, 0, 9, 16, 0, 0xffffff, 0.9);
     this.label = scene.add
-      .text(0, -UNIT_HEIGHT * this.look.scale - 6, u.kind === 'hero' ? heroLabel(u) : u.type, {
-        fontFamily: 'Georgia, serif',
-        fontSize: '16px',
-        color: '#f4ead5',
-      })
+      .text(
+        0,
+        -UNIT_HEIGHT * this.look.scale - 6,
+        u.kind === 'hero' ? heroLabel(u) : summonName(u),
+        {
+          fontFamily: 'Georgia, serif',
+          fontSize: '16px',
+          color: '#f4ead5',
+        },
+      )
       .setOrigin(0.5, 1);
     this.body = scene.add.container(0, 0, [this.capsule, this.nose]);
     this.bar = scene.add.graphics();
@@ -241,6 +267,69 @@ export class UnitView {
 
   // ---------- art ----------
 
+  // A hero with a parts row is drawn from baked parts frames; false when it has none.
+  private applyParts(u: UnitState): boolean {
+    if (!USE_PARTS || u.kind !== 'hero' || !u.god) return this.leaveParts();
+    const look = heroPartsLook(u.god, u.path, u.tier);
+    if (!look) return this.leaveParts();
+    const id = look.id;
+    if (id === this.partsId) return true;
+    const set = ensureHeroSet(this.scene, id, look.def);
+    const first = set.frames.idle[0];
+    this.partsSet = set;
+    this.partsId = id;
+    this.artId = '';
+    if (!this.sprite) {
+      this.sprite = this.scene.add.image(0, 0, set.atlas, first);
+      this.flash = this.scene.add.image(0, 0, set.atlas, first).setVisible(false);
+      this.body.addAt(this.sprite, 0);
+      this.body.add(this.flash);
+    }
+    // World units per baked pixel: the hero's height over its drawing height, over the bake scale.
+    const scale = (UNIT_HEIGHT * this.look.scale) / PARTS_HERO_H / set.pxPerUnit;
+    for (const img of [this.sprite, this.flash]) {
+      img
+        ?.setTexture(set.atlas, first)
+        .setOrigin(set.originX, set.originY)
+        .setScale(scale)
+        .clearTint();
+    }
+    this.ax = set.originX;
+    this.ay = set.originY;
+    this.row = undefined;
+    this.w = (UNIT_HEIGHT * this.look.scale * 22) / PARTS_HERO_H;
+    this.h = UNIT_HEIGHT * this.look.scale;
+    this.capsule.setVisible(false);
+    this.nose.setVisible(false);
+    return true;
+  }
+
+  private leaveParts(): boolean {
+    if (this.partsSet) {
+      this.partsSet = null;
+      this.partsId = '';
+      // Drop the parts sprites: applyArt makes a fresh one (with its tier colour) for a picture,
+      // or the placeholder shape comes back.
+      this.sprite?.destroy();
+      this.flash?.destroy();
+      this.sprite = this.flash = null;
+      this.artId = '';
+      this.row = undefined;
+      this.ax = 0.5;
+      this.ay = 1;
+      this.w = PLACEHOLDER.w * this.look.scale;
+      this.h = PLACEHOLDER.h * this.look.scale;
+      this.capsule.setVisible(true);
+      this.nose.setVisible(true);
+    }
+    return false;
+  }
+
+  // The parts look this hero is drawn with ('' for a picture or the placeholder).
+  get partsLookId(): string {
+    return this.partsId;
+  }
+
   // Swaps in the picture for this unit when the manifest has it; else the placeholder stays.
   private applyArt(u: UnitState): void {
     const type =
@@ -248,7 +337,9 @@ export class UnitView {
         ? pickVariant(u.type, this.unitId, (t) =>
             artCandidates(u.kind, t, u.tier).some((c) => this.scene.textures.exists(c)),
           )
-        : u.type;
+        : u.kind === 'summon'
+          ? (u.summon?.def ?? u.type)
+          : u.type;
     const id =
       artCandidates(u.kind, type, u.tier, u.path, u.god).find((c) =>
         this.scene.textures.exists(c),
@@ -283,7 +374,7 @@ export class UnitView {
       // no preFX and keeps the base colours).
       if (this.hue !== 0) this.sprite.preFX?.addColorMatrix().hue(this.hue);
       // Monsters are a touch darker than heroes so the two read apart at a glance.
-      if (!this.isHero) this.sprite.setTint(0xcdbfbf);
+      if (!this.friendly) this.sprite.setTint(0xcdbfbf);
       this.body.addAt(this.sprite, 0);
       this.body.add(this.flash);
     }
@@ -361,7 +452,7 @@ export class UnitView {
   }
 
   // The visual side of being hit: flash, knockback, sparks. The sim already took the hp.
-  receiveHit(fromX: number, power: number, dodged: boolean, fx: FxLayer): void {
+  receiveHit(fromX: number, power: number, dodged: boolean, fx: FxLayer, fxK = 1): void {
     // knocked away from the blow; with no known attacker, backwards
     const dir: 1 | -1 = Number.isNaN(fromX) ? (this.face === 1 ? -1 : 1) : this.x < fromX ? -1 : 1;
     this.koDir = dir;
@@ -372,8 +463,8 @@ export class UnitView {
     this.hit = 1;
     this.kb = dir * this.h * 0.12 * power;
     const c = this.chest();
-    fx.sparks(c.x, c.y, [255, 225, 160], 7);
-    fx.blood(c.x, c.y, dir);
+    fx.sparks(c.x, c.y, [255, 225, 160], scaledCount(7, fxK));
+    if (fxK >= 0.8) fx.blood(c.x, c.y, dir);
   }
 
   // The visual side of being healed: a brief green tint and sparkles. The sim already added hp.
@@ -488,7 +579,7 @@ export class UnitView {
 
   update(u: UnitState, ctx: FrameCtx, role: PartyRole = 'solo'): void {
     this.tierNow = u.tier;
-    this.applyArt(u);
+    if (!this.applyParts(u)) this.applyArt(u);
     if (u.kind === 'hero') {
       this.label.setText(heroLabel(u));
       // The path name can be wider than "<God>-born": keep the party badge beside the label.
@@ -537,20 +628,38 @@ export class UnitView {
 
     let pose: Pose;
     let alpha = 1;
+    let frame: { pose: PoseName; i: number } = { pose: 'idle', i: idleFrame(this.phase) };
+    this.attackProgress = -1;
     if (this.koK > 0) {
       const ko = koPose(this.koK, this.koDir);
       pose = ko.pose;
       alpha = ko.alpha;
+      frame = { pose: 'ko', i: koFrame(this.koK) };
       this.attack = null;
     } else if (this.attack) {
       pose = this.runAttack(ctx);
+      if (this.attack) {
+        const a = this.attack;
+        this.attackProgress = a.t / attackDuration(a.strike, a.windup);
+        frame = { pose: 'attack', i: attackFrame(this.attackProgress) };
+      }
     } else if (moving) {
       const before = Math.floor(this.stepT);
       this.stepT += step / (this.h * STEP_LENGTH);
       if (Math.floor(this.stepT) !== before) this.stepDust(ctx);
       pose = walkPose(this.stepT, this.h, this.face);
+      frame = { pose: 'walk', i: walkFrame(this.stepT) };
     } else {
       pose = idlePose(this.phase);
+    }
+    if (this.partsSet) {
+      // The baked frame carries the pose (stride, swing, fall): the body stays upright.
+      const name = this.partsSet.frames[frame.pose][frame.i];
+      if (name && this.sprite?.frame.name !== name) {
+        this.sprite?.setTexture(this.partsSet.atlas, name);
+        this.flash?.setTexture(this.partsSet.atlas, name);
+      }
+      pose = NO_POSE;
     }
     this.applyPose(pose, alpha * this.fade);
     this.container.setPosition(this.x, this.y).setDepth(this.y);
@@ -638,7 +747,16 @@ export class UnitView {
       ctx.shake();
     }
     const heavy = a.strike === 'smash' || a.strike === 'stomp';
-    ctx.hurt(a.targetId, this.x, heavy ? 2 : 1, n === 0 ? a.damage : 0, a.dodged, a.info, n !== 0);
+    ctx.hurt(
+      a.targetId,
+      this.x,
+      heavy ? 2 : 1,
+      n === 0 ? a.damage : 0,
+      a.dodged,
+      a.info,
+      n !== 0,
+      fxScale(this.tierNow, this.boss),
+    );
   }
 
   private applyPose(p: Pose, alpha: number): void {
@@ -699,6 +817,15 @@ export class UnitView {
       this.badge.setVisible(false);
       return;
     }
+    if (u.kind === 'summon') {
+      // A summon fights for the party: a small friendly teal ring, its name, no party badge.
+      this.ring.fillStyle(0x7fe0b0, 0.2).fillEllipse(0, -4, 56, 21);
+      this.ring.lineStyle(3, 0x7fe0b0, 0.95).strokeEllipse(0, -4, 56, 21);
+      if (selected) this.ring.lineStyle(3, 0xffffff, 0.95).strokeEllipse(0, -4, 70, 28);
+      this.badge.setVisible(false);
+      this.label.setVisible(true);
+      return;
+    }
     const inParty = role !== 'solo';
     this.badge.setVisible(inParty);
     if (inParty) {
@@ -746,7 +873,7 @@ export class UnitView {
     const y = -this.h - 22;
     this.bar.fillStyle(0x000000, 0.6).fillRect(-w / 2, y, w, 8);
     this.bar
-      .fillStyle(u.kind === 'hero' ? 0x6fcf6f : 0xcf4f4f, 1)
+      .fillStyle(u.kind !== 'monster' ? 0x6fcf6f : 0xcf4f4f, 1)
       .fillRect(-w / 2, y, (w * Math.max(0, u.hp)) / u.maxHp, 8);
   }
 
@@ -833,10 +960,10 @@ export class UnitViews {
         const p = others(id);
         return p ? { x: p.x, y: p.y - 40 } : undefined;
       },
-      hurt: (targetId, fromX, power, damage, dodged, info, silent) => {
+      hurt: (targetId, fromX, power, damage, dodged, info, silent, fxK) => {
         const t = this.views.get(targetId) ?? this.dying.get(targetId);
         if (!t) return;
-        t.receiveHit(fromX, power, dodged, this.fx);
+        t.receiveHit(fromX, power, dodged, this.fx, fxK ?? 1);
         // The number: type colour, crit, miss, weak or resisted (damageLook).
         const look = silent ? null : damageLook(damage, dodged, info);
         if (look) this.floatNumber(t.container.x, t.container.y - t.height - 10, look);
@@ -897,6 +1024,13 @@ export class UnitViews {
       }
     }
     this.flushQueued();
+    if (this.scene.time.now > this.sweepAt) {
+      this.sweepAt = this.scene.time.now + 5000;
+      const inUse = new Set<string>();
+      for (const v of [...this.views.values(), ...this.dying.values()])
+        if (v.partsLookId) inUse.add(v.partsLookId);
+      sweepSets(this.scene, inUse);
+    }
     this.fx.update(dtS);
   }
 
@@ -905,6 +1039,7 @@ export class UnitViews {
   // Heroes only, rationed by SpeechLimit (one bark in town per few seconds, one per hero per 30 s).
   // A high priority bark that meets the global gap waits up to HIGH_WAIT_MS for it, then drops
   // (barks.md section 2 rule 3). Mid and low barks drop at once.
+  private sweepAt = 0;
   private queued: { e: Extract<SimEvent, { kind: SpeechKind }>; until: number } | null = null;
 
   private onSpeech(e: Extract<SimEvent, { kind: SpeechKind }>): void {
@@ -963,7 +1098,7 @@ export class UnitViews {
     const attacker = this.views.get(e.attacker);
     if (attacker) {
       // A big monster's blow shakes the screen a little.
-      if (!attacker.isHero && attacker.tierNow >= 3 && !e.dodged && e.damage > 0) ctx.shake();
+      if (!attacker.friendly && attacker.tierNow >= 3 && !e.dodged && e.damage > 0) ctx.shake();
       return attacker.landHit(e.target, e.damage, e.dodged, info);
     }
     // No unit view: a tower (or other building) shooting. An arrow flies from its top to the

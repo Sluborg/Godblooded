@@ -1,5 +1,6 @@
 import { resolveStrike, hitEvent, type StrikeOut } from './strike';
 import { takeDamage } from './effects';
+import { charmEffects } from './items';
 import { passiveHealTaken } from './passives';
 import { tally } from './runstats';
 import { dist } from './units';
@@ -50,6 +51,8 @@ export function applyRider(
       break;
     }
     case 'wither':
+      // A grave-ward keeps it off the wearer.
+      if (charmEffects(world, target).noWither) return;
       statusOf(rt).wither = { untilMs: world.timeMs + t.witherMs };
       break;
     case 'arc':

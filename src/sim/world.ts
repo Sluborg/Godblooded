@@ -2,12 +2,13 @@ import { avenge, revengeTarget, rivalPairs, vowRevenge } from './rivalry';
 import { runAutosave } from './save';
 import { generateMap } from './mapgen';
 import { deathChance, koBonds, koGoldLost, slayHero } from './deaths';
-import { buffOf, tauntOf, type UnitFx } from './effects';
-import { armourBonus, weaponPower } from './items';
+import { buffOf, isBound, runHots, tauntOf, type UnitFx } from './effects';
+import { armourBonus, charmEffects, weaponPower } from './items';
 import { passiveRider } from './passives';
 import { everyNthOf, passiveAggroMult, passiveArmour } from './passives';
 import { noteFight } from './engage';
 import { runFavour } from './favour';
+import { removeSummon, runSummon, runSummonUpkeep, summonStats } from './summons';
 import { runStatuses, slowOf, healMult, type UnitStatus } from './riders';
 import { attackStrike, landStrike } from './strike';
 import { cancelDrink, runDrink } from './potions';
@@ -67,6 +68,7 @@ import {
 } from './units';
 import type {
   BountyState,
+  SkillEffect,
   GraveState,
   BuildingCore,
   Command,
@@ -118,10 +120,18 @@ export interface UnitRuntime {
   skill?: SkillRuntime;
   // Shield, mark, taunt and buffs from skills (see effects.ts).
   fx?: UnitFx;
+  // Summons: effects that run on the foes around it when it ends or dies.
+  summonEnd?: { radius: number; effects: readonly SkillEffect[] };
   // A potion being drunk: time left (see potions.ts).
   drink?: { ms: number };
   // The fight this unit is in: kills so far, whether its first-hit miss is spent, strikes landed.
-  fight?: { kills: number; missUsed: boolean; strikes: number };
+  fight?: {
+    kills: number;
+    missUsed: boolean;
+    strikes: number;
+    revived?: boolean;
+    ringUsed?: boolean;
+  };
 }
 
 export interface World {
@@ -156,7 +166,15 @@ export interface World {
   favour: Record<string, number>;
   miracleSteps: { atMs: number; id: string; pos: Vec2; by: number; effect: number | null }[];
   // Monsters that died lately, for `kill` skill triggers.
-  recentKills: { pos: Vec2; timeMs: number; by: number }[];
+  recentKills: { pos: Vec2; timeMs: number; by: number; type: string; tier: number }[];
+  // Summons waiting to be called again (a falcon that died).
+  respawns: {
+    atMs: number;
+    owner: number;
+    summon: string;
+    src: string;
+    end?: { radius: number; effects: readonly SkillEffect[] };
+  }[];
   nextRaidMs: number;
   stats: RunStats;
   bounties: BountyState[];
@@ -199,6 +217,7 @@ export function createWorld(seed: number, data: GameData): World {
     favour: {},
     miracleSteps: [],
     recentKills: [],
+    respawns: [],
     nextRaidMs: 0,
     stats: {
       monstersKilled: 0,
@@ -296,12 +315,20 @@ function runTick(world: World): void {
   // Tower victims leave now, before the lairs count their monsters or the units act.
   settleDeaths(world);
   runStatuses(world);
+  runHots(world, (by, unit, amount) => {
+    const gain = Math.min(Math.round(amount * healMult(world, unit.id)), unit.maxHp - unit.hp);
+    if (gain <= 0) return;
+    unit.hp += gain;
+    tally(world, by, 'healing', gain);
+    world.events.push({ kind: 'heal', healer: by, target: unit.id, amount: gain });
+  });
   // Burn victims leave now, before heroes flee or units act on a dead unit's turn.
   settleDeaths(world);
   runBosses(world);
   runLairs(world);
   runRaids(world);
   runHeroes(world);
+  runSummonUpkeep(world);
   runBounties(world);
   runFavour(world);
   runParties(world);
@@ -370,6 +397,16 @@ function runLairs(world: World): void {
 }
 
 export function statsOf(world: World, unit: UnitState): Stats | undefined {
+  const base = unitStats(world, unit);
+  // Bound: cannot move, attacks take twice as long.
+  if (base && isBound(world, unit.id)) {
+    return { ...base, rooted: true, attackMult: (base.attackMult ?? 1) * 2 };
+  }
+  return base;
+}
+
+function unitStats(world: World, unit: UnitState): Stats | undefined {
+  if (unit.kind === 'summon') return summonStats(world, unit);
   if (unit.kind === 'hero') {
     const cls = world.data.classes?.find((c) => c.id === unit.type);
     return (
@@ -382,6 +419,7 @@ export function statsOf(world: World, unit: UnitState): Stats | undefined {
           passiveArmour(world, unit) + armourBonus(world, unit).armour,
         ),
         weaponPower: weaponPower(world, unit),
+        types: charmTypes(world, unit),
         spellMult: cls.spellMult,
         slow: slowOf(world, unit.id),
         haste: buffOf(world, unit.id, 'attackSpeed'),
@@ -403,6 +441,30 @@ export function statsOf(world: World, unit: UnitState): Stats | undefined {
       attackMult: bossRt?.enraged ? bossNumbers(world, mon).enrageAttackMult : undefined,
     }
   );
+}
+
+// A bloodstone heals its wearer a share of max hp for each kill.
+function healOnKill(world: World, id: number): void {
+  const hero = world.units.find((u) => u.id === id);
+  const share = hero && hero.kind === 'hero' ? charmEffects(world, hero).healOnKill : undefined;
+  if (!hero || !share || hero.ko || hero.hp <= 0) return;
+  const amount = Math.min(
+    Math.round(share * hero.maxHp * healMult(world, hero.id)),
+    hero.maxHp - hero.hp,
+  );
+  if (amount <= 0) return;
+  hero.hp += amount;
+  tally(world, hero.id, 'healing', amount);
+  world.events.push({ kind: 'heal', healer: hero.id, target: hero.id, amount });
+}
+
+// A charm that softens damage types is a type row on the hero (0.75 for fire 0.25 softer).
+function charmTypes(world: World, unit: UnitState): Partial<Record<string, number>> | undefined {
+  const softer = charmEffects(world, unit).softer;
+  if (!softer) return undefined;
+  const row: Partial<Record<string, number>> = {};
+  for (const [type, cut] of Object.entries(softer)) row[type] = 1 - (cut ?? 0);
+  return row;
 }
 
 // A caster hero strikes with its path's type, else its god's (weapon templates are physical).
@@ -441,6 +503,10 @@ function runUnits(world: World): void {
     }
     rt.cooldownMs = Math.max(0, rt.cooldownMs - TICK_MS);
     tickSkill(rt);
+    if (unit.kind === 'summon') {
+      runSummon(world, unit, rt, stats);
+      continue;
+    }
     // Raiders have no lair leash: they march on the town.
     const home = rt.raid ? undefined : world.lairs.find((l) => l.id === rt.lair);
     // Heroes that are fleeing, resting or shopping do not pick fights.
@@ -502,7 +568,12 @@ function pickTarget(world: World, unit: UnitState, stats: Stats, home?: Vec2): U
   let best: UnitState | null = null;
   let bestD = Infinity;
   for (const other of world.units) {
-    if (other.kind === unit.kind || other.ko || other.hp <= 0) continue;
+    // Monsters fight heroes and summons; heroes and summons fight monsters.
+    if ((other.kind === 'monster') === (unit.kind === 'monster') || other.ko || other.hp <= 0) {
+      continue;
+    }
+    // Nothing on foot can reach a flier.
+    if (other.kind === 'summon' && stats.weapon.range <= 60 && flies(world, other)) continue;
     const d = dist(unit.pos, other.pos);
     if (d > reach || d >= bestD) continue;
     if (home && dist(home, other.pos) > world.tuning.monster.leash) continue;
@@ -600,7 +671,9 @@ function settleDeaths(world: World): void {
     const unit = world.units.find((u) => u.id === victim);
     if (!unit || unit.ko || settled.has(victim)) continue;
     settled.add(victim);
-    if (unit.kind === 'hero') {
+    if (unit.kind === 'summon') {
+      removeSummon(world, unit, 'died');
+    } else if (unit.kind === 'hero') {
       unit.target = null;
       world.stats.knockouts++;
       tally(world, unit.id, 'knockouts');
@@ -647,23 +720,34 @@ function settleDeaths(world: World): void {
       if (world.data.skills?.length) {
         const from = world.timeMs - world.tuning.skill.killWindowMs;
         world.recentKills = world.recentKills.filter((k) => k.timeMs >= from);
-        world.recentKills.push({ pos: { ...unit.pos }, timeMs: world.timeMs, by });
+        world.recentKills.push({
+          pos: { ...unit.pos },
+          timeMs: world.timeMs,
+          by,
+          type: unit.type,
+          tier: unit.tier,
+        });
       }
       world.stats.monstersKilled++;
       avenge(world, unit.id);
       tally(world, by, 'kills');
       const krt = world.unitRuntime.get(by);
       if (krt?.fight) krt.fight.kills++;
+      healOnKill(world, by);
       payBounty(world, by, bounty);
       shareXp(world, by, xp);
     }
   }
   world.pendingDeaths = [];
   world.units = world.units.filter((u) => {
-    const gone = (u.kind === 'monster' && u.hp <= 0) || slainIds.has(u.id);
+    const gone = (u.kind !== 'hero' && u.hp <= 0) || slainIds.has(u.id);
     if (gone) world.unitRuntime.delete(u.id);
     return !gone;
   });
+}
+
+function flies(world: World, unit: UnitState): boolean {
+  return !!unit.summon && !!world.data.summons?.find((s) => s.id === unit.summon?.def)?.flies;
 }
 
 function wander(world: World, unit: UnitState, rt: UnitRuntime, stats: Stats, home: Vec2): void {
@@ -780,6 +864,7 @@ export function snapshot(world: World): Snapshot {
       pos: { ...u.pos },
       facing: { ...u.facing },
       ...(u.items ? { items: { ...u.items } } : {}),
+      ...(u.summon ? { summon: { ...u.summon } } : {}),
     })),
     bounties: world.bounties.map((b) => ({ ...b, pos: { ...b.pos } })),
     favour: (world.data.miracles ?? []).map((m) => ({

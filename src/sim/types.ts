@@ -199,8 +199,17 @@ export interface ItemEffects {
   kits?: Partial<Record<Kit, { armour: number; wp: number }>>;
   // Potion: share of max hp healed.
   healPct?: number;
-  // Charm effects arrive with Sim 310.
-  [key: string]: unknown;
+  // Charm (generic, items-and-shops.md section 2): added to crit and dodge chance.
+  crit?: number;
+  dodge?: number;
+  // Charm: a share cut off hits of these damage types (fire 0.25 = fire hits 25% softer).
+  softer?: Partial<Record<string, number>>;
+  // Charm: the wither rider does not take hold on the wearer.
+  noWither?: boolean;
+  // Charm: heals this share of max hp per kill.
+  healOnKill?: number;
+  // Charm: the first landed hit of each fight is multiplied by this (0.5: halved).
+  firstHitMult?: number;
 }
 
 export interface ItemDef {
@@ -314,6 +323,8 @@ export interface HeroTuning {
   proudSpend: number;
   // Potions a hero may carry, by market tier.
   potionMax: number[];
+  // A hero holding a charm swaps it only for one priced at least this much (and dearer).
+  charmSwapPrice: number;
   // A hero drinks below its flee threshold plus this (points as a share of max hp), a coward
   // plus cowardDrinkAdd; one that never flees drinks at neverFleeDrink. A drink takes drinkMs.
   potionDrinkAdd: number;
@@ -579,8 +590,85 @@ export interface DashEffect extends EffectBase {
   kind: 'dash';
 }
 
+// A unit a skill calls (docs/systems/paths-and-skills.md section 7). `hp` is flat, `hpShare` a share of
+// the caster's max hp; `fromDead` makes a thrall of a monster that just died (stats x share).
+export interface SummonDef {
+  id: string;
+  hp?: number;
+  hpShare?: number;
+  // Strikes every `everyS` for `mult` x the caster's power (the monster's own strike for a thrall).
+  strike?: { mult: number; everyS: number; sure?: boolean };
+  // Foes within `radius` of it go for it (a decoy).
+  taunt?: { radius: number };
+  // Cannot be targeted by melee attackers.
+  flies?: boolean;
+  // Called again this long after it dies (not after it ends), while the caster stands.
+  respawnS?: number;
+  fromDead?: { share: number };
+}
+
+// Calls `count` units of a summon row for `s` seconds (omitted: until killed). At the cast point,
+// or on the recent kill for a thrall. `end` runs when it ends or dies: effects on the foes within
+// `radius` of it, as the caster (Mirror Double's burst).
+export interface SummonEffect extends EffectBase {
+  kind: 'summon';
+  summon: string;
+  count?: number;
+  s?: number;
+  end?: { radius: number; effects: readonly SkillEffect[] };
+}
+
+// Pushes the targets `dist` away from the caster (bosses cannot be knocked back).
+export interface KnockbackEffect extends EffectBase {
+  kind: 'knockback';
+  dist: number;
+}
+
+// Targets cannot move and attack 50% slower for `s` seconds (a boss: half the time).
+export interface BindEffect extends EffectBase {
+  kind: 'bind';
+  s: number;
+}
+
+// Stands a knocked out party mate in the shape up at `pct` of max hp, once per fight.
+export interface ReviveEffect extends EffectBase {
+  kind: 'revive';
+  pct: number;
+}
+
+// Foes in the shape below `below` of max hp die (not bosses).
+export interface ExecuteEffect extends EffectBase {
+  kind: 'execute';
+  below: number;
+}
+
+// Removes the riders (burn, chill, wither) from the targets.
+export interface CleanseEffect extends EffectBase {
+  kind: 'cleanse';
+}
+
+// Heals the targets `pct` of max hp per second for `s` seconds.
+export interface HotEffect extends EffectBase {
+  kind: 'hot';
+  pct: number;
+  s: number;
+}
+
+// Restarts the timer of the buffs, shield and heal over time this skill put on the caster.
+export interface RefreshEffect extends EffectBase {
+  kind: 'refresh';
+}
+
 export type SkillEffect =
+  | SummonEffect
   | DamageEffect
+  | KnockbackEffect
+  | BindEffect
+  | ReviveEffect
+  | ExecuteEffect
+  | CleanseEffect
+  | HotEffect
+  | RefreshEffect
   | HealEffect
   | ShieldEffect
   | BuffEffect
@@ -708,6 +796,10 @@ export interface CombatTuning {
   deathShrineStep: number;
   deathHealerStep: number;
   deathFloor: number;
+  // A tier 3 lair's monster slays with this chance when the knockout is within lairDeathRange of the
+  // lair; every cut to the boss chance cuts it by half as many points, never below 0.
+  lairDeathChance: number;
+  lairDeathRange: number;
 }
 
 export interface Tuning {
@@ -745,6 +837,8 @@ export interface GameData {
   skills?: readonly SkillDef[];
   // One miracle per pantheon (docs/systems/events.md section 3). Without rows no bar fills.
   miracles?: readonly MiracleDef[];
+  // Rows for the units skills summon.
+  summons?: readonly SummonDef[];
   // Any subset of the tunable numbers; the rest use DEFAULT_TUNING (src/sim/tuning.ts).
   tuning?: {
     combat?: Partial<CombatTuning>;
@@ -810,7 +904,8 @@ export interface LairState {
 
 export interface UnitState {
   id: number;
-  kind: 'hero' | 'monster';
+  // 'summon': a unit a hero's skill called; it fights for the party and monsters can target it.
+  kind: 'hero' | 'monster' | 'summon';
   // Monsters: the monster id. Heroes: the id of the template in use (ClassDef): the god's at
   // tier 1, the path's from tier 2. Look and strike fall back on it.
   type: string;
@@ -827,6 +922,9 @@ export interface UnitState {
   maxHp: number;
   // Heroes: gear carried (absent: nothing). Monsters never have any.
   items?: HeroItems;
+  // Summons: who called it, from which row, and when it ends (null: until it dies).
+  // `monster` is the dead monster a thrall rose from (its stats); `type` stays the row id for art.
+  summon?: { owner: number; def: string; until: number | null; src: string; monster?: string };
   // Unit being attacked, if any (Scene lunges toward it).
   target: number | null;
   // Knocked out (heroes only, monsters are removed). Out of the fight until revived.
@@ -973,7 +1071,12 @@ export type SimEvent =
   // stood when it dashed (the dash is instant; Scene animates it from `from` to the caster).
   | { kind: 'skill'; skill: string; caster: number; hits: number[]; point: Vec2; from?: Vec2 }
   // A shield, mark, buff or taunt took hold on `unit` until run time `until`.
-  | { kind: 'status'; unit: number; status: 'shield' | 'mark' | 'buff' | 'taunt'; until: number }
+  | {
+      kind: 'status';
+      unit: number;
+      status: 'shield' | 'mark' | 'buff' | 'taunt' | 'bind' | 'hot';
+      until: number;
+    }
   | { kind: 'argue'; a: number; b: number }
   | { kind: 'revenge'; hero: number; target: number; victim: number }
   | { kind: 'avenged'; hero: number; target: number }
@@ -988,12 +1091,22 @@ export type SimEvent =
   | { kind: 'arrived'; unit: number; type: string; god: string | null }
   | { kind: 'fled'; unit: number }
   | { kind: 'revived'; unit: number }
+  // A skill called a unit; it ended (`expired`), died (`died`) or its caster fell (`orphaned`).
+  | { kind: 'summoned'; unit: number; owner: number; summon: string; skill: string; pos: Vec2 }
+  | {
+      kind: 'unsummoned';
+      unit: number;
+      owner: number;
+      reason: 'expired' | 'died' | 'orphaned' | 'replaced';
+    }
   // `item`: the item id of one purchase (absent for the plain market spend without item rows).
   // A hero drank a potion (`left` still carried) and healed `amount`.
   | { kind: 'drank'; unit: number; amount: number; left: number }
   | { kind: 'shopped'; unit: number; spent: number; tax: number; item?: string }
   // A god starts its miracle at `pos`; it lands after `tellMs` (Scene draws the tell).
   | { kind: 'miracle'; id: string; pantheon: string; pos: Vec2; tellMs: number }
+  // A party leader got a charm from a lair that fell.
+  | { kind: 'relic'; unit: number; item: string; lair: number }
   | { kind: 'bountyPlaced'; bounty: number; gold: number };
 
 export type Command =

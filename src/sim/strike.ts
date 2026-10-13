@@ -2,6 +2,7 @@ import { armourPct, critChance, dodgeChance, resistPct, type Stats } from './uni
 import type { World } from './world';
 import { applyRider } from './riders';
 import { buffOf, takeDamage } from './effects';
+import { charmEffects } from './items';
 import { hasPassive, passiveVsTags } from './passives';
 import { tally } from './runstats';
 import type { Attributes, RiderId, SimEvent, UnitState } from './types';
@@ -181,15 +182,26 @@ export function landStrike(
     ...(boost || vsTag !== 1 ? { skillMult: (input.skillMult ?? 1) * (1 + boost) * vsTag } : {}),
     ...(crit ? { critAdd: crit } : {}),
   });
+  // A ward-ring halves the first hit of each fight that lands on its wearer.
+  const ring = foe.kind === 'hero' ? charmEffects(world, foe).firstHitMult : undefined;
+  if (ring !== undefined && frt && !out.dodged && out.damage > 0) {
+    const fight = (frt.fight ??= { kills: 0, missUsed: false, strikes: 0 });
+    if (!fight.ringUsed) {
+      fight.ringUsed = true;
+      out.damage = Math.max(1, Math.round(out.damage * ring));
+    }
+  }
   const taken = takeDamage(world, foe, out.damage);
   out.damage = taken.dealt;
   foe.hp -= taken.hp;
-  tally(world, attacker.id, 'damage', out.damage);
+  // A summon's strikes count for the hero that called it.
+  const credit = attacker.summon?.owner ?? attacker.id;
+  tally(world, credit, 'damage', out.damage);
   world.events.push(hitEvent(attacker.id, foe.id, out, taken.dealt - taken.hp));
   if (input.rider && !out.dodged) applyRider(world, input.rider, attacker.id, foe, out);
   if (foe.hp <= 0) {
     foe.hp = 0;
-    world.pendingDeaths.push({ victim: foe.id, by: attacker.id });
+    world.pendingDeaths.push({ victim: foe.id, by: credit });
   }
   return out;
 }
