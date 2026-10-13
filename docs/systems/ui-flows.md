@@ -114,14 +114,14 @@ slot. Today's header is 190 px and the fourth row spills below the slot.
 
 ## 6. Modal screens
 
-| Screen          | Today                                                 | Change                                                                                                                                         |
-| --------------- | ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| LevelUp         | path cards, then 3 upgrade cards; no close            | replaced: upgrades are auto-picked and celebrated on the map; paths use a tray at the bottom, the run at 30% (`level-ups.md`)                  |
-| Pause           | Resume, Restart, Settings, Quit to title              | unchanged                                                                                                                                      |
-| Settings        | default speed, reduced motion, party colours, Back    | music and effects volume (`audio.md`); the HUD speed choice is saved as the default                                                            |
-| End screen      | VICTORY or TOWN LOST, time, gold, 6 stats, Play again | per `meta-ui.md` section 2: THE TOWN HAS FALLEN, MVP line, Ambrosia tally, unlock cards, Saga lines, Run details tab; Play again, Altar, Title |
-| Hall (new)      |                                                       | tabs: Altar, Saga, Unlocks (`meta-ui.md` section 4); Back                                                                                      |
-| Run setup (new) |                                                       | portent of the coming lean, Trials after the first win, Start (`meta-ui.md` section 5)                                                         |
+| Screen          | Today                                                 | Change                                                                                                                                        |
+| --------------- | ----------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| LevelUp         | path cards, then 3 upgrade cards; no close            | replaced: upgrades are auto-picked and celebrated on the map; paths use a tray at the bottom, the run at 30% (`level-ups.md`)                 |
+| Pause           | Resume, Restart, Settings, Quit to title              | unchanged                                                                                                                                     |
+| Settings        | default speed, reduced motion, party colours, Back    | music and effects volume (`audio.md`); the HUD speed choice is saved as the default                                                           |
+| End screen      | VICTORY or TOWN LOST, time, gold, 6 stats, Play again | per `meta-ui.md` section 2: THE TOWN HAS FALLEN, MVP line, Essence tally, unlock cards, Saga lines, Run details tab; Play again, Altar, Title |
+| Hall (new)      |                                                       | tabs: Altar, Saga, Unlocks (`meta-ui.md` section 4); Back                                                                                     |
+| Run setup (new) |                                                       | portent of the coming lean, Trials after the first win, Start (`meta-ui.md` section 5)                                                        |
 
 ## 7. Proposed backlog rows
 
