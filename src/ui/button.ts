@@ -24,18 +24,15 @@ function drawButton(
   g.clear();
   g.fillStyle(c.rim, 1).fillRoundedRect(-w / 2, -h / 2, w, h, r);
   g.fillStyle(c.fill, 1).fillRoundedRect(-w / 2 + 4, -h / 2 + 4, w - 8, h - 8, r - 3);
-  // Bevel: a light line along the top edge and a dark one along the bottom.
-  g.lineStyle(3, c.bevelLight, 0.9).lineBetween(-w / 2 + r, -h / 2 + 6, w / 2 - r, -h / 2 + 6);
-  g.lineStyle(3, c.bevelDark, 0.9).lineBetween(-w / 2 + r, h / 2 - 6, w / 2 - r, h / 2 - 6);
-  // Shine over the top half.
-  if (c.shine > 0)
-    g.fillStyle(0xffffff, c.shine).fillRoundedRect(
-      -w / 2 + 6,
-      -h / 2 + 8,
-      w - 12,
-      h / 2 - 8,
-      r - 4,
-    );
+  // A soft 2 px inner highlight that follows the rounded corners (light on a raised button, dark
+  // when pressed): no flat band under the rim.
+  g.lineStyle(2, c.bevelLight, c.inner).strokeRoundedRect(
+    -w / 2 + 6,
+    -h / 2 + 6,
+    w - 12,
+    h - 12,
+    r - 4,
+  );
 }
 
 // A touch button centered on (x, y). Height and width are raised to MIN_TOUCH if smaller.

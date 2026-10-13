@@ -6,8 +6,11 @@ export interface HitInfo {
   // Damage type of the strike ('physical', 'fire', ...; 'magic' for an untyped spell).
   type: string;
   crit?: boolean;
+<<<<<<< HEAD
   // A burn tick rather than a strike: a small number, no impact.
   tick?: boolean;
+=======
+>>>>>>> origin/main
   weak?: boolean;
   resist?: boolean;
 }
@@ -44,10 +47,13 @@ export interface FloatLook {
 export function damageLook(damage: number, dodged: boolean, info?: HitInfo): FloatLook | null {
   if (dodged) return { text: 'miss', color: MISS_COLOR, fontSize: 22, tag: null };
   if (damage <= 0) return null;
+<<<<<<< HEAD
   if (info?.tick) {
     const col = TYPE_COLORS[info.type] ?? TYPE_COLORS.physical;
     return { text: `${damage}`, color: col, fontSize: 18, tag: null };
   }
+=======
+>>>>>>> origin/main
   const crit = info?.crit === true;
   const color = info?.resist
     ? RESIST_COLOR
