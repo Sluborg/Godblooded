@@ -379,7 +379,7 @@ function tierUpLair(
     tier: lair.tier,
     ...(pressure ? { pressure: true } : {}),
   });
-  planTierRaid(world, lair);
+  planTierRaid(world, lair, pressure);
 }
 
 function runLairs(world: World): void {

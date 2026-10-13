@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { planTierRaid } from './town';
 import { createWorld, snapshot, step, TICK_MS, type GameData, type SimEvent } from './api';
 
 const attrs = { str: 1, dex: 1, sta: 1, cha: 1, per: 1, int: 1, wp: 1 };
@@ -77,7 +78,7 @@ describe('raid after a lair tier-up', () => {
   it('a lair that tiers up sends one raid of its own, announced first', () => {
     const w = createWorld(
       1,
-      mk({ raidFirstMs: 10_000_000 }, { tierUpEveryMs: 20_000, maxTier: 2 }),
+      mk({ raidFirstMs: 10_000_000, raidOnTierUp: true }, { tierUpEveryMs: 20_000, maxTier: 2 }),
     );
     const ev = run(w, 40_000);
     expect(of(ev, 'lairTierUp')).toHaveLength(1);
@@ -88,10 +89,10 @@ describe('raid after a lair tier-up', () => {
     expect(w.units.filter((u) => w.unitRuntime.get(u.id)?.raidId === warn.raid)).toHaveLength(2);
   });
 
-  it('can be switched off', () => {
+  it('is off by default', () => {
     const w = createWorld(
       1,
-      mk({ raidFirstMs: 10_000_000, raidOnTierUp: false }, { tierUpEveryMs: 20_000, maxTier: 2 }),
+      mk({ raidFirstMs: 10_000_000 }, { tierUpEveryMs: 20_000, maxTier: 2 }),
     );
     expect(of(run(w, 40_000), 'raid')).toHaveLength(0);
   });
@@ -114,5 +115,26 @@ describe('the town cheers', () => {
       { kind: 'raidBeaten', raid: expect.any(Number), gold: 20 },
     ]);
     expect(w.gold).toBe(gold + 20);
+  });
+});
+
+describe('a raid whose lair falls', () => {
+  it('is cancelled with an event instead of arriving', () => {
+    const w = createWorld(1, mk());
+    run(w, 46_000);
+    const lair = w.lairs[0];
+    w.lairs = [];
+    w.lairRuntime.delete(lair.id);
+    const ev = run(w, 16_000);
+    expect(of(ev, 'raidCancelled')).toHaveLength(1);
+    expect(of(ev, 'raid')).toHaveLength(0);
+  });
+
+  it('a pressure tier-up sends no raid even with the option on', () => {
+    const w = createWorld(1, mk({ raidFirstMs: 10_000_000, raidOnTierUp: true }));
+    planTierRaid(w, w.lairs[0], true);
+    expect(w.raidPlans).toHaveLength(0);
+    planTierRaid(w, w.lairs[0]);
+    expect(w.raidPlans).toHaveLength(1);
   });
 });

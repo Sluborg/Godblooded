@@ -181,9 +181,10 @@ export function runRaids(world: World): void {
 }
 
 // A lair that just tiered up raids once on its own (the boss lair never does).
-export function planTierRaid(world: World, lair: LairState): void {
+export function planTierRaid(world: World, lair: LairState, pressure = false): void {
   const t = world.tuning.town;
-  if (!t.raidOnTierUp || lair.boss) return;
+  // A pressure tier-up (heroes put down at the lair) does not also send a raid.
+  if (!t.raidOnTierUp || lair.boss || pressure) return;
   const at = world.timeMs + t.raidWarnMs;
   announceRaid(world, lair, at, t.raidSize + Math.floor(at / t.raidGrowEveryMs), false);
 }
@@ -213,7 +214,12 @@ function announceRaid(
 
 function launchRaid(world: World, plan: { id: number; lair: number; size: number }): void {
   const lair = world.lairs.find((l) => l.id === plan.lair);
-  if (!lair) return;
+  if (!lair) {
+    // The lair fell during the warning: the raid never comes.
+    world.events.push({ kind: 'raidCancelled', raid: plan.id, lair: plan.lair });
+    return;
+  }
+  if (plan.size <= 0) return;
   const def = world.data.lairs?.find((l) => l.id === lair.type);
   // A boss lair raids with its escort, never with clones of the boss.
   const mon = world.data.monsters?.find((m) => m.id === (def?.escort ?? def?.monster));

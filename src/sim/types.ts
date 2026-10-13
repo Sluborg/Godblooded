@@ -1079,6 +1079,8 @@ export type SimEvent =
   | { kind: 'raid'; lair: number; size: number; raid?: number }
   // Every raider of the raid is dead: the town cheers and gets `gold`.
   | { kind: 'raidBeaten'; raid: number; gold: number }
+  // The lair fell before its announced raid left: no raid comes.
+  | { kind: 'raidCancelled'; raid: number; lair: number }
   // A rider took hold on `target` (burn, chill, wither; arc and sear show in the hit itself).
   | { kind: 'rider'; target: number; rider: RiderId; by: number }
   // A hero starts casting a skill; it lands `inMs` later. `say`: Scene shows the skill name.

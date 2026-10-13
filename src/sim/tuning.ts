@@ -167,7 +167,8 @@ export const DEFAULT_TUNING: Tuning = {
     defendHp: 0.5,
     raidWarnMs: 15_000,
     towerWarnAddMs: 5_000,
-    raidOnTierUp: true,
+    // Off by default: it adds a raid per tier-up (Lead's balance pass decides).
+    raidOnTierUp: false,
     raidBeatenGold: 20,
   },
   bounty: {
