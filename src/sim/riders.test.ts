@@ -109,6 +109,40 @@ describe('burn', () => {
   });
 });
 
+describe('rider damage bookkeeping', () => {
+  it('burn ticks and arc jumps count in the attacker damage tally', () => {
+    const w = fresh();
+    const h = hero(w);
+    const a = monster(w, 'rat', 1000, 1000);
+    monster(w, 'rat', 1100, 1000);
+    const rec = w.heroRecords.get(h.id);
+    if (!rec) throw new Error('record');
+    strike(w, h, a, { type: 'lightning', rider: 'arc' });
+    // 20 to the target, 10 to the jump
+    expect(rec.damage).toBe(30);
+    strike(w, h, a, { type: 'fire', rider: 'burn' });
+    expect(rec.damage).toBe(50);
+    run(w, 4_500);
+    // three ticks of 4
+    expect(rec.damage).toBe(62);
+  });
+
+  it('a lethal burn tick removes the monster at once: it never acts on its dead turn', () => {
+    const w = fresh();
+    const h = hero(w);
+    const m = monster(w, 'rat', 1000, 1000);
+    m.hp = 3;
+    strike(w, h, m, { type: 'fire', rider: 'burn', power: 1 });
+    // the strike itself left it alive, with a burn tick of at least 1 due in 1 s
+    expect(m.hp).toBeGreaterThan(0);
+    m.hp = 1;
+    const ev = run(w, 1_200);
+    expect(ev.some((e) => e.kind === 'died' && e.unit === m.id)).toBe(true);
+    expect(w.units.some((u) => u.id === m.id)).toBe(false);
+    expect(w.pendingDeaths).toHaveLength(0);
+  });
+});
+
 describe('chill', () => {
   it('slows movement and attacks by 25% for 3 s, half that on a boss', () => {
     const w = fresh();
