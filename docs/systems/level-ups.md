@@ -108,7 +108,9 @@ stays, option C's auto-pick becomes the rule, option B (fewer, bigger choices) c
 - `docs/decisions.md` 2026-10-04 ("a level up freezes the run"): Lead updates it.
 - `ui-flows.md` section 6, LevelUp row, and its hold-to-peek row and OPEN 1 (updated here).
 - The earlier option C draft of this spec (timeout, Settings toggle "Parties choose for
-  themselves", `autoPick` in the world config): dropped, the auto-pick is always on.
+  themselves", `setAutoPick` command): dropped. Auto-pick is the default; the tuning flag
+  `party.autoPick` (decision 2026-10-13, Sim #171) keeps manual card picks possible later, with
+  no player-facing toggle.
 
 ## 7. Proposed rows
 

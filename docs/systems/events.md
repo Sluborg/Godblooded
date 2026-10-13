@@ -16,7 +16,7 @@ events.
   the heroes to chase: a fallen star, a wandering champion, a merchant caravan.
 - **God favours (the big one, OPEN for Stefan):** built temples fill a favour bar; when full,
   the player taps a pantheon's miracle (Thor's storm, Athena's aegis, Ra's dawn) on the map.
-  It is a fourth lever next to buildings, flags and level-up cards, used about once every 3
+  It is a fourth lever next to buildings, flags and path picks, used about once every 3
   minutes. The alternative: the god acts on its own when the bar fills.
 - All three are data rows on one event clock in Sim; Scene draws a banner, a sky tint and a
   map marker for each.

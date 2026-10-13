@@ -7,8 +7,8 @@ other specs need (`items-and-shops.md`, `buildings.md`, `events.md`, `meta.md`,
 
 ## Bottom line
 
-- **Keep the shipped skeleton:** Boot, Title, Map + Hud, LevelUp, Pause, Settings and the end
-  screen work and stay. This spec adds, it does not rebuild.
+- **Keep the shipped skeleton:** Boot, Title, Map + Hud, Pause, Settings and the end screen
+  work and stay; LevelUp becomes the path tray (`level-ups.md`). This spec adds, it does not rebuild.
 - **Biggest gap first: tapping a building does nothing.** Sim already has the `upgrade`
   command; the building card with an upgrade button is Scene's most valuable next row.
 - **One inspect slot on the right:** the party panel's rectangle (x 940, y 84, 330x480) becomes
@@ -34,7 +34,7 @@ Map + Hud ──Menu──> Pause ──Resume / Restart / Settings / Quit to ti
 - **Modal rule:** at most one modal over the map. Priority when two want the screen: end
   screen, then Pause, then the path tray, then a menu or card. A lower one closes when a higher opens.
 - The sim freezes during Pause, miracle aiming and the end screen; it slows to 30% during
-  the path tray; never during an open card or menu. Upgrade cards never stop the run: the
+  the path tray (or freezes, `level-ups.md` OPEN 1); never during an open card or menu. Upgrade cards never stop the run: the
   party picks its own (`level-ups.md`).
 
 ## 2. HUD layout (1280x720)
