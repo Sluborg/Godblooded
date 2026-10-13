@@ -1,4 +1,4 @@
-// Constants of the unit picture on the map. How each class and monster type looks (size,
+// Constants of the unit picture on the map. How each template and monster type looks (size,
 // footprint, colour, fallback strike) is data: src/data/looks.ts.
 
 // A standard hero is this tall on the map, in world units.
@@ -12,20 +12,26 @@ export function unitArtId(kind: 'hero' | 'monster', type: string, tier: number):
   return `${kind === 'hero' ? 'hero' : 'mon'}_${type}_t${tier}_front`;
 }
 
-// Pictures to try for a unit, best first (decisions 2026-10-05). A hero past tier 1 on a favor
-// path wears `hero_<path>_t<tier>_front` (path ids like `warrior-thor` are the art ids); the
-// class picture of its tier and then the tier 1 picture are the fallbacks, so a missing tier or
-// path picture never drops a unit back to a placeholder while an earlier look exists.
+// Pictures to try for a unit, best first (docs/asset-spec.md, Gods and paths). A hero on a path
+// from tier 2 wears `hero_<path>_t<tier>_front` (path ids carry the god: `thor-hammerborn`); then
+// its god's tier 1 picture; then the tier 1 picture of the hidden template (`type`, the shipped
+// class art); then the placeholder. A missing picture never drops a unit past an earlier look.
 export function artCandidates(
   kind: 'hero' | 'monster',
   type: string,
   tier: number,
   path: string | null = null,
+  god: string | null = null,
 ): string[] {
+  if (kind !== 'hero') {
+    const out = [unitArtId(kind, type, tier)];
+    if (tier > 1) out.push(unitArtId(kind, type, 1));
+    return out;
+  }
   const out: string[] = [];
-  if (kind === 'hero' && path && tier > 1) out.push(unitArtId(kind, path, tier));
-  out.push(unitArtId(kind, type, tier));
-  if (tier > 1) out.push(unitArtId(kind, type, 1));
+  if (path && tier > 1) out.push(unitArtId(kind, path, tier));
+  if (god) out.push(unitArtId(kind, god, 1));
+  out.push(unitArtId(kind, type, 1));
   return out;
 }
 

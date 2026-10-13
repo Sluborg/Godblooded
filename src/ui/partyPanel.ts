@@ -4,7 +4,7 @@ import { COLORS, GAME_WIDTH } from '../config';
 import { GRAYBOX, UPGRADES } from '../data/graybox';
 import type { PartyState, Snapshot, UnitState } from '../sim/api';
 import { makeButton } from './button';
-import { classLabel, modeLabel, partyColor, partyColorCss, traitLabel } from './partyLook';
+import { heroLabel, modeLabel, partyColor, partyColorCss, traitLabel } from './partyLook';
 
 const W = 330;
 const X = GAME_WIDTH - W - 10;
@@ -14,7 +14,7 @@ const FONT = 'Georgia, serif';
 const ROW_H = 78;
 
 // Side panel for the tapped hero's party: level, XP bar, upgrades and one row per member
-// (class, trait, state, hp, gold). Reads the snapshot every frame; owns no rules.
+// (god or path, trait, state, hp, gold). Reads the snapshot every frame; owns no rules.
 export class PartyPanel {
   readonly rect = new Phaser.Geom.Rectangle(X, Y, W, H);
   private objects: Phaser.GameObjects.GameObject[] = [];
@@ -130,7 +130,7 @@ export class PartyPanel {
         add(
           this.scene.add.rectangle(X + W / 2, y + ROW_H / 2 - 4, W - 12, ROW_H - 6, 0xffffff, 0.12),
         );
-      text(X + 16, y + 14, `${classLabel(m.type)} · ${traitLabel(m.trait)}`, 22, COLORS.text);
+      text(X + 16, y + 14, `${heroLabel(m)} · ${traitLabel(m.trait)}`, 22, COLORS.text);
       text(X + W - 16, y + 14, modeLabel(m.mode), 18, COLORS.textMuted, 1);
       const bw = 170;
       add(this.scene.add.rectangle(X + 16 + bw / 2, y + 48, bw, 14, 0x000000, 0.7));

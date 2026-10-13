@@ -13,12 +13,13 @@ import {
   type World,
 } from '../sim/api';
 import { getSettings } from '../ui/settings';
-import { partyColor } from '../ui/partyLook';
+import { heroLabel, partyColor } from '../ui/partyLook';
 import { UnitViews } from '../ui/unitViews';
 import { buildingArtCandidates, buildingScale } from '../ui/unitLook';
 import { ASSETS_KEY, type ManifestAsset } from '../ui/assets';
 import { OFFER_KEY, type LevelUpOffer } from './LevelUpScene';
 import { attachCameraControls } from '../ui/cameraControls';
+import { easeToward, WatchDirector } from '../ui/watchCam';
 import type { HudScene } from './HudScene';
 
 const BUILDING_COLORS: Record<string, number> = {
@@ -55,6 +56,10 @@ export class MapScene extends Phaser.Scene {
   private links!: Phaser.GameObjects.Graphics;
   // Party whose level-up cards are open (the sim is frozen until it is picked), or null.
   private offerKey: string | null = null;
+  // Camera mode: by hand, watching the best fight, or following one hero (until it is gone).
+  private cam: 'off' | 'watch' | 'unit' = 'off';
+  private followId = 0;
+  private director = new WatchDirector();
   private views = new Map<string, Phaser.GameObjects.GameObject>();
 
   constructor() {
@@ -75,9 +80,14 @@ export class MapScene extends Phaser.Scene {
     attachCameraControls(this, {
       minZoom,
       onTap: (w) => this.events.emit('mapTapped', this.resolveTap(w)),
+      onManual: () => this.setWatch(false),
       blocked: (x, y) => this.registry.get('modal') === true || (this.hud()?.blocks(x, y) ?? false),
     });
     this.offerKey = null;
+    this.cam = 'off';
+    this.followId = 0;
+    this.director.reset();
+    this.registry.set('camMode', 'off');
     this.registry.set('modal', false);
     this.unitViews = new UnitViews(this, () => {
       if (!getSettings().reducedMotion) this.cameras.main.shake(130, 0.004);
@@ -99,6 +109,42 @@ export class MapScene extends Phaser.Scene {
     this.syncOffer();
     // Motion runs at the game speed, but not past 2x: a 4x swing would be a blur.
     this.sync(deltaMs * Math.min(speed, 2));
+    this.updateCamera(deltaMs);
+  }
+
+  // Watch on: the camera drifts to the most interesting fight. Off: back to by hand.
+  setWatch(on: boolean): void {
+    this.cam = on ? 'watch' : 'off';
+    this.followId = 0;
+    this.director.reset();
+    this.registry.set('camMode', this.cam);
+  }
+
+  // Follow one hero until it leaves the map or the player drags.
+  followUnit(id: number): void {
+    this.cam = 'unit';
+    this.followId = id;
+    this.registry.set('camMode', 'unit');
+  }
+
+  private updateCamera(dtMs: number): void {
+    if (this.cam === 'off') return;
+    let target: Vec2 | null;
+    if (this.cam === 'unit') {
+      const u = this.snap.units.find((x) => x.id === this.followId);
+      if (!u) return this.setWatch(false);
+      target = u.pos;
+    } else {
+      target =
+        this.director.update(this.snap.units, dtMs, [
+          ...this.snap.lairs.map((l) => l.id),
+          ...this.snap.buildings.map((b) => b.id),
+        ])?.center ?? null;
+    }
+    if (!target) return;
+    const cam = this.cameras.main;
+    const next = easeToward({ x: cam.midPoint.x, y: cam.midPoint.y }, target, dtMs);
+    cam.centerOn(next.x, next.y);
   }
 
   // Level-up cards open while any party has an offer and close when the sim accepts a pick. A
@@ -125,7 +171,8 @@ export class MapScene extends Phaser.Scene {
         level: party.level,
         size: party.members.length,
         upgrades: [],
-        pathHero: hero?.type ?? 'hero',
+        pathHero: hero ? heroLabel(hero) : 'A hero',
+        pathGod: hero?.god ?? null,
         paths: po.options.flatMap((id) => {
           const p = this.snap.paths.find((x) => x.id === id);
           return p ? [{ id: p.id, god: p.god, name: p.name, pantheon: p.pantheon }] : [];
@@ -177,7 +224,10 @@ export class MapScene extends Phaser.Scene {
       .map((u) => ({ u, d: Math.hypot(u.pos.x - w.x, u.pos.y - w.y) }))
       .filter(({ d }) => d < TARGET_RADIUS)
       .sort((a, b) => a.d - b.d)[0];
-    if (hero) return { plot: null, hero: hero.u.id, target: null };
+    if (hero) {
+      this.followUnit(hero.u.id);
+      return { plot: null, hero: hero.u.id, target: null };
+    }
     const building = this.buildingAt(w);
     if (building !== null) return { plot: null, building, target: null };
     const hit = [...this.snap.units, ...this.snap.lairs]
@@ -278,6 +328,7 @@ export class MapScene extends Phaser.Scene {
     );
     this.drawLinks();
     for (const e of this.snap.events) {
+      if (e.kind === 'lairTierUp') this.lairGrows(e.lair, e.tier);
       if (e.kind !== 'hit') continue;
       const view = this.views.get(`b${e.target}`) ?? this.views.get(`l${e.target}`);
       if (view && !e.dodged)
@@ -308,6 +359,51 @@ export class MapScene extends Phaser.Scene {
   }
 
   // While a hero is selected, its party's pick is drawn as lines to the flags they head for.
+  // A lair reaching a new tier: it swells, a red ring spreads and a label rises.
+  private lairGrows(id: number, tier: number): void {
+    const lair = this.snap.lairs.find((l) => l.id === id);
+    if (!lair) return;
+    const view = this.views.get(`l${id}`);
+    if (view && !getSettings().reducedMotion)
+      this.tweens.add({
+        targets: view,
+        scale: 1.25,
+        duration: 220,
+        yoyo: true,
+        ease: 'Sine.easeOut',
+      });
+    const { x, y } = lair.pos;
+    const ring = this.add
+      .circle(x, y, 30, 0x000000, 0)
+      .setStrokeStyle(6, 0xd9534f, 0.9)
+      .setDepth(1_000_000);
+    this.tweens.add({
+      targets: ring,
+      scale: getSettings().reducedMotion ? 3 : 7,
+      alpha: 0,
+      duration: 700,
+      onComplete: () => ring.destroy(),
+    });
+    const label = this.add
+      .text(x, y - 90, `${lair.type} lair grows (tier ${tier})`, {
+        fontFamily: 'Georgia, serif',
+        fontSize: '28px',
+        color: '#ff9a8a',
+        stroke: '#000000',
+        strokeThickness: 5,
+      })
+      .setOrigin(0.5)
+      .setDepth(1_000_000);
+    this.tweens.add({
+      targets: label,
+      y: label.y - 50,
+      alpha: 0,
+      delay: 600,
+      duration: 900,
+      onComplete: () => label.destroy(),
+    });
+  }
+
   private drawLinks(): void {
     this.links.clear();
     const selected = this.snap.units.find((u) => u.id === this.registry.get('selectedUnit'));
