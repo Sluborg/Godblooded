@@ -54,6 +54,10 @@ picture: argue, revenge, avenged, partyFormed, bountyClaimed.
 
 - **Event** `intent { party, kind, target?, pos? }` whenever the party leader's intent changes;
   the snapshot carries `party.intent` for Scene.
+- **A member who breaks from the plan shows its own intent:** `unit.intent` is set whenever a
+  hero's own goal differs from its party's (an oath, a solo flee, a proud hero staying in a
+  retreat, a loyal hero guarding a fallen mate). Scene draws that hero's icon over the hero
+  itself; the party banner keeps the party's.
 - A tapped hero (party card open) also draws a thin dotted line to the intent's target (today
   only flags have lines).
 
@@ -70,11 +74,20 @@ Every option a party leader (or a hero alone) can take gets one score; the highe
 | rest    | (1 - hp share) x 100 (only below 70% hp)         | 0                                                             |
 
 - **Commit:** once chosen, an option holds for at least 6 s, and is replaced only by one
-  scoring at least 25% higher. Flags no longer flip each second.
+  scoring at least `current + max(10, 25% of |current|)` (an additive margin, so it works for
+  zero and negative scores). Options scoring 0 or less are never picked, except explore,
+  whose score is clamped to at least 1 so a hero always has something to do. Flags no longer
+  flip each second.
 - **Distance** (world units) is now part of every choice: a 100-gold flag 1500 away is worth
   about a 25-gold flag next door.
-- **Explore picks the nearest unexplored lair first**, then fog, never a random spot across
-  the map.
+- **Discovery (new state):** each lair has `discovered` (false at the start, except lairs
+  within 600 of the town hall); a lair becomes discovered when any hero comes within 400 of it.
+  The map is split into 200 x 200 cells, each `explored` once a hero passes within 150 of its
+  centre. Only discovered lairs can be scored as the lair option; explore picks the nearest
+  unexplored cell (fog value 30) and, when every cell is explored, a random discovered lair's
+  surroundings (value 20). Both live in the snapshot (`lair.discovered`, `exploredCells` as a
+  bitset) and in the save (bump the save version, migrate old saves to everything
+  discovered).
 - **A lair within 350 no longer overrides** a committed flag; it competes by score.
 - Re-scoring runs every 1 s as today; the same seeded RNG breaks ties.
 
@@ -98,9 +111,12 @@ Every option a party leader (or a hero alone) can take gets one score; the highe
 
 ## 5. Fix 4: retreat as a party
 
-- **Party retreat:** when half the party (rounded up) is below its flee threshold, or the
-  leader flees, the whole party returns together (intent "retreat", a horn note). No bond
-  loss for a party retreat.
+- **Party retreat:** count only the members still in the fight (a hero who already fled alone
+  is out of the count). When half of them (rounded up) are below the party's base flee
+  threshold (`baseFlee` and upgrades, without trait multipliers), the whole party returns
+  together (intent "retreat", a horn note). No bond loss for a party retreat. The leader has
+  no special clause: a coward leader runs alone like any coward, and the party picks a new
+  leader for the fight (the next member in order).
 - **The coward still runs alone** at its higher threshold, earlier than the party; that solo
   flee keeps today's bond -1, and it is the moment the player remembers.
 - **Proud** stays until 20% even in a party retreat (and catches up after).
@@ -116,26 +132,28 @@ Every option a party leader (or a hero alone) can take gets one score; the highe
 
 ## 7. Proposed data rows
 
-| Row          | Fields                                                                                                                                                                             |
-| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| tuning.ai    | `distanceCost` 0.05, `exploreDistanceCost` 0.02, `commitMs` 6000, `switchMargin` 0.25, `exploreValue` 20, `fogValue` 30, `lairXpWeight` 0.5, `restBelow` 0.7, `shopGoldWeight` 0.3 |
-| tuning.party | `retreatShare` 0.5, `braveChargeSpeed` 1.2, `braveChargeMs` 3000, `cowardHangBack` 60, `proudRetreatAt` 0.2                                                                        |
-| TraitDef     | new table: `id`, `goldMult`, `fearMult`, `fleeMult`, `exploreMult`, `behaviours` (keys above), `arrivalLine`                                                                       |
-| GodDef       | `traitWeights` (optional; OPEN 2)                                                                                                                                                  |
-| events       | `intent`, `defend`, `partyRetreat`                                                                                                                                                 |
+| Row          | Fields                                                                                                                                                                                             |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| tuning.ai    | `distanceCost` 0.05, `exploreDistanceCost` 0.02, `commitMs` 6000, `switchMargin` 0.25, `switchMin` 10, `exploreValue` 20, `fogValue` 30, `lairXpWeight` 0.5, `restBelow` 0.7, `shopGoldWeight` 0.3 |
+| tuning.party | `retreatShare` 0.5, `braveChargeSpeed` 1.2, `braveChargeMs` 3000, `cowardHangBack` 60, `proudRetreatAt` 0.2                                                                                        |
+| TraitDef     | new table: `id`, `goldMult`, `fearMult`, `fleeMult`, `exploreMult`, `behaviours` (keys above), `arrivalLine`                                                                                       |
+| GodDef       | `traitWeights` (optional; OPEN 2)                                                                                                                                                                  |
+| state        | `lair.discovered`, `exploredCells` (snapshot and save), `unit.intent`; tuning `discoverRange` 400, `startDiscovered` 600, `cellSize` 200, `exploreRange` 150                                       |
+| events       | `intent`, `defend`, `partyRetreat`                                                                                                                                                                 |
 
 ## 8. Proposed backlog rows
 
 ### Sim
 
-| Order | Row                                                                                                      |
-| ----- | -------------------------------------------------------------------------------------------------------- |
-| 10    | `intent` on the party in the snapshot and as an event                                                    |
-| 20    | Score-and-commit choice (flag, lair, explore, shop, rest) with distance; explore nearest unexplored lair |
-| 30    | Party retreat; coward solo flee keeps the bond cost                                                      |
-| 40    | Trait behaviours: brave charge, coward hang back, proud biggest foe, curious fog, loyal guard            |
-| 50    | Defend tied to buildings; `defend` event                                                                 |
-| 60    | TraitDef as data; optional god trait weights                                                             |
+| Order | Row                                                                                                    |
+| ----- | ------------------------------------------------------------------------------------------------------ |
+| 10    | `intent` on the party in the snapshot and as an event                                                  |
+| 20    | Score-and-commit choice (flag, lair, explore, shop, rest) with distance and the additive switch margin |
+| 25    | Discovery: `lair.discovered`, explored cells, snapshot and save (version bump), unit intent overrides  |
+| 30    | Party retreat; coward solo flee keeps the bond cost                                                    |
+| 40    | Trait behaviours: brave charge, coward hang back, proud biggest foe, curious fog, loyal guard          |
+| 50    | Defend tied to buildings; `defend` event                                                               |
+| 60    | TraitDef as data; optional god trait weights                                                           |
 
 ### Scene
 
