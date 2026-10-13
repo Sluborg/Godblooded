@@ -308,9 +308,9 @@ describe('skill engine, review round 2', () => {
     const w = createWorld(1, mkData(k));
     const h = hero(w);
     h.mode = 'rest';
-    w.recentKills.push({ pos: { ...h.pos }, timeMs: w.timeMs, by: 9999 });
+    w.recentKills.push({ pos: { ...h.pos }, timeMs: w.timeMs, by: 9999, type: 'rat', tier: 1 });
     expect(of(run(w, 500), 'cast')).toHaveLength(0);
-    w.recentKills.push({ pos: { ...h.pos }, timeMs: w.timeMs, by: h.id });
+    w.recentKills.push({ pos: { ...h.pos }, timeMs: w.timeMs, by: h.id, type: 'rat', tier: 1 });
     h.mode = 'explore';
     expect(of(run(w, 200), 'cast').length).toBeGreaterThan(0);
   });
