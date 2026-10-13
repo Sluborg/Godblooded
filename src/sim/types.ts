@@ -365,6 +365,14 @@ export interface PartyTuning {
   rarity: { low: number[]; mid: number[]; high: number[] };
   bondCap: number;
   baseFlee: number;
+  // Half of the members in combat (retreatShare, rounded up) below the retreat line, baseFlee plus
+  // retreatMargin, make the whole party retreat together; a proud hero holds on until
+  // proudRetreatAt of its hp.
+  retreatShare: number;
+  retreatMargin: number;
+  // A party retreat needs at least this many members actually in combat.
+  retreatMinFighting: number;
+  proudRetreatAt: number;
   // Rivalries: heroes whose bond is at or below this are rivals (bonds run from -3 up).
   rivalBelow: number;
   // Rivals this close argue, at most once per argueEveryMs per pair.
@@ -745,8 +753,26 @@ export interface TownTuning {
   raidLairs: number;
   // Raids get one monster bigger per lair every this many ms.
   raidGrowEveryMs: number;
-  // A resting hero at or above this hp fraction rejoins the fight when raiders come near.
+  // A resting hero at or above this hp fraction rejoins the fight when a monster comes within
+  // defendRange of the town hall.
   defendHp: number;
+  defendRange: number;
+}
+
+// How a hero chooses (docs/systems/hero-ai.md section 3): flag, lair and explore all get a score;
+// the best wins and holds for commitMs, and is replaced only by one that beats it by
+// max(switchMin, switchMargin x |current|).
+export interface AiTuning {
+  // Score lost per world unit to a flag or a lair, and to an explore point.
+  distanceCost: number;
+  exploreDistanceCost: number;
+  commitMs: number;
+  switchMargin: number;
+  switchMin: number;
+  // What exploring is worth.
+  exploreValue: number;
+  // A lair's xp counts this much next to its gold.
+  lairXpWeight: number;
 }
 
 export interface BountyTuning {
@@ -820,6 +846,7 @@ export interface Tuning {
   skill: SkillTuning;
   save: SaveTuning;
   stats: StatsTuning;
+  ai: AiTuning;
   favour: FavourTuning;
   town: TownTuning;
   bounty: BountyTuning;
@@ -858,6 +885,7 @@ export interface GameData {
     boss?: Partial<BossTuning>;
     save?: Partial<SaveTuning>;
     stats?: Partial<StatsTuning>;
+    ai?: Partial<AiTuning>;
     favour?: Partial<FavourTuning>;
     town?: Partial<TownTuning>;
     bounty?: Partial<BountyTuning>;
@@ -949,6 +977,16 @@ export interface UnitState {
 
 export type UnitMode = 'wander' | 'explore' | 'return' | 'rest' | 'shop' | 'ko';
 
+export type IntentKind =
+  'flag' | 'lair' | 'revenge' | 'explore' | 'retreat' | 'shop' | 'rest' | 'defend';
+
+// What a party is heading for: a flag or lair by id, with the place when it has one.
+export interface PartyIntent {
+  kind: IntentKind;
+  target?: number;
+  pos?: Vec2;
+}
+
 export interface PartyState {
   id: number;
   members: number[];
@@ -962,6 +1000,8 @@ export interface PartyState {
   // A hero with several free paths waits for pickPath (one hero at a time). While set,
   // pickUpgrade is refused: the path card comes first.
   pathOffer: { hero: number; options: string[] } | null;
+  // What the party is doing now (its leader's intent), for the icon over its banner.
+  intent: PartyIntent;
 }
 
 export interface PathState {
@@ -1109,6 +1149,12 @@ export type SimEvent =
   // A hero drank a potion (`left` still carried) and healed `amount`.
   | { kind: 'drank'; unit: number; amount: number; left: number }
   | { kind: 'shopped'; unit: number; spent: number; tax: number; item?: string }
+  // A party's intent changed (its leader chose a flag or a lair, retreats, rests ...).
+  | { kind: 'intent'; party: number; intent: PartyIntent }
+  // The party falls back together: these heroes turn for home (no bond is lost).
+  | { kind: 'partyRetreat'; party: number; units: number[] }
+  // A resting hero rejoins to defend the town.
+  | { kind: 'defend'; unit: number }
   // The seal on a boss lair broke: it can be attacked now.
   | { kind: 'bossLairUnsealed'; lair: number; by: 'time' | 'lairs' }
   // A god starts its miracle at `pos`; it lands after `tellMs` (Scene draws the tell).
