@@ -94,3 +94,5 @@ B7 | 2026-10-05T05:45:55.456Z | buildings | bld_townhall_t1, bld_market_t1, bld_
 A1 | 2026-10-05T06:31:44Z | heroes | started
 
 V1 | 2026-10-13T17:46:33.551Z | monsters | started
+
+B9 | 2026-10-13T17:46:48.133Z | buildings | started
