@@ -105,7 +105,7 @@ Every option a party leader (or a hero alone) can take gets one score; the highe
 
 - **Trait shown at arrival:** the first speech line of a new hero names the trait in voice
   ("Gold first, glory after." for greedy).
-- **Traits by god (OPEN 2):** today random. Proposal: each god weights two traits x2 (Ares
+- **Traits by god (decided):** today random. Each god weights two traits x2 (Ares
   brave and proud, Loki greedy and curious, Freyja loyal and brave, Odin curious and proud,
   Thor brave and vengeful), so a god's children feel alike without being the same.
 
@@ -137,7 +137,7 @@ Every option a party leader (or a hero alone) can take gets one score; the highe
 | tuning.ai    | `distanceCost` 0.05, `exploreDistanceCost` 0.02, `commitMs` 6000, `switchMargin` 0.25, `switchMin` 10, `exploreValue` 20, `fogValue` 30, `lairXpWeight` 0.5, `restBelow` 0.7, `shopGoldWeight` 0.3 |
 | tuning.party | `retreatShare` 0.5, `braveChargeSpeed` 1.2, `braveChargeMs` 3000, `cowardHangBack` 60, `proudRetreatAt` 0.2                                                                                        |
 | TraitDef     | new table: `id`, `goldMult`, `fearMult`, `fleeMult`, `exploreMult`, `behaviours` (keys above), `arrivalLine`                                                                                       |
-| GodDef       | `traitWeights` (optional; OPEN 2)                                                                                                                                                                  |
+| GodDef       | `traitWeights` (decided)                                                                                                                                                                           |
 | state        | `lair.discovered`, `exploredCells` (snapshot and save), `unit.intent`; tuning `discoverRange` 400, `startDiscovered` 600, `cellSize` 200, `exploreRange` 150                                       |
 | events       | `intent`, `defend`, `partyRetreat`                                                                                                                                                                 |
 
@@ -169,8 +169,8 @@ Every option a party leader (or a hero alone) can take gets one score; the highe
 | ----- | ---------------------------------------------------- |
 | 10    | 8 intent icons and 7 trait icons in the UI kit style |
 
-## OPEN (Stefan decides)
+## Decided (Stefan, 2026-10-13)
 
-1. **Party retreat** (recommendation), or keep every hero fleeing on its own?
-2. **Traits weighted by god** (Ares's children braver, Loki's greedier), or fully random?
-3. **Curious loses its gold bonus** for a love of the unknown: fine?
+1. **Party retreat,** with the coward still fleeing alone.
+2. **Traits weighted by god** (two traits x2 per god).
+3. **Curious loses its gold bonus** for a love of the unknown.

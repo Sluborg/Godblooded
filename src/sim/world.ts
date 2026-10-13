@@ -1,12 +1,15 @@
 import { avenge, revengeTarget, rivalPairs, vowRevenge } from './rivalry';
 import { runAutosave } from './save';
 import { generateMap } from './mapgen';
+import { deathChance, koBonds, koGoldLost, slayHero } from './deaths';
 import { buffOf, tauntOf, type UnitFx } from './effects';
 import { armourBonus, weaponPower } from './items';
+import { passiveRider } from './passives';
 import { everyNthOf, passiveAggroMult, passiveArmour } from './passives';
 import { noteFight } from './engage';
 import { runStatuses, slowOf, healMult, type UnitStatus } from './riders';
 import { attackStrike, landStrike } from './strike';
+import { cancelDrink, runDrink } from './potions';
 import { cancelCast, runSkill, supportEffect, tickSkill, type SkillRuntime } from './skills';
 import { swing, type Area } from './swing';
 import {
@@ -63,6 +66,7 @@ import {
 } from './units';
 import type {
   BountyState,
+  GraveState,
   BuildingCore,
   Command,
   CommandResult,
@@ -113,6 +117,8 @@ export interface UnitRuntime {
   skill?: SkillRuntime;
   // Shield, mark, taunt and buffs from skills (see effects.ts).
   fx?: UnitFx;
+  // A potion being drunk: time left (see potions.ts).
+  drink?: { ms: number };
   // The fight this unit is in: kills so far, whether its first-hit miss is spent, strikes landed.
   fight?: { kills: number; missUsed: boolean; strikes: number };
 }
@@ -143,6 +149,8 @@ export interface World {
   parties: Map<number, Party>;
   bonds: Map<string, number>;
   pendingDeaths: { victim: number; by: number }[];
+  // Where heroes were slain.
+  graves: GraveState[];
   // Monsters that died lately, for `kill` skill triggers.
   recentKills: { pos: Vec2; timeMs: number; by: number }[];
   nextRaidMs: number;
@@ -183,6 +191,7 @@ export function createWorld(seed: number, data: GameData): World {
     parties: new Map(),
     bonds: new Map(),
     pendingDeaths: [],
+    graves: [],
     recentKills: [],
     nextRaidMs: 0,
     stats: {
@@ -253,13 +262,18 @@ export function step(world: World, dtMs: number): void {
   if (world.status !== 'running' || dtMs <= 0) return;
   world.accumulatorMs += dtMs;
   let ticks = 0;
-  // The run waits while a party has a level-up pick pending.
-  while (world.accumulatorMs >= TICK_MS && ticks < MAX_TICKS_PER_STEP) {
-    if (hasPendingPick(world)) {
+  // The run slows to `offerSlowdown` of its speed while a party has a pick pending (0: it
+  // waits). A tick then costs TICK_MS / slowdown of real time.
+  const slow = world.tuning.party.offerSlowdown;
+  for (;;) {
+    const pending = hasPendingPick(world);
+    if (pending && slow <= 0) {
       world.accumulatorMs = 0;
       return;
     }
-    world.accumulatorMs -= TICK_MS;
+    const cost = pending ? TICK_MS / slow : TICK_MS;
+    if (world.accumulatorMs + 1e-6 < cost || ticks >= MAX_TICKS_PER_STEP) break;
+    world.accumulatorMs -= cost;
     runTick(world);
     ticks++;
   }
@@ -415,6 +429,7 @@ function runUnits(world: World): void {
     if (unit.ko) {
       rt.swing = undefined;
       cancelCast(rt);
+      cancelDrink(rt);
       continue;
     }
     rt.cooldownMs = Math.max(0, rt.cooldownMs - TICK_MS);
@@ -430,8 +445,16 @@ function runUnits(world: World): void {
     // A hero with a skill ready casts instead of its next strike or step.
     let casting = false;
     if (unit.kind === 'hero') {
-      if (busy) cancelCast(rt);
-      else casting = runSkill(world, unit, rt, foe);
+      if (busy) {
+        cancelCast(rt);
+        cancelDrink(rt);
+      } else if (runDrink(world, unit, rt, foe)) {
+        // Drinking comes before casting, striking and moving.
+        cancelCast(rt);
+        casting = true;
+      } else {
+        casting = runSkill(world, unit, rt, foe);
+      }
     }
     if (casting) {
       rt.swing = undefined;
@@ -540,7 +563,11 @@ function fight(world: World, unit: UnitState, rt: UnitRuntime, stats: Stats, foe
     (area) => {
       if (boss) boss.rt.strikes++;
       if (cleave && area) cleaveStrike(world, unit, foe, stats, area);
-      else landStrike(world, unit, foe, attackStrike(stats, targetOf(world, foe)));
+      else {
+        const input = attackStrike(stats, targetOf(world, foe));
+        const rider = unit.kind === 'hero' ? passiveRider(world, unit) : undefined;
+        landStrike(world, unit, foe, rider ? { ...input, rider } : input);
+      }
       // A passive that adds effects to every nth strike.
       const nth = everyNthOf(world, unit);
       if (nth && foe.hp > 0) {
@@ -561,17 +588,42 @@ function fight(world: World, unit: UnitState, rt: UnitRuntime, stats: Stats, foe
 
 function settleDeaths(world: World): void {
   const settled = new Set<number>();
+  const slainIds = new Set<number>();
   for (const { victim, by } of world.pendingDeaths) {
     const unit = world.units.find((u) => u.id === victim);
     if (!unit || unit.ko || settled.has(victim)) continue;
     settled.add(victim);
     if (unit.kind === 'hero') {
-      unit.ko = true;
       unit.target = null;
-      heroKnockedOut(world, unit);
       world.stats.knockouts++;
       tally(world, unit.id, 'knockouts');
-      world.events.push({ kind: 'knockout', unit: unit.id, by });
+      const goldLost = koGoldLost(world, unit);
+      koBonds(world, unit);
+      // A boss, or a tier 3 lair monster, may kill for good (no roll for anyone else).
+      const chance = deathChance(world, unit, by);
+      const slain = chance !== undefined && world.rng() < chance;
+      if (slain) {
+        world.events.push({
+          kind: 'slain',
+          unit: unit.id,
+          by,
+          type: unit.type,
+          god: unit.god,
+          pos: { ...unit.pos },
+          ...(goldLost > 0 ? { goldLost } : {}),
+        });
+        slayHero(world, unit);
+        slainIds.add(unit.id);
+      } else {
+        unit.ko = true;
+        heroKnockedOut(world, unit);
+        world.events.push({
+          kind: 'knockout',
+          unit: unit.id,
+          by,
+          ...(goldLost > 0 ? { goldLost } : {}),
+        });
+      }
       // A lair's monsters count the heroes they put down (pressure growth).
       const lairId = world.unitRuntime.get(by)?.lair;
       const lrt =
@@ -601,7 +653,7 @@ function settleDeaths(world: World): void {
   }
   world.pendingDeaths = [];
   world.units = world.units.filter((u) => {
-    const gone = u.kind === 'monster' && u.hp <= 0;
+    const gone = (u.kind === 'monster' && u.hp <= 0) || slainIds.has(u.id);
     if (gone) world.unitRuntime.delete(u.id);
     return !gone;
   });
@@ -723,6 +775,7 @@ export function snapshot(world: World): Snapshot {
       ...(u.items ? { items: { ...u.items } } : {}),
     })),
     bounties: world.bounties.map((b) => ({ ...b, pos: { ...b.pos } })),
+    graves: world.graves.map((g) => ({ ...g, pos: { ...g.pos } })),
     rivals: rivalPairs(world),
     map: { lean: [...world.mapLean], boss: world.bossLair },
     report: buildReport(world),

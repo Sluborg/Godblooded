@@ -10,7 +10,7 @@ import type { GameData } from './types';
 // Changing the shape of the world (a new field is fine, it falls back to its fresh value; a
 // renamed, removed or reinterpreted one is not) bumps SAVE_VERSION and adds a migration.
 
-export const SAVE_VERSION = 2;
+export const SAVE_VERSION = 3;
 
 export interface SaveGame {
   version: number;
@@ -39,6 +39,23 @@ const MIGRATIONS: Record<number, (save: SaveGame) => SaveGame> = {
       }
     }
     return { ...save, version: 2 };
+  },
+  // 2 to 3 (Sim 300): potions keep their own heal (`flasks`) instead of one `potionId`.
+  2: (save) => {
+    const units = save.world.units;
+    if (Array.isArray(units)) {
+      for (const u of units as Record<string, unknown>[]) {
+        const items =
+          u && u.kind === 'hero' ? (u.items as Record<string, unknown> | undefined) : undefined;
+        if (!items) continue;
+        const id = items.potionId;
+        if (typeof id === 'string' && typeof items.potions === 'number' && items.potions > 0) {
+          items.flasks = Array<string>(items.potions).fill(id);
+        }
+        delete items.potionId;
+      }
+    }
+    return { ...save, version: 3 };
   },
 };
 

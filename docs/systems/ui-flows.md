@@ -14,7 +14,7 @@ other specs need (`items-and-shops.md`, `buildings.md`, `events.md`, `meta.md`,
 - **One inspect slot on the right:** the party panel's rectangle (x 940, y 84, 330x480) becomes
   the one place for every card: party, hero, building, shop, bounty flag. One open at a time.
 - **Thumb zones:** frequent taps live at the edges, low: the build and bounty menus bottom
-  centre (as today), miracles bottom left (left thumb), the inspect slot right (right thumb).
+  centre (as today), the inspect slot right (right thumb).
   The top bar keeps glanceable info and rare buttons.
 - **New screens for the meta and events specs:** the Hall (unlocks, Saga), the Trial picker,
   the end screen's unlock cards and a Title button.
@@ -24,7 +24,7 @@ other specs need (`items-and-shops.md`, `buildings.md`, `events.md`, `meta.md`,
 ```
 Boot ──> Title ──Play──> [Trial picker, after the first win] ──> Map + Hud
            │  ├─Continue (Map asleep, run not over) ──> Map + Hud
-           │  ├─Hall (new) ──> tabs: Pantheons, Buildings, Cards, Saga ──Back──> Title
+           │  ├─Hall (new) ──> tabs: Altar, Pantheons, Buildings, Cards, Saga ──Back──> Title
            │  └─Settings ──Back──> (where it came from)
 Map + Hud ──Menu──> Pause ──Resume / Restart / Settings / Quit to title
           ──path offer──> path tray over the map (run at 30%) ──pick──> Map
@@ -33,8 +33,7 @@ Map + Hud ──Menu──> Pause ──Resume / Restart / Settings / Quit to ti
 
 - **Modal rule:** at most one modal over the map. Priority when two want the screen: end
   screen, then Pause, then the path tray, then a menu or card. A lower one closes when a higher opens.
-- The sim freezes during Pause, miracle aiming and the end screen; it slows to 30% during
-  the path tray (or freezes, `level-ups.md` OPEN 1); never during an open card or menu. Upgrade cards never stop the run: the
+- The sim freezes during Pause and the end screen; it slows to 30% during the path tray; never during an open card or menu. Upgrade cards never stop the run: the
   party picks its own (`level-ups.md`).
 
 ## 2. HUD layout (1280x720)
@@ -46,13 +45,12 @@ Map + Hud ──Menu──> Pause ──Resume / Restart / Settings / Quit to ti
 | Next to the clock | x 700-760, y 16-56       | active omen icon; tap shows its banner again                                          |
 | Banner line       | centre, y 112            | events today (raid, destroyed); plus raid warning, omen, unlocks                      |
 | Inspect slot      | x 940-1270, y 84-564     | party panel today; also hero, building, shop, flag cards (section 4)                  |
-| Miracle column    | x 16-96, y 400-704       | up to 3 miracle buttons 80x80, 16 apart, bottom up; dim until the bar is full         |
 | Menu strip        | bottom centre, y 600-708 | build menu, bounty menu (today), rebuild menu (new)                                   |
 | Toast             | centre, y 640            | today; moves up to y 580 while a menu strip is open                                   |
 | Map edges         | any edge                 | raid warning arrows (`events.md`)                                                     |
 
-- `Hud.blocks()` (today: top bar, end screen, panel, menu) also covers the miracle column and
-  the favour bars.
+- `Hud.blocks()` (today: top bar, end screen, panel, menu) also covers the favour bars.
+- No miracle buttons: the gods cast on their own (`events.md`, decision 2026-10-13).
 - The party colour, tier and elite rings on the map are Scene rows in the other specs.
 
 ## 3. What each tap does on the map
@@ -70,7 +68,6 @@ hero stands on its building's spot, and the hero is the more specific target.
 | 60    | a monster or lair (within 70)    | bounty menu on it (today)                                   |
 | 70    | bare ground                      | bounty menu on the spot (today)                             |
 
-- **While aiming a miracle:** the next map tap casts there; the miracle button cancels.
 - **With a menu open:** a tap on bare ground closes it (today).
 - Drag pans, pinch zooms, any camera move stops the watch camera (today). No long-press: every
   action stays one tap, to be predictable on a phone.
@@ -102,15 +99,14 @@ slot. Today's header is 190 px and the fourth row spills below the slot.
 
 ## 6. Modal screens
 
-| Screen             | Today                                                 | Change                                                                                                                        |
-| ------------------ | ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| LevelUp            | path cards, then 3 upgrade cards; no close            | replaced: upgrades are auto-picked and celebrated on the map; paths use a tray at the bottom, the run at 30% (`level-ups.md`) |
-| Pause              | Resume, Restart, Settings, Quit to title              | unchanged                                                                                                                     |
-| Settings           | default speed, reduced motion, party colours, Back    | music and effects volume (`audio.md`); the HUD speed choice is saved as the default                                           |
-| End screen         | VICTORY or TOWN LOST, time, gold, 6 stats, Play again | MVP hero line (run report has `mvp`), new unlock cards, Saga entries added this run, a **Title** button next to Play again    |
-| Hall (new)         |                                                       | tabs: Pantheons (gods, locked greyed with condition), Buildings, Cards, Saga; Back                                            |
-| Trial picker (new) | (only after the first win)                            | 5 toggles with their effect, Start; won trials marked                                                                         |
-| Miracle aim        | (new)                                                 | sim paused, a 250 ring under the finger, the miracle's name at the top, cancel by its button                                  |
+| Screen             | Today                                                 | Change                                                                                                                                                |
+| ------------------ | ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| LevelUp            | path cards, then 3 upgrade cards; no close            | replaced: upgrades are auto-picked and celebrated on the map; paths use a tray at the bottom, the run at 30% (`level-ups.md`)                         |
+| Pause              | Resume, Restart, Settings, Quit to title              | unchanged                                                                                                                                             |
+| Settings           | default speed, reduced motion, party colours, Back    | music and effects volume (`audio.md`); the HUD speed choice is saved as the default                                                                   |
+| End screen         | VICTORY or TOWN LOST, time, gold, 6 stats, Play again | MVP hero line (run report has `mvp`), Ichor earned line by line, new unlock cards, Saga entries added this run, a **Title** button next to Play again |
+| Hall (new)         |                                                       | tabs: Altar (Ichor upgrades, `meta.md`), Pantheons (gods, locked greyed with condition), Buildings, Cards, Saga; Back                                 |
+| Trial picker (new) | (only after the first win)                            | 5 toggles with their effect, Start; won trials marked                                                                                                 |
 
 ## 7. Proposed backlog rows
 
@@ -124,7 +120,7 @@ slot. Today's header is 190 px and the fourth row spills below the slot.
 | 40    | Flag card: raise and cancel (needs Sim 10)                                    |
 | 50    | (dropped: LevelUp peek, see `level-ups.md`)                                   |
 | 60    | HUD speed choice saved as the default                                         |
-| 70    | Favour bars, miracle column and aiming (with `events.md` Sim rows)            |
+| 70    | Favour bars and the miracle tell (with `events.md` Sim rows)                  |
 | 80    | Hall and Trial picker; end screen unlock cards and Saga (with `meta.md` rows) |
 | 90    | Rebuild menu and ruins (with `buildings.md` rows)                             |
 
@@ -134,8 +130,8 @@ slot. Today's header is 190 px and the fourth row spills below the slot.
 | ----- | -------------------------------------------------------------------------------- |
 | 10    | Commands `raiseBounty { bounty, gold }` and `cancelBounty { bounty }` (50% back) |
 
-## OPEN (Stefan decides)
+## Decided (Stefan, 2026-10-13)
 
-1. (Settled: no LevelUp screen, `level-ups.md`.)
-2. **Bounty cancel** refunds 50% (recommendation), 100%, or no cancel at all?
-3. **Miracle aiming pauses the game** (recommendation, one thumb on a phone), or aim live?
+1. **No LevelUp screen:** parties pick their cards, paths use the tray (`level-ups.md`).
+2. **Bounty cancel** refunds 50%.
+3. **No miracle aiming:** the gods act on their own (`events.md`).

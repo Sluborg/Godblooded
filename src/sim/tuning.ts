@@ -18,6 +18,11 @@ export const DEFAULT_TUNING: Tuning = {
     fightGapMs: 5_000,
     firstStrikeDelay: 0.5,
     buildingFireMult: 1.5,
+    koGoldLoss: 0.25,
+    bossDeathChance: 0.2,
+    deathShrineStep: 0.05,
+    deathHealerStep: 0.05,
+    deathFloor: 0.05,
   },
   hero: {
     firstRecruitMs: 5_000,
@@ -35,6 +40,11 @@ export const DEFAULT_TUNING: Tuning = {
     greedySpend: 0.35,
     proudSpend: 0.8,
     potionMax: [2, 2, 3],
+    potionDrinkAdd: 0.1,
+    cowardDrinkAdd: 0.25,
+    neverFleeDrink: 0.3,
+    plainPotionPct: 40,
+    drinkMs: 500,
     // Share of what heroes spend that the town collects.
     taxRate: 0.5,
     // How close counts as arrived, in world units.
@@ -50,6 +60,12 @@ export const DEFAULT_TUNING: Tuning = {
     // Party level n needs xpPerLevel * n xp.
     xpPerLevel: 30,
     offerSize: 3,
+    maxLevel: 8,
+    autoPick: true,
+    offerSlowdown: 0.3,
+    traitPickWeight: 3,
+    favourLevel: 7,
+    rarity: { low: [70, 30, 0], mid: [50, 40, 10], high: [30, 50, 20] },
     bondCap: 10,
     // Hp fraction a hero flees at before upgrades and personality.
     baseFlee: 0.3,

@@ -24,10 +24,17 @@ describe('unit picture ids', () => {
     expect(unitArtId('hero', 'warrior', 1)).toBe('hero_warrior_t1_front');
     expect(unitArtId('monster', 'draugr', 3)).toBe('mon_draugr_t3_front');
     expect(unitArtId('monster', 'jackal-man', 2)).toBe('mon_jackal-man_t2_front');
+    expect(unitArtId('summon', 'falcon', 1)).toBe('sum_falcon_t1_front');
   });
 });
 
 describe('artCandidates', () => {
+  it('a summon tries its tier, then tier 1', () => {
+    expect(artCandidates('summon', 'falcon', 2)).toEqual([
+      'sum_falcon_t2_front',
+      'sum_falcon_t1_front',
+    ]);
+  });
   it('a tier 1 hero tries its god, then the template', () => {
     expect(artCandidates('hero', 'warrior', 1, null, 'thor')).toEqual([
       'hero_thor_t1_front',

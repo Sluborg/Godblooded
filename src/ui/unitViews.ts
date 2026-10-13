@@ -29,6 +29,7 @@ import { damageLook, MAX_FLOATS, typeTint, type FloatLook, type HitInfo } from '
 import { getSettings } from './settings';
 import { heroLabel, partyColor, partyRole, type PartyRole } from './partyLook';
 import { SpeechLimit } from './speechLimit';
+import { cardColor } from './levelUpLook';
 import { BARK_META, barkRoll, isSpeechEvent, pickLine, type SpeechKind } from './speechLines';
 import { buildHeal, buildStrike, FxLayer, type Vec } from './strikeFx';
 import { ART_NOMINAL_PX, PLACEHOLDER, UNIT_HEIGHT, artCandidates, baseType } from './unitLook';
@@ -523,6 +524,12 @@ export class UnitView {
     this.say(name);
   }
 
+  // A coloured glow over the picture for a moment (level-up and card effects).
+  glow(color: number, strength: number): void {
+    this.healGlow = strength;
+    this.glowColor = color;
+  }
+
   // The unit left the snapshot (died or was removed): fall over and fade out.
   die(): void {
     this.dying = true;
@@ -923,6 +930,8 @@ export class UnitViews {
       else if (e.kind === 'windup') this.onWindup(e);
       else if (e.kind === 'heal') this.onHeal(e, ctx);
       else if (e.kind === 'tierUp') this.onTierUp(e, paths);
+      else if (e.kind === 'levelUp') this.onLevelUp(e, parties);
+      else if (e.kind === 'upgradePicked' && e.auto) this.onAutoPick(e, parties);
       else if (e.kind === 'built') this.onBuilt(e, others);
       else if (e.kind === 'rider') this.views.get(e.target)?.setRider(e.rider);
       else if (e.kind === 'bossEmerged') this.onBossEmerged(e);
@@ -973,6 +982,8 @@ export class UnitViews {
   private queued: { e: Extract<SimEvent, { kind: SpeechKind }>; until: number } | null = null;
 
   private onSpeech(e: Extract<SimEvent, { kind: SpeechKind }>): void {
+    // A high bark is waiting for the gap: it is first in line, so nothing else may cut in.
+    if (this.queued) return;
     if (!this.trySpeak(e) && BARK_META[e.kind].priority === 'high' && !this.queued)
       this.queued = { e, until: this.scene.time.now + HIGH_WAIT_MS };
   }
@@ -981,18 +992,18 @@ export class UnitViews {
   private flushQueued(): void {
     const q = this.queued;
     if (!q) return;
-    if (this.scene.time.now > q.until || this.trySpeak(q.e)) this.queued = null;
+    if (this.scene.time.now > q.until || this.trySpeak(q.e, true)) this.queued = null;
   }
 
-  private trySpeak(e: Extract<SimEvent, { kind: SpeechKind }>): boolean {
+  // `retry`: the queued high bark trying again (its chance was rolled the first time).
+  private trySpeak(e: Extract<SimEvent, { kind: SpeechKind }>, retry = false): boolean {
     const view = this.views.get(e.unit);
     if (!view || !view.isHero) return true; // nothing to wait for
     const meta = BARK_META[e.kind];
     // Only heroes on screen speak; small events speak only some of the time.
     const cam = this.scene.cameras.main.worldView;
     if (!cam.contains(view.container.x, view.container.y)) return true;
-    if (!this.queued && meta.chance < 1 && barkRoll(e.unit, view.barkTries++) >= meta.chance)
-      return true;
+    if (!retry && meta.chance < 1 && barkRoll(e.unit, view.barkTries++) >= meta.chance) return true;
     let live = 0;
     for (const v of this.views.values())
       if (v.hasBubble && cam.contains(v.container.x, v.container.y)) live++;
@@ -1049,6 +1060,61 @@ export class UnitViews {
     ]);
     this.fx.sparks(top.x, top.y, [255, 225, 160], 4);
     ctx.hurt(e.target, from.x, 1, e.damage, e.dodged, info);
+  }
+
+  // A party levelled: a pillar of light in its colour at the group's feet, a ring spreading, a
+  // burst of sparkles and a glow on every member (they cheer).
+  private onLevelUp(
+    e: Extract<SimEvent, { kind: 'levelUp' }>,
+    parties: readonly { id: number; members: readonly number[] }[],
+  ): void {
+    const crew = this.crew(e.party, parties);
+    if (crew.length === 0) return;
+    const color = partyColor(e.party);
+    const cx = crew.reduce((a, v) => a + v.container.x, 0) / crew.length;
+    const cy = crew.reduce((a, v) => a + v.container.y, 0) / crew.length;
+    this.fx.add([
+      { type: 'pillar', x: cx, y: cy, color, age: 0, life: 1.4 },
+      { type: 'ring', x: cx, y: cy, r: 150, age: 0, life: 0.9 },
+    ]);
+    const rgb: readonly [number, number, number] = [
+      (color >> 16) & 255,
+      (color >> 8) & 255,
+      color & 255,
+    ];
+    for (const v of crew) {
+      v.glow(color, 1.6);
+      this.fx.sparkle(v.container.x, v.container.y - v.height * 0.5, 14, [rgb, [255, 240, 190]]);
+    }
+  }
+
+  // The party picked its card itself: the members glow in the card's colour (red for strength,
+  // blue for dexterity, green for stamina and healing, gold otherwise), so the pick is seen.
+  private onAutoPick(
+    e: Extract<SimEvent, { kind: 'upgradePicked' }>,
+    parties: readonly { id: number; members: readonly number[] }[],
+  ): void {
+    const def = (GRAYBOX.upgrades ?? []).find((u) => u.id === e.upgrade);
+    const color = cardColor(def?.effect);
+    // `levelUp` and this event arrive in the same tick: the card's glow waits for the party glow
+    // to be seen first.
+    this.scene.time.delayedCall(700, () => {
+      for (const v of this.crew(e.party, parties)) {
+        v.glow(color, 1.2);
+        this.fx.sparkle(v.container.x, v.container.y - v.height * 0.5, 8, GOLD_SPARKS);
+      }
+    });
+  }
+
+  private crew(
+    party: number,
+    parties: readonly { id: number; members: readonly number[] }[],
+  ): UnitView[] {
+    const members = parties.find((p) => p.id === party)?.members ?? [];
+    return members.flatMap((id) => {
+      const v = this.views.get(id);
+      return v ? [v] : [];
+    });
   }
 
   private onTierUp(

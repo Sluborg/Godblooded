@@ -139,5 +139,4 @@ Art for M2 starts in parallel with M1 once the style test (Art backlog) is appro
 
 ## OPEN (Stefan decides)
 
-- The art style: painted single pictures or cartoon units built from parts
-  (`docs/reference/style-test.html`).
+- Nothing open right now; see `docs/decisions.md` for the latest calls.
