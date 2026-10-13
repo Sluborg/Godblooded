@@ -10,18 +10,20 @@ Lead keeps this to one screen. Read it first when resuming.
 
 ## Now
 
-- M1 graybox done; M2 first art in progress. Motion system, party colours, monster tiers by
-  colour and variants are in the game. Sim bot: about 62% wins, median run 15 min.
-- **Redesign 2026-10-13: Godbloods.** No classes in the game; a hero is a god's child with two
-  paths. 4 gods per pantheon (`docs/game-design.md`, "Gods and paths"). Sim 110, then Lead data
-  and Scene 100; Art rewrites the heroes batch A1 to the 4 Aesir gods.
-- Art in the game: tier 1 heroes (old class pictures, now fallbacks), 6 monsters, 8 buildings.
-  ChatGPT idle since 2026-10-05: monsters V1 and ui U1 wait on `run all`; heroes waits on Art's
-  new A1.
+- **Godbloods redesign is in the game:** 12 gods, 24 paths, sibling cap; names and path cards in
+  the UI (no class words).
+- **Merged 2026-10-13:** save/load + autosave, rivalries, seeded map with a boss lair, lair growth,
+  building tiers, run report; Scene splash, buttons, building art, watch camera, tower shots,
+  bounty close fix; Art opaque pipeline, B10, B11, U2, U3 batches; all 10 Design specs in
+  `docs/systems/`.
+- **In review:** Scene #105 building panel, #107 end screen v2 (merging main in).
+- **Next:** Sim 175 (boss never raids), then Lead map data (harpy, jackal-man, minotaur, wyrm
+  boss) and the combat rows; Design on ui-flows, onboarding, audio, content roadmap.
+- **ChatGPT:** quota ran out around 18:00 UTC; Art rebuilds the watches and rings the bell.
 
 ## Waiting on Stefan
 
-- `run all` in the monsters and ui chats now; in the heroes chat after Art posts the new A1.
+- OPEN questions from the specs (grouped list sent 2026-10-13): combat, skills, items,
+  progression, meta A/B/C, bosses, miracles, buildings.
 - Pick a logo when U1 lands (three options).
-- What persists between runs (A unlocks only, B currency, C nothing).
 - Is the game fun to watch? (decides M3 vs M4 order)

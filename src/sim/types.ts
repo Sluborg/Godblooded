@@ -19,11 +19,15 @@ export interface BuildingDef {
 
 // A god: heroes are children of a god, called by a temple of its pantheon. `template` is the
 // ClassDef id (a hidden stats, weapon and strike template) a tier 1 child uses.
+export type DamageType = 'physical' | 'fire' | 'frost' | 'lightning' | 'death' | 'holy';
+
 export interface GodDef {
   id: string;
   pantheon: string;
   name: string;
   template: string;
+  // The type a caster child of this god strikes with at tier 1 (weapon templates are physical).
+  damageType?: DamageType;
 }
 
 // A path of a god: the tier 2 and 3 identity a child of `god` takes at party level 3. A hero
@@ -35,6 +39,8 @@ export interface PathDef {
   // ClassDef id used from tier 2 on (stats, weapon, strike).
   template: string;
   name: string;
+  // The type a caster on this path strikes with (tier 2 and 3).
+  damageType?: DamageType;
   // Attribute bonus on top of the path template attributes: [tier 2, tier 3]. The tier 3 entry
   // is the total bonus at tier 3, not added to the tier 2 one.
   attrs: readonly [Partial<Attributes>, Partial<Attributes>];
@@ -58,6 +64,12 @@ export interface MonsterDef {
   weapon: { baseAttackS: number; range: number };
   bounty: number;
   xp: number;
+  // Flat armour (scaled by lair tier like the attributes); missing means 0.
+  armour?: number;
+  // Tags for rules like holy's sear: undead, beast, giant, demon, flyer, boss.
+  tags?: readonly string[];
+  // Damage type to multiplier: weak 1.5, resist 0.5, immune 0. Missing types are 1.
+  types?: Partial<Record<DamageType, number>>;
 }
 
 export interface LairDef {
@@ -78,6 +90,11 @@ export interface ClassDef {
   startGold: number;
   // A healer casts a heal on a hurt party mate in range instead of attacking.
   heals?: boolean;
+  // Flat armour: takes a share off physical strikes (curve in tuning.combat.armourK).
+  armour?: number;
+  // Casters (wizard 0.8, healer 0.5): the strike is a spell, power Int times this, it cannot be
+  // dodged and it is resisted by Willpower, not armour. Missing: a weapon strike.
+  spellMult?: number;
 }
 
 // One of 3 cards offered when a party levels up. `effect` keys are read by Sim.
@@ -215,6 +232,29 @@ export interface StatsTuning {
   goldSampleMs: number;
 }
 
+export type RiderId = 'burn' | 'chill' | 'arc' | 'wither' | 'sear';
+
+// Riders ride on a strike (skills carry them; a basic attack never does). Numbers per
+// docs/systems/combat.md section 3.
+export interface RiderTuning {
+  // burn (fire): `ticks` more hits, `everyMs` apart, each `share` of the hit that lit it.
+  burnTicks: number;
+  burnShare: number;
+  burnEveryMs: number;
+  // chill (frost): move and attack `chillSlow` slower for `chillMs`; bosses take chillBossMult of it.
+  chillSlow: number;
+  chillMs: number;
+  chillBossMult: number;
+  // arc (lightning): jumps to the nearest other foe within `arcRadius` for `arcShare` of the hit.
+  arcRadius: number;
+  arcShare: number;
+  // wither (death): healing on the target is multiplied by `witherHealMult` for `witherMs`.
+  witherHealMult: number;
+  witherMs: number;
+  // sear (holy): against undead and demons a weak row's bonus is multiplied by this (0.5 -> 1.0).
+  searBonusMult: number;
+}
+
 export interface TownTuning {
   townHallHp: number;
   buildingHp: number;
@@ -222,6 +262,8 @@ export interface TownTuning {
   raidFirstMs: number;
   raidEveryMs: number;
   raidSize: number;
+  // How many standing lairs send a raid each time (picked at random; the boss lair never does).
+  raidLairs: number;
   // Raids get one monster bigger per lair every this many ms.
   raidGrowEveryMs: number;
   // A resting hero at or above this hp fraction rejoins the fight when raiders come near.
@@ -254,6 +296,22 @@ export interface CombatTuning {
   healRange: number;
   healBelow: number;
   healPower: number;
+  // Curves 0.9 * x / (x + K): never 100%, capped at 90% (docs/systems/combat.md).
+  // Dodge uses 2 * Dex + Per, attack time Dex (floor 10% of the weapon base), crit Per, armour
+  // the armour number, magic resist Wp.
+  dodgeK: number;
+  attackK: number;
+  critK: number;
+  armourK: number;
+  resistK: number;
+  // A crit multiplies the strike (1 = crits off in effect).
+  critMult: number;
+  // A fight ends once a unit has had no foe for this long; a new one starts a first strike.
+  fightGapMs: number;
+  // The side with the lower Dex + Per waits this share of its attack cycle before its first strike.
+  firstStrikeDelay: number;
+  // Fire deals this much more to buildings.
+  buildingFireMult: number;
 }
 
 export interface Tuning {
@@ -263,6 +321,7 @@ export interface Tuning {
   monster: MonsterTuning;
   lair: LairTuning;
   building: BuildingTuning;
+  rider: RiderTuning;
   save: SaveTuning;
   stats: StatsTuning;
   town: TownTuning;
@@ -289,6 +348,7 @@ export interface GameData {
     monster?: Partial<MonsterTuning>;
     lair?: Partial<LairTuning>;
     building?: Partial<BuildingTuning>;
+    rider?: Partial<RiderTuning>;
     save?: Partial<SaveTuning>;
     stats?: Partial<StatsTuning>;
     town?: Partial<TownTuning>;
@@ -416,7 +476,22 @@ export type SimEvent =
   | { kind: 'spawned'; unit: number; type: string; lair: number }
   | { kind: 'windup'; attacker: number; target: number; inMs: number }
   | { kind: 'heal'; healer: number; target: number; amount: number }
-  | { kind: 'hit'; attacker: number; target: number; damage: number; dodged: boolean }
+  | {
+      kind: 'hit';
+      attacker: number;
+      target: number;
+      damage: number;
+      dodged: boolean;
+      // Damage type of the strike ('physical', 'fire', ...; 'magic' for an untyped spell).
+      type: string;
+      // A critical strike (absent when it was not).
+      crit?: boolean;
+      // A burn tick rather than a strike.
+      tick?: boolean;
+      // The target's type row made it x1.5 or more (weak) or less than x1 (resist).
+      weak?: boolean;
+      resist?: boolean;
+    }
   | { kind: 'knockout'; unit: number; by: number }
   | { kind: 'died'; unit: number; type: string; by: number; bounty: number; xp: number }
   | { kind: 'partyFormed'; party: number; members: number[] }
@@ -425,6 +500,8 @@ export type SimEvent =
   | { kind: 'tierUp'; unit: number; tier: number; path: string | null }
   | { kind: 'pathOffer'; party: number; hero: number; options: string[] }
   | { kind: 'raid'; lair: number; size: number }
+  // A rider took hold on `target` (burn, chill, wither; arc and sear show in the hit itself).
+  | { kind: 'rider'; target: number; rider: RiderId; by: number }
   | { kind: 'argue'; a: number; b: number }
   | { kind: 'revenge'; hero: number; target: number; victim: number }
   | { kind: 'avenged'; hero: number; target: number }

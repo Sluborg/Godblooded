@@ -1,3 +1,4 @@
+import { DEFAULT_TUNING } from './tuning';
 import type { Attributes, MonsterDef, Vec2 } from './types';
 
 // Fixed simulation step. Scene passes frame time (times game speed); the world runs whole
@@ -7,6 +8,18 @@ export const TICK_MS = 50;
 export interface Stats {
   attrs: Attributes;
   weapon: { baseAttackS: number; range: number };
+  // Flat armour against physical strikes (0 when missing).
+  armour?: number;
+  // A caster's strike is a spell of Int times this (see ClassDef.spellMult).
+  spellMult?: number;
+  // Share of speed and attack rate lost to chill (0 when none).
+  slow?: number;
+  // The type of the basic attack (casters: their god's or path's); missing: physical or, for a
+  // caster, an untyped spell.
+  damageType?: string;
+  // As a target: tags and the damage type to multiplier row (monsters).
+  tags?: readonly string[];
+  types?: Partial<Record<string, number>>;
 }
 
 // Graybox derivations from the Coda combat reference (Lead's numbers stay attributes only).
@@ -39,19 +52,41 @@ export function stepToward(pos: Vec2, target: Vec2, dist: number): Vec2 {
   return { x: dx / len, y: dy / len };
 }
 
-// Combat (simplified from the Coda reference, logged in docs/decisions.md): damage = str,
-// attack time = weapon base reduced by dex, dodge a saturating curve capped at 90%. No armor
-// until gear exists. Knockout for heroes, death for monsters.
+// Combat curves (docs/systems/combat.md): chances follow 0.9 * x / (x + K), never 100% and capped
+// at 90%. The K values live in tuning.combat; the defaults are used when a caller has no world.
+const DEFAULT_COMBAT = DEFAULT_TUNING.combat;
+const curve = (x: number, k: number) => (x <= 0 ? 0 : (0.9 * x) / (x + k));
+
 export function damage(a: Attributes): number {
   return Math.max(1, a.str);
 }
 
-export function attackMs(s: Stats): number {
-  return (s.weapon.baseAttackS * 1000) / (1 + s.attrs.dex * 0.1);
+// Attack time falls with Dex but never below 10% of the weapon's base time.
+export function attackMs(s: Stats, k: number = DEFAULT_COMBAT.attackK): number {
+  return (s.weapon.baseAttackS * 1000 * (1 - curve(s.attrs.dex, k))) / (1 - (s.slow ?? 0));
 }
 
-export function dodgeChance(a: Attributes): number {
-  return 0.9 * (a.dex / (a.dex + 10));
+// World units per second of a unit, chill included.
+export function speedOf(s: Stats): number {
+  return speed(s.attrs) * (1 - (s.slow ?? 0));
+}
+
+export function dodgeChance(a: Attributes, k: number = DEFAULT_COMBAT.dodgeK): number {
+  return curve(2 * a.dex + a.per, k);
+}
+
+export function critChance(a: Attributes, k: number = DEFAULT_COMBAT.critK): number {
+  return curve(a.per, k);
+}
+
+// Share of a physical strike that armour takes off.
+export function armourPct(armour: number, k: number = DEFAULT_COMBAT.armourK): number {
+  return curve(armour, k);
+}
+
+// Share of a non-physical strike that Willpower takes off.
+export function resistPct(wp: number, k: number = DEFAULT_COMBAT.resistK): number {
+  return curve(wp, k);
 }
 
 // How far a unit notices enemies.
