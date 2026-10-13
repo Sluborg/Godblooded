@@ -1,7 +1,8 @@
 import Phaser from 'phaser';
 import { GAME_HEIGHT, GAME_WIDTH } from '../config';
 import { heroPartsLook, partsGods } from '../data/heroParts';
-import { ensureHeroSet } from '../ui/parts/bake';
+import { monsterPartsLook } from '../data/monsterParts';
+import { ensureHeroSet, ensureWyrmSet } from '../ui/parts/bake';
 
 // A review page for the part-based heroes (`?gallery=thor`, `?gallery=all` for the gods in a
 // row): every look of a god (tier 1, both paths at tiers 2 and 3) with its idle, walk, attack and
@@ -14,6 +15,7 @@ export class PartsGalleryScene extends Phaser.Scene {
   create(): void {
     this.cameras.main.setBackgroundColor(0x3d5a2e);
     const q = new URLSearchParams(location.search).get('gallery') || 'thor';
+    if (q.startsWith('wyrm')) return this.wyrmGallery();
     const all = partsGods();
     const gods = q === 'all' ? all : all.filter((g) => g.god === q);
     const looks: { god: string; path: string | null; tier: number }[] = [];
@@ -51,5 +53,36 @@ export class PartsGalleryScene extends Phaser.Scene {
       });
     });
     void GAME_WIDTH;
+  }
+
+  // Fafnir (`?gallery=wyrm`, `wyrm2`, `wyrm3` for the tier): a row per pose, every frame.
+  private wyrmGallery(): void {
+    const q = new URLSearchParams(location.search).get('gallery') ?? 'wyrm';
+    const tier = Number(q.slice(4)) || 1;
+    const look = monsterPartsLook('wyrm', tier);
+    if (!look) return;
+    const set = ensureWyrmSet(this.scene.scene, look.id, look.look);
+    const poses = ['idle', 'walk', 'attack', 'breath', 'ko'] as const;
+    const cw = 205;
+    const ch = 140;
+    const scale = 0.62 / set.pxPerUnit;
+    this.add.text(8, 4, `Fafnir tier ${tier}`, {
+      fontFamily: 'monospace',
+      fontSize: '14px',
+      color: '#f4ead5',
+    });
+    poses.forEach((pose, r) => {
+      this.add.text(8, 22 + r * ch, pose, {
+        fontFamily: 'monospace',
+        fontSize: '13px',
+        color: '#f4ead5',
+      });
+      set.frames[pose].forEach((name, i) => {
+        this.add
+          .image(95 + i * cw, 22 + r * ch + 118, set.atlas, name)
+          .setOrigin(set.originX, set.originY)
+          .setScale(scale);
+      });
+    });
   }
 }

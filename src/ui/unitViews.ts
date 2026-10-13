@@ -3,6 +3,7 @@ import { GRAYBOX } from '../data/graybox';
 import { lookOf, type UnitLook } from '../data/looks';
 import { bossState } from './bossLook';
 import { heroPartsLook } from '../data/heroParts';
+import { monsterPartsLook } from '../data/monsterParts';
 import {
   STATUS_LOOK,
   isStatusKind,
@@ -16,7 +17,8 @@ import {
 import { SkillFx } from './skillFx';
 import { armourOutline, glyphOf, hasGear, potionPips, weaponGlow } from './gearLook';
 import { drawGlyph } from './itemGlyph';
-import { ensureHeroSet, sweepSets, type BakedSet } from './parts/bake';
+import { ensureHeroSet, ensureWyrmSet, sweepSets, type BakedSet } from './parts/bake';
+import { WYRM_DRAW_H, breathFrame } from './parts/wyrmFrames';
 import { attackFrame, idleFrame, koFrame, walkFrame, type PoseName } from './parts/frames';
 import type { RiderId, SimEvent, UnitState, Vec2 } from '../sim/api';
 import { ASSETS_KEY, type ManifestAsset } from './assets';
@@ -55,6 +57,8 @@ const USE_PARTS =
   typeof location === 'undefined' || !new URLSearchParams(location.search).has('noparts');
 // A standard hero is about this tall in the parts drawing units (head to feet).
 const PARTS_HERO_H = 44;
+// A windup this long (seconds) is a fire breath, not a bite.
+const BREATH_WINDUP_S = 1;
 const NO_POSE: Pose = { rot: 0, dx: 0, dy: 0, sx: 1, sy: 1 };
 
 const BUBBLE_MS = 2200;
@@ -187,6 +191,8 @@ export class UnitView {
   private artId = '';
   // The baked parts look this hero is drawn with (null: a picture or the placeholder).
   private partsSet: BakedSet | null = null;
+  // The boss ring in the tier colour (Fafnir), or null for the usual red.
+  private partsRing: number | null = null;
   private partsId = '';
   private attackProgress = -1;
   // Green heal tint, 1 right after a heal and fading to 0.
@@ -299,14 +305,30 @@ export class UnitView {
 
   // ---------- art ----------
 
-  // A hero with a parts row is drawn from baked parts frames; false when it has none.
+  // A hero or monster with a parts row is drawn from baked parts frames; false when it has none.
   private applyParts(u: UnitState): boolean {
-    if (!USE_PARTS || u.kind !== 'hero' || !u.god) return this.leaveParts();
-    const look = heroPartsLook(u.god, u.path, u.tier);
-    if (!look) return this.leaveParts();
-    const id = look.id;
-    if (id === this.partsId) return true;
-    const set = ensureHeroSet(this.scene, id, look.def, u.tier);
+    if (!USE_PARTS) return this.leaveParts();
+    let id: string;
+    let set: BakedSet;
+    let drawH = PARTS_HERO_H;
+    let widthK = 22 / PARTS_HERO_H;
+    if (u.kind === 'hero' && u.god) {
+      const look = heroPartsLook(u.god, u.path, u.tier);
+      if (!look) return this.leaveParts();
+      id = look.id;
+      if (id === this.partsId) return true;
+      set = ensureHeroSet(this.scene, id, look.def, u.tier);
+      this.partsRing = null;
+    } else if (u.kind === 'monster') {
+      const m = monsterPartsLook(u.type, u.tier);
+      if (!m) return this.leaveParts();
+      id = m.id;
+      if (id === this.partsId) return true;
+      set = ensureWyrmSet(this.scene, id, m.look);
+      drawH = WYRM_DRAW_H;
+      widthK = 0.8;
+      this.partsRing = m.ring;
+    } else return this.leaveParts();
     const first = set.frames.idle[0];
     this.partsSet = set;
     this.partsId = id;
@@ -318,7 +340,7 @@ export class UnitView {
       this.body.add(this.flash);
     }
     // World units per baked pixel: the hero's height over its drawing height, over the bake scale.
-    const scale = (UNIT_HEIGHT * this.look.scale) / PARTS_HERO_H / set.pxPerUnit;
+    const scale = (UNIT_HEIGHT * this.look.scale) / drawH / set.pxPerUnit;
     for (const img of [this.sprite, this.flash]) {
       img
         ?.setTexture(set.atlas, first)
@@ -329,7 +351,7 @@ export class UnitView {
     this.ax = set.originX;
     this.ay = set.originY;
     this.row = undefined;
-    this.w = (UNIT_HEIGHT * this.look.scale * 22) / PARTS_HERO_H;
+    this.w = UNIT_HEIGHT * this.look.scale * widthK;
     this.h = UNIT_HEIGHT * this.look.scale;
     this.capsule.setVisible(false);
     this.nose.setVisible(false);
@@ -772,7 +794,11 @@ export class UnitView {
       if (this.attack) {
         const a = this.attack;
         this.attackProgress = a.t / attackDuration(a.strike, a.windup);
-        frame = { pose: 'attack', i: attackFrame(this.attackProgress) };
+        // A long windup is a fire breath for a boss that has the frames for it.
+        const breath = this.partsSet?.frames.breath.length && a.windup >= BREATH_WINDUP_S;
+        frame = breath
+          ? { pose: 'breath', i: breathFrame(this.attackProgress) }
+          : { pose: 'attack', i: attackFrame(this.attackProgress) };
       }
     } else if (moving) {
       const before = Math.floor(this.stepT);
@@ -942,7 +968,9 @@ export class UnitView {
       const rw = base * k;
       const rh = rw * 0.38;
       this.ring.fillStyle(0xc4281e, this.boss ? 0.3 : 0.2).fillEllipse(0, -4, rw, rh);
-      this.ring.lineStyle(this.boss ? 6 : 4, 0xe04a3a, 0.95).strokeEllipse(0, -4, rw, rh);
+      this.ring
+        .lineStyle(this.boss ? 6 : 4, this.partsRing ?? 0xe04a3a, 0.95)
+        .strokeEllipse(0, -4, rw, rh);
       if (selected) this.ring.lineStyle(3, 0xffffff, 0.95).strokeEllipse(0, -4, rw + 14, rh + 8);
       this.label.setVisible(selected || this.boss);
       this.badge.setVisible(false);

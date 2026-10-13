@@ -16,7 +16,8 @@ export interface PartsPose {
   tgt: boolean; // has a target (draws the swing trail)
 }
 
-export type PoseName = 'idle' | 'walk' | 'attack' | 'ko';
+// 'breath' is a boss's fire breath (Fafnir); heroes have none.
+export type PoseName = 'idle' | 'walk' | 'attack' | 'ko' | 'breath';
 
 // Frames per pose. Idle is eight steps of the full idle loop (two breaths and one sway), walk is
 // one full stride.
@@ -25,6 +26,7 @@ export const FRAME_COUNT: Readonly<Record<PoseName, number>> = {
   walk: 6,
   attack: 6,
   ko: 3,
+  breath: 0,
 };
 
 // The frame box in drawing units (hero standing on its feet at ORIGIN), and the feet.
@@ -103,7 +105,8 @@ export function pxPerUnit(dpr: number = globalThis.devicePixelRatio || 1): numbe
 
 // Approximate GPU bytes of one baked look at a pixel scale (for budgeting and tests).
 export function lookBytes(k: number): number {
-  const total = FRAME_COUNT.idle + FRAME_COUNT.walk + FRAME_COUNT.attack + FRAME_COUNT.ko;
+  const total =
+    FRAME_COUNT.idle + FRAME_COUNT.walk + FRAME_COUNT.attack + FRAME_COUNT.ko + FRAME_COUNT.breath;
   const rows = Math.ceil(total / ATLAS_COLS);
   return Math.ceil(FRAME_W * k) * ATLAS_COLS * Math.ceil(FRAME_H * k) * rows * 4;
 }

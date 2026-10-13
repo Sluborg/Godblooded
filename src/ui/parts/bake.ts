@@ -5,6 +5,15 @@
 import Phaser from 'phaser';
 import type { PartsDef } from '../../data/heroParts';
 import { drawHuman, setState } from './proto.gen';
+import { drawWyrm, type WyrmLook } from './wyrm';
+import {
+  WYRM_COUNT,
+  WYRM_H,
+  WYRM_ORIGIN,
+  WYRM_W,
+  wyrmFrameState,
+  wyrmPxPerUnit,
+} from './wyrmFrames';
 import { gradePixels } from './partsStyle';
 import {
   ATLAS_COLS as COLS,
@@ -48,7 +57,10 @@ export function ensureHeroSet(scene: Phaser.Scene, id: string, def: PartsDef, ti
   const atlas = `parts_${id}`;
   if (scene.textures.exists(atlas)) scene.textures.remove(atlas);
   const tex = scene.textures.createCanvas(atlas, fw * COLS, fh * rows);
-  const frames = { idle: [], walk: [], attack: [], ko: [] } as Record<PoseName, string[]>;
+  const frames = { idle: [], walk: [], attack: [], ko: [], breath: [] } as Record<
+    PoseName,
+    string[]
+  >;
   const set: BakedSet = {
     id,
     atlas,
@@ -94,6 +106,66 @@ export function ensureHeroSet(scene: Phaser.Scene, id: string, def: PartsDef, ti
     }
   }
   // The palette grade, once over the whole atlas.
+  const img = c.getImageData(0, 0, tex.width, tex.height);
+  gradePixels(img.data);
+  c.putImageData(img, 0, 0);
+  tex.refresh();
+  tex.setFilter(Phaser.Textures.FilterMode.LINEAR);
+  sets.set(id, set);
+  return set;
+}
+
+// Bakes Fafnir (src/ui/parts/wyrm.ts) into one atlas, like a hero: idle, walk, bite, fire breath
+// and knocked out. A look per tier (the eye colour changes).
+export function ensureWyrmSet(scene: Phaser.Scene, id: string, look: WyrmLook): BakedSet {
+  const have = sets.get(id);
+  if (have && scene.textures.exists(have.atlas)) {
+    have.lastUsed = scene.time.now;
+    return have;
+  }
+  const k = wyrmPxPerUnit();
+  const fw = Math.ceil(WYRM_W * k);
+  const fh = Math.ceil(WYRM_H * k);
+  const poses = Object.keys(WYRM_COUNT) as PoseName[];
+  const total = poses.reduce((n, p) => n + WYRM_COUNT[p], 0);
+  const rows = Math.ceil(total / COLS);
+  const atlas = `parts_${id}`;
+  if (scene.textures.exists(atlas)) scene.textures.remove(atlas);
+  const tex = scene.textures.createCanvas(atlas, fw * COLS, fh * rows);
+  const frames = { idle: [], walk: [], attack: [], ko: [], breath: [] } as Record<
+    PoseName,
+    string[]
+  >;
+  const set: BakedSet = {
+    id,
+    atlas,
+    frames,
+    originX: WYRM_ORIGIN.x / WYRM_W,
+    originY: WYRM_ORIGIN.y / WYRM_H,
+    pxPerUnit: k,
+    lastUsed: scene.time.now,
+  };
+  if (!tex) return set;
+  const c = tex.getContext();
+  let n = 0;
+  for (const pose of poses) {
+    for (let i = 0; i < WYRM_COUNT[pose]; i++, n++) {
+      const x = (n % COLS) * fw;
+      const y = Math.floor(n / COLS) * fh;
+      const name = `${pose}${i}`;
+      frames[pose].push(name);
+      tex.add(name, 0, x, y, fw, fh);
+      c.save();
+      c.beginPath();
+      c.rect(x, y, fw, fh);
+      c.clip();
+      c.translate(x, y);
+      c.scale(k, k);
+      c.translate(WYRM_ORIGIN.x, WYRM_ORIGIN.y);
+      drawWyrm(c, wyrmFrameState(pose, i), look);
+      c.restore();
+    }
+  }
   const img = c.getImageData(0, 0, tex.width, tex.height);
   gradePixels(img.data);
   c.putImageData(img, 0, 0);
