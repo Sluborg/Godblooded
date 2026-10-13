@@ -96,10 +96,7 @@ export const PATHS: readonly PathDef[] = [
     template: 'wizard',
     name: 'Seer',
     damageType: 'death',
-    attrs: [
-      { str: 1, int: 1 },
-      { str: 2, int: 2 },
-    ],
+    attrs: [{ int: 2 }, { int: 4 }],
   },
   {
     id: 'odin-wanderer',
@@ -127,10 +124,7 @@ export const PATHS: readonly PathDef[] = [
     template: 'wizard',
     name: 'Stormcaller',
     damageType: 'lightning',
-    attrs: [
-      { str: 1, int: 1 },
-      { str: 2, int: 2 },
-    ],
+    attrs: [{ int: 2 }, { int: 4 }],
   },
   {
     id: 'loki-trickster',
@@ -148,10 +142,7 @@ export const PATHS: readonly PathDef[] = [
     template: 'wizard',
     name: 'Flamebinder',
     damageType: 'fire',
-    attrs: [
-      { str: 1, int: 1 },
-      { str: 2, int: 2 },
-    ],
+    attrs: [{ int: 2 }, { int: 4 }],
   },
   {
     id: 'freyja-valkyrie',
@@ -190,10 +181,7 @@ export const PATHS: readonly PathDef[] = [
     template: 'wizard',
     name: 'Owlsage',
     damageType: 'lightning',
-    attrs: [
-      { str: 1, int: 1 },
-      { str: 2, int: 2 },
-    ],
+    attrs: [{ int: 2 }, { int: 4 }],
   },
   {
     id: 'ares-bloodrager',
@@ -252,10 +240,7 @@ export const PATHS: readonly PathDef[] = [
     template: 'wizard',
     name: 'Tidecaller',
     damageType: 'frost',
-    attrs: [
-      { str: 1, int: 1 },
-      { str: 2, int: 2 },
-    ],
+    attrs: [{ int: 2 }, { int: 4 }],
   },
   {
     id: 'horus-falconer',
@@ -293,10 +278,7 @@ export const PATHS: readonly PathDef[] = [
     template: 'wizard',
     name: 'Embalmer',
     damageType: 'death',
-    attrs: [
-      { str: 1, int: 1 },
-      { str: 2, int: 2 },
-    ],
+    attrs: [{ int: 2 }, { int: 4 }],
   },
   {
     id: 'sekhmet-lioness',
@@ -314,10 +296,7 @@ export const PATHS: readonly PathDef[] = [
     template: 'wizard',
     name: 'Plaguefire',
     damageType: 'fire',
-    attrs: [
-      { str: 1, int: 1 },
-      { str: 2, int: 2 },
-    ],
+    attrs: [{ int: 2 }, { int: 4 }],
   },
   {
     id: 'isis-lifegiver',
@@ -336,10 +315,7 @@ export const PATHS: readonly PathDef[] = [
     template: 'wizard',
     name: 'Enchantress',
     damageType: 'lightning',
-    attrs: [
-      { str: 1, int: 1 },
-      { str: 2, int: 2 },
-    ],
+    attrs: [{ int: 2 }, { int: 4 }],
   },
 ];
 
@@ -422,58 +398,77 @@ export const LAIRS: readonly LairDef[] = [
   { id: 'wyrm-nest', monster: 'wyrm', spawnS: 30, maxAlive: 3, hp: 3500, escort: 'draugr' },
 ];
 
-// Level-up cards; a party is offered 3 different ones. Graybox set: stats, sustain, nerve.
+// Level-up cards; a party is offered 3 and its leader auto-picks (level-ups.md): `god` offers
+// the card, `pickTag` is what a leader trait looks for. Graybox set: stats, sustain, nerve.
 export const UPGRADES: readonly UpgradeDef[] = [
   {
     id: 'iron-arms',
+    god: 'thor',
+    pickTag: 'attack',
     name: 'Iron Arms',
     text: '+2 Strength for the whole party',
     effect: { attr: { str: 2 } },
   },
   {
     id: 'thick-hide',
+    god: 'anubis',
+    pickTag: 'defence',
     name: 'Thick Hide',
     text: '+2 Stamina for the whole party',
     effect: { attr: { sta: 2 } },
   },
   {
     id: 'quick-feet',
+    god: 'loki',
+    pickTag: 'attack',
     name: 'Quick Feet',
     text: '+2 Dexterity: faster attacks, more dodges',
     effect: { attr: { dex: 2 } },
   },
   {
     id: 'hawk-eyes',
+    god: 'horus',
+    pickTag: 'sight',
     name: 'Hawk Eyes',
     text: '+3 Perception: spot monsters from further away',
     effect: { attr: { per: 3 } },
   },
   {
     id: 'iron-will',
+    god: 'athena',
+    pickTag: 'defence',
     name: 'Iron Will',
     text: '+2 Willpower and +1 Stamina',
     effect: { attr: { wp: 2, sta: 1 } },
   },
   {
     id: 'battle-hymn',
+    god: 'ares',
+    pickTag: 'attack',
     name: 'Battle Hymn',
     text: '+1 Strength and +1 Dexterity',
     effect: { attr: { str: 1, dex: 1 } },
   },
   {
     id: 'odins-eye',
+    god: 'odin',
+    pickTag: 'nerve',
     name: "Odin's Eye",
     text: 'Heal 50% now; the party flees later (at 15% hp instead of 30%)',
     effect: { healPct: 50, flee: 0.15 },
   },
   {
     id: 'second-wind',
+    god: 'freyja',
+    pickTag: 'sustain',
     name: 'Second Wind',
     text: 'Heal the whole party to full now',
     effect: { healPct: 100 },
   },
   {
     id: 'berserker',
+    god: 'sekhmet',
+    pickTag: 'nerve',
     name: 'Berserker',
     text: '+3 Strength, but the party never flees',
     effect: { attr: { str: 3 }, flee: 0 },
@@ -583,9 +578,10 @@ export const GRAYBOX: GameData = {
   startGold: 420,
   map: { width: 2400, height: 1600 },
   townHall: { x: 1200, y: 800 },
-  // Balance pass with items and potions (Lead 100, 300 runs, seeds 1 and 1001): win rate 64-68%,
-  // median run 16.3 min, no timeouts. Town income is item tax only: start gold 420 builds a
-  // temple, market and smithy, and tax is 60% of an item's price. Unset keys use DEFAULT_TUNING.
+  // Balance pass (Lead 100; items, potions, card auto-pick, level cap 8, knockout cost; 300 runs,
+  // seeds 1 and 1001): win rate 66-67%, median run 15.6 min, timeouts under 1%. Town income is
+  // item tax only: start gold 420 builds a temple, market and smithy, and tax is 60% of an
+  // item's price. Unset keys use DEFAULT_TUNING.
   tuning: {
     hero: { maxPerTemple: 7, recruitMs: 22_000, taxRate: 0.6 },
     town: { raidFirstMs: 420_000, raidEveryMs: 180_000, raidGrowEveryMs: 240_000, raidSize: 1 },
