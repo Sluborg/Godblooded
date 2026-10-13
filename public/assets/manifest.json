@@ -247,6 +247,34 @@
       "source": "B4"
     },
     {
+      "id": "mon_draugr-v2_t1_front",
+      "kind": "mon",
+      "tier": 1,
+      "view": "front",
+      "file": "units/mon_draugr-v2_t1_front.png",
+      "anchorX": 0.529,
+      "anchorY": 0.992,
+      "strike": "chop",
+      "weaponX": 0.639,
+      "weaponY": 0.069,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "V1"
+    },
+    {
+      "id": "mon_draugr-v3_t1_front",
+      "kind": "mon",
+      "tier": 1,
+      "view": "front",
+      "file": "units/mon_draugr-v3_t1_front.png",
+      "anchorX": 0.535,
+      "anchorY": 0.992,
+      "strike": "chop",
+      "weaponX": 0.599,
+      "weaponY": 0.077,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "V1"
+    },
+    {
       "id": "mon_harpy_t1_front",
       "kind": "mon",
       "tier": 1,
@@ -259,6 +287,34 @@
       "weaponY": 0.873,
       "license": "own (ChatGPT, Stefan's account)",
       "source": "B4"
+    },
+    {
+      "id": "mon_harpy-v2_t1_front",
+      "kind": "mon",
+      "tier": 1,
+      "view": "front",
+      "file": "units/mon_harpy-v2_t1_front.png",
+      "anchorX": 0.593,
+      "anchorY": 0.992,
+      "strike": "upward",
+      "weaponX": 0.601,
+      "weaponY": 0.859,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "V1"
+    },
+    {
+      "id": "mon_harpy-v3_t1_front",
+      "kind": "mon",
+      "tier": 1,
+      "view": "front",
+      "file": "units/mon_harpy-v3_t1_front.png",
+      "anchorX": 0.595,
+      "anchorY": 0.992,
+      "strike": "upward",
+      "weaponX": 0.601,
+      "weaponY": 0.859,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "V1"
     },
     {
       "id": "mon_jackal-man_t1_front",
@@ -275,6 +331,34 @@
       "source": "B5"
     },
     {
+      "id": "mon_jackal-man-v2_t1_front",
+      "kind": "mon",
+      "tier": 1,
+      "view": "front",
+      "file": "units/mon_jackal-man-v2_t1_front.png",
+      "anchorX": 0.583,
+      "anchorY": 0.992,
+      "strike": "sweep",
+      "weaponX": 0.055,
+      "weaponY": 0.452,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "V1"
+    },
+    {
+      "id": "mon_jackal-man-v3_t1_front",
+      "kind": "mon",
+      "tier": 1,
+      "view": "front",
+      "file": "units/mon_jackal-man-v3_t1_front.png",
+      "anchorX": 0.587,
+      "anchorY": 0.992,
+      "strike": "sweep",
+      "weaponX": 0.064,
+      "weaponY": 0.409,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "V1"
+    },
+    {
       "id": "mon_minotaur_t1_front",
       "kind": "mon",
       "tier": 1,
@@ -287,6 +371,34 @@
       "weaponY": 0.124,
       "license": "own (ChatGPT, Stefan's account)",
       "source": "B5"
+    },
+    {
+      "id": "mon_minotaur-v2_t1_front",
+      "kind": "mon",
+      "tier": 1,
+      "view": "front",
+      "file": "units/mon_minotaur-v2_t1_front.png",
+      "anchorX": 0.554,
+      "anchorY": 0.992,
+      "strike": "chop",
+      "weaponX": 0.104,
+      "weaponY": 0.126,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "V1"
+    },
+    {
+      "id": "mon_minotaur-v3_t1_front",
+      "kind": "mon",
+      "tier": 1,
+      "view": "front",
+      "file": "units/mon_minotaur-v3_t1_front.png",
+      "anchorX": 0.569,
+      "anchorY": 0.992,
+      "strike": "chop",
+      "weaponX": 0.133,
+      "weaponY": 0.136,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "V1"
     },
     {
       "id": "mon_troll_t1_front",

@@ -5,7 +5,7 @@ Take the first **Ready** batch of **your track** that is not in the upload log; 
 
 | Batch | Track     | File     | What                                                             | Images | Status |
 | ----- | --------- | -------- | ---------------------------------------------------------------- | ------ | ------ |
-| V1    | monsters  | `V1.md`  | Monster variants: draugr, harpy, jackal-man, minotaur -v2, -v3   | 8      | Ready  |
+| V1    | monsters  | `V1.md`  | Monster variants: draugr, harpy, jackal-man, minotaur -v2, -v3   | 8      | Done   |
 | A1    | heroes    | `A1.md`  | Aesir gods t1 (Odin, Thor, Loki, Freyja) and their 8 paths t2    | 12     | Ready  |
 | U1    | ui        | `U1.md`  | Logo and app icon: three options                                 | 6      | Ready  |
 | U2    | ui        | `U2.md`  | UI kit: 9-slice panel, buttons (3 states), 9 icons, after U1     | 13     | Ready  |
