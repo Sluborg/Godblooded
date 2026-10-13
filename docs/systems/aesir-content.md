@@ -163,15 +163,15 @@ export const AESIR_SKILLS = [
     path: 'thor-stormcaller',
     name: 'Chain Lightning',
     trigger: { kind: 'ready', range: 220 },
-    cooldownS: 9,
+    cooldownS: 10,
     target: 'foe',
     shape: { kind: 'chain', jumps: 3, radius: 120, falloff: 0.7 },
-    effects: [{ damage: 1.4, type: 'lightning' }],
+    effects: [{ damage: 0.9, type: 'lightning' }],
     visual: ['chain'],
     t3: {
       shape: { kind: 'chain', jumps: 5, radius: 120, falloff: 0.7 },
       effects: [
-        { damage: 1.4, type: 'lightning' },
+        { damage: 0.9, type: 'lightning' },
         { damage: 1.0, type: 'lightning', at: 'lastHit', visual: 'pillar' },
       ],
     },
@@ -273,19 +273,20 @@ export const SUMMONS = [
 
 ## 5. Budget check (for the Sim bot)
 
-Expected skill share of a hero's damage or healing in a 20-30 s fight at tier 2, from the
+Chain hits count in full: the target plus 3 jumps at falloff 0.7 is 1 + 0.7 + 0.49 + 0.34 =
+2.53 times the multiplier per cast. Expected skill share of a hero's damage or healing in a 20-30 s fight at tier 2, from the
 multipliers and cooldowns above (casts per fight x multiplier vs basic strikes).
 
-| Path        | Casts per 25 s fight | Skill share of output | Within 15-25%? |
-| ----------- | -------------------- | --------------------- | -------------- |
-| Seer        | 2 (mark helps all)   | about 20% (party)     | yes            |
-| Wanderer    | 1 (opener)           | about 15%             | yes            |
-| Hammerborn  | 2, in crowds         | about 25%             | yes, top end   |
-| Stormcaller | 2-3                  | about 25%             | yes, top end   |
-| Trickster   | 1, defensive         | survival, not damage  | n/a            |
-| Flamebinder | 2                    | about 20% plus burn   | yes            |
-| Valkyrie    | 1, on a hurt ally    | about 15% plus shield | yes            |
-| Seidkona    | 2 shields            | about 25% of healing  | yes            |
+| Path        | Casts per 25 s fight | Skill share of output                                                                        | Within 15-25%? |
+| ----------- | -------------------- | -------------------------------------------------------------------------------------------- | -------------- |
+| Seer        | 2 (mark helps all)   | about 20% (party)                                                                            | yes            |
+| Wanderer    | 1 (opener)           | about 15%                                                                                    | yes            |
+| Hammerborn  | 2, in crowds         | about 25%                                                                                    | yes, top end   |
+| Stormcaller | 2 (CD 10)            | about 22% with 4 foes in reach (one cast = 0.9 x 2.53 = 2.3 hits); about 11% against one foe | yes            |
+| Trickster   | 1, defensive         | survival, not damage                                                                         | n/a            |
+| Flamebinder | 2                    | about 20% plus burn                                                                          | yes            |
+| Valkyrie    | 1, on a hurt ally    | about 15% plus shield                                                                        | yes            |
+| Seidkona    | 2 shields            | about 25% of healing                                                                         | yes            |
 
 The bot run after the skill engine lands checks this with the per-fight records
 (`content-roadmap.md`, Sim row 10).
@@ -316,9 +317,9 @@ The 9 shipped plus these 6, all common or rare, no pantheon or skill cards in M2
 
 ### Sim
 
-| Order | Row                                                                                                    |
-| ----- | ------------------------------------------------------------------------------------------------------ |
-| 10    | Type the helper fields used in section 4 (`pick`, `at`, `to`, `riderS`, `count`) with the skill engine |
+| Order | Row                                                                                                                                                                                                                                                                                                                 |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 10    | Type every helper field section 4 uses, with the skill engine: skill-level `pick` (`mostHp`); target `allyAttacker` (besides self, foe, ally, point); effect-level `target`, `shape` and `to` (`ally`, `allyAttacker`); shape `max` and circle `who: 'party'`; `at: 'lastHit'`; `riderS`; summon `count`; hook `on` |
 
 ## OPEN (Stefan decides)
 
