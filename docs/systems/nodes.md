@@ -14,7 +14,7 @@ sits on a celestial node; clearing the lair frees the node; town gatherers walk 
 - **Still no commanding heroes:** gatherers and guards are town workers the player sends; heroes
   only join through an **escort bounty**, a moving bounty flag they score like any flag.
 - **Gatherers come from the town hall** (recommended): no new building in M3, cap grows with
-  the town hall tier. Guards come from guard towers.
+  the town hall tier. Guards come from towers (`tower`).
 - **A node is a pool, not a tap:** it opens with some Ambrosia and refills slowly; far nodes
   hold more (risk for reward). The boss lair has no node.
 - **Ambrosia buys divine help during the run:** recommended sinks are **Offering** (fill a
@@ -66,7 +66,7 @@ sits on a celestial node; clearing the lair frees the node; town gatherers walk 
 
 | Rule   | Value                                                                                                              |
 | ------ | ------------------------------------------------------------------------------------------------------------------ |
-| Source | **guard towers** (OPEN 2): each tower lends 1 guard at a time (tier 2: 2, tier 3: 3)                               |
+| Source | **towers** (building id `tower`, OPEN 2): each tower lends 1 guard at a time (tier 2: 2, tier 3: 3)                |
 | Cost   | 15 gold per trip                                                                                                   |
 | Body   | hp 80, armour 2, a spear: damage about half a tier 1 warrior's, physical; speed matches the gatherer it walks with |
 | Rule   | walks beside one gatherer; fights what attacks it; never chases beyond 150; goes home with the gatherer            |
@@ -110,18 +110,18 @@ only if playtests ask for more.
 
 ## 5. Interactions
 
-| With               | Rule                                                                                                                                             |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Wandering monsters | aggro on gatherers and guards like on heroes (same aggro range); gatherers are the weakest target, so harriers pick them (lowest hp)             |
-| Harpies (Snatch)   | a harpy's landed hit on a carrying gatherer steals its jar instead of gold; killing the harpy drops the jar where it dies                        |
-| Raids              | raiders on their way to town attack gatherers and guards in reach; a raid warning (15 s) gives time to recall (`events.md` 1)                    |
-| Dropped jar        | a dead gatherer drops its jar (the Ambrosia it carried); it stays 30 s; the next gatherer that passes picks it up; monsters ignore it            |
-| Lair tier-ups      | do not touch freed nodes; a lair that still stands keeps its node locked                                                                         |
-| Ruins              | a ruined town hall is the lost run (as today); a ruined tower lends no guards until rebuilt; gatherers home at a ruined building go to the hall  |
-| Boss lair          | no node: its fall ends the run                                                                                                                   |
-| Omens              | Red Sky doubles escort bounties like other bounties; Merchant Caravan does not touch Ambrosia                                                    |
-| Save               | nodes (pool, freed), gatherers, guards, jars and the Ambrosia count go in the run save: save version bump with a migration (empty for old saves) |
-| Hints              | one M3 hint on the first `nodeFreed`: "A celestial node is free. / Send a gatherer from the town hall." (`hint-texts.md`, Balance row)           |
+| With               | Rule                                                                                                                                                                            |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Wandering monsters | aggro on gatherers and guards like on heroes (same aggro range); harriers also pick gatherers by lowest hp (today #214 scores heroes and summons only: Sim row 30 adds workers) |
+| Harpies (Snatch)   | a harpy's landed hit on a carrying gatherer steals its jar instead of gold; killing the harpy drops the jar where it dies                                                       |
+| Raids              | raiders on their way to town attack gatherers and guards in reach; a raid warning (15 s, #212, not on main yet) gives time to recall (`events.md` 1)                            |
+| Dropped jar        | a dead gatherer drops its jar (the Ambrosia it carried); it stays 30 s; the next gatherer that passes picks it up; monsters ignore it                                           |
+| Lair tier-ups      | do not touch freed nodes; a lair that still stands keeps its node locked                                                                                                        |
+| Ruins              | a ruined town hall is the lost run (as today); a ruined tower lends no guards until rebuilt; gatherers home at a ruined building go to the hall                                 |
+| Boss lair          | no node: its fall ends the run                                                                                                                                                  |
+| Omens              | Red Sky doubles escort bounties like other bounties; Merchant Caravan does not touch Ambrosia                                                                                   |
+| Save               | nodes (pool, freed), gatherers, guards, jars and the Ambrosia count go in the run save: save version bump with a migration (empty for old saves)                                |
+| Hints              | one M3 hint on the first `nodeFreed`: "A celestial node is free. / Send a gatherer from the town hall." (`hint-texts.md`, Balance row)                                          |
 
 ## 6. What the player sees
 
@@ -143,14 +143,14 @@ only if playtests ask for more.
 
 ### Sim
 
-| Order | Row                                                                                                                     |
-| ----- | ----------------------------------------------------------------------------------------------------------------------- |
-| 10    | Nodes: one per non-boss lair, freed on lair destroy (`nodeFreed`), pool with start, regen, max, distance and tier mults |
-| 20    | Worker units (`kind: 'worker'`): gatherers (hire, send, recall, gather loop, flee on hit), cap by town hall tier        |
-| 30    | Guards from towers (lend, follow, fight, die, 60 s re-lend); Snatch steals jars; dropped jars                           |
-| 40    | Escort bounty: a flag that follows a gatherer, scored as a flag, `escort` intent, paid on return, half back on death    |
-| 50    | Ambrosia counter and the A and B purchases (Offering fills a favour bar; Recall the Fallen revives a slain hero once)   |
-| 60    | Save: nodes, workers, jars, Ambrosia; version bump and migration                                                        |
+| Order | Row                                                                                                                                                                                                                             |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 10    | Nodes: one per non-boss lair, freed on lair destroy (`nodeFreed`), pool with start, regen, max, distance and tier mults                                                                                                         |
+| 20    | Worker units (`kind: 'worker'`): gatherers (hire, send, recall, gather loop, flee on hit), cap by town hall tier; the new kind handled once in every switch on `kind` (strike targeting, aggro, snapshot)                       |
+| 30    | Guards from towers (lend, follow, fight, die, 60 s re-lend); Snatch steals jars; dropped jars; harrier target scoring includes workers                                                                                          |
+| 40    | Escort bounty: a flag that follows a gatherer, scored as a flag, `escort` intent, paid on return, half back on death                                                                                                            |
+| 50    | Ambrosia counter and the A and B purchases (Offering fills a favour bar; Recall the Fallen revives a slain hero once); a `fallen` list keeps each slain hero's id, god, pantheon, level and path (today `slain` drops the unit) |
+| 60    | Save: nodes, workers, jars, Ambrosia, the `fallen` list; version bump and migration                                                                                                                                             |
 
 ### Scene
 
@@ -184,7 +184,7 @@ only if playtests ask for more.
 
 1. **Where gatherers come from:** the town hall, cap by its tier (recommendation), or a new
    Gatherers' Lodge building?
-2. **Where guards come from:** guard towers lend them (recommendation), or the town hall too?
+2. **Where guards come from:** towers lend them (recommendation), or the town hall too?
 3. **What Ambrosia buys first:** Offering and Recall the Fallen (recommendation), or another
    pair from section 4?
 4. **Leftover Ambrosia:** lost at run end (recommendation), or a small part becomes Essence?
