@@ -1,6 +1,7 @@
 import { avenge, revengeTarget, rivalPairs, vowRevenge } from './rivalry';
 import { runAutosave } from './save';
 import { generateMap } from './mapgen';
+import { attackStrike, hitEvent, resolveStrike } from './strike';
 import { swing } from './swing';
 import { buildReport, sampleGold, tally, type HeroRecord } from './runstats';
 import {
@@ -38,9 +39,7 @@ import {
 } from './heroes';
 import {
   aggroRange,
-  damage,
   dist,
-  dodgeChance,
   monsterHp,
   scaleAttrs,
   speed,
@@ -307,15 +306,39 @@ function runLairs(world: World): void {
 function statsOf(world: World, unit: UnitState): Stats | undefined {
   if (unit.kind === 'hero') {
     const cls = world.data.classes?.find((c) => c.id === unit.type);
-    return cls && { weapon: cls.weapon, attrs: effectiveAttrs(world, unit, cls.attrs) };
+    return (
+      cls && {
+        weapon: cls.weapon,
+        attrs: effectiveAttrs(world, unit, cls.attrs),
+        armour: cls.armour,
+        spellMult: cls.spellMult,
+        damageType: cls.spellMult === undefined ? undefined : heroDamageType(world, unit),
+      }
+    );
   }
   const mon = world.data.monsters?.find((m) => m.id === unit.type);
+  const mult = tierValue(world.tuning.lair.statMult, unit.tier, 1);
   return (
     mon && {
       weapon: mon.weapon,
-      attrs: scaleAttrs(mon.attrs, tierValue(world.tuning.lair.statMult, unit.tier, 1)),
+      attrs: scaleAttrs(mon.attrs, mult),
+      armour: Math.round((mon.armour ?? 0) * mult),
+      tags: mon.tags,
+      types: mon.types,
     }
   );
+}
+
+// A caster hero strikes with its path's type, else its god's (weapon templates are physical).
+function heroDamageType(world: World, unit: UnitState): string | undefined {
+  const path = unit.path ? world.data.paths?.find((p) => p.id === unit.path) : undefined;
+  return path?.damageType ?? world.data.gods?.find((g) => g.id === unit.god)?.damageType;
+}
+
+// What a strike needs to know about a unit it hits.
+export function targetOf(world: World, unit: UnitState) {
+  const st = statsOf(world, unit);
+  return st && { attrs: st.attrs, armour: st.armour, types: st.types, tags: st.tags };
 }
 
 function runUnits(world: World): void {
@@ -420,12 +443,11 @@ function fight(world: World, unit: UnitState, rt: UnitRuntime, stats: Stats, foe
   }
   if (d > 0) unit.facing = { x: (foe.pos.x - unit.pos.x) / d, y: (foe.pos.y - unit.pos.y) / d };
   swing(world, unit, rt, stats, foe.id, () => {
-    const foeStats = statsOf(world, foe);
-    const dodged = !!foeStats && world.rng() < dodgeChance(foeStats.attrs);
-    const dmg = dodged ? 0 : damage(stats.attrs);
+    const hit = resolveStrike(world, attackStrike(stats, targetOf(world, foe)));
+    const { damage: dmg } = hit;
     foe.hp -= dmg;
     tally(world, unit.id, 'damage', dmg);
-    world.events.push({ kind: 'hit', attacker: unit.id, target: foe.id, damage: dmg, dodged });
+    world.events.push(hitEvent(unit.id, foe.id, hit));
     if (foe.hp <= 0) {
       foe.hp = 0;
       world.pendingDeaths.push({ victim: foe.id, by: unit.id });

@@ -1,5 +1,4 @@
 import {
-  damage,
   dist,
   maxHp,
   scaleAttrs,
@@ -11,8 +10,9 @@ import {
 } from './units';
 import { shareXp } from './parties';
 import { earn, tally } from './runstats';
+import { attackStrike, hitEvent, resolveStrike } from './strike';
 import { swing } from './swing';
-import type { UnitRuntime, World } from './world';
+import { targetOf, type UnitRuntime, type World } from './world';
 import type { BuildingCore, CommandResult, LairState, UnitState, Vec2 } from './types';
 
 // The town side of a run, simplified and logged in docs/decisions.md: heroes can destroy
@@ -59,9 +59,10 @@ export function attackBuilding(
     return;
   }
   swing(world, unit, rt, stats, b.id, () => {
-    const dmg = damage(stats.attrs);
+    const hit = resolveStrike(world, { ...attackStrike(stats), vsBuilding: true });
+    const dmg = hit.damage;
     b.hp -= dmg;
-    world.events.push({ kind: 'hit', attacker: unit.id, target: b.id, damage: dmg, dodged: false });
+    world.events.push(hitEvent(unit.id, b.id, hit));
     if (b.hp > 0) return;
     world.buildings = world.buildings.filter((x) => x.id !== b.id);
     world.stats.buildingsLost++;
@@ -102,16 +103,11 @@ export function attackLair(
     return;
   }
   swing(world, unit, rt, stats, lair.id, () => {
-    const dmg = damage(stats.attrs);
+    const hit = resolveStrike(world, attackStrike(stats));
+    const dmg = hit.damage;
     lair.hp -= dmg;
     tally(world, unit.id, 'damage', dmg);
-    world.events.push({
-      kind: 'hit',
-      attacker: unit.id,
-      target: lair.id,
-      damage: dmg,
-      dodged: false,
-    });
+    world.events.push(hitEvent(unit.id, lair.id, hit));
     if (lair.hp > 0) return;
     const tm = world.tuning.monster;
     world.lairs = world.lairs.filter((l) => l.id !== lair.id);
@@ -140,13 +136,19 @@ export function attackLair(
   });
 }
 
-// Every raidEveryMs each lair sends a few of its monsters to march on the town.
+// Every raidEveryMs a few of the standing lairs (tuning.town.raidLairs, picked at random) send
+// some of their monsters to march on the town. The boss lair of a generated map never raids.
 export function runRaids(world: World): void {
   const t = world.tuning.town;
   if (world.timeMs < world.nextRaidMs) return;
   world.nextRaidMs += t.raidEveryMs;
   const size = t.raidSize + Math.floor(world.timeMs / t.raidGrowEveryMs);
-  for (const lair of world.lairs) {
+  const eligible = world.lairs.filter((l) => !l.boss);
+  const sending: LairState[] = [];
+  for (let n = 0; n < t.raidLairs && eligible.length > 0; n++) {
+    sending.push(...eligible.splice(Math.floor(world.rng() * eligible.length), 1));
+  }
+  for (const lair of sending) {
     const def = world.data.lairs?.find((l) => l.id === lair.type);
     const mon = world.data.monsters?.find((m) => m.id === def?.monster);
     if (!def || !mon) continue;
@@ -213,6 +215,8 @@ export function upgradeBuilding(world: World, id: number): CommandResult {
   return { ok: true, id: b.id };
 }
 
+const TOWER_ATTRS = { str: 0, dex: 0, sta: 0, cha: 0, per: 0, int: 0, wp: 0 };
+
 // Towers shoot the nearest monster in range on their own cooldown, by building tier.
 export function runTowers(world: World): void {
   const t = world.tuning.building;
@@ -233,9 +237,17 @@ export function runTowers(world: World): void {
     }
     if (!foe) continue;
     world.towerNextMs.set(b.id, world.timeMs + tierValue(t.towerCooldownMs, b.tier, 2000));
-    const dmg = tierValue(t.towerDamage, b.tier, 0);
+    // Towers' one sure thing: the tier's flat damage, no dodge, no crit.
+    const hit = resolveStrike(world, {
+      attrs: TOWER_ATTRS,
+      power: tierValue(t.towerDamage, b.tier, 0),
+      canDodge: false,
+      canCrit: false,
+      target: targetOf(world, foe),
+    });
+    const dmg = hit.damage;
     foe.hp -= dmg;
-    world.events.push({ kind: 'hit', attacker: b.id, target: foe.id, damage: dmg, dodged: false });
+    world.events.push(hitEvent(b.id, foe.id, hit));
     if (foe.hp <= 0) {
       foe.hp = 0;
       world.pendingDeaths.push({ victim: foe.id, by: b.id });
