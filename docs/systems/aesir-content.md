@@ -270,6 +270,20 @@ export const SUMMONS = [
 - The Valkyrie's tier 1 is Freyja's healer; the path turns her into a warrior. Her skill
   replaces healing with the swoop, so a Freyja party wanting a healer needs the Seidkona.
 
+### What the data does today (Balance, c48ca51)
+
+The rows follow this section as far as `SkillDef` reaches; each gap is commented on its row.
+The helper fields above close them (Sim, section 7 row 10).
+
+| Skill            | Data today                                                                  | Gap until Sim adds             |
+| ---------------- | --------------------------------------------------------------------------- | ------------------------------ |
+| Gungnir          | tier 2 hits the first foe; tier 3 pierces the line                          | the extra 1.0x on the target   |
+| Seidr Ward       | tier 2 shields one ally; the chill comes with the tier 3 circle (200)       | `to: 'allyAttacker'` for chill |
+| Valkyrie's Swoop | tier 3: radius 70, 1.8x and a 1.0x burst on every foe within 70 of the ally | `target: 'allyAttacker'`       |
+| Raven Omen       | marks the nearest foe; tier 3 marks every foe within 200                    | `pick: 'mostHp'`, `max: 3`     |
+| Chain Lightning  | tier 3 has no closing pillar                                                | `at: 'lastHit'`                |
+| Wildfire         | tier 3 burn lasts the global 3 s                                            | `riderS`                       |
+
 ## 5. Budget check (for the Sim bot)
 
 Chain hits count in full: the target plus 3 jumps at falloff 0.7 is 1 + 0.7 + 0.49 + 0.34 =
