@@ -345,11 +345,49 @@ describe('skill shapes', () => {
 });
 
 describe('skill engine, review fixes', () => {
-  it('ready and engage reach foes beyond the aggro radius', () => {
-    const w = createWorld(1, mkData({ ...bolt, trigger: { kind: 'ready', range: 300 } }));
+  it('engage reaches foes beyond the aggro radius, ready needs a fight', () => {
+    const eng = createWorld(
+      1,
+      mkData({ ...bolt, trigger: { kind: 'engage', min: 100, max: 300 } }),
+    );
+    hero(eng);
+    monster(eng, 780, 500);
+    expect(of(run(eng, 1000), 'cast').length).toBeGreaterThan(0);
+    const rdy = createWorld(1, mkData({ ...bolt, trigger: { kind: 'ready', range: 300 } }));
+    hero(rdy);
+    monster(rdy, 780, 500);
+    expect(of(run(rdy, 1000), 'cast')).toHaveLength(0);
+  });
+
+  it('a cone on the caster points at the foe, not east', () => {
+    const sweep: SkillDef = {
+      ...bolt,
+      trigger: { kind: 'crowd', n: 2, radius: 80, angle: 120 },
+      target: 'self',
+      shape: { kind: 'cone', radius: 80, angle: 120 },
+    };
+    const w = createWorld(1, mkData(sweep));
     hero(w);
-    monster(w, 780, 500);
-    expect(of(run(w, 1000), 'cast').length).toBeGreaterThan(0);
+    const a = monster(w, 460, 500);
+    const b = monster(w, 450, 520);
+    const east = monster(w, 560, 500);
+    const lands = of(run(w, 1500), 'skill');
+    expect(lands[0].hits).toContain(a.id);
+    expect(lands[0].hits).toContain(b.id);
+    expect(lands[0].hits).not.toContain(east.id);
+  });
+
+  it('a chain does not follow a target that left the cast point', () => {
+    const chain: SkillDef = {
+      ...bolt,
+      shape: { kind: 'chain', jumps: 2, radius: 100, falloff: 0.5 },
+    };
+    const w = createWorld(1, mkData(chain));
+    hero(w);
+    const rat = monster(w, 540, 500);
+    run(w, 200);
+    rat.pos = { x: 900, y: 500 };
+    expect(of(run(w, 600), 'skill')[0].hits).toEqual([]);
   });
 
   it('a self-centred crowd counts foes around the caster, not around the foe', () => {
@@ -370,8 +408,8 @@ describe('skill engine, review fixes', () => {
     h.mode = 'rest';
     run(w, 6000);
     h.mode = 'explore';
-    rat.pos = { x: 540, y: 500 };
-    const ev = run(w, 100);
+    rat.pos = { x: h.pos.x + 40, y: h.pos.y };
+    const ev = run(w, 200);
     expect(of(ev, 'cast')).toHaveLength(1);
   });
 
