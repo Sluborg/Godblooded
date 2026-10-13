@@ -3,6 +3,7 @@ import { fledParty, fleeThreshold, newParty, pantheonOf, TRAITS } from './partie
 import { slowOf } from './riders';
 import { revengeTarget } from './rivalry';
 import { emptyItems } from './items';
+import { buyItem, hasItemRows, nearestShop, planShopping, type ShopStop } from './shopping';
 import { passiveAggroMult, passiveKoMult, passiveRestMult } from './passives';
 import { aggroRange, dist, maxHp, speed, stepToward, tierValue, TICK_MS } from './units';
 import type { World } from './world';
@@ -20,6 +21,8 @@ export interface HeroRuntime {
   temple: number;
   // Sworn revenge: the monster to hunt and when the oath runs out.
   revenge?: { target: number; untilMs: number };
+  // Shopping with item rows: the stops still to make (see shopping.ts).
+  shop?: ShopStop[];
 }
 
 const tune = (world: World) => world.tuning.hero;
@@ -115,6 +118,53 @@ export function runHeroes(world: World): void {
   }
 }
 
+// A rested hero with gold goes shopping. With item rows it first plans its buys and walks to
+// the shops that hold them; without, it spends a share at the market.
+function wantsToShop(world: World, unit: UnitState, rt: HeroRuntime): boolean {
+  rt.shop = undefined;
+  if (unit.gold < tune(world).shopMinGold) return false;
+  if (!hasItemRows(world)) return !!findMarket(world, unit.pos);
+  const plan = planShopping(world, unit);
+  if (plan.length === 0) return false;
+  rt.shop = plan;
+  return true;
+}
+
+// Walks to the next planned shop, buys there, and moves on; done when the plan is.
+function visitShops(
+  world: World,
+  unit: UnitState,
+  rt: HeroRuntime,
+  step: (to: Vec2) => boolean,
+): void {
+  const stop = rt.shop?.[0];
+  const shop = stop && nearestShop(world, stop.shop, unit.pos);
+  if (!stop || !shop) {
+    // The shop is gone (or the plan is): skip the stop.
+    rt.shop = rt.shop?.slice(1);
+    if (!rt.shop?.length) finishShopping(unit, rt);
+    return;
+  }
+  if (!step(shop.pos)) return;
+  const bt = world.tuning.building;
+  for (const id of stop.items) {
+    const price = buyItem(world, unit, id, shop.tier);
+    if (price === 0) continue;
+    const tax = Math.floor(price * tune(world).taxRate * tierValue(bt.shopTaxMult, shop.tier, 1));
+    world.gold += tax;
+    world.stats.taxCollected += tax;
+    world.events.push({ kind: 'shopped', unit: unit.id, spent: price, tax, item: id });
+  }
+  rt.shop = rt.shop?.slice(1);
+  if (!rt.shop?.length) finishShopping(unit, rt);
+}
+
+function finishShopping(unit: UnitState, rt: HeroRuntime): void {
+  rt.shop = undefined;
+  unit.mode = 'explore';
+  rt.dest = null;
+}
+
 // A rested enough hero rejoins the fight when monsters come close to town.
 function defend(world: World, unit: UnitState, rt: HeroRuntime): void {
   if (unit.hp < unit.maxHp * world.tuning.town.defendHp) return;
@@ -197,12 +247,15 @@ export function heroMove(world: World, unit: UnitState): void {
         passiveRestMult(world, unit);
       unit.hp = Math.min(unit.maxHp, unit.hp + (unit.maxHp * rate * TICK_MS) / 1000);
       if (unit.hp >= unit.maxHp) {
-        unit.mode =
-          unit.gold >= tune(world).shopMinGold && findMarket(world, unit.pos) ? 'shop' : 'explore';
+        unit.mode = wantsToShop(world, unit, rt) ? 'shop' : 'explore';
       }
       break;
     }
     case 'shop': {
+      if (rt.shop) {
+        visitShops(world, unit, rt, step);
+        break;
+      }
       const market = findMarket(world, unit.pos);
       if (!market) {
         unit.mode = 'explore';
