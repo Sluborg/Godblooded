@@ -38,14 +38,17 @@ today's run start (300 gold, temple 150, first hero 5 s after a temple stands).
 | 20   | build menu open              | "The Aesir temple. Odin, Thor, Loki and Freyja will hear it."                | the temple button                          |
 | 30   | first hero arrives           | "A Godblood. They answer to no king, not even you."                          | the hero                                   |
 | 40   | 10 s later                   | "You cannot command them. But gold speaks to every child of a god."          | none                                       |
-| 50   | first monster seen by a hero | "Tap a monster to put a bounty on its head."                                 | the monster                                |
-| 60   | first bounty placed          | "Watch who goes for it. The greedy run, the cowards think twice."            | the flag                                   |
-| 70   | gold back above 100          | "Heroes spend what they earn. Build a market, and the town takes its share." | a free plot                                |
+| 50   | 10 s after beat 40           | "Heroes spend what they earn. Build a market, and the town takes its share." | a free plot                                |
+| 60   | first monster seen by a hero | "Tap a monster to put a bounty on its head."                                 | the monster                                |
+| 70   | first bounty placed          | "Watch who goes for it. The greedy run, the cowards think twice."            | the flag                                   |
 | 80   | first party formed           | "Two who fight together stay together. Tap a hero to see the party."         | a party member                             |
 | 90   | first level-up offer         | "They have grown. Choose what the gods grant them."                          | the cards (top line on the LevelUp screen) |
 
 - Beats fire in order; a beat whose trigger already passed fires right after the one before.
 - A player who builds before the Skald speaks skips beat 10 and 20.
+- The market beat comes before the bounty beat on purpose: after the temple (150) the player
+  has 150 gold, enough for the market (100); a bounty first could leave too little to build
+  the shop that brings gold back.
 - The run clock and the first-run tuning start at beat 10's build.
 
 ## 3. First-time hints (after the first 3 minutes)
