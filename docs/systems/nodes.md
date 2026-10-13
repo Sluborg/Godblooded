@@ -3,7 +3,7 @@
 Design owns this spec (Lead, decision 2026-10-14 "Celestial nodes and gatherers"). Every lair
 sits on a celestial node; clearing the lair frees the node; town gatherers walk out to collect
 **Ambrosia**, an in-run currency, and carry it home. The Altar's meta currency becomes
-**Essence** (Lead's call, Stefan may veto). Builds on `events.md` (raids, favour), `hero-ai.md`
+**Essence** (confirmed by Stefan). Builds on `events.md` (raids, favour), `hero-ai.md`
 (flag scoring), `monsters-and-bosses.md` (roles, Snatch), `buildings.md` and `meta.md`.
 
 ## Bottom line
@@ -13,41 +13,65 @@ sits on a celestial node; clearing the lair frees the node; town gatherers walk 
   what to buy with the Ambrosia. It fills the quiet stretch between lair falls.
 - **Still no commanding heroes:** gatherers and guards are town workers the player sends; heroes
   only join through an **escort bounty**, a moving bounty flag they score like any flag.
-- **Gatherers come from the town hall** (recommended): no new building in M3, cap grows with
-  the town hall tier. Guards come from towers (`tower`).
+- **Gatherers come from the town hall:** no new building in M3, cap grows with the town hall
+  tier. Guards come from towers (`tower`).
 - **A node is a pool, not a tap:** it opens with some Ambrosia and refills slowly; far nodes
   hold more (risk for reward). The boss lair has no node.
-- **Ambrosia buys divine help during the run:** recommended sinks are **Offering** (fill a
-  god's favour bar now; the god still picks the spot) and **Recall the Fallen** (bring back a
-  slain hero at its temple). Four more options below.
+- **Ambrosia buys divine help during the run** (Stefan): **Temple upgrade** (a temple tier for
+  Ambrosia instead of gold), **Offering** (fill a god's favour bar now; the god still picks the
+  spot) and **Recall the Fallen** (bring back a slain hero once). Leftover Ambrosia is lost.
 - **Monsters hunt gatherers, never nodes:** wandering monsters and raiders attack them, harpies
   snatch the jar. A dropped jar stays 30 s for the next gatherer.
 - **Essence:** the Altar's currency is renamed in `meta.md`, `meta-ui.md`, `ui-flows.md` and
   `content-roadmap.md` (this PR).
-- **9 OPEN for Stefan** (end of page), each with a recommendation.
+- **Nodes can be lost again** (Stefan): a raid that reaches a freed node defiles it, and late in
+  the run a new lair can sprout on one. Both are warned and both can be won back (section 1b).
+- **Decided** (Stefan, 2026-10-14): end of page; no OPEN left.
 
 ## 1. Nodes
 
-| Rule         | Value                                                                                                                          |
-| ------------ | ------------------------------------------------------------------------------------------------------------------------------ |
-| Where        | one under every lair except the boss lair, at the lair's position (mapgen places lairs as today: 600+ from town, 350+ apart)   |
-| Locked       | while the lair stands: a dim, red-veined glow under the lair (part of the corrupted-ground cue, `look-sheet.md`)               |
-| Freed        | when the lair is destroyed: event `nodeFreed {node, lair, pos}`; the lair leaves a broken ruin beside the node                 |
-| Pool         | opens with `nodeStart` 40 Ambrosia; refills `nodeRegenPerMin` 8 up to `nodeMax` 80                                             |
-| Distance     | `nodeStart` and `nodeMax` x (1 + 0.25 per full 400 beyond 600 from the town hall): a far node at 1400 opens with 60, holds 120 |
-| Lair tier    | a node freed from a tier 2 lair holds x1.25, tier 3 x1.5 (the harder lair pays more)                                           |
-| Stays free   | for the rest of the run: a cleared lair is gone (`progression.md` 3); nothing re-corrupts a node in M3                         |
-| Not a target | nodes cannot be damaged or claimed by monsters (OPEN 6)                                                                        |
+| Rule         | Value                                                                                                                               |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Where        | one under every lair except the boss lair, at the lair's position (mapgen places lairs as today: 600+ from town, 350+ apart)        |
+| Locked       | while the lair stands: a dim, red-veined glow under the lair (part of the corrupted-ground cue, `look-sheet.md`)                    |
+| Freed        | when the lair is destroyed: event `nodeFreed {node, lair, pos}`; the lair leaves a broken ruin beside the node                      |
+| Pool         | opens with `nodeStart` 40 Ambrosia; refills `nodeRegenPerMin` 8 up to `nodeMax` 80                                                  |
+| Distance     | `nodeStart` and `nodeMax` x (1 + 0.25 per full 400 beyond 600 from the town hall): a far node at 1400 opens with 60, holds 120      |
+| Lair tier    | a node freed from a tier 2 lair holds x1.25, tier 3 x1.5 (the harder lair pays more)                                                |
+| Stays free   | until it is defiled by a raid or a new lair sprouts on it (section 1b); a cleared lair itself never comes back (`progression.md` 3) |
+| Not a target | nodes take no damage; monsters do not seek them out, only raiders passing near one defile it (section 1b)                           |
 
 - **Expected yield:** 4 to 6 lairs a run, the first falls about 7:00, runs end 15 to 18 min:
   about 3 to 4 freed nodes, worked for 4 to 8 minutes each, so **200 to 300 Ambrosia a run**
   for a player who keeps gatherers busy. That is 3 to 5 purchases (section 4).
 
+## 1b. Losing a node and winning it back
+
+| Way      | Warning                                                                                                                         | What happens                                                                                                                                                                                                                                                                            | Win it back                                                                                                                                                                                                                                       |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Defiled  | raiders that pass within 120 of a freed node stop there; the pillar flickers red, event `nodeThreat` with a 10 s countdown ring | after 10 s with raiders still there: the node is **defiled** (event `nodeDefiled`): a red pillar, no gathering, the pool stops refilling but keeps what it holds; **2 of the raiders stay as defilers** (they leave the raid, so it is that much smaller at the town), the rest walk on | **cleanse:** kill the defilers (heroes, towers, guards; the player can post a bounty on them as on any monster), then a hero or guard stands within 80 of the node for 10 s with no monster within 150: freed again (`nodeFreed`), pool as it was |
+| New lair | from 12:00, a 30 s warning (`lairSprouting {node, inMs}`): red cracks spread from the node, a horn, an arrow on the screen edge | a tier 1 lair of the run's lean grows on the node; gatherers there run home                                                                                                                                                                                                             | destroy the new lair like any lair: the node frees again with its pool x1.25                                                                                                                                                                      |
+
+- **New lairs are rare:** at most one sprouting every 3 minutes, at most 2 a run, only on a
+  node that is not being gathered right now and is not the nearest to town. Seeded, so a run
+  can be replayed.
+- **Why defilers stay:** without them a defiled node would free itself once the raid moved on;
+  the player has to answer it with guards (sent) or a bounty (heroes may take it).
+- **Raid timing:** raiders that stop at a node reach the town later than `events.md` assumes;
+  Balance checks raid arrival in the M3 bot pass.
+- **Sprouted lairs** sit on existing nodes, so mapgen's 600 from town and 350 apart already hold.
+  They tier up and raid like any lair, but do not count toward lair-count rules (`mapRules.lairs`,
+  the boss seal's `sealLairs`) or the Essence "lair cleared" line, so they cannot be farmed.
+- **Raids pick no node on purpose:** raiders keep their target (`events.md` 1); a node on
+  their way is defiled only if they pass close, so a recall plus a guard or an escort is the
+  answer.
+- Recalling gatherers from a threatened node is one tap on the node card.
+
 ## 2. Gatherers
 
 | Rule   | Value                                                                                                                                 |
 | ------ | ------------------------------------------------------------------------------------------------------------------------------------- |
-| Source | the **town hall** (OPEN 1): tap the town hall card, "Hire gatherer" for 30 gold                                                       |
+| Source | the **town hall** (decided): tap the town hall card, "Hire gatherer" for 30 gold                                                      |
 | Cap    | 2 at town hall tier 1, 3 at tier 2, 4 at tier 3                                                                                       |
 | Body   | hp 40, armour 0, speed 0.8 of a hero's base, no attack; a town unit (`kind: 'worker'`), no god, no party, no XP                       |
 | Send   | tap a freed node: "Send gatherer" (an idle one walks out); tap again on a busy node to add a second; "Recall" brings them home        |
@@ -58,7 +82,7 @@ sits on a celestial node; clearing the lair frees the node; town gatherers walk 
 
 - **Why the town hall:** no new building to place on a phone, the gatherer count grows with
   town hall tiers (a reason to upgrade it), and the town hall card already exists
-  (`ui-flows.md` 4). The other choice is a new **Gatherers' Lodge** (OPEN 1).
+  (`ui-flows.md` 4).
 
 ## 3. Protection
 
@@ -66,7 +90,7 @@ sits on a celestial node; clearing the lair frees the node; town gatherers walk 
 
 | Rule   | Value                                                                                                              |
 | ------ | ------------------------------------------------------------------------------------------------------------------ |
-| Source | **towers** (building id `tower`, OPEN 2): each tower lends 1 guard at a time (tier 2: 2, tier 3: 3)                |
+| Source | **towers** (building id `tower`, decided): each tower lends 1 guard at a time (tier 2: 2, tier 3: 3)               |
 | Cost   | 15 gold per trip                                                                                                   |
 | Body   | hp 80, armour 2, a spear: damage about half a tier 1 warrior's, physical; speed matches the gatherer it walks with |
 | Rule   | walks beside one gatherer; fights what attacks it; never chases beyond 150; goes home with the gatherer            |
@@ -91,19 +115,19 @@ sits on a celestial node; clearing the lair frees the node; town gatherers walk 
 ## 4. What Ambrosia buys (in the run)
 
 Spent from a small **Ambrosia** counter on the HUD (under the gold) through the temple card or
-the town hall card. Six options; recommendation: **ship A and B in M3**, C and D next, E and F
-only if playtests ask for more.
+the town hall card. **M3 ships T, A and B** (Stefan); C to F stay as ideas for later.
 
-| Option | Name              | Where         | Cost | Effect                                                                                                       | For and against                                                              |
-| ------ | ----------------- | ------------- | ---- | ------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------- |
-| A      | Offering          | temple card   | 40   | fills that pantheon's favour bar now; the god still picks the spot (`events.md` 3)                           | uses a system that exists; a decision with timing; keeps "the gods act"      |
-| B      | Recall the Fallen | temple card   | 80   | a slain hero of that temple's pantheon comes back at the temple at its level and path, items lost, once each | the strongest "hero to remember" hook; softens permadeath only when paid for |
-| C      | Blessing          | temple card   | 60   | the rest of the run, heroes of that pantheon get +10% XP; one per pantheon                                   | simple; quiet (no moment on screen)                                          |
-| D      | Anoint the Blades | town hall     | 30   | every hero in town gets its weapon +1 level for 3 minutes (glow per `items-and-shops.md` 5)                  | visible, a timing choice before a raid; overlaps the smithy                  |
-| E      | Divine Masonry    | building card | 50   | the next upgrade of this building is free and instant (still gated by town hall tier)                        | saves gold, no new rules; competes with gold, so less special                |
-| F      | Open a Path       | temple card   | 100  | the next path offer of that pantheon shows a third path (needs 3-path content)                               | big content cost; M4 at the earliest                                         |
+| Option | Name              | Where         | Cost     | Effect                                                                                                               | For and against                                                              |
+| ------ | ----------------- | ------------- | -------- | -------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| T      | Temple upgrade    | temple card   | 60 / 100 | the temple's next tier (tier 2 for 60, tier 3 for 100) instead of its gold cost (225 / 375); town hall gate as usual | a pantheon push without gold; competes with the favour and recall sinks      |
+| A      | Offering          | temple card   | 40       | fills that pantheon's favour bar now; the god still picks the spot (`events.md` 3)                                   | uses a system that exists; a decision with timing; keeps "the gods act"      |
+| B      | Recall the Fallen | temple card   | 80       | a slain hero of that temple's pantheon comes back at the temple at its level and path, items lost, once each         | the strongest "hero to remember" hook; softens permadeath only when paid for |
+| C      | Blessing          | temple card   | 60       | the rest of the run, heroes of that pantheon get +10% XP; one per pantheon                                           | simple; quiet (no moment on screen)                                          |
+| D      | Anoint the Blades | town hall     | 30       | every hero in town gets its weapon +1 level for 3 minutes (glow per `items-and-shops.md` 5)                          | visible, a timing choice before a raid; overlaps the smithy                  |
+| E      | Divine Masonry    | building card | 50       | the next upgrade of this building is free and instant (still gated by town hall tier)                                | saves gold, no new rules; competes with gold, so less special                |
+| F      | Open a Path       | temple card   | 100      | the next path offer of that pantheon shows a third path (needs 3-path content)                                       | big content cost; M4 at the earliest                                         |
 
-- **No conversion to Essence** at run end (OPEN 4): Ambrosia left over is lost, so the player
+- **No conversion to Essence** at run end (Stefan): Ambrosia left over is lost, so the player
   spends it.
 - **Numbers** are first guesses for Balance; the bot run checks that 200 to 300 a run buys 3 to
   5 things.
@@ -116,7 +140,7 @@ only if playtests ask for more.
 | Harpies (Snatch)   | a harpy's landed hit on a carrying gatherer steals its jar instead of gold; killing the harpy drops the jar where it dies                                                       |
 | Raids              | raiders on their way to town attack gatherers and guards in reach; a raid warning (15 s, #212, not on main yet) gives time to recall (`events.md` 1)                            |
 | Dropped jar        | a dead gatherer drops its jar (the Ambrosia it carried); it stays 30 s; the next gatherer that passes picks it up; monsters ignore it                                           |
-| Lair tier-ups      | do not touch freed nodes; a lair that still stands keeps its node locked                                                                                                        |
+| Lair tier-ups      | do not touch freed nodes (new lairs sprout per section 1b); a standing lair keeps its node locked                                                                               |
 | Ruins              | a ruined town hall is the lost run (as today); a ruined tower lends no guards until rebuilt; gatherers home at a ruined building go to the hall                                 |
 | Boss lair          | no node: its fall ends the run                                                                                                                                                  |
 | Omens              | Red Sky doubles escort bounties like other bounties; Merchant Caravan does not touch Ambrosia                                                                                   |
@@ -143,29 +167,31 @@ only if playtests ask for more.
 
 ### Sim
 
-| Order | Row                                                                                                                                                                                                                             |
-| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 10    | Nodes: one per non-boss lair, freed on lair destroy (`nodeFreed`), pool with start, regen, max, distance and tier mults                                                                                                         |
-| 20    | Worker units (`kind: 'worker'`): gatherers (hire, send, recall, gather loop, flee on hit), cap by town hall tier; the new kind handled once in every switch on `kind` (strike targeting, aggro, snapshot)                       |
-| 30    | Guards from towers (lend, follow, fight, die, 60 s re-lend); Snatch steals jars; dropped jars; harrier target scoring includes workers                                                                                          |
-| 40    | Escort bounty: a flag that follows a gatherer, scored as a flag, `escort` intent, paid on return, half back on death                                                                                                            |
-| 50    | Ambrosia counter and the A and B purchases (Offering fills a favour bar; Recall the Fallen revives a slain hero once); a `fallen` list keeps each slain hero's id, god, pantheon, level and path (today `slain` drops the unit) |
-| 60    | Save: nodes, workers, jars, Ambrosia, the `fallen` list; version bump and migration                                                                                                                                             |
+| Order | Row                                                                                                                                                                                                                                                          |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 10    | Nodes: one per non-boss lair, freed on lair destroy (`nodeFreed`), pool with start, regen, max, distance and tier mults                                                                                                                                      |
+| 20    | Worker units (`kind: 'worker'`): gatherers (hire, send, recall, gather loop, flee on hit), cap by town hall tier; the new kind handled once in every switch on `kind` (strike targeting, aggro, snapshot)                                                    |
+| 30    | Guards from towers (lend, follow, fight, die, 60 s re-lend); Snatch steals jars; dropped jars; harrier target scoring includes workers                                                                                                                       |
+| 40    | Escort bounty: a flag that follows a gatherer, scored as a flag, `escort` intent, paid on return, half back on death                                                                                                                                         |
+| 50    | Ambrosia counter and the T, A and B purchases (temple tier for Ambrosia; Offering fills a favour bar; Recall the Fallen revives a slain hero once); a `fallen` list keeps each slain hero's id, god, pantheon, level and path (today `slain` drops the unit) |
+| 55    | Losing nodes: raiders near a freed node stop and defile it (`nodeThreat`, `nodeDefiled`), 2 stay as defilers; cleanse (defilers dead, a hero or guard 10 s on the node) frees it; sprouting lairs from 12:00 (`lairSprouting`, at most 2 a run, seeded)      |
+| 60    | Save: nodes (incl. defiled), workers, jars, Ambrosia, the `fallen` list; version bump and migration                                                                                                                                                          |
 
 ### Scene
 
-| Order | Row                                                                                     |
-| ----- | --------------------------------------------------------------------------------------- |
-| 10    | Node glow (locked, freed by pool), node card (pool, Send gatherer, Recall)              |
-| 20    | Gatherer and guard views, the carried jar, escort flag on the gatherer, alarm and chime |
-| 30    | HUD Ambrosia counter; Offering and Recall buttons on the temple card                    |
+| Order | Row                                                                                                    |
+| ----- | ------------------------------------------------------------------------------------------------------ |
+| 10    | Node glow (locked, freed by pool), node card (pool, Send gatherer, Recall)                             |
+| 20    | Gatherer and guard views, the carried jar, escort flag on the gatherer, alarm and chime                |
+| 30    | HUD Ambrosia counter; Temple upgrade (Ambrosia price), Offering and Recall on the temple card          |
+| 40    | Node threat: red flicker and countdown ring, defiled red pillar; sprouting cracks, horn and edge arrow |
 
 ### Balance (data)
 
-| Order | Row                                                                                        |
-| ----- | ------------------------------------------------------------------------------------------ |
-| 10    | `tuning.nodes` (start, regen, max, distance and tier mults), worker and guard stats, costs |
-| 20    | The node hint row; Ambrosia purchase rows (A, B)                                           |
+| Order | Row                                                                                                                                             |
+| ----- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| 10    | `tuning.nodes` (start, regen, max, distance and tier mults), worker and guard stats, costs; check raid arrival with defiling in the M3 bot pass |
+| 20    | The node hint row; Ambrosia purchase rows (T, A, B)                                                                                             |
 
 ### Art
 
@@ -180,19 +206,15 @@ only if playtests ask for more.
 | ----- | ------------------------------------------------------------------------------------- |
 | 10    | `content-roadmap.md` M3 line gets nodes and gatherers (done in this PR); backlog rows |
 
-## OPEN (Stefan decides)
+## Decided (Stefan, 2026-10-14)
 
-1. **Where gatherers come from:** the town hall, cap by its tier (recommendation), or a new
-   Gatherers' Lodge building?
-2. **Where guards come from:** towers lend them (recommendation), or the town hall too?
-3. **What Ambrosia buys first:** Offering and Recall the Fallen (recommendation), or another
-   pair from section 4?
-4. **Leftover Ambrosia:** lost at run end (recommendation), or a small part becomes Essence?
-5. **Recall the Fallen:** once per hero (recommendation), or any number of times at a rising
-   cost?
-6. **Can monsters take a node back?** No, freed stays freed (recommendation), or a lair tier-up
-   nearby re-corrupts the closest freed node?
-7. **Escort bounty pay:** on a safe return with half back on a death (recommendation), or paid
-   the moment a party takes it?
-8. **Far nodes hold more** (+25% per 400 beyond 600, recommendation), or every node the same?
-9. **Essence** as the Altar's currency name (Lead's call): keep, or another name?
+1. **Gatherers** come from the town hall, cap by its tier.
+2. **Guards** are lent by towers.
+3. **First purchases:** Temple upgrade, Offering and Recall the Fallen.
+4. **Leftover Ambrosia** is lost at run end.
+5. **Recall the Fallen** works once per hero.
+6. **Freed nodes can be re-corrupted:** a raid that reaches one (2 defilers stay until cleansed),
+   or a new lair sprouting on one; both warned, both won back (section 1b).
+7. **Escort bounty** pays on a safe return, half back on a death.
+8. **Far nodes hold more** (+25% per 400 beyond 600).
+9. **Essence** is the Altar's currency.
