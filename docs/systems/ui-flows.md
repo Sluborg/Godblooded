@@ -56,14 +56,15 @@ Map + Hud ──Menu──> Pause ──Resume / Restart / Settings / Quit to ti
 
 ## 3. What each tap does on the map
 
-Order of resolution (today's rows 10, 40, 50, 60; new rows in bold):
+Order of resolution (new rows in bold). Heroes come before buildings: a resting or shopping
+hero stands on its building's spot, and the hero is the more specific target.
 
 | Order | Tap on                           | Does                                                        |
 | ----- | -------------------------------- | ----------------------------------------------------------- |
 | 10    | a free plot (within 110)         | build menu (today)                                          |
-| 20    | **a built building (within 70)** | **building card** in the inspect slot (upgrade button)      |
-| 30    | **a ruin**                       | **rebuild menu**: rebuild at 50% or clear (`buildings.md`)  |
-| 40    | a hero (within 70)               | follow it and open its party card (today)                   |
+| 20    | a hero (within 70)               | follow it and open its party card (today)                   |
+| 30    | **a built building (within 70)** | **building card** in the inspect slot (upgrade button)      |
+| 40    | **a ruin**                       | **rebuild menu**: rebuild at 50% or clear (`buildings.md`)  |
 | 50    | **a bounty flag (within 60)**    | **flag card**: amount, who is heading for it, raise, cancel |
 | 60    | a monster or lair (within 70)    | bounty menu on it (today)                                   |
 | 70    | bare ground                      | bounty menu on the spot (today)                             |
@@ -77,6 +78,10 @@ Order of resolution (today's rows 10, 40, 50, 60; new rows in bold):
 
 All cards share the slot, a title line, the close button (80x80, today) and a back arrow when
 opened from another card.
+
+**Party card layout** (so four members fit at 80 px each): a 150 px header (title, level,
+XP bar, upgrades as one row of small icons), then 4 member rows of 80 px = 470 of the 480 px
+slot. Today's header is 190 px and the fourth row spills below the slot.
 
 | Card     | Opened by                | Shows                                                                           | Buttons                                                                   |
 | -------- | ------------------------ | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
