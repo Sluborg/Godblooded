@@ -21,14 +21,11 @@ describe('damageLook', () => {
     expect(damageLook(7, false, { type: 'frost', weak: true })?.tag).toBe('weak');
     expect(damageLook(2, false, { type: 'frost', resist: true })?.color).toBe(RESIST_COLOR);
   });
-<<<<<<< HEAD
   it('shows a burn tick as a small number', () => {
     const t = damageLook(3, false, { type: 'fire', tick: true });
     expect(t?.fontSize).toBe(18);
     expect(t?.color).toBe(TYPE_COLORS.fire);
   });
-=======
->>>>>>> origin/main
   it('shows nothing for a zero-damage hit', () => {
     expect(damageLook(0, false, { type: 'physical' })).toBeNull();
   });
