@@ -54,7 +54,10 @@ export class TitleScene extends Phaser.Scene {
     const tight = labels.length > 3;
     const gap = tight ? 92 : 110;
     const y0 = tight ? 360 : canContinue ? 385 : 420;
-    labels.forEach(([label, fn], i) => makeButton(this, cx, y0 + i * gap, 320, 84, label, fn));
+    const icons: Record<string, string> = { Settings: 'ui_icon_settings' };
+    labels.forEach(([label, fn], i) =>
+      makeButton(this, cx, y0 + i * gap, 320, 84, label, fn, { icon: icons[label] }),
+    );
 
     this.add
       .text(GAME_WIDTH - 16, GAME_HEIGHT - 16, `${__APP_NAME__} · ${__APP_VERSION__}`, {
