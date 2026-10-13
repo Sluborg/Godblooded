@@ -67,6 +67,29 @@ Heroes inside a destroyed shop or hall are pushed out, unhurt.
   button with its cost (greyed with "needs town hall tier 2" when gated).
 - **Locked plots:** faint outline and a lock that opens with a town hall tier-up.
 
+### How buildings look per tier
+
+Tier 1 and tier 2 follow Art's batches B15 and B16 (the new look); this table adds tier 3
+(`docs/asset-spec.md`: divine, gold trim, a glowing motif, a bigger silhouette). Each tier
+changes the silhouette, so a tier-up reads at 0.7x. Moving details (smoke, flames, a turning
+sign) are animated by Scene over the still picture.
+
+| Building        | Tier 1 (B15)                                         | Tier 2 (B16)                                              | Tier 3 adds                                                            |
+| --------------- | ---------------------------------------------------- | --------------------------------------------------------- | ---------------------------------------------------------------------- |
+| Town hall       | longhouse, turf roof, dragon-head gables, red banner | jarl's hall: stone footing, side wing, watch platform     | a great hall with a gilded roof ridge and a tall carved gate tower     |
+| Market          | two striped stalls, crates, barrels, a scale         | covered market hall over four stalls, signboard           | a two-storey trade hall, gold-trimmed awnings, a gilded coin sign      |
+| Smithy          | squat stone forge, fat chimney, anvil, weapon rack   | stone workshop, two chimneys, bellows, two anvils         | a forge hall with a glowing rune-forged anvil and a gold-lit hearth    |
+| Shrine          | small round stone shrine, basin, candles, herbs      | sanctuary with a cloister porch, a spring spout           | a white stone dome, a glowing healing pool, gold-leaf trim             |
+| Guard tower     | wooden watchtower on a stone base, horn              | stone tower, battlements, arrow slits, a mounted crossbow | a taller tower with a gilded roof and a burning beacon on top          |
+| Hearth Hall     | (new) a long timber hall, smoking roof, benches      | a second hearth, shields on the walls                     | a carved gable with gold, a great fire pit outside                     |
+| Aesir temple    | stave temple, two stacked roofs, rune stone          | stave church, three roofs, two rune stones, bell post     | gilded dragon heads, a glowing rune on the portal, Yggdrasil carving   |
+| Greek temple    | small marble temple, four columns, a brazier         | six columns, pediment relief, two braziers, roof statue   | gold-capped columns, a large god statue, eternal flame in the braziers |
+| Egyptian temple | sandstone pylon gate, two short obelisks             | taller pylons with pennants, two obelisks, small sphinxes | gilded obelisk tips, a glowing sun disc over the gate                  |
+
+- **Hearth Hall** is new (decision 2026-10-13): Art adds it to B15/B16 when it ships.
+- **Ruin:** generic rubble tinted in the old building's colour (section 4).
+- **Scaffold:** the timber scaffold over the old picture while upgrading.
+
 ## 5. Proposed data rows
 
 | Row             | Change                                                                                                                                                                                                                      |
@@ -101,6 +124,7 @@ Heroes inside a destroyed shop or hall are pushed out, unhurt.
 | ----- | ----------------------------------------------------------------------------------- |
 | 10    | `bld_hearth-hall_t1..t3`: a long timber hall with a smoking roof, benches outside   |
 | 20    | `bld_ruin`: generic rubble, tinted in code; `bld_scaffold`: timber scaffold overlay |
+| 30    | Tier 3 building pictures per "How buildings look per tier"; Hearth Hall t1-t3       |
 
 ### Lead (data)
 

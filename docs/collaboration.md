@@ -32,6 +32,8 @@ Only the owner edits. Everyone else asks through the owner's inbox.
   `docs/asset-spec.md`, `docs/art-requests.md` (status column; anyone adds rows).
 - **Design:** `docs/systems/` and `docs/playtest-m2.md` (specs; Lead turns them into backlog rows).
 - **Balance:** `src/data/` (numbers and rows; Lead keeps the say on what content exists).
+- **Scene also:** look rows in `src/data/` (`heroParts.ts` and later part/look files): colours and
+  shapes only, no game numbers.
 - **Integrator, Review:** no files; Integrator may push merge commits to PR branches.
 - **Lead also:** `docs/sessions.md`, `docs/inbox/*.md` (see "Talking").
 - **Shared, small careful commits:** `package.json`, `vite.config.ts`, `.github/`.
