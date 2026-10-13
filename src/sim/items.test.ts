@@ -207,7 +207,7 @@ describe('saves with gear', () => {
     old.version = 1;
     for (const u of old.world.units) delete u.items;
     const migrated = migrateSave(old);
-    expect(migrated.version).toBe(2);
+    expect(migrated.version).toBeGreaterThanOrEqual(2);
     const back = loadWorld(old, data);
     expect(back.units.find((u) => u.id === k.id)?.items).toEqual({
       weapon: 0,
