@@ -27,6 +27,9 @@ const MAX = {
   art: [1280, 1280],
 };
 
+// Total bytes of shipped PNGs (offline cache budget, Lead 2026-10-13: 12 MB; lazy-load if M3 passes it).
+export const ART_BUDGET = 12e6;
+
 function pngsUnder(dir) {
   if (!existsSync(dir)) return [];
   return readdirSync(dir).flatMap((f) => {
@@ -36,7 +39,7 @@ function pngsUnder(dir) {
   });
 }
 
-export function validateAssets(root = '.') {
+export function validateAssets(root = '.', budget = ART_BUDGET) {
   const errors = [];
   const warnings = [];
   const err = (id, msg) => errors.push(`${id}: ${msg}`);
@@ -101,7 +104,9 @@ export function validateAssets(root = '.') {
       warnings.push(`${id}: raw source assets/source/${row.source}/${id}.png missing`);
 
     const img = readPng(path);
-    if (img.colorType !== 6) err(id, 'PNG must be RGBA');
+    // Shipped art is palette-compressed (lib compressPng); plain RGBA is allowed but warned.
+    if (img.colorType === 6) warnings.push(`${id}: not compressed, run npm run art:compress`);
+    else if (img.colorType !== 3) err(id, 'PNG must be palette (indexed) or RGBA');
     const [maxW, maxH] = MAX[k.dir];
     if (img.width > maxW || img.height > maxH)
       err(id, `${img.width}x${img.height} is larger than ${maxW}x${maxH}`);
@@ -138,7 +143,15 @@ export function validateAssets(root = '.') {
 
   // Every shipped PNG belongs to a manifest row.
   const files = new Set(manifest.assets.map((a) => a.file));
-  for (const p of pngsUnder(assets)) {
+  const pngs = pngsUnder(assets);
+  // The PWA precaches every shipped PNG, so phones download them all on each deploy.
+  const bytes = pngs.reduce((sum, p) => sum + statSync(p).size, 0);
+  if (bytes > budget)
+    err(
+      'public/assets',
+      `${(bytes / 1e6).toFixed(1)} MB of PNGs, the budget is ${budget / 1e6} MB`,
+    );
+  for (const p of pngs) {
     const rel = relative(assets, p).split('\\').join('/');
     if (!files.has(rel)) err(rel, 'PNG in public/assets has no manifest row');
   }
