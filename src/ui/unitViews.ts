@@ -88,6 +88,8 @@ interface FrameCtx {
     damage: number,
     dodged: boolean,
     info?: HitInfo,
+    // The second blow of a double strike: it animates but shows no number of its own.
+    silent?: boolean,
   ) => void;
   // Receives the visual side of a landed heal (green tint, sparkles, number).
   healed: (targetId: number, amount: number) => void;
@@ -532,7 +534,7 @@ export class UnitView {
       ctx.shake();
     }
     const heavy = a.strike === 'smash' || a.strike === 'stomp';
-    ctx.hurt(a.targetId, this.x, heavy ? 2 : 1, n === 0 ? a.damage : 0, a.dodged, a.info);
+    ctx.hurt(a.targetId, this.x, heavy ? 2 : 1, n === 0 ? a.damage : 0, a.dodged, a.info, n !== 0);
   }
 
   private applyPose(p: Pose, alpha: number): void {
@@ -696,12 +698,12 @@ export class UnitViews {
         const p = others(id);
         return p ? { x: p.x, y: p.y - 40 } : undefined;
       },
-      hurt: (targetId, fromX, power, damage, dodged, info) => {
+      hurt: (targetId, fromX, power, damage, dodged, info, silent) => {
         const t = this.views.get(targetId) ?? this.dying.get(targetId);
         if (!t) return;
         t.receiveHit(fromX, power, dodged, this.fx);
         // The number: type colour, crit, miss, weak or resisted (damageLook).
-        const look = damageLook(damage, dodged, info);
+        const look = silent ? null : damageLook(damage, dodged, info);
         if (look) this.floatNumber(t.container.x, t.container.y - t.height - 10, look);
       },
       healed: (targetId, amount) => {
@@ -809,15 +811,22 @@ export class UnitViews {
     this.views.get(e.attacker)?.beginWindup(e.target, e.inMs / 1000);
   }
 
-  // Floating numbers on screen, oldest first; past MAX_FLOATS the oldest is dropped at once.
-  private floats: Phaser.GameObjects.Text[] = [];
+  // Floating numbers on screen, oldest first (a number and its tag count as one); past MAX_FLOATS
+  // the oldest is dropped at once.
+  private floats: { n: Phaser.GameObjects.Text; tag: Phaser.GameObjects.Text | null }[] = [];
 
   private floatNumber(x: number, y: number, look: FloatLook): void {
-    const t = this.floatText(x, y, look.text, look.color, look.fontSize);
-    if (look.tag) this.floatText(x, y + look.fontSize * 0.9, look.tag, '#ffcf8a', 16);
-    this.floats = this.floats.filter((f) => f.active);
-    this.floats.push(t);
-    while (this.floats.length > MAX_FLOATS) this.floats.shift()?.destroy();
+    const n = this.floatText(x, y, look.text, look.color, look.fontSize);
+    const tag = look.tag
+      ? this.floatText(x, y + look.fontSize * 0.9, look.tag, '#ffcf8a', 16)
+      : null;
+    this.floats = this.floats.filter((f) => f.n.active);
+    this.floats.push({ n, tag });
+    while (this.floats.length > MAX_FLOATS) {
+      const old = this.floats.shift();
+      old?.n.destroy();
+      old?.tag?.destroy();
+    }
   }
 
   private floatText(
