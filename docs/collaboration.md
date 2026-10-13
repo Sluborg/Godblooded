@@ -5,14 +5,17 @@ Every session reads this file at the start of every wake.
 
 ## Roles
 
-| Role   | Job                                                                            | Talks to                    |
-| ------ | ------------------------------------------------------------------------------ | --------------------------- |
-| Lead   | Design, backlog, reviews and merges every PR, the only contact for Stefan      | Stefan, all sessions        |
-| Sim    | The simulation: units, AI, parties, combat, economy, runs. Pure TS, tests      | Lead, Scene                 |
-| Scene  | Phaser: map, camera, rendering the sim, input, HUD, menus, phone feel          | Lead, Sim, Art              |
-| Art    | Writes ChatGPT batches, checks and ships images, the asset spec                | Lead, Scene, ChatGPT chats  |
-| Design | Plans systems and features (combat, skills, items, progression, meta) as specs | Lead                        |
-| GPT    | ChatGPT chats, one per art track; fetch `art-tasks/README.md` and draw         | Art (via the art wake bell) |
+| Role       | Job                                                                            | Talks to                    |
+| ---------- | ------------------------------------------------------------------------------ | --------------------------- |
+| Lead       | Plans with Stefan, design, backlog, decisions; the only contact for Stefan     | Stefan, all sessions        |
+| Sim        | The simulation: units, AI, parties, combat, economy, runs. Pure TS, tests      | Lead, Scene                 |
+| Scene      | Phaser: map, camera, rendering the sim, input, HUD, menus, phone feel          | Lead, Sim, Art              |
+| Art        | Writes ChatGPT batches, checks and ships images, the asset spec                | Lead, Scene, ChatGPT chats  |
+| Design     | Plans systems and features (combat, skills, items, progression, meta) as specs | Lead                        |
+| Integrator | Integration tests and lands every PR (merge right delegated by Lead)           | Lead, all sessions          |
+| Review     | Reviews every PR instead of Codex; blocking findings stop a merge              | Integrator, authors         |
+| Balance    | The numbers in `src/data/` and the balance passes with the bot                 | Lead, Sim, Integrator       |
+| GPT        | ChatGPT chats, one per art track; fetch `art-tasks/README.md` and draw         | Art (via the art wake bell) |
 
 Session ids, models and wake bells: `docs/sessions.md`. On your first start, fill in your own
 row there (your id comes from `get_session` with no arguments).
@@ -27,7 +30,9 @@ Only the owner edits. Everyone else asks through the owner's inbox.
 - **Scene:** `src/scenes/`, `src/ui/`, `src/main.ts`, `src/config.ts`, `index.html`.
 - **Art:** `art-tasks/`, `public/assets/`, `assets/source/`, `scripts/art/`,
   `docs/asset-spec.md`, `docs/art-requests.md` (status column; anyone adds rows).
-- **Design:** `docs/systems/` (specs; Lead turns them into backlog rows and data).
+- **Design:** `docs/systems/` (specs; Lead turns them into backlog rows).
+- **Balance:** `src/data/` (numbers and rows; Lead keeps the say on what content exists).
+- **Integrator, Review:** no files; Integrator may push merge commits to PR branches.
 - **Lead also:** `docs/sessions.md`, `docs/inbox/*.md` (see "Talking").
 - **Shared, small careful commits:** `package.json`, `vite.config.ts`, `.github/`.
 
