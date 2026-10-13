@@ -107,7 +107,7 @@ export class HudScene extends Phaser.Scene {
       );
       this.speedButtons.push(b);
     });
-    makeButton(this, 890, 40, 110, MIN_TOUCH, 'Menu', () => this.openPause(), {
+    makeButton(this, 900, 40, 130, MIN_TOUCH, 'Menu', () => this.openPause(), {
       icon: 'ui_icon_menu',
     });
     // In the gap between the gold and the run clock (the clock sits at x 640).

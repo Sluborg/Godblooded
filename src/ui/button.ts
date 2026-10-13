@@ -94,10 +94,8 @@ export function makeButton(
   // Icon and text centred together; the icon shrinks when the pair would poke past the frame.
   const layout = (): void => {
     if (!icon) return;
-    if (opts.iconOnly || text.text === '') {
-      text.setVisible(false);
-      return;
-    }
+    text.setVisible(!(opts.iconOnly || text.text === ''));
+    if (!text.visible) return;
     const gap = 10;
     icon.setScale(iconBase);
     const room = w - 20;
