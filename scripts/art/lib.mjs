@@ -69,6 +69,13 @@ export function isOpaque(id) {
   return /^art_/.test(id) || /^ter_ground_/.test(id);
 }
 
+// Pixels with alpha below 255 (an opaque picture must have none).
+export function transparentPixels(img) {
+  let n = 0;
+  for (let i = 3; i < img.data.length; i += 4) if (img.data[i] < 255) n++;
+  return n;
+}
+
 export function kindOf(id) {
   const kind = id.split('_')[0];
   const k = KINDS[kind];
@@ -343,6 +350,8 @@ export function processImage(raw, id, points = {}) {
   if (isOpaque(id)) {
     const k = kindOf(id);
     if (!k) throw new Error(`${id}: id does not match docs/asset-spec.md`);
+    const clear = transparentPixels(raw);
+    if (clear > 0) throw new Error(`${id}: ${clear} transparent pixels in an opaque upload`);
     const ow = k.nominal.px;
     const oh = Math.max(1, Math.round((raw.height * ow) / raw.width));
     const image = resample(raw, { x: 0, y: 0, w: raw.width, h: raw.height }, ow, oh);
@@ -567,6 +576,8 @@ export function checkRaw(raw, id) {
   if (isOpaque(id)) {
     // Key art may be landscape; a ground tile is square. Neither has a key colour.
     if (raw.width < 1000) problems.push(`canvas ${raw.width} px wide, expected at least 1000`);
+    const clear = transparentPixels(raw);
+    if (clear > 0) problems.push(`${clear} transparent pixels, expected fully opaque`);
     if (k.kind === 'ter' && raw.width !== raw.height)
       problems.push(`canvas ${raw.width}x${raw.height} is not square`);
     if (k.kind === 'art' && raw.width < raw.height)

@@ -3,7 +3,7 @@
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { alphaReport, isOpaque, kindOf, parseId, readPng } from './lib.mjs';
+import { alphaReport, isOpaque, kindOf, parseId, readPng, transparentPixels } from './lib.mjs';
 
 const FIELDS = ['id', 'kind', 'file', 'license', 'source'];
 // Strike types (docs/asset-spec.md, pose standard).
@@ -107,9 +107,13 @@ export function validateAssets(root = '.') {
       err(id, `${img.width}x${img.height} is larger than ${maxW}x${maxH}`);
     if (isOpaque(id)) {
       // Key art and ground tiles: whole picture, no transparency anywhere.
-      let clear = 0;
-      for (let i = 3; i < img.data.length; i += 4) if (img.data[i] < 255) clear++;
+      const clear = transparentPixels(img);
       if (clear > 0) err(id, `${clear} transparent pixels in an opaque picture`);
+      // Shipped sizes (docs/asset-spec.md): tiles 256 x 256, key art 1280 wide.
+      if (k.kind === 'ter' && (img.width !== 256 || img.height !== 256))
+        err(id, `${img.width}x${img.height}, a ground tile ships 256x256`);
+      if (k.kind === 'art' && img.width !== 1280)
+        err(id, `${img.width} px wide, key art ships 1280 wide`);
       continue;
     }
     const r = alphaReport(img);

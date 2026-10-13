@@ -357,6 +357,10 @@ describe('opaque pictures (key art, ground tiles)', () => {
     expect(checkRaw(painting(1536, 1024), 'art_splash')).toEqual([]);
     expect(checkRaw(painting(1024, 1536), 'art_splash').join()).toMatch(/portrait/);
     expect(checkRaw(painting(1536, 1024), 'ter_ground_dirt').join()).toMatch(/not square/);
+    const holed = painting(1024, 1024);
+    holed.data[3] = 0;
+    expect(checkRaw(holed, 'ter_ground_dirt').join()).toMatch(/transparent/);
+    expect(() => processImage(holed, 'ter_ground_dirt')).toThrow(/transparent/);
   });
 
   it('validates an opaque row and rejects transparency', () => {
@@ -388,6 +392,9 @@ describe('opaque pictures (key art, ground tiles)', () => {
     r.image.data[3] = 0;
     write();
     expect(validateAssets(root).errors.join()).toMatch(/transparent pixels/);
+    r.image = processImage(painting(1024, 1024), 'ter_ground_dirt').image; // 256 wide
+    write();
+    expect(validateAssets(root).errors.join()).toMatch(/key art ships 1280 wide/);
   });
 });
 
