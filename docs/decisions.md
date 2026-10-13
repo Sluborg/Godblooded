@@ -109,3 +109,10 @@ Lead owns this file. One dated line per decision that changes how the game or th
 - Art: `hero_<god>_t1_front`, `hero_<god>-<path>_t<2|3>_front`; 5 pictures per god. The shipped
   class pictures stay as template fallbacks until god art lands.
 - Superseded: "Heroes structure: six classes and the Aesir paths" (2026-10-05).
+
+## 2026-10-13 Level-ups pick themselves; the player picks paths
+
+Stefan: party level-ups choose their upgrade card on their own (personality-weighted, no pause,
+celebrated on the map). The player still chooses each hero's path. A tuning flag keeps player
+card choice possible later. Also today: bark tempo 5 s real time globally, 30 s per hero, max 2
+on screen; art style test toward cartoony units built from parts (S5 batch, code prototype).

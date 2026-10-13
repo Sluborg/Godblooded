@@ -278,6 +278,8 @@ export class UnitView {
       // Tier colour: a hue rotation in the sprite's own pipeline (WebGL; the canvas renderer has
       // no preFX and keeps the base colours).
       if (this.hue !== 0) this.sprite.preFX?.addColorMatrix().hue(this.hue);
+      // Monsters are a touch darker than heroes so the two read apart at a glance.
+      if (!this.isHero) this.sprite.setTint(0xcdbfbf);
       this.body.addAt(this.sprite, 0);
       this.body.add(this.flash);
     }
@@ -669,10 +671,24 @@ export class UnitView {
   // when selected).
   private drawParty(u: UnitState, role: PartyRole): void {
     const selected = this.scene.registry.get('selectedUnit') === u.id;
-    const key = `${role}:${u.party}:${selected}:${getSettings().palette}`;
+    const key = `${role}:${u.party}:${selected}:${getSettings().palette}:${u.kind}:${u.tier}:${this.boss}`;
     if (key === this.ringKey) return;
     this.ringKey = key;
     this.ring.clear();
+    if (u.kind === 'monster') {
+      // A red ring on the ground, wider for tier 2 and tier 3, widest for a boss. The name only
+      // shows when the monster is selected (a boss keeps it).
+      const base = Math.max(54, UNIT_HEIGHT * this.look.footprint * 1.1);
+      const k = this.boss ? 1.9 : 1 + 0.18 * (u.tier - 1);
+      const rw = base * k;
+      const rh = rw * 0.38;
+      this.ring.fillStyle(0xc4281e, this.boss ? 0.3 : 0.2).fillEllipse(0, -4, rw, rh);
+      this.ring.lineStyle(this.boss ? 6 : 4, 0xe04a3a, 0.95).strokeEllipse(0, -4, rw, rh);
+      if (selected) this.ring.lineStyle(3, 0xffffff, 0.95).strokeEllipse(0, -4, rw + 14, rh + 8);
+      this.label.setVisible(selected || this.boss);
+      this.badge.setVisible(false);
+      return;
+    }
     const inParty = role !== 'solo';
     this.badge.setVisible(inParty);
     if (inParty) {
@@ -680,11 +696,13 @@ export class UnitView {
       this.badge.setText(`${u.party}`).setBackgroundColor(`#${c.toString(16).padStart(6, '0')}`);
       this.ring.fillStyle(c, 0.22).fillEllipse(0, -4, 74, 28);
       this.ring.lineStyle(5, c, 0.98).strokeEllipse(0, -4, 74, 28);
+    } else {
+      // A hero on their own: a thin pale ring, so every hero stands on one.
+      this.ring.lineStyle(3, 0xcfe4ff, 0.8).strokeEllipse(0, -4, 66, 24);
     }
     if (selected) this.ring.lineStyle(3, 0xffffff, 0.95).strokeEllipse(0, -4, 86, 34);
   }
 
-  // The party leader flies a small pennant in the party colour beside its name.
   private drawPennant(u: UnitState, role: PartyRole): void {
     this.pennant.clear();
     if (role !== 'leader') return;
