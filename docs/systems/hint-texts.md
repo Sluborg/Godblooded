@@ -39,23 +39,23 @@ first-time hints, and the few fixed lines around them.
 
 ## 3. First-time hints
 
-| Order | Id        | Trigger (Sim event)                 | Points at          | M   | Line 1                          | Line 2                             |
-| ----- | --------- | ----------------------------------- | ------------------ | --- | ------------------------------- | ---------------------------------- |
-| 10    | h-raid    | first `raidWarning` (today: `raid`) | the arrow          | M2  | Horns at the edge of the land.  | Raiders are coming for the town.   |
-| 20    | h-ko      | first `knockout`                    | the downed hero    | M2  | Down, not dead.                 | They wake at the town hall.        |
-| 30    | h-path    | first `pathOffer`                   | the cards          | M2  | A path opens.                   | Each god's child walks one of two. |
-| 40    | h-tier    | first `tierUp` to tier 2            | the hero           | M2  | Look at them now.               |                                    |
-| 50    | h-skill   | first skill `cast`                  | the caster         | M2  | The blood of the gods wakes.    |                                    |
-| 60    | h-gear    | first `shopped` with an item        | the hero           | M2  | New steel for a hero.           | The smith and the town both earn.  |
-| 70    | h-potion  | first potion drunk                  | the hero           | M2  | Courage in a flask.             |                                    |
-| 80    | h-flee    | first `fled`                        | the hero           | M2  | Not every god's child is brave. |                                    |
-| 90    | h-argue   | first `argue`                       | the two heroes     | M2  | Heroes have tempers.            | Watch who they forgive.            |
-| 100   | h-upgrade | first time gold covers an upgrade   | a building         | M2  | Your buildings can grow too.    | Tap one to see.                    |
-| 110   | h-lair    | first `lairTierUp`                  | the lair           | M2  | The lair grows,                 | and its brood grows with it.       |
-| 120   | h-boss    | the boss emerges                    | the boss           | M2  | There. The one that rules them. |                                    |
-| 130   | h-ruin    | first `buildingDestroyed`           | the ruin           | M3  | Rubble can be raised again.     |                                    |
-| 140   | h-omen    | first `omen`                        | the banner         | M3  | A sign in the sky.              | Something is coming.               |
-| 150   | h-favour  | first full favour bar               | the miracle button | M3  | The gods are pleased.           | Call on them, once.                |
+| Order | Id        | Trigger (Sim event)                   | Points at          | M   | Line 1                          | Line 2                             |
+| ----- | --------- | ------------------------------------- | ------------------ | --- | ------------------------------- | ---------------------------------- |
+| 10    | h-raid    | first `raidWarning` (today: `raid`)   | the arrow          | M2  | Horns at the edge of the land.  | Raiders are coming for the town.   |
+| 20    | h-ko      | first `knockout`                      | the downed hero    | M2  | Down, not dead.                 | They wake at the town hall.        |
+| 30    | h-path    | first `pathOffer`                     | the cards          | M2  | A path opens.                   | Each god's child walks one of two. |
+| 40    | h-tier    | first `tierUp` to tier 2              | the hero           | M2  | Look at them now.               |                                    |
+| 50    | h-skill   | first skill `cast`                    | the caster         | M2  | The blood of the gods wakes.    |                                    |
+| 60    | h-gear    | first `shopped` of a weapon or armour | the hero           | M2  | New steel for a hero.           | The smith and the town both earn.  |
+| 70    | h-potion  | first potion drunk                    | the hero           | M2  | Courage in a flask.             |                                    |
+| 80    | h-flee    | first `fled`                          | the hero           | M2  | Not every god's child is brave. |                                    |
+| 90    | h-argue   | first `argue`                         | the two heroes     | M2  | Heroes have tempers.            | Watch who they forgive.            |
+| 100   | h-upgrade | first time gold covers an upgrade     | a building         | M2  | Your buildings can grow too.    | Tap one to see.                    |
+| 110   | h-lair    | first `lairTierUp`                    | the lair           | M2  | The lair grows,                 | and its brood grows with it.       |
+| 120   | h-boss    | the boss emerges                      | the boss           | M2  | There. The one that rules them. |                                    |
+| 130   | h-ruin    | first `buildingDestroyed`             | the ruin           | M3  | Rubble can be raised again.     |                                    |
+| 140   | h-omen    | first `omen`                          | the banner         | M3  | A sign in the sky.              | Something is coming.               |
+| 150   | h-favour  | first full favour bar                 | the miracle button | M3  | The gods are pleased.           | Call on them, once.                |
 
 ## 4. Fixed lines
 
@@ -70,8 +70,10 @@ first-time hints, and the few fixed lines around them.
 ## 5. Checks before shipping (Lead or Scene)
 
 - Every line at most 40 characters; a unit test over the hint rows can enforce it.
-- Every trigger exists as a Sim event or a Scene condition; the M3 rows stay in data with
-  their milestone and are skipped while their event never fires.
+- Every trigger exists as a Sim event or a Scene condition.
+- **The hint engine filters by milestone, not by event absence:** a row shows only when its
+  milestone is at or below the game's current milestone (a data constant). `h-ruin` needs
+  this: `buildingDestroyed` already fires in M2, before ruins exist.
 - Read each line aloud once in the bubble on a phone: it must fit without wrapping.
 
 ## 6. Proposed backlog rows
