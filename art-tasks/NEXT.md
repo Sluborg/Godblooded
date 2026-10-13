@@ -36,6 +36,6 @@ Take the first **Ready** batch of **your track** that is not in the upload log; 
 | B15   | buildings | `B15.md` | Buildings tier 1 in the new look: all eight (redraw)                | 8      | Ready  |
 | B17   | buildings | `B17.md` | Lairs tier 1 in the new look, on corrupted ground (redraw)          | 6      | Ready  |
 | B13   | buildings | `B13.md` | Map markers: build plot and bounty flag (M2)                        | 2      | Ready  |
-| B16   | buildings | `B16.md` | Buildings tier 2 in the new look: all eight (after B15)             | 8      | Ready  |
-| B14   | buildings | `B14.md` | Buildings tier 3: all eight (after B16)                             | 8      | Ready  |
+| B16   | buildings | `B16.md` | Buildings tier 2 in the new look: all eight (after B15)             | 8      | Draft  |
+| B14   | buildings | `B14.md` | Buildings tier 3: all eight (after B16)                             | 8      | Draft  |
 | B12   | buildings | `B12.md` | Merchant caravan, ruin, scaffold, 3 grave markers                   | 6      | Ready  |
