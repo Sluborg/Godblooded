@@ -6,6 +6,7 @@ import type {
   GodDef,
   ItemDef,
   LairDef,
+  MiracleDef,
   MonsterDef,
   OmenDef,
   PathDef,
@@ -1192,6 +1193,51 @@ export const OMENS: readonly OmenDef[] = [
   },
 ];
 
+// One miracle per pantheon (docs/systems/events.md section 3): a full favour bar (or an Offering)
+// makes the god act where its children are in the most danger. Balance pass: at the spec's
+// strength they added about 15 points of wins to the full bot, so they ship at about half
+// (Storm 6 x 35, Aegis a 25% shield, Dawn a 20% heal and 50 holy on undead). Human bot with the
+// god cards on main, 40 runs, cap 35: 65% and 60% on seeds 1 and 1001 (63% and 57% without).
+export const MIRACLES: readonly MiracleDef[] = [
+  {
+    id: 'storm',
+    pantheon: 'aesir',
+    radius: 250,
+    effects: [
+      {
+        kind: 'damage',
+        to: 'foes',
+        amount: 35,
+        type: 'lightning',
+        rider: 'arc',
+        strikes: 6,
+        overS: 3,
+      },
+    ],
+    visual: ['pillars', 'sky-flash'],
+  },
+  {
+    id: 'aegis',
+    pantheon: 'greek',
+    radius: 250,
+    effects: [
+      { kind: 'shield', to: 'heroes', pct: 0.25, s: 8 },
+      { kind: 'buff', to: 'heroes', stat: 'armour', buff: 0.5, s: 8 },
+    ],
+    visual: ['dome', 'owl'],
+  },
+  {
+    id: 'dawn',
+    pantheon: 'egyptian',
+    radius: 250,
+    effects: [
+      { kind: 'heal', to: 'heroes', pct: 0.2 },
+      { kind: 'damage', to: 'foes', tag: 'undead', amount: 50, type: 'holy', rider: 'sear' },
+    ],
+    visual: ['sunrise', 'rays'],
+  },
+];
+
 export const GRAYBOX: GameData = {
   startGold: 480,
   map: { width: 3000, height: 2000 },
@@ -1258,6 +1304,7 @@ export const GRAYBOX: GameData = {
   lairs: LAIRS,
   items: ITEMS,
   skills: SKILLS,
+  miracles: MIRACLES,
   omens: OMENS,
   summons: SUMMONS,
   // Each run draws its own map (Sim 150): 4-6 lairs from the pool, leaning on one pantheon, and
