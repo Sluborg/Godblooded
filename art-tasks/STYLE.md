@@ -9,8 +9,10 @@ big-head cartoon taste test; never draw cartoon again. Every batch quotes this p
 - `public/assets/buildings/bld_townhall_t1.png` (the longhouse) and
   `public/assets/buildings/bld_tower_t1.png` (the watch tower): the style itself.
 - `public/assets/buildings/bld_temple_aesir_t1.png`: the carving and trim.
-- `public/assets/units/mon_draugr_t1_front.png`: how a figure looks in this style (proportions,
-  outline, detail at unit size).
+- **`art-tasks/ref/hero-anchor-grim.png`: the hero anchor** (Stefan approved 2026-10-14): Grim,
+  son of Odin. Every hero and every hero part looks like him: proportions, face, materials,
+  detail, outline.
+- `public/assets/units/mon_draugr_t1_front.png`: a monster in this style.
 
 ## The rules
 
@@ -24,7 +26,7 @@ big-head cartoon taste test; never draw cartoon again. Every batch quotes this p
   dark red. Colour comes from materials (paint on wood, dyed cloth, brass). One accent colour per
   hero from its divine parent (Thor: storm blue, Loki: green, Freyja: gold, Odin: grey-blue), used
   on cloth or trim, never neon.
-- **Figures:** grounded heroic proportions like the draugr, **about 5 to 6 heads tall**, broad
+- **Figures:** grounded heroic proportions like Grim, **about 6 to 7 heads tall**, broad
   and solid. **Adult faces, stern or fierce**, small eyes, no big anime eyes, no blush, no cute
   smile, no chibi, no princess dresses, no clean shiny costumes. Women are warriors and
   sorceresses in practical gear (mail, leather, fur, braids), never pretty-princess.
