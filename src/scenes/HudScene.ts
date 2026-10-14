@@ -60,6 +60,7 @@ export class HudScene extends Phaser.Scene {
   private omenLeadMs = 0;
   private goldIcon: Phaser.GameObjects.Image | null = null;
   private clockText!: Phaser.GameObjects.Text;
+  private clockWaiting = false;
   private toast!: Phaser.GameObjects.Text;
   private banner!: Phaser.GameObjects.Text;
   private panel!: PartyPanel;
@@ -127,6 +128,7 @@ export class HudScene extends Phaser.Scene {
       .setOrigin(0, 0.5)
       .setVisible(false);
     this.clockText = this.add.text(GAME_WIDTH / 2, 36, '0:00', TEXT).setOrigin(0.5);
+    this.clockWaiting = false;
     this.sky = this.add
       .rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0xffffff, 0)
       .setDepth(-1);
@@ -230,7 +232,11 @@ export class HudScene extends Phaser.Scene {
     this.ambText.setVisible(ambOn).setText(`${Math.floor(ambSnap.ambrosia)}`);
     // On a first run the clock stands still until the first temple: say so instead of 0:00.
     const waiting = (this.scene.get('Map') as MapScene).snapshot.waiting;
-    this.clockText.setFontSize(waiting ? 22 : 30);
+    // setFontSize re-renders the text canvas: only when the state flips.
+    if (waiting !== this.clockWaiting) {
+      this.clockWaiting = waiting;
+      this.clockText.setFontSize(waiting ? 22 : 30);
+    }
     this.clockText.setText(
       waiting ? 'Build a temple' : formatClock((this.registry.get('timeMs') as number) ?? 0),
     );
