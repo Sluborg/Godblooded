@@ -1,6 +1,10 @@
 // Headless balance sim: plays seeded runs of the graybox with a simple bot (builds, picks the
 // first upgrade offered, buys building tiers) and reports run length, win rate and deaths.
 //   npm run sim -- --runs 100 --seed 1 --max-min 30 [--data path.json] [--json] [--no-upgrade]
+//     [--flags [--flag-gold 40] [--no-lair-flag]]
+// --flags adds Design's probe B: once a minute, with town gold of 60 or more, a flag of
+// --flag-gold (40) gold on open ground about 150 from a hero out exploring; the report counts
+// flags placed and claimed. --no-lair-flag turns the bot's own 50 gold lair flag off.
 // --data takes a JSON file that overrides GRAYBOX fields (top level; `tuning` groups are
 // merged one by one), so data passes can be tried without editing src/data.
 import { readFileSync } from 'node:fs';
@@ -17,6 +21,9 @@ const maxMin = opt('max-min', 30);
 const json = args.includes('--json');
 // The bot buys building tiers unless --no-upgrade is given.
 const UPGRADE = !args.includes('--no-upgrade');
+const FLAGS = args.includes('--flags');
+const FLAG_GOLD = opt('flag-gold', 40);
+const LAIR_FLAG = !args.includes('--no-lair-flag');
 const dataIdx = args.indexOf('--data');
 const dataFile = dataIdx >= 0 ? args[dataIdx + 1] : undefined;
 
@@ -37,7 +44,9 @@ try {
   const DT = 100;
   const results = [];
 
+  let flagRun = null;
   for (let r = 0; r < runs; r++) {
+    flagRun = { placed: 0, claimed: 0, huntPlaced: 0, huntClaimed: 0, nextMs: 60_000 };
     const w = sim.createWorld(seed0 + r, GRAYBOX);
     let snap = sim.snapshot(w);
     let timeout = false;
@@ -51,6 +60,11 @@ try {
     let gear8 = null;
     const watch = (sn) => {
       for (const e of sn.events ?? []) {
+        if (e.kind === 'bountyClaimed') {
+          flagRun.claimed++;
+          if (e.hunt) flagRun.huntClaimed++;
+        }
+        if (e.kind === 'bountyPlaced' && e.target !== undefined) flagRun.huntPlaced++;
         if (e.kind === 'bossEmerged') {
           bossIds.add(e.unit);
           bossOutMin ??= sn.timeMs / 60_000;
@@ -108,6 +122,10 @@ try {
       minutes: snap.timeMs / 60_000,
       bossOutMin,
       bossFightMin,
+      flagsPlaced: flagRun.placed,
+      flagsClaimed: flagRun.claimed,
+      huntPlaced: flagRun.huntPlaced,
+      huntClaimed: flagRun.huntClaimed,
       gold3: goldAt[180_000],
       gold5: goldAt[300_000],
       weapon8: gear8?.weapon ?? null,
@@ -135,7 +153,20 @@ try {
         .sort((a, b) => a.upgradeCost - b.upgradeCost);
       if (ups.length > 0) sim.command(w, { kind: 'upgrade', building: ups[0].id });
     }
-    if (snap.gold > 150 && snap.bounties.length === 0 && snap.lairs.length > 0) {
+    if (FLAGS && snap.timeMs >= flagRun.nextMs && snap.gold >= 60) {
+      const hero = snap.units.find((u) => u.kind === 'hero' && u.mode === 'explore' && !u.ko);
+      if (hero) {
+        flagRun.nextMs = snap.timeMs + 60_000;
+        const a = flagRun.placed * 2.4;
+        const m = GRAYBOX.map;
+        const pos = {
+          x: Math.min(m.width - 1, Math.max(1, hero.pos.x + Math.cos(a) * 150)),
+          y: Math.min(m.height - 1, Math.max(1, hero.pos.y + Math.sin(a) * 150)),
+        };
+        if (sim.command(w, { kind: 'placeBounty', pos, gold: FLAG_GOLD }).ok) flagRun.placed++;
+      }
+    }
+    if (LAIR_FLAG && snap.gold > 150 && snap.bounties.length === 0 && snap.lairs.length > 0) {
       const hall = GRAYBOX.townHall;
       const near = [...snap.lairs].sort(
         (a, b) =>
@@ -221,6 +252,12 @@ function summarize(results) {
       armour8: meanOf(results, 'armour8'),
       geared8: meanOf(results, 'geared8'),
     },
+    flags: {
+      placed: meanOf(results, 'flagsPlaced'),
+      claimed: meanOf(results, 'flagsClaimed'),
+      huntPlaced: meanOf(results, 'huntPlaced'),
+      huntClaimed: meanOf(results, 'huntClaimed'),
+    },
     perRun: Object.fromEntries(
       [
         'monstersKilled',
@@ -258,6 +295,19 @@ function print(rep) {
   console.log(
     `  town gold: 3:00 ${n(rep.pacing.gold3)}  5:00 ${n(rep.pacing.gold5)}   hero gear level at 8:00: weapon ${n(rep.pacing.weapon8)}  armour ${n(rep.pacing.armour8)}  with any gear ${rep.pacing.geared8 === null ? '-' : `${(rep.pacing.geared8 * 100).toFixed(0)}%`}`,
   );
+  if (FLAGS) {
+    const share = rep.flags.placed > 0 ? rep.flags.claimed / rep.flags.placed : 0;
+    const hp = rep.flags.huntPlaced;
+    const ground = rep.flags.placed - hp;
+    const groundClaimed = rep.flags.claimed - rep.flags.huntClaimed;
+    console.log(
+      `  probe flags (${FLAG_GOLD} gold): placed ${f(rep.flags.placed)}  claimed ${f(rep.flags.claimed)} per run  (${(share * 100).toFixed(0)}% of placed; claims include the lair flag unless --no-lair-flag)`,
+    );
+    const pct = (a, b) => (b > 0 ? `${((a / b) * 100).toFixed(0)}%` : '-');
+    console.log(
+      `    of which hunt (placed within 60 of a monster): placed ${f(hp)} claimed ${f(rep.flags.huntClaimed)} (${pct(rep.flags.huntClaimed, hp)}); ground: placed ${f(ground)} claimed ${f(groundClaimed)} (${pct(groundClaimed, ground)})`,
+    );
+  }
   console.log('  per run (mean):');
   for (const [k, v] of Object.entries(rep.perRun)) console.log(`    ${k.padEnd(16)} ${f(v)}`);
 }
