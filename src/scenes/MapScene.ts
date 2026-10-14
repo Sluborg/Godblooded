@@ -49,11 +49,7 @@ const BUILDING_COLORS: Record<string, number> = {
   shrine: 0x7fbf9a,
   tower: 0x9a9a9a,
 };
-const BUILDING_SIZE = 96;
-// The camera's start zoom: 0.7 shows 1830 x 1030 world units on a 1280 x 720 screen, enough for the
-// plot ring (about 1040 x 760) with the buildings on it.
-const DEFAULT_ZOOM = 0.7;
-// How long the camera takes to show the levelled party before its cards come up.
+const BUILDING_SIZE = 96; // How long the camera takes to show the levelled party before its cards come up.
 const FOCUS_MS = 700;
 const TARGET_RADIUS = 70;
 const PLOT_SIZE = 120;
@@ -74,6 +70,10 @@ export interface MapTap {
 
 // Renders the sim snapshot as shapes. Holds no rules: it steps the world, draws what the
 // snapshot says and turns taps into commands.
+// The camera's start zoom: 0.7 shows 1830 x 1030 world units on a 1280 x 720 screen, enough for the
+// plot ring (about 1040 x 760) with the buildings on it.
+const DEFAULT_ZOOM = 0.7;
+
 export class MapScene extends Phaser.Scene {
   private world!: World;
   private snap!: Snapshot;
