@@ -259,7 +259,7 @@ describe('save v2 to v3', () => {
     const saved = old.world.units.find((u: { id: number }) => u.id === id);
     saved.items.potionId = 'greater';
     const migrated = migrateSave(old);
-    expect(migrated.version).toBe(3);
+    expect(migrated.version).toBe(SAVE_VERSION);
     const back = loadWorld(old, GRAYBOX);
     const items = back.units.find((u) => u.id === id)?.items as unknown as Record<string, unknown>;
     expect(items.flasks).toEqual(['greater', 'greater']);
@@ -278,5 +278,28 @@ describe('save v2 to v3', () => {
     const items = back.units.find((u) => u.id === id)?.items as unknown as Record<string, unknown>;
     expect(items.flasks).toBeUndefined();
     expect(items.potions).toBe(1);
+  });
+});
+
+describe('save v3 to v4', () => {
+  it('a version 3 save loads with empty tills and no piles; the collector comes out when on', () => {
+    const a = createWorld(2, GRAYBOX);
+    const old = JSON.parse(JSON.stringify(saveWorld(a)));
+    old.version = 3;
+    // what a v3 save looks like: none of the collector fields
+    delete old.world.piles;
+    delete old.world.collectorQueue;
+    for (const b of old.world.buildings as Record<string, unknown>[]) b.till = 99;
+    const migrated = migrateSave(old);
+    expect(migrated.version).toBe(4);
+    const back = loadWorld(old, GRAYBOX);
+    expect(back.piles).toEqual([]);
+    expect(back.collectorQueue).toEqual([]);
+    expect(back.buildings.every((b) => b.till === undefined)).toBe(true);
+    // with the collector on, one comes out of the town hall
+    const on = { ...GRAYBOX, tuning: { ...GRAYBOX.tuning, collector: { enabled: true } } };
+    const again = loadWorld(old, on);
+    for (let i = 0; i < 5; i++) step(again, 100);
+    expect(again.units.filter((u) => u.kind === 'collector')).toHaveLength(1);
   });
 });

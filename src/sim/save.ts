@@ -10,7 +10,7 @@ import type { GameData } from './types';
 // Changing the shape of the world (a new field is fine, it falls back to its fresh value; a
 // renamed, removed or reinterpreted one is not) bumps SAVE_VERSION and adds a migration.
 
-export const SAVE_VERSION = 3;
+export const SAVE_VERSION = 4;
 
 export interface SaveGame {
   version: number;
@@ -56,6 +56,16 @@ const MIGRATIONS: Record<number, (save: SaveGame) => SaveGame> = {
       }
     }
     return { ...save, version: 3 };
+  },
+  // 3 to 4 (tax collector): buildings have tills, the ground has piles, heroes owe tithe. An old
+  // run starts with empty tills, no piles and no tithe owed; the collector comes out of the town
+  // hall by itself when tuning.collector.enabled is on.
+  3: (save) => {
+    const buildings = save.world.buildings;
+    if (Array.isArray(buildings)) {
+      for (const b of buildings as Record<string, unknown>[]) if (b) delete b.till;
+    }
+    return { ...save, version: 4, world: { ...save.world, piles: [], collectorQueue: [] } };
   },
 };
 
