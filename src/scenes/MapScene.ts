@@ -33,12 +33,14 @@ import { releaseSets } from '../ui/parts/bake';
 import { effectiveSpeed } from '../ui/pathSpeed';
 import { STYLE } from '../ui/style';
 import { LAIR_UI_DEPTH, LairIndicators, groundScale, plateColor } from '../ui/lairRings';
+import { LairFx } from '../ui/lairFx';
 import { portraitIds } from '../ui/portraits';
 import {
   footprintRing,
   groundShadow,
   lairDecal,
   lairPlate,
+  skullPike,
   ruinMark,
   townPatch,
 } from '../ui/groundDecal';
@@ -112,6 +114,7 @@ export class MapScene extends Phaser.Scene {
   private lairInd!: LairIndicators;
   // Lairs with a raid on the way: the run time the warning ends (a dotted trail to the town).
   private raidTrails = new Map<number, number>();
+  private lairFx!: LairFx;
   private selectRing: Phaser.GameObjects.Image | null = null;
   private ruinMarks = new Map<number, Phaser.GameObjects.Image>();
   private selectRingFor = 0;
@@ -217,6 +220,7 @@ export class MapScene extends Phaser.Scene {
     this.links = this.add.graphics().setDepth(1_000_000);
     this.nodeViews = new NodeViews(this);
     this.lairInd = new LairIndicators(this);
+    this.lairFx = new LairFx(this, () => getSettings().reducedMotion);
     this.snap = snapshot(this.world);
     this.sync();
     this.scene.launch('Hud');
@@ -709,6 +713,7 @@ export class MapScene extends Phaser.Scene {
     this.drawLinks();
     this.nodeViews.update(this.snap, this.nodeTiming);
     this.lairInd.update(this.snap, dtMs, this.world.tuning.monster.lairAggro);
+    this.lairFx.update(this.time.now);
     // The plate pulses with its ring in the last 15 s before a tier-up.
     for (const l of this.snap.lairs)
       (
@@ -1255,6 +1260,13 @@ export class MapScene extends Phaser.Scene {
     plate.setPosition(l.pos.x, l.pos.y + 46).setDepth(LAIR_UI_DEPTH);
     c.once(Phaser.GameObjects.Events.DESTROY, () => plate.destroy());
     c.setData('plate', plate);
+    // A skull on a pike beside the lair and embers rising from it.
+    const k = l.boss ? 1.4 : 1;
+    const pike = skullPike(this)
+      .setPosition(l.pos.x + 78 * k, l.pos.y + 24)
+      .setDepth(l.pos.y + 24);
+    c.once(Phaser.GameObjects.Events.DESTROY, () => pike.destroy());
+    this.lairFx.add(c, l.pos.x, l.pos.y - 8, 150 * k);
     this.refreshLair(c, l.type, l.tier, l.boss);
     return c;
   }

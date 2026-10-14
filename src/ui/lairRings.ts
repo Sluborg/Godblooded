@@ -126,7 +126,7 @@ export class LairIndicators {
     this.beats.set(l.id, beat);
     const color = stage === 'dim' ? 0xe6e1d2 : 0xffb43a;
     // A dark track so the empty part reads on the grass.
-    g.lineStyle(7, 0x1a1410, 0.55).strokeEllipse(cx, cy, rx * 2, ry * 2);
+    g.lineStyle(6, 0x1a1410, 0.38).strokeEllipse(cx, cy, rx * 2, ry * 2);
     g.lineStyle(
       stage === 'dim' ? 3 : 4 + beat * 3,
       color,

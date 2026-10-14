@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { bake } from './bake';
+import { bake, bakeTexture } from './bake';
 
 // What stands on the ground tells friend from foe at a glance: a town building sits on a warm,
 // trodden patch; a monster lair on dark cracked earth with a blood-red ring, a faint red glow and
@@ -26,10 +26,21 @@ const CRACKS: [number, number, number, number, number, number][] = [
 export function lairDecal(scene: Phaser.Scene, boss: boolean): Phaser.GameObjects.Image {
   const w = boss ? 440 : 300;
   const h = w * 0.42;
-  return bake(scene, `lair:${boss}`, (w * 1.35) / 2 + 2, (h * 1.45) / 2 + 8, (g) => {
-    g.fillStyle(0xff3020, 0.07).fillEllipse(0, -6, w * 1.35, h * 1.45);
-    g.fillStyle(0x140a10, 0.6).fillEllipse(0, -6, w, h);
-    g.lineStyle(boss ? 7 : 5, 0x8a1c2b, 0.75).strokeEllipse(0, -6, w, h);
+  // Dead ground, no ring: a faint red glow, then an uneven patch of ash and scorched earth made of
+  // overlapping blobs, cracks and a few scattered bones.
+  return bake(scene, `lair2:${boss}`, (w * 1.5) / 2 + 2, (h * 1.6) / 2 + 8, (g) => {
+    g.fillStyle(0xff3020, 0.05).fillEllipse(0, -6, w * 1.5, h * 1.6);
+    g.fillStyle(0xff3020, 0.06).fillEllipse(0, -6, w * 1.2, h * 1.3);
+    const blobs: [number, number, number, number, number, number][] = [
+      [0, 0, 1, 1, 0x140a10, 0.62],
+      [-0.28, 0.08, 0.6, 0.8, 0x0c0609, 0.5],
+      [0.3, -0.06, 0.55, 0.7, 0x1a0d12, 0.5],
+      [0.05, 0.22, 0.7, 0.45, 0x0c0609, 0.45],
+      [-0.4, -0.12, 0.35, 0.5, 0x1a0d12, 0.4],
+      [0.45, 0.18, 0.3, 0.4, 0x0c0609, 0.4],
+    ];
+    for (const [x, y, bw, bh, c, a] of blobs)
+      g.fillStyle(c, a).fillEllipse((x * w) / 2, -6 + (y * h) / 2, w * bw, h * bh);
     g.lineStyle(2, 0x050205, 0.8);
     for (const [x1, y1, x2, y2, x3, y3] of CRACKS) {
       g.beginPath()
@@ -38,6 +49,49 @@ export function lairDecal(scene: Phaser.Scene, boss: boolean): Phaser.GameObject
         .lineTo((x3 * w) / 2, -6 + (y3 * h) / 2)
         .strokePath();
     }
+    // Bones in the ash.
+    g.lineStyle(3, 0xd9ceb4, 0.55);
+    const bones: [number, number, number][] = [
+      [-0.55, 0.15, 0.4],
+      [0.6, -0.1, -0.3],
+      [-0.15, 0.32, 0.9],
+      [0.25, 0.3, -0.7],
+    ];
+    for (const [x, y, a] of bones) {
+      const cx = (x * w) / 2;
+      const cy = -6 + (y * h) / 2;
+      g.lineBetween(
+        cx - Math.cos(a) * 7,
+        cy - Math.sin(a) * 4,
+        cx + Math.cos(a) * 7,
+        cy + Math.sin(a) * 4,
+      );
+    }
+  });
+}
+
+// A skull on a pole beside a lair, standing on its foot at (0, 0): baked once.
+export function skullPike(scene: Phaser.Scene): Phaser.GameObjects.Image {
+  return bake(scene, 'skull-pike', 26, 60, (g) => {
+    g.fillStyle(0x000000, 0.28).fillEllipse(6, 0, 30, 9);
+    g.fillStyle(0x3a2616, 1).fillRect(-2, -46, 4, 46);
+    g.lineStyle(1.5, 0x120a05, 0.9).strokeRect(-2, -46, 4, 46);
+    g.fillStyle(0x3a2616, 1).fillRect(-9, -30, 18, 3);
+    g.fillStyle(0xe8dfc6, 1).fillCircle(0, -52, 9);
+    g.fillRect(-5.5, -48, 11, 8);
+    g.lineStyle(1.5, 0x3a3226, 0.9).strokeCircle(0, -52, 9);
+    g.fillStyle(0x140d10, 1).fillCircle(-3.6, -52, 2.7).fillCircle(3.6, -52, 2.7);
+    g.fillRect(-1, -49, 2, 4);
+    g.fillRect(-3.5, -42, 1.5, 3).fillRect(0.5, -42, 1.5, 3).fillRect(3.5, -42, 1.5, 3);
+  });
+}
+
+// A small glowing ember (one soft dot, drawn once): the embers rise from a lair in lairFx.ts.
+export function emberDot(scene: Phaser.Scene): string {
+  return bakeTexture(scene, 'ember', 6, 6, (g) => {
+    g.fillStyle(0xff7a28, 0.25).fillCircle(0, 0, 5.5);
+    g.fillStyle(0xffb04a, 0.6).fillCircle(0, 0, 3.2);
+    g.fillStyle(0xfff0c0, 1).fillCircle(0, 0, 1.5);
   });
 }
 
