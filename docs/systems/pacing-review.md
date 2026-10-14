@@ -129,5 +129,4 @@ gold. Balance's bot: 69-73% wins, median run 16-17 min, gear at 8:00 weapon 0.4 
 0.3 (up from about 0.1, still under the gate's 1). Design re-runs this section on that data
 once it lands.
 
-- **Gate redefined** (Lead, 2026-10-14): the gear gate is now "at least 80% of living heroes own
-  a gear piece by 8:00", not an average level of 1. Design's next re-run reports that share.
+- **Gate redefined** (Lead, 2026-10-14): the gear gate is now "at least 80% of heroes alive at 8:00 (knocked-out ones count, slain ones do not) own a gear piece", not an average level of 1. Design's next re-run reports that share.

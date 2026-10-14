@@ -133,7 +133,7 @@ Rows 310 and 370 run in parallel with steps 1-4.
 
 From `content-roadmap.md` section 2: a skill in at least 60% of fights after 6:00; a player
 decision every minute; no 60 s without a fight, level-up or raid in view; 2+ damage types in
-most fights after tier 2; at least 80% of living heroes own a gear piece (weapon or armour) by 8:00 (Lead, 2026-10-14); and Stefan can name a hero and what it
+most fights after tier 2; at least 80% of heroes alive at 8:00 (knocked-out ones count, slain ones do not) own a gear piece (weapon or armour) (Lead, 2026-10-14); and Stefan can name a hero and what it
 did, and sees a bounty change who goes where. If the last two fail, M3 waits and Design
 proposes the fix.
 

@@ -57,15 +57,15 @@ Then Pause, Quit to title.
 
 ## 5. What we read alongside (Design and Lead, not Stefan)
 
-| Fun gate (`m2-plan.md` 4)            | Stefan's answer | Number we read                                                                 |
-| ------------------------------------ | --------------- | ------------------------------------------------------------------------------ |
-| A skill in 60%+ of fights after 6:00 | 5               | share of fights with a cast (run stats, Sim row 150)                           |
-| A decision every minute              | 1, 4            | decisions per minute (run stats, row 150)                                      |
-| No 60 s quiet                        | 4               | longest quiet gap (row 150; Design's pacing probe until then)                  |
-| 2+ damage types after tier 2         | 5               | share of fights with 2+ types (row 150)                                        |
-| 80% of heroes own gear by 8:00       | 5               | share of living heroes with a weapon or armour at 8:00 (Design's pacing probe) |
-| A hero to remember                   | 2               | run 3 end screen: MVP, kills, lairs, KOs per hero                              |
-| Bounties steer                       | 3               | parties that turn toward a flag (Design adds it to the pacing probe)           |
+| Fun gate (`m2-plan.md` 4)            | Stefan's answer | Number we read                                                                                       |
+| ------------------------------------ | --------------- | ---------------------------------------------------------------------------------------------------- |
+| A skill in 60%+ of fights after 6:00 | 5               | share of fights with a cast (run stats, Sim row 150)                                                 |
+| A decision every minute              | 1, 4            | decisions per minute (run stats, row 150)                                                            |
+| No 60 s quiet                        | 4               | longest quiet gap (row 150; Design's pacing probe until then)                                        |
+| 2+ damage types after tier 2         | 5               | share of fights with 2+ types (row 150)                                                              |
+| 80% of heroes own gear by 8:00       | 5               | share of heroes alive at 8:00, knocked-out included, with a weapon or armour (Design's pacing probe) |
+| A hero to remember                   | 2               | run 3 end screen: MVP, kills, lairs, KOs per hero                                                    |
+| Bounties steer                       | 3               | parties that turn toward a flag (Design adds it to the pacing probe)                                 |
 
 - **The bot:** Design runs its pacing probe (it plays like `scripts/sim/run.mjs`) on the same build, 100 seeds, and reports
   first-event times (party, level 2, tier 2, raid, lair fall, boss), run length, win rate and the

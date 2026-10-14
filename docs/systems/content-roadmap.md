@@ -63,15 +63,15 @@ milestone table in step. It places every spec in `docs/systems/` on milestones M
 Pillar 1 is "watching is the fun". M2 is fun when a 15-minute run passes these checks. The
 first five are Sim bot numbers (new run stats); the last two are Stefan's judgment.
 
-| Check                       | Target                                                                                       | Measured by                                      |
-| --------------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------ |
-| Skills in fights            | a skill cast in at least 60% of fights after 6:00                                            | share of fights with a cast (per-fight record)   |
-| Decisions                   | at least one player decision per minute (build, upgrade, bounty, card)                       | bot decision log                                 |
-| Quiet stretches             | no 60 s with no fight, no level-up and no raid in view                                       | longest quiet gap                                |
-| Damage types read           | at least 2 types in most fights after tier 2                                                 | share of fights with 2+ types (per-fight record) |
-| Gear shows                  | at least 80% of living heroes own a gear piece (weapon or armour) by 8:00 (Lead, 2026-10-14) | run stats (`items-and-shops.md`)                 |
-| A hero to remember          | after a run, Stefan can name one hero and what it did                                        | Stefan                                           |
-| Bounties feel like steering | placing a flag visibly changes who goes where                                                | Stefan                                           |
+| Check                       | Target                                                                                                                                  | Measured by                                      |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| Skills in fights            | a skill cast in at least 60% of fights after 6:00                                                                                       | share of fights with a cast (per-fight record)   |
+| Decisions                   | at least one player decision per minute (build, upgrade, bounty, card)                                                                  | bot decision log                                 |
+| Quiet stretches             | no 60 s with no fight, no level-up and no raid in view                                                                                  | longest quiet gap                                |
+| Damage types read           | at least 2 types in most fights after tier 2                                                                                            | share of fights with 2+ types (per-fight record) |
+| Gear shows                  | at least 80% of heroes alive at 8:00 (knocked-out ones count, slain ones do not) own a gear piece (weapon or armour) (Lead, 2026-10-14) | run stats (`items-and-shops.md`)                 |
+| A hero to remember          | after a run, Stefan can name one hero and what it did                                                                                   | Stefan                                           |
+| Bounties feel like steering | placing a flag visibly changes who goes where                                                                                           | Stefan                                           |
 
 If M2 fails the last two checks, M3 waits; Design proposes the fix (most likely more
 personality on screen: speech bubbles, rivalries, the coward fleeing visibly).
