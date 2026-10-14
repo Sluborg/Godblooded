@@ -15,7 +15,15 @@ import {
 } from './effects';
 import { armourBonus, charmEffects, weaponPower } from './items';
 import { passiveRider } from './passives';
-import { everyNthOf, passiveAggroMult, passiveArmour } from './passives';
+import {
+  everyNthOf,
+  passiveAggroMult,
+  passiveArmour,
+  passiveHealOnKill,
+  passiveHealSplash,
+  passivePhalanx,
+  runRegen,
+} from './passives';
 import { noteFight } from './engage';
 import { headCount, runBossMoves } from './bossmoves';
 import { runQuirks, scavenge, stolenBy } from './quirks';
@@ -52,6 +60,8 @@ import {
 import { buildReport, sampleGold, tally, type HeroRecord } from './runstats';
 import { notePositions, runCollision } from './collision';
 import { omenMods, omenSnapshot, runOmens } from './omens';
+import { noteTemple } from './facts';
+import { fogView, runDiscovery } from './discovery';
 import { collectorFell, runCollector } from './collector';
 import { clearRuin, rebuildRuin, runRepair } from './ruins';
 import { trackFightStats } from './funstats';
@@ -76,6 +86,7 @@ import {
   pickLair,
   planTierRaid,
   runRaids,
+  runConstruction,
   runTowers,
   upgradeBuilding,
   hallHp,
@@ -130,6 +141,9 @@ import type {
   FightRecord,
   PileState,
   RuinState,
+  ShopTally,
+  RunFacts,
+  PlayInputs,
   ConeArea,
   SkillEffect,
   GraveState,
@@ -239,6 +253,8 @@ export interface UnitRuntime {
     strikes: number;
     revived?: boolean;
     ringUsed?: boolean;
+    lastStandUsed?: boolean;
+    lastStandUntil?: number;
   };
 }
 
@@ -295,6 +311,9 @@ export interface World {
   // Tier-ups seen so far that could have raided (for tuning.town.tierRaidEvery).
   tierUps: number;
   stats: RunStats;
+  facts: RunFacts;
+  // How the run's data was shaped by the meta layer (playData), kept in saves.
+  play: PlayInputs | null;
   bounties: BountyState[];
   // Gold piles on the ground, and when replacements for fallen tax collectors may appear
   // (collector.ts).
@@ -330,6 +349,11 @@ export interface World {
   fights: FightRecord[];
   decisionsAt: number[];
   quiet: { lastMs: number; longestMs: number; atMs: number };
+  // Shop sales and the run's first moments, for the end report (runstats.ts).
+  shopTally: Record<'smithy' | 'market', ShopTally>;
+  beats: { firstPartyMs: number | null; firstTier2Ms: number | null; firstTier3Ms: number | null };
+  // Fog cells a hero has passed (discovery.ts): indices into the map's grid of cells.
+  exploredCells: number[];
   // Celestial nodes and the Ambrosia the town holds (nodes.ts).
   nodes: NodeState[];
   ambrosia: number;
@@ -403,6 +427,8 @@ export function createWorld(seed: number, data: GameData, opts: WorldOptions = {
       taxCollected: 0,
       taxLost: 0,
     },
+    play: data.play ? structuredClone(data.play) : null,
+    facts: { peakLevel: {}, heroPantheons: [], templePantheons: [], gear2: false, boss: null },
     bounties: [],
     piles: [],
     collectorQueue: [],
@@ -416,6 +442,12 @@ export function createWorld(seed: number, data: GameData, opts: WorldOptions = {
     fights: [],
     decisionsAt: [],
     quiet: { lastMs: -1, longestMs: 0, atMs: 0 },
+    shopTally: {
+      smithy: { items: 0, spent: 0, tax: 0 },
+      market: { items: 0, spent: 0, tax: 0 },
+    },
+    beats: { firstPartyMs: null, firstTier2Ms: null, firstTier3Ms: null },
+    exploredCells: [],
     nodes: [],
     ambrosia: 0,
     jars: [],
@@ -453,15 +485,20 @@ export function createWorld(seed: number, data: GameData, opts: WorldOptions = {
     if (!def) throw new Error(`lair site names unknown lair: ${site.lair}`);
     const id = world.nextId++;
     const lt = world.tuning.lair;
-    const hp = Math.round(def.hp * tierValue(lt.hpMult, 1, 1));
+    const tier = Math.max(1, lt.startTier);
+    const hp = Math.round(def.hp * tierValue(lt.hpMult, tier, 1));
     world.lairs.push({
       id,
       type: def.id,
       boss: i === bossIndex,
-      tier: 1,
+      tier,
       pos: { ...site.pos },
       hp,
       maxHp: hp,
+      ...(world.tuning.ai.discovery &&
+      dist(site.pos, data.townHall) > world.tuning.ai.startDiscovered
+        ? { discovered: false }
+        : {}),
     });
     const every = lt.tierUpEveryMs;
     if (i === bossIndex) world.bossLair = id;
@@ -554,6 +591,9 @@ function runTick(world: World): void {
   runParties(world);
   runUnits(world);
   runCollision(world);
+  runRegen(world);
+  runConstruction(world);
+  runDiscovery(world);
   syncIntent(world);
   trackFightStats(world);
   // Combat, heroes and the economy hook in here (Sim backlog 30 and up).
@@ -669,7 +709,9 @@ function unitStats(world: World, unit: UnitState): Stats | undefined {
         armour: scaled(
           cls.armour,
           buffOf(world, unit.id, 'armour'),
-          passiveArmour(world, unit) + armourBonus(world, unit).armour,
+          passiveArmour(world, unit) +
+            passivePhalanx(world, unit) +
+            armourBonus(world, unit).armour,
         ),
         weaponPower: weaponPower(world, unit),
         types: charmTypes(world, unit),
@@ -707,7 +749,10 @@ function unitStats(world: World, unit: UnitState): Stats | undefined {
 // A bloodstone heals its wearer a share of max hp for each kill.
 function healOnKill(world: World, id: number): void {
   const hero = world.units.find((u) => u.id === id);
-  const share = hero && hero.kind === 'hero' ? charmEffects(world, hero).healOnKill : undefined;
+  const share =
+    hero && hero.kind === 'hero'
+      ? (charmEffects(world, hero).healOnKill ?? 0) + passiveHealOnKill(world, hero)
+      : undefined;
   if (!hero || !share || hero.ko || hero.hp <= 0) return;
   const amount = Math.min(
     Math.round(share * hero.maxHp * healMult(world, hero.id)),
@@ -811,6 +856,7 @@ function runUnits(world: World): void {
     if (unit.kind === 'monster' && roleTurn(world, unit, rt, stats, foe)) continue;
     // A hero with a skill ready casts instead of its next strike or step.
     let casting = false;
+    if (unit.kind === 'monster' && unit.elite) casting = runSkill(world, unit, rt, foe);
     if (unit.kind === 'hero') {
       if (busy) {
         cancelCast(rt);
@@ -940,7 +986,35 @@ function heal(world: World, unit: UnitState, rt: UnitRuntime, stats: Stats, ally
     tally(world, unit.id, 'healing', amount);
     curePoison(world, ally.id);
     world.events.push({ kind: 'heal', healer: unit.id, target: ally.id, amount });
+    splashHeal(world, unit, ally, gain);
   });
+}
+
+// Mending Bond: a heal also touches the most hurt other party mate in range for a share of it.
+function splashHeal(world: World, healer: UnitState, ally: UnitState, gain: number): void {
+  const share = passiveHealSplash(world, healer);
+  if (share <= 0) return;
+  let second: UnitState | undefined;
+  let worst = 1;
+  for (const id of world.parties.get(healer.party)?.members ?? []) {
+    const m = id === ally.id ? undefined : world.units.find((u) => u.id === id);
+    if (!m || m.ko || m.hp <= 0 || m.hp >= m.maxHp) continue;
+    if (dist(healer.pos, m.pos) > world.tuning.combat.healRange) continue;
+    const frac = m.hp / m.maxHp;
+    if (frac < worst) {
+      second = m;
+      worst = frac;
+    }
+  }
+  if (!second) return;
+  const amount = Math.min(
+    Math.round(gain * share * healMult(world, second.id)),
+    second.maxHp - second.hp,
+  );
+  if (amount <= 0) return;
+  second.hp += amount;
+  tally(world, healer.id, 'healing', amount);
+  world.events.push({ kind: 'heal', healer: healer.id, target: second.id, amount });
 }
 
 // A coward in a party stops cowardHangBack behind the party's front member (the one nearest the foe)
@@ -1199,6 +1273,10 @@ function wanderPoint(world: World, center: Vec2): Vec2 {
 
 export { spawnHero } from './heroes';
 
+// What a bounty flag of `gold` costs the town (the Altar's Bounty Ledger makes it cheaper).
+const flagCost = (world: World, gold: number): number =>
+  Math.max(1, Math.round(gold * world.tuning.bounty.flagCostMult));
+
 export function command(world: World, cmd: Command): CommandResult {
   const result = runCommand(world, cmd);
   if (result.ok) {
@@ -1240,8 +1318,12 @@ function runCommand(world: World, cmd: Command): CommandResult {
         plot: cmd.plot,
         hp: world.tuning.town.buildingHp,
         maxHp: world.tuning.town.buildingHp,
+        ...(world.tuning.town.buildMs > 0
+          ? { buildUntilMs: world.timeMs + world.tuning.town.buildMs }
+          : {}),
       });
       world.events.push({ kind: 'built', building: id, type: def.id });
+      noteTemple(world, def.id);
       return { ok: true, id };
     }
     case 'hireGatherer':
@@ -1273,8 +1355,8 @@ function runCommand(world: World, cmd: Command): CommandResult {
     case 'placeBounty': {
       if (!inMap(world, cmd.pos)) return { ok: false, reason: 'off map' };
       if (!Number.isInteger(cmd.gold) || cmd.gold <= 0) return { ok: false, reason: 'bad amount' };
-      if (world.gold < cmd.gold) return { ok: false, reason: 'not enough gold' };
-      world.gold -= cmd.gold;
+      if (world.gold < flagCost(world, cmd.gold)) return { ok: false, reason: 'not enough gold' };
+      world.gold -= flagCost(world, cmd.gold);
       const id = world.nextId++;
       // On a monster (within huntSnap): a hunt flag bound to the nearest one. A flag on a lair
       // stays a lair flag, whatever guards stand around it.
@@ -1315,8 +1397,8 @@ function runCommand(world: World, cmd: Command): CommandResult {
       const flag = world.bounties.find((b) => b.id === cmd.bounty);
       if (!flag) return { ok: false, reason: 'unknown bounty' };
       if (!Number.isInteger(cmd.gold) || cmd.gold <= 0) return { ok: false, reason: 'bad amount' };
-      if (world.gold < cmd.gold) return { ok: false, reason: 'not enough gold' };
-      world.gold -= cmd.gold;
+      if (world.gold < flagCost(world, cmd.gold)) return { ok: false, reason: 'not enough gold' };
+      world.gold -= flagCost(world, cmd.gold);
       flag.gold += cmd.gold;
       // A raised flag is news again: it may break a commitment for a while, and is weighed now.
       flag.placedMs = world.timeMs;
@@ -1385,7 +1467,10 @@ export function snapshot(world: World): Snapshot {
     buildings: world.buildings.map((b) => ({
       ...b,
       pos: { ...b.pos },
-      upgradeCost: upgradeCost(world, b),
+      upgradeCost:
+        b.buildUntilMs !== undefined || b.upgradeUntilMs !== undefined
+          ? null
+          : upgradeCost(world, b),
       upgradeGate: upgradeGate(world, b),
     })),
     parties: [...world.parties.values()].map((p) => ({
@@ -1401,6 +1486,7 @@ export function snapshot(world: World): Snapshot {
     })),
     paths: pathStates(world),
     lairs: world.lairs.map((l) => lairView(world, l)),
+    fog: fogView(world),
     units: world.units.map((u) => ({
       ...u,
       pos: { ...u.pos },

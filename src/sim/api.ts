@@ -4,6 +4,35 @@ export type { WorldOptions } from './world';
 export { DEFAULT_TUNING } from './tuning';
 export { runReport } from './runstats';
 export { decodeReplay, encodeReplay, replayHash, runReplay } from './replay';
+export {
+  altarCost,
+  altarRank,
+  applyRun,
+  buyRank,
+  dataFor,
+  DEFAULT_META_RULES,
+  emptyMeta,
+  essenceFor,
+  META_VERSION,
+  metaRules,
+  migrateMeta,
+  pantheonsOf,
+  playData,
+  refundAltar,
+  trialsOpen,
+} from './meta';
+export type {
+  AltarDef,
+  EssenceLine,
+  MetaEffect,
+  MetaRules,
+  MetaState,
+  RunOutcome,
+  SagaEntry,
+  TrialDef,
+  UnlockCondition,
+  UnlockDef,
+} from './meta';
 export { loadWorld, migrateSave, saveWorld, SAVE_VERSION, SaveError } from './save';
 export type { SaveGame } from './save';
 export type { World } from './world';

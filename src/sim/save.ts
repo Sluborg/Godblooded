@@ -1,6 +1,7 @@
 import { resolveTuning } from './tuning';
+import { replayPlay } from './meta';
 import { createWorld, type World } from './world';
-import type { GameData, Vec2 } from './types';
+import type { GameData, PlayInputs, Vec2 } from './types';
 
 // Save and load a run (Sim 160). A save is the run's state as plain JSON data: the seed, the
 // position of the random generator and every field of the world except the content rows
@@ -127,10 +128,14 @@ export function loadWorld(raw: unknown, data: GameData): World {
   const fromVersion = isRecord(raw) && typeof raw.version === 'number' ? raw.version : 0;
   const save = migrateSave(raw);
   try {
-    const world = createWorld(save.seed, data);
+    // A run played with Altar ranks or Trials gets them back, whatever data the load is handed
+    // (the base data; data that already carries `play` is taken as it is).
+    const play = (save.world as { play?: PlayInputs | null }).play;
+    const played = play && !data.play ? replayPlay(data, decode(play) as PlayInputs) : data;
+    const world = createWorld(save.seed, played);
     const target = world as unknown as Record<string, unknown>;
     for (const [key, value] of Object.entries(save.world)) {
-      if (SKIP.has(key) || !(key in target)) continue;
+      if (SKIP.has(key) || key === 'play' || !(key in target)) continue;
       const saved = decode(value);
       // A field must keep the kind it has in a fresh world (a Map stays a Map, a list a list);
       // only a plain value may switch between null and a number or string (bossLair, say).
@@ -143,18 +148,18 @@ export function loadWorld(raw: unknown, data: GameData): World {
       target[key] = saved;
     }
     world.rng.restore(save.rng);
-    world.tuning = resolveTuning(data, world.firstRun);
+    world.tuning = resolveTuning(played, world.firstRun);
     world.events = [];
     // A save from before the command log cannot be replayed from the start.
     if (!('commandLog' in save.world)) world.replayable = false;
-    if (fromVersion < 5) relocateTown(world, data);
+    if (fromVersion < 5) relocateTown(world, played);
     // A hero from before builds stands in its god's first build.
     for (const u of world.units) {
       if (u.kind !== 'hero' || u.build) continue;
       const builds = world.data.gods?.find((g) => g.id === u.god)?.builds;
       if (builds) u.build = builds[0];
     }
-    check(world, data);
+    check(world, played);
     return world;
   } catch (e) {
     // Anything else that goes wrong on damaged data is a damaged save to the caller.

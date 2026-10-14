@@ -1,3 +1,4 @@
+import { isWorking } from './town';
 import { arrival, visitPoint } from './collision';
 import { speed, dist, stepToward, TICK_MS } from './units';
 import type { World } from './world';
@@ -82,7 +83,7 @@ function stopsFor(world: World): Stop[] {
   const min = world.tuning.collector.minTill;
   const out: Stop[] = [];
   for (const b of world.buildings) {
-    if (b.type !== TOWNHALL && (b.till ?? 0) >= min) {
+    if (b.type !== TOWNHALL && isWorking(b) && (b.till ?? 0) >= min) {
       out.push({ kind: 'till', id: b.id, pos: b.pos, gold: b.till ?? 0 });
     }
   }
