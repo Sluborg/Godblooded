@@ -64,18 +64,20 @@ export class SettingsScene extends Phaser.Scene {
       this.refresh();
     });
 
-    this.hintsBtn = makeButton(this, 870, 305, 190, 80, '', () => {
+    this.hintsBtn = makeButton(this, 885, 305, 180, 80, '', () => {
       updateSettings({ hintsOn: !getSettings().hintsOn });
       this.refresh();
       (this.scene.get('Hud') as HudScene | undefined)?.refreshHints();
     });
-    makeButton(this, 1110, 305, 220, 80, 'Show hints again', () => {
+    makeButton(this, 1120, 305, 230, 80, 'Show hints again', () => {
       clearSeen();
+      // The running director keeps its own copy and would write it back over the cleared list.
+      (this.scene.get('Hud') as HudScene | undefined)?.refreshHints();
       this.hintsAgain.setAlpha(1);
       this.tweens.add({ targets: this.hintsAgain, alpha: 0, delay: 1200, duration: 400 });
     });
     this.hintsAgain = this.add
-      .text(985, 262, 'Hints will show again', {
+      .text(1000, 262, 'Hints will show again', {
         fontFamily: FONT,
         fontSize: '20px',
         color: COLORS.textMuted,
