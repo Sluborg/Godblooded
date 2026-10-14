@@ -125,12 +125,12 @@ Boss hp is a data value, not Sta x 8 + Str x 4 (`combat.md`). Fafnir follows the
 
 | Lair          | Monster      | Pantheon | Size  | Hp   | Spawn s | Max alive | Art                        |
 | ------------- | ------------ | -------- | ----- | ---- | ------- | --------- | -------------------------- |
-| barrow        | draugr       | aesir    | small | 2450 | 10      | 6         | `bld_lair_barrow_t1` (B10) |
-| troll-den     | troll        | aesir    | big   | 4200 | 25      | 4         | `bld_lair_troll-den_t1`    |
-| harpy-roost   | harpy        | greek    | small | 2100 | 9       | 6         | `bld_lair_harpy-roost_t1`  |
-| labyrinth     | minotaur     | greek    | big   | 4200 | 24      | 4         | `bld_lair_labyrinth_t1`    |
-| jackal-camp   | jackal-man   | egyptian | small | 2450 | 10      | 6         | `bld_lair_jackal-camp_t1`  |
-| scarab-pit    | scarab swarm | egyptian | small | 2100 | 6       | 10        | new                        |
+| barrow        | draugr       | aesir    | small | 2100 | 10      | 6         | `bld_lair_barrow_t1` (B10) |
+| troll-den     | troll        | aesir    | big   | 3600 | 25      | 4         | `bld_lair_troll-den_t1`    |
+| harpy-roost   | harpy        | greek    | small | 1800 | 9       | 6         | `bld_lair_harpy-roost_t1`  |
+| labyrinth     | minotaur     | greek    | big   | 3600 | 24      | 4         | `bld_lair_labyrinth_t1`    |
+| jackal-camp   | jackal-man   | egyptian | small | 2100 | 10      | 6         | `bld_lair_jackal-camp_t1`  |
+| scarab-pit    | scarab swarm | egyptian | small | 1800 | 6       | 10        | new                        |
 | wyrm-nest     | Fafnir       | aesir    | boss  | 8000 | 30      | 3 guards  | `bld_lair_wyrm-nest_t1`    |
 | hydra-marsh   | Hydra        | greek    | boss  | 8000 | 30      | 3 guards  | new                        |
 | apep-tomb     | Apep         | egyptian | boss  | 8000 | 30      | 3 guards  | new                        |
@@ -149,7 +149,11 @@ Boss hp is a data value, not Sta x 8 + Str x 4 (`combat.md`). Fafnir follows the
   stays 8000.
 - **Then 70%** (Balance, `balance/playtest-trim`, with the first raid at 7:00 and a 1-raider
   Vanguard): big 4200, small 2100-2450, the scarab pit 2100; the nest 8000. The human bot on the
-  playtest build wins 63-70% in Balance's runs (Review reproduced 57-63%).
+  playtest build wins 63-70% with a 35-min run cap (57-63% at the default 30, where longer runs
+  count as timeouts).
+- **Then 60% with omens and elites** (Balance, `balance/omens` 11721e0): big 3600, small
+  1800-2100, the scarab pit 1800; boss lairs 8000. Full stack: the human bot wins 65%, the full
+  bot 73-78%.
 - **Boss lair guards:** a boss lair spawns guards until the boss emerges: the wyrm nest spawns
   draugr (Balance, 2026-10-14: trolls at the nest made the boss fight a wall in the bot); Greek
   and Egyptian boss lairs spawn the minotaur and jackal-men until their bot pass.
