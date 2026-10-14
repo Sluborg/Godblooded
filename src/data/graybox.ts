@@ -363,9 +363,13 @@ export const PATHS: readonly PathDef[] = [
   },
 ];
 
+// Roles and quirks: docs/systems/monsters-and-bosses.md sections 1-2. Fafnir's Fire Breath
+// (section 3) replaces the generic cleave.
 export const MONSTERS: readonly MonsterDef[] = [
   {
     id: 'draugr',
+    role: 'brute',
+    quirk: { koMult: 1.5 },
     attrs: { str: 5, dex: 3, sta: 5, cha: 1, per: 3, int: 1, wp: 6 },
     weapon: { baseAttackS: 1.7, range: 40 },
     bounty: 12,
@@ -376,6 +380,8 @@ export const MONSTERS: readonly MonsterDef[] = [
   },
   {
     id: 'troll',
+    role: 'brute',
+    quirk: { regen: { pctS: 0.01, stopOnType: 'fire', stopS: 5 } },
     attrs: { str: 10, dex: 2, sta: 11, cha: 1, per: 2, int: 1, wp: 4 },
     weapon: { baseAttackS: 2.4, range: 50 },
     bounty: 40,
@@ -386,6 +392,8 @@ export const MONSTERS: readonly MonsterDef[] = [
   },
   {
     id: 'harpy',
+    role: 'harrier',
+    quirk: { stealGold: 5 },
     attrs: { str: 4, dex: 7, sta: 4, cha: 1, per: 5, int: 1, wp: 3 },
     weapon: { baseAttackS: 1.3, range: 40 },
     bounty: 14,
@@ -396,6 +404,8 @@ export const MONSTERS: readonly MonsterDef[] = [
   },
   {
     id: 'jackal-man',
+    role: 'pack',
+    quirk: { healOnKo: 0.1 },
     attrs: { str: 6, dex: 5, sta: 6, cha: 1, per: 4, int: 2, wp: 5 },
     weapon: { baseAttackS: 1.6, range: 45 },
     bounty: 18,
@@ -406,6 +416,8 @@ export const MONSTERS: readonly MonsterDef[] = [
   },
   {
     id: 'minotaur',
+    role: 'charger',
+    quirk: { chargeSure: true },
     attrs: { str: 9, dex: 3, sta: 10, cha: 1, per: 3, int: 1, wp: 5 },
     weapon: { baseAttackS: 2.1, range: 50 },
     bounty: 34,
@@ -418,6 +430,18 @@ export const MONSTERS: readonly MonsterDef[] = [
   // for the graybox parties, which are weaker than the spec's four tier 3 heroes.
   {
     id: 'wyrm',
+    move: {
+      breath: {
+        everyN: 3,
+        enragedEveryN: 2,
+        range: 160,
+        angleDeg: 70,
+        mult: 1.2,
+        type: 'fire',
+        rider: 'burn',
+        windupMs: 1200,
+      },
+    },
     attrs: { str: 14, dex: 3, sta: 12, cha: 1, per: 4, int: 2, wp: 8 },
     weapon: { baseAttackS: 2.0, range: 70 },
     bounty: 400,
