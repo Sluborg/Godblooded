@@ -76,8 +76,9 @@ retries. The early beats come too close together; the late beats spread out.
 
 ## 5. Re-measure on main 668fcc3 (2026-10-14, row 50)
 
-All of section 3 is in the data, plus the Aesir skills, passives, items and cards (#235) and
-raids after a lair tier-up. Same probe, 100 seeds, two bot variants: A places one 50 gold flag
+All of section 3 is in the data, plus the Aesir skills, passives, items and cards (#235). Raids after a lair tier-up are **off** in
+this measurement (`raidOnTierUp` false on main); section 5 is re-run once Balance's retune turns
+them on. Same probe, 100 seeds, two bot variants: A places one 50 gold flag
 on the nearest lair when gold is over 150 (as before); B places a 40 gold flag 150 from a hero
 once a minute when gold is 60 or more (to measure steering).
 
@@ -107,15 +108,15 @@ once a minute when gold is 60 or more (to measure steering).
   Not yet traced: likely the shopping order (potions first) or the smithy's level 1 price against a hero's purse.
 - **Town gold is tight in the first 5 minutes:** with the build order done, the town holds
   about 50 to 140 gold between 3:00 and 5:00, so a 40 gold flag is a real choice but the
-  player cannot place one every minute. Flags cost wins: B wins 56% against A's 66%.
+  player cannot place one every minute. B wins 56% against A's 66%; at n = 100 on one seed set (about ±5 points) that hints flags cost wins, it does not measure it.
 - **Flags do steer, slowly:** half the flags get a party turning to them, the median after
   21 s; a flag on a lair reads as a lair goal (intent `lair`), not a flag.
 
 ### Proposals (for Balance and Sim)
 
-| Order | Change                                                                                                                           | Why                                         | Expected                        |
-| ----- | -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- | ------------------------------- |
-| 70    | Smithy level 1 weapon and armour cheaper, or heroes buy a weapon before a second potion (shopping order, `items-and-shops.md` 3) | the gear gate                               | gear 1+ at 8:00                 |
-| 80    | `xpPerLevel` 45 or a slower lair XP (`rewardMult` tier 1)                                                                        | tier 2 at 4-6 and tier 3 at 11-14           | tier 2 about 4, tier 3 about 10 |
-| 90    | Start gold or early tax a little up (about +60 by 3:00), or a cheaper smallest flag (25)                                         | a flag a minute must be affordable          | 6+ flags a run                  |
-| 100   | Sim: `turnsPerFlag` and gear at 8:00 in `RunReport` (Sim row 150 run stats)                                                      | so the bot prints these, not Design's probe |                                 |
+| Order | Change                                                                                                                                                                                                   | Why                                         | Expected                        |
+| ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- | ------------------------------- |
+| 70    | Smithy level 1 weapon and armour cheaper, or heroes buy a weapon before a second potion (shopping order, `items-and-shops.md` 3); Sim traces first why heroes skip the smithy (owner: Sim, then Balance) | the gear gate                               | gear 1+ at 8:00                 |
+| 80    | `xpPerLevel` 45 or a slower lair XP (`rewardMult` tier 1)                                                                                                                                                | tier 2 at 4-6 and tier 3 at 11-14           | tier 2 about 4, tier 3 about 10 |
+| 90    | Start gold or early tax a little up (about +60 by 3:00), or a cheaper smallest flag (25)                                                                                                                 | a flag a minute must be affordable          | 6+ flags a run                  |
+| 100   | Sim: `turnsPerFlag` and gear at 8:00 in `RunReport` (Sim row 150 run stats)                                                                                                                              | so the bot prints these, not Design's probe |                                 |
