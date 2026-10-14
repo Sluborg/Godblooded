@@ -68,7 +68,7 @@ function charmToBuy(
 // The next level of weapon or armour a smithy of this tier sells.
 function nextLevel(
   world: World,
-  slot: 'weapon' | 'armour',
+  slot: 'weapon' | 'armour' | 'headgear' | 'offhand',
   have: number,
   smithyTier: number,
 ): ItemDef | undefined {
@@ -105,22 +105,27 @@ export function planShopping(world: World, unit: UnitState): ShopStop[] {
     bought.push({ item: potion, shop: 'market' });
     return true;
   };
-  // The next weapon or armour level that fits the budget: the cheaper (proud: weapon, coward: armour).
+  // The next level of weapon, armour, headgear or off-hand that fits the budget: the cheaper
+  // (proud: weapon, coward: armour; on a tie the earlier of weapon, armour, headgear, off-hand).
   const pickGear = (): ItemDef | undefined => {
     if (!smithy) return undefined;
     const w = nextLevel(world, 'weapon', have.weapon, smithy.tier);
     const a = nextLevel(world, 'armour', have.armour, smithy.tier);
-    const fits = [w, a].filter((i): i is ItemDef => !!i && i.price <= budget);
+    const h = nextLevel(world, 'headgear', have.headgear ?? 0, smithy.tier);
+    const o = nextLevel(world, 'offhand', have.offhand ?? 0, smithy.tier);
+    const fits = [w, a, h, o].filter((i): i is ItemDef => !!i && i.price <= budget);
     if (fits.length === 0) return undefined;
     let pick = fits.reduce((x, y) => (y.price < x.price ? y : x));
-    if (fits.length === 2 && unit.trait === 'proud') pick = w!;
-    if (fits.length === 2 && unit.trait === 'coward') pick = a!;
+    if (unit.trait === 'proud' && w && fits.includes(w)) pick = w;
+    if (unit.trait === 'coward' && a && fits.includes(a)) pick = a;
     return pick;
   };
   const buyGear = (pick: ItemDef): void => {
     budget -= pick.price;
     if (pick.slot === 'weapon') have.weapon++;
-    else have.armour++;
+    else if (pick.slot === 'armour') have.armour++;
+    else if (pick.slot === 'headgear') have.headgear = (have.headgear ?? 0) + 1;
+    else have.offhand = (have.offhand ?? 0) + 1;
     bought.push({ item: pick, shop: 'smithy' });
   };
   // 0: a hero with no gear at all buys its first piece before its first potion, if it can pay
@@ -176,6 +181,14 @@ export function buyItem(world: World, unit: UnitState, id: string, shopTier: num
     case 'armour':
       if (item.level !== items.armour + 1) return 0;
       items.armour = item.level;
+      break;
+    case 'headgear':
+      if (item.level !== (items.headgear ?? 0) + 1) return 0;
+      items.headgear = item.level;
+      break;
+    case 'offhand':
+      if (item.level !== (items.offhand ?? 0) + 1) return 0;
+      items.offhand = item.level;
       break;
     case 'potion':
       if (

@@ -1,6 +1,13 @@
 import type Phaser from 'phaser';
 import { ASSETS_KEY, type ManifestAsset } from '../assets';
-import { BUILDS, KIT_SLOTS, kitFor, type KitCombo, type KitSlot } from '../../data/heroKits';
+import {
+  BUILDS,
+  KIT_SLOTS,
+  kitFor,
+  type KitCombo,
+  type KitMode,
+  type KitSlot,
+} from '../../data/heroKits';
 import { kitComplete, type Kit, type KitPart, type PartMap } from './painted';
 
 // Every kit part the manifest offers by id: the cells of all rows that have a `cells` object
@@ -36,6 +43,10 @@ export function kitOf(scene: Phaser.Scene, lookId: string): Kit | null {
   if (!combo) return null;
   const all = partsById(scene);
   const parts = pick(combo.parts, all);
-  if (!kitComplete(parts)) return null;
-  return { parts, layers: pick(combo.layers, all), build: BUILDS[combo.build ?? 'standard'] };
+  // `?kitmode=floating|bent` overrides the combo's mode, for comparing the two on one sheet.
+  const asked =
+    typeof location === 'undefined' ? null : new URLSearchParams(location.search).get('kitmode');
+  const mode: KitMode = asked === 'floating' || asked === 'bent' ? asked : (combo.mode ?? 'bent');
+  if (!kitComplete(parts, mode)) return null;
+  return { parts, layers: pick(combo.layers, all), build: BUILDS[combo.build ?? 'standard'], mode };
 }

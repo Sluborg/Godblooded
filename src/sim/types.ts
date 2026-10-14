@@ -30,6 +30,9 @@ export interface GodDef {
   pantheon: string;
   name: string;
   template: string;
+  // The two bodies this god's children come in (hero-kit.md section 3): a new hero gets one of them
+  // by a seeded draw and keeps it. Scene owns what a build looks like.
+  builds?: readonly [string, string];
   // The type a caster child of this god strikes with at tier 1 (weapon templates are physical).
   damageType?: DamageType;
   // Always-on trait of the god's children from tier 1 (see PassiveDef).
@@ -126,6 +129,9 @@ export interface Attributes {
 
 export interface MonsterDef {
   id: string;
+  // The damage type of its plain strike (default physical: dodged and armoured). Death and fire
+  // strikes are cut by Willpower instead, and a hero's resist rows apply.
+  strikeType?: DamageType;
   // Body radius for keeping apart (default tuning.collision.monsterRadius or bossRadius).
   radius?: number;
   attrs: Attributes;
@@ -321,16 +327,17 @@ export interface ClassDef {
 // Items and shops (docs/systems/items-and-shops.md): every hero has four slots. Weapon and armour
 // are levels (0 to 3) bought at the smithy; potions and one charm come from the market.
 export type Kit = 'heavy' | 'light' | 'robe';
-export type ItemSlot = 'weapon' | 'armour' | 'potion' | 'charm';
+export type ItemSlot = 'weapon' | 'armour' | 'headgear' | 'offhand' | 'potion' | 'charm';
 
 export interface ItemEffects {
-  // Weapon: added to power (Str for weapon templates, Int x spellMult for casters).
+  // Weapon (and a caster's focus in the off-hand): added to power (Str for weapon templates,
+  // Int x spellMult for casters).
   power?: number;
-  // Armour: armour and Willpower by kit.
+  // Armour, headgear and a shield: armour and Willpower by kit.
   kits?: Partial<Record<Kit, { armour: number; wp: number }>>;
   // Potion: share of max hp healed.
   healPct?: number;
-  // Charm (generic, items-and-shops.md section 2): added to crit and dodge chance.
+  // Charm, headgear, off-hand (a second blade's crit): added to crit and dodge chance.
   crit?: number;
   dodge?: number;
   // Charm: a share cut off hits of these damage types (fire 0.25 = fire hits 25% softer).
@@ -346,7 +353,7 @@ export interface ItemEffects {
 export interface ItemDef {
   id: string;
   slot: ItemSlot;
-  // Weapon and armour: the level this row is (1 to 3).
+  // Weapon, armour, headgear and off-hand: the level this row is (1 to 3).
   level?: number;
   price: number;
   shop: 'smithy' | 'market';
@@ -360,6 +367,9 @@ export interface ItemDef {
 export interface HeroItems {
   weapon: number;
   armour: number;
+  // Headgear and off-hand levels (hero-kit.md); missing on an older hero: level 0.
+  headgear?: number;
+  offhand?: number;
   potions: number;
   // The potions carried, by item id (so small and greater ones keep their own heal). Its
   // length is `potions`; missing means that many plain 40% potions.
@@ -1001,6 +1011,11 @@ export interface AiTuning {
   stickyFoeRange: number;
   // A lair's xp counts this much next to its gold.
   lairXpWeight: number;
+  // The boss call: once the boss lair is unsealed its score gets bossCallBonus; with no normal lair
+  // standing, a party whose members are all above bossCallHp of their hp scores it at least
+  // exploreValue + switchMin. 0 turns it off.
+  bossCallBonus: number;
+  bossCallHp: number;
 }
 
 export interface BountyTuning {
@@ -1233,6 +1248,8 @@ export interface UnitState {
   god: string | null;
   // Heroes: the path id taken at tier 2, else null.
   path: string | null;
+  // Heroes: the body, one of the god's two builds (GodDef.builds), kept for life; absent without.
+  build?: string;
   pos: Vec2;
   // Unit vector of the last move; Scene picks front/back view and mirrors from it.
   facing: Vec2;

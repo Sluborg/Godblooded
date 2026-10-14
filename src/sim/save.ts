@@ -10,7 +10,7 @@ import type { GameData, Vec2 } from './types';
 // Changing the shape of the world (a new field is fine, it falls back to its fresh value; a
 // renamed, removed or reinterpreted one is not) bumps SAVE_VERSION and adds a migration.
 
-export const SAVE_VERSION = 6;
+export const SAVE_VERSION = 7;
 
 export interface SaveGame {
   version: number;
@@ -77,6 +77,21 @@ const MIGRATIONS: Record<number, (save: SaveGame) => SaveGame> = {
     version: 6,
     world: { ...save.world, nodes: [], ambrosia: 0, jars: [], guardQueue: [] },
   }),
+  // 6 to 7 (hero kit): heroes have headgear and off-hand levels, and a build. Old heroes get level
+  // 0 in both; loadWorld gives them their god's first build (it needs the god rows).
+  6: (save) => {
+    const units = save.world.units;
+    if (Array.isArray(units)) {
+      for (const u of units as Record<string, unknown>[]) {
+        const items = u && u.kind === 'hero' ? (u.items as Record<string, unknown>) : undefined;
+        if (items) {
+          items.headgear ??= 0;
+          items.offhand ??= 0;
+        }
+      }
+    }
+    return { ...save, version: 7 };
+  },
 };
 
 export function saveWorld(world: World): SaveGame {
@@ -131,6 +146,12 @@ export function loadWorld(raw: unknown, data: GameData): World {
     world.tuning = resolveTuning(data, world.firstRun);
     world.events = [];
     if (fromVersion < 5) relocateTown(world, data);
+    // A hero from before builds stands in its god's first build.
+    for (const u of world.units) {
+      if (u.kind !== 'hero' || u.build) continue;
+      const builds = world.data.gods?.find((g) => g.id === u.god)?.builds;
+      if (builds) u.build = builds[0];
+    }
     check(world, data);
     return world;
   } catch (e) {

@@ -4,6 +4,9 @@
 are the anchor; every new picture must look like it came from the same hand. This replaces the
 big-head cartoon taste test; never draw cartoon again. Every batch quotes this page.
 
+**Quality: every image passes `art-tasks/QA.md` before upload** (redo up to 3 times, then
+report the fault instead of uploading).
+
 **Anchor pictures (fetch raw, match them):**
 
 - `public/assets/buildings/bld_townhall_t1.png` (the longhouse) and
