@@ -46,7 +46,7 @@ try {
 
   let flagRun = null;
   for (let r = 0; r < runs; r++) {
-    flagRun = { placed: 0, claimed: 0, nextMs: 60_000 };
+    flagRun = { placed: 0, claimed: 0, huntPlaced: 0, huntClaimed: 0, nextMs: 60_000 };
     const w = sim.createWorld(seed0 + r, GRAYBOX);
     let snap = sim.snapshot(w);
     let timeout = false;
@@ -60,7 +60,11 @@ try {
     let gear8 = null;
     const watch = (sn) => {
       for (const e of sn.events ?? []) {
-        if (e.kind === 'bountyClaimed') flagRun.claimed++;
+        if (e.kind === 'bountyClaimed') {
+          flagRun.claimed++;
+          if (e.hunt) flagRun.huntClaimed++;
+        }
+        if (e.kind === 'bountyPlaced' && e.target !== undefined) flagRun.huntPlaced++;
         if (e.kind === 'bossEmerged') {
           bossIds.add(e.unit);
           bossOutMin ??= sn.timeMs / 60_000;
@@ -120,6 +124,8 @@ try {
       bossFightMin,
       flagsPlaced: flagRun.placed,
       flagsClaimed: flagRun.claimed,
+      huntPlaced: flagRun.huntPlaced,
+      huntClaimed: flagRun.huntClaimed,
       gold3: goldAt[180_000],
       gold5: goldAt[300_000],
       weapon8: gear8?.weapon ?? null,
@@ -249,6 +255,8 @@ function summarize(results) {
     flags: {
       placed: meanOf(results, 'flagsPlaced'),
       claimed: meanOf(results, 'flagsClaimed'),
+      huntPlaced: meanOf(results, 'huntPlaced'),
+      huntClaimed: meanOf(results, 'huntClaimed'),
     },
     perRun: Object.fromEntries(
       [
@@ -289,8 +297,15 @@ function print(rep) {
   );
   if (FLAGS) {
     const share = rep.flags.placed > 0 ? rep.flags.claimed / rep.flags.placed : 0;
+    const hp = rep.flags.huntPlaced;
+    const ground = rep.flags.placed - hp;
+    const groundClaimed = rep.flags.claimed - rep.flags.huntClaimed;
     console.log(
       `  probe flags (${FLAG_GOLD} gold): placed ${f(rep.flags.placed)}  claimed ${f(rep.flags.claimed)} per run  (${(share * 100).toFixed(0)}% of placed; claims include the lair flag unless --no-lair-flag)`,
+    );
+    const pct = (a, b) => (b > 0 ? `${((a / b) * 100).toFixed(0)}%` : '-');
+    console.log(
+      `    of which hunt (placed within 60 of a monster): placed ${f(hp)} claimed ${f(rep.flags.huntClaimed)} (${pct(rep.flags.huntClaimed, hp)}); ground: placed ${f(ground)} claimed ${f(groundClaimed)} (${pct(groundClaimed, ground)})`,
     );
   }
   console.log('  per run (mean):');
