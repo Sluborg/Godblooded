@@ -20,7 +20,7 @@ import { drawGlyph } from './itemGlyph';
 import { drawIntentIcon, isIntentKind, type PartyIntent } from './intentIcon';
 import { ensureHeroSet, sweepSets, type BakedSet } from './parts/bake';
 import { attackFrame, idleFrame, koFrame, walkFrame, type PoseName } from './parts/frames';
-import type { RiderId, SimEvent, UnitState, Vec2 } from '../sim/api';
+import { DEFAULT_TUNING, type RiderId, type SimEvent, type UnitState, type Vec2 } from '../sim/api';
 import { ASSETS_KEY, type ManifestAsset } from './assets';
 import {
   FALL_S,
@@ -42,6 +42,7 @@ import { pickVariant, rotateHue, sizeJitter, tierStyle } from './monsterLook';
 import { RIDER_LOOK, riderDurationMs } from './riderLook';
 import { damageLook, MAX_FLOATS, typeTint, type FloatLook, type HitInfo } from './damageLook';
 import { getSettings } from './settings';
+import { sackSize, drawSack } from './taxLook';
 import { heroLabel, partyColor, partyRole, type PartyRole } from './partyLook';
 import { SpeechLimit } from './speechLimit';
 import { cardColor } from './levelUpLook';
@@ -208,6 +209,8 @@ export class UnitView {
   private readonly statusG: Phaser.GameObjects.Graphics;
   private statusDrawn = false;
   private readonly intentG: Phaser.GameObjects.Graphics;
+  private sackG: Phaser.GameObjects.Graphics | null = null;
+  private sackDrawn = -1;
   private intentDrawn = false;
   private hiddenNow = false;
   private stoneNow = false;
@@ -250,7 +253,7 @@ export class UnitView {
       .text(
         0,
         -UNIT_HEIGHT * this.look.scale - 6,
-        u.kind === 'hero' ? heroLabel(u) : summonName(u),
+        u.kind === 'hero' ? heroLabel(u) : u.kind === 'collector' ? 'Tax collector' : summonName(u),
         {
           fontFamily: 'Georgia, serif',
           fontSize: '16px',
@@ -259,6 +262,12 @@ export class UnitView {
       )
       .setOrigin(0.5, 1);
     this.body = scene.add.container(0, 0, [this.capsule, this.nose]);
+    if (u.kind === 'collector') {
+      // The sack on its back: 3 sizes by what it carries (tax-collector.md section 2).
+      this.sackG = scene.add.graphics();
+      this.body.add(this.sackG);
+      this.drawSackFor(u.gold ?? 0);
+    }
     this.bar = scene.add.graphics();
     this.riderIcon = scene.add.graphics();
     this.statusG = scene.add.graphics();
@@ -574,6 +583,14 @@ export class UnitView {
     }
   }
 
+  private drawSackFor(carried: number): void {
+    if (!this.sackG) return;
+    const size = sackSize(carried, DEFAULT_TUNING.collector.carryCap);
+    if (size === this.sackDrawn) return;
+    this.sackDrawn = size;
+    drawSack(this.sackG, size, -this.w * 0.55, -this.h * 0.5);
+  }
+
   // A short sign over the head for a moment: a "?" or "!" a boss move puts on its target.
   cue(text: string, color: string, ms: number): void {
     const t = this.scene.add
@@ -756,6 +773,7 @@ export class UnitView {
 
   update(u: UnitState, ctx: FrameCtx, role: PartyRole = 'solo'): void {
     this.tierNow = u.tier;
+    if (u.kind === 'collector') this.drawSackFor(u.gold ?? 0);
     if (!this.applyParts(u)) this.applyArt(u);
     if (u.kind === 'hero') {
       this.label.setText(heroLabel(u));
@@ -1233,6 +1251,7 @@ export class UnitViews {
       } else if (e.kind === 'upgradePicked' && e.auto) this.onAutoPick(e, parties);
       else if (e.kind === 'built') this.onBuilt(e, others);
       else if (e.kind === 'rider') this.views.get(e.target)?.setRider(e.rider);
+      else if (e.kind === 'collectorHit') this.views.get(e.unit)?.cue('!', '#ff9a8a', 700);
       else if (e.kind === 'drank') this.onDrank(e, ctx);
       else if (e.kind === 'riddle' && e.answered)
         this.views.get(e.target)?.cue('!', '#f2c14e', 1200);
