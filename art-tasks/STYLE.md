@@ -7,15 +7,25 @@ big-head cartoon taste test; never draw cartoon again. Every batch quotes this p
 **Quality: every image passes `art-tasks/QA.md` before upload** (redo up to 3 times, then
 report the fault instead of uploading).
 
-**Anchor pictures (fetch raw, match them):**
+**Reference set (fetch raw, match them).** Stefan rated these 4-5 (2026-10-14); they are the
+only references. Copy their palette, thin dark-brown outline, top-left light and level of detail.
 
-- `public/assets/buildings/bld_townhall_t1.png` (the longhouse) and
-  `public/assets/buildings/bld_tower_t1.png` (the watch tower): the style itself.
-- `public/assets/buildings/bld_temple_aesir_t1.png`: the carving and trim.
-- **`art-tasks/ref/hero-anchor-grim.png`: the hero anchor** (Stefan approved 2026-10-14): Grim,
-  son of Odin. Every hero and every hero part looks like him: proportions, face, materials,
-  detail, outline.
-- `public/assets/units/mon_draugr_t1_front.png`: a monster in this style.
+| Picture (`public/assets/...` unless noted)  | Copy from it                                           |
+| ------------------------------------------- | ------------------------------------------------------ |
+| `art-tasks/ref/hero-anchor-grim.png`        | **every hero**: proportions, face, materials, detail   |
+| `buildings/bld_townhall_t1.png` (5)         | the style itself: timber, turf, carving, banners       |
+| `buildings/bld_lair_labyrinth_t1.png` (5)   | grim ruin: stone, braziers, bones, mood                |
+| `units/mon_jackal-man_t1_front.png` (5)     | a figure: anatomy, grip on the weapon, trim            |
+| `buildings/bld_tower_t1.png` (4)            | believable timber construction, ladder, stone base     |
+| `buildings/bld_temple_aesir_t2.png` (4)     | Norse carving, dragon heads, knotwork                  |
+| `buildings/bld_shrine_t1.png` (4)           | a small building with a clear use (basin, candles)     |
+| `buildings/bld_lair_barrow_t1.png` (4)      | a grim lair; it could be grimmer: dead grass, spookier |
+| `buildings/bld_lair_jackal-camp_t1.png` (4) | Egyptian lair, tents, totem                            |
+| `units/mon_troll_t1_front.png` (4)          | a big brute: fur, moss, weight                         |
+
+**Do not copy** (Stefan's notes on the rest): impossible logs, beams or extra bits on the back of
+buildings; weapons that could not be used; hands that do not really grip; static smoke or sparks
+painted in; busy piles of props; a temple that is only a gate.
 
 ## The rules
 
@@ -36,9 +46,14 @@ report the fault instead of uploading).
 - **Monsters** are grim and scary: hunched, sharp silhouettes, darker and colder than heroes.
 - **Small on the map:** units show about 30-40 px tall; the silhouette, the weapon and the accent
   colour must carry the read. Chunky gear, no hair-thin detail.
-- **Effects grow with tier:** none at tier 1, a hint at tier 2, clear at tier 3 and bosses. Unit
-  effects (sparks, flames, glow) are drawn by the game, not into the unit. Buildings carry their
-  tier's effect inside the outline.
+- **Believable and buildable** (Stefan 2026-10-14): every beam, log, plank and stone carries
+  weight the way it would in real life; nothing floats, nothing extra hangs off the back. Weapons
+  are real, usable weapons. A building shows its function (a temple has an inside you could
+  walk into, a smithy has a forge and an anvil you could use).
+- **Clear over busy:** few, chunky props; a clear silhouette beats lots of small detail.
+- **No painted effects:** smoke, sparks, flying embers, magic glow and auras are drawn by the
+  game, never into a picture. Fire in a hearth or brazier and lit windows are fine; a column of
+  smoke is not. Higher tiers show richer build (stone, carving, gilding), not effects.
 - **Camera:** top-down 3/4 seen from the lower right, as the anchors.
 - **Pose (every unit): faces RIGHT**, three-quarter toward the lower right; the game mirrors it.
   One front picture per unit; the game does the motion.
