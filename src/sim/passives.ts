@@ -191,3 +191,58 @@ export function everyNthOf(world: World, unit: UnitState): PassiveKeys['everyNth
   for (const p of passivesFor(world, unit)) if (p.keys.everyNth) return p.keys.everyNth;
   return undefined;
 }
+
+// ---- Card keys (progression.md section 2) --------------------------------------------------
+
+export const passiveReviveHp = (world: World, unit: UnitState): number =>
+  Math.max(0, ...passivesFor(world, unit).map((p) => p.keys.koReviveHp ?? 0));
+export const passiveGoldMult = (world: World, unit: UnitState) =>
+  product(world, unit, (k) => k.goldMult);
+export const passiveHealOnKill = (world: World, unit: UnitState) =>
+  sum(world, unit, (k) => k.healOnKill);
+export const passiveRegen = (world: World, unit: UnitState) => sum(world, unit, (k) => k.regen);
+export const passiveTwinCast = (world: World, unit: UnitState) =>
+  Math.min(
+    1,
+    sum(world, unit, (k) => k.twinCast),
+  );
+export const passiveHealSplash = (world: World, unit: UnitState) =>
+  Math.max(0, ...passivesFor(world, unit).map((p) => p.keys.healSplash ?? 0));
+export const passiveLastStand = (world: World, unit: UnitState) =>
+  Math.max(0, ...passivesFor(world, unit).map((p) => p.keys.lastStand ?? 0));
+export const passiveBondMult = (world: World, unit: UnitState) =>
+  product(world, unit, (k) => k.bondMult);
+export const passiveFlagMult = (world: World, unit: UnitState) =>
+  product(world, unit, (k) => k.flagMult);
+export const hasCritStagger = (world: World, unit: UnitState): boolean =>
+  passivesFor(world, unit).some((p) => p.keys.critStagger);
+export const hasSkillsReady = (world: World, unit: UnitState): boolean =>
+  passivesFor(world, unit).some((p) => p.keys.skillsReady);
+
+// Armour from a phalanx: every phalanx key whose party mates stand close enough.
+export function passivePhalanx(world: World, unit: UnitState): number {
+  let armour = 0;
+  for (const p of passivesFor(world, unit)) {
+    const k = p.keys.phalanx;
+    if (!k) continue;
+    let near = 0;
+    for (const id of world.parties.get(unit.party)?.members ?? []) {
+      const m = id === unit.id ? unit : world.units.find((u) => u.id === id);
+      if (m && !m.ko && m.hp > 0 && dist(m.pos, unit.pos) <= k.within) near++;
+    }
+    if (near >= k.members) armour += k.armour;
+  }
+  return armour;
+}
+
+// Apollo's favour: heroes in a fight heal a share of max hp each second.
+export function runRegen(world: World): void {
+  if (world.tick % 20 !== 0) return;
+  for (const u of world.units) {
+    if (u.kind !== 'hero' || u.ko || u.hp <= 0 || u.hp >= u.maxHp) continue;
+    if (world.timeMs >= (world.unitRuntime.get(u.id)?.fightUntilMs ?? 0)) continue;
+    const share = passiveRegen(world, u);
+    if (share <= 0) continue;
+    u.hp = Math.min(u.maxHp, u.hp + u.maxHp * share);
+  }
+}

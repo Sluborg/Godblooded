@@ -1,10 +1,10 @@
 import { armourPct, critChance, dodgeChance, resistPct, type Stats } from './units';
-import type { World } from './world';
+import type { UnitRuntime, World } from './world';
 import { applyRider } from './riders';
-import { buffOf, takeDamage } from './effects';
+import { buffOf, staggerUnit, takeDamage } from './effects';
 import { hydraHit } from './bossmoves';
 import { charmEffects } from './items';
-import { hasPassive, passiveVsTags } from './passives';
+import { hasCritStagger, hasPassive, passiveLastStand, passiveVsTags } from './passives';
 import { regenHit, snatch } from './quirks';
 import { tally } from './runstats';
 import type { Attributes, RiderId, SimEvent, UnitState } from './types';
@@ -151,6 +151,20 @@ export function hitEvent(attacker: number, target: number, out: StrikeOut, absor
 
 // A unit strikes a unit: the pipeline, the damage, the `hit` event, the rider (step 80) and the
 // down (step 90: the caller settles deaths). Basic attacks and skills both come through here.
+// Last Stand: once per fight a hero at 0 hp stays up at 1 hp for a few seconds, and nothing
+// that lands in that time takes it lower.
+function lastStand(world: World, hero: UnitState, rt: UnitRuntime | undefined): void {
+  const ms = passiveLastStand(world, hero);
+  if (ms <= 0 || !rt) return;
+  const fight = (rt.fight ??= { kills: 0, missUsed: false, strikes: 0 });
+  if (world.timeMs < (fight.lastStandUntil ?? 0)) hero.hp = 1;
+  else if (!fight.lastStandUsed) {
+    fight.lastStandUsed = true;
+    fight.lastStandUntil = world.timeMs + ms;
+    hero.hp = 1;
+  }
+}
+
 export function landStrike(
   world: World,
   attacker: UnitState,
@@ -196,6 +210,10 @@ export function landStrike(
   const taken = takeDamage(world, foe, out.damage);
   out.damage = taken.dealt;
   foe.hp -= taken.hp;
+  if (foe.hp <= 0 && foe.kind === 'hero') lastStand(world, foe, frt);
+  if (out.crit && !out.dodged && attacker.kind === 'hero' && hasCritStagger(world, attacker)) {
+    staggerUnit(world, foe);
+  }
   // A summon's strikes count for the hero that called it.
   const credit = attacker.summon?.owner ?? attacker.id;
   tally(world, credit, 'damage', out.damage);

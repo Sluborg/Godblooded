@@ -7,8 +7,9 @@ import {
   applyTaunt,
   curePoison,
   refreshFrom,
+  staggerUnit,
 } from './effects';
-import { passiveCooldownMult, passiveRangeMult } from './passives';
+import { passiveCooldownMult, passiveRangeMult, passiveTwinCast } from './passives';
 import { applyRider, healMult } from './riders';
 import { tally } from './runstats';
 import { attackStrike, landStrike } from './strike';
@@ -117,6 +118,9 @@ export function runSkill(
       const cast = sr.cast;
       sr.cast = undefined;
       resolve(world, hero, def, cast.target, cast.point);
+      // Twin Cast: a chance the skill goes off a second time.
+      const twin = passiveTwinCast(world, hero);
+      if (twin > 0 && world.rng() < twin) resolve(world, hero, def, cast.target, cast.point);
     }
     return true;
   }
@@ -645,11 +649,7 @@ export function supportEffect(
       // Handled in resolve (the dead are not in the shape's pool; a summon is not a hit).
       return;
     case 'stagger': {
-      const rt = world.unitRuntime.get(unit.id);
-      if (!rt) return;
-      rt.swing = undefined;
-      rt.cooldownMs = Math.max(rt.cooldownMs, world.tuning.combat.windupMs);
-      cancelCast(rt);
+      staggerUnit(world, unit);
       return;
     }
   }

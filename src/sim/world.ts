@@ -15,7 +15,15 @@ import {
 } from './effects';
 import { armourBonus, charmEffects, weaponPower } from './items';
 import { passiveRider } from './passives';
-import { everyNthOf, passiveAggroMult, passiveArmour } from './passives';
+import {
+  everyNthOf,
+  passiveAggroMult,
+  passiveArmour,
+  passiveHealOnKill,
+  passiveHealSplash,
+  passivePhalanx,
+  runRegen,
+} from './passives';
 import { noteFight } from './engage';
 import { headCount, runBossMoves } from './bossmoves';
 import { runQuirks, scavenge, stolenBy } from './quirks';
@@ -233,6 +241,8 @@ export interface UnitRuntime {
     strikes: number;
     revived?: boolean;
     ringUsed?: boolean;
+    lastStandUsed?: boolean;
+    lastStandUntil?: number;
   };
 }
 
@@ -489,6 +499,7 @@ function runTick(world: World): void {
   runParties(world);
   runUnits(world);
   runCollision(world);
+  runRegen(world);
   syncIntent(world);
   // Combat, heroes and the economy hook in here (Sim backlog 30 and up).
 }
@@ -592,7 +603,9 @@ function unitStats(world: World, unit: UnitState): Stats | undefined {
         armour: scaled(
           cls.armour,
           buffOf(world, unit.id, 'armour'),
-          passiveArmour(world, unit) + armourBonus(world, unit).armour,
+          passiveArmour(world, unit) +
+            passivePhalanx(world, unit) +
+            armourBonus(world, unit).armour,
         ),
         weaponPower: weaponPower(world, unit),
         types: charmTypes(world, unit),
@@ -625,7 +638,10 @@ function unitStats(world: World, unit: UnitState): Stats | undefined {
 // A bloodstone heals its wearer a share of max hp for each kill.
 function healOnKill(world: World, id: number): void {
   const hero = world.units.find((u) => u.id === id);
-  const share = hero && hero.kind === 'hero' ? charmEffects(world, hero).healOnKill : undefined;
+  const share =
+    hero && hero.kind === 'hero'
+      ? (charmEffects(world, hero).healOnKill ?? 0) + passiveHealOnKill(world, hero)
+      : undefined;
   if (!hero || !share || hero.ko || hero.hp <= 0) return;
   const amount = Math.min(
     Math.round(share * hero.maxHp * healMult(world, hero.id)),
@@ -856,7 +872,35 @@ function heal(world: World, unit: UnitState, rt: UnitRuntime, stats: Stats, ally
     tally(world, unit.id, 'healing', amount);
     curePoison(world, ally.id);
     world.events.push({ kind: 'heal', healer: unit.id, target: ally.id, amount });
+    splashHeal(world, unit, ally, gain);
   });
+}
+
+// Mending Bond: a heal also touches the most hurt other party mate in range for a share of it.
+function splashHeal(world: World, healer: UnitState, ally: UnitState, gain: number): void {
+  const share = passiveHealSplash(world, healer);
+  if (share <= 0) return;
+  let second: UnitState | undefined;
+  let worst = 1;
+  for (const id of world.parties.get(healer.party)?.members ?? []) {
+    const m = id === ally.id ? undefined : world.units.find((u) => u.id === id);
+    if (!m || m.ko || m.hp <= 0 || m.hp >= m.maxHp) continue;
+    if (dist(healer.pos, m.pos) > world.tuning.combat.healRange) continue;
+    const frac = m.hp / m.maxHp;
+    if (frac < worst) {
+      second = m;
+      worst = frac;
+    }
+  }
+  if (!second) return;
+  const amount = Math.min(
+    Math.round(gain * share * healMult(world, second.id)),
+    second.maxHp - second.hp,
+  );
+  if (amount <= 0) return;
+  second.hp += amount;
+  tally(world, healer.id, 'healing', amount);
+  world.events.push({ kind: 'heal', healer: healer.id, target: second.id, amount });
 }
 
 // A coward in a party stops cowardHangBack behind the party's front member (the one nearest the foe)

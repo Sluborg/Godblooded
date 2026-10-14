@@ -9,7 +9,13 @@ import { revengeTarget } from './rivalry';
 import { emptyItems } from './items';
 import { buyItem, hasItemRows, nearestShop, planShopping, type ShopStop } from './shopping';
 import { clearBossStatuses, curePoison, isBound } from './effects';
-import { passiveKoMult, passiveRestMult } from './passives';
+import {
+  passiveFlagMult,
+  passiveGoldMult,
+  passiveKoMult,
+  passiveRestMult,
+  passiveReviveHp,
+} from './passives';
 import { koTimeMult } from './quirks';
 import { dist, maxHp, speed, stepToward, tierValue, TICK_MS } from './units';
 import type { World } from './world';
@@ -287,7 +293,7 @@ function payOwedTithe(world: World, unit: UnitState, rt: HeroRuntime): void {
 
 function revive(world: World, unit: UnitState, rt: HeroRuntime): void {
   unit.ko = false;
-  unit.hp = Math.ceil(unit.maxHp * tune(world).reviveHp);
+  unit.hp = Math.ceil(unit.maxHp * Math.max(tune(world).reviveHp, passiveReviveHp(world, unit)));
   unit.pos = { ...world.data.townHall };
   unit.mode = 'rest';
   payOwedTithe(world, unit, rt);
@@ -515,7 +521,7 @@ function flagScore(world: World, unit: UnitState, flag: BountyState): number | n
   if (unit.trait === 'proud' && flag.gold < t.proudMinGold) return null;
   const walk = t.flagDistanceCost >= 0 ? t.flagDistanceCost : world.tuning.ai.distanceCost;
   const score =
-    flag.gold * goldMult(world, unit) +
+    flag.gold * goldMult(world, unit) * passiveFlagMult(world, unit) +
     t.flagBonus -
     flagDanger(world, flag.pos, flag.target) * t.costPerDanger * fearMult(world, unit) -
     dist(unit.pos, flag.pos) * walk;
@@ -559,7 +565,7 @@ export function runBounties(world: World): void {
     );
     if (!hero || monsterNear(world, flag.pos, t.claimClearRadius) || lairNear(world, flag.pos))
       continue;
-    earn(world, hero, flag.gold);
+    earn(world, hero, Math.round(flag.gold * passiveGoldMult(world, hero)));
     world.bounties = world.bounties.filter((b) => b.id !== flag.id);
     world.events.push({ kind: 'bountyClaimed', bounty: flag.id, unit: hero.id, gold: flag.gold });
   }
@@ -591,7 +597,7 @@ export function claimHunt(world: World, victim: number, by: number): void {
       releaseFlag(flag);
       continue;
     }
-    earn(world, hero, flag.gold);
+    earn(world, hero, Math.round(flag.gold * passiveGoldMult(world, hero)));
     world.bounties = world.bounties.filter((b) => b.id !== flag.id);
     world.events.push({
       kind: 'bountyClaimed',

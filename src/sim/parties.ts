@@ -2,7 +2,7 @@ import { curePoison } from './effects';
 import { armourBonus } from './items';
 import { autoPickCard, leaderOf, offerCards } from './cards';
 import { addFavour } from './favour';
-import { passiveAttrs } from './passives';
+import { passiveAttrs, passiveBondMult } from './passives';
 import { partiesHaveRivals, runRivalries } from './rivalry';
 import { dist, maxHp } from './units';
 import type { World } from './world';
@@ -120,6 +120,11 @@ const bondKey = (a: number, b: number) => (a < b ? `${a}:${b}` : `${b}:${a}`);
 export const bond = (world: World, a: number, b: number) => world.bonds.get(bondKey(a, b)) ?? 0;
 
 export function addBond(world: World, a: number, b: number, delta: number): void {
+  // Oath-Brothers: a bond grows faster (a loss stays as it is).
+  if (delta > 0) {
+    const [ua, ub] = [a, b].map((id) => world.units.find((u) => u.id === id));
+    if (ua && ub) delta *= Math.max(passiveBondMult(world, ua), passiveBondMult(world, ub));
+  }
   const v = Math.max(-3, Math.min(tune(world).bondCap, bond(world, a, b) + delta));
   world.bonds.set(bondKey(a, b), v);
 }
