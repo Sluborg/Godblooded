@@ -202,6 +202,33 @@ by 9:39). Flags now steer (parts 1 to 3); the player needs a reason to use them.
   - **Unflagged parties patrol near town:** explore value drops beyond about 600 from the hall,
     so a flag is how heroes leave town. This is the strongest lever, but hands-off play stalls.
 
+## 5c. Fix 6: the boss call (the late walk, Balance 2026-10-14)
+
+Sim's fun-check stats and Balance's probe: the longest quiet stretch (p90 145-195 s on the human
+bot) comes at 13-23 min, after the normal lairs are down. Every hero is exploring an empty map
+while the unsealed boss lair waits; no data lever closed it (Vanguard size and cadence, lair
+count, `lairAggro`, lair hp), and the Vanguard's raider dies to the towers before it meets anyone.
+The gap is a behaviour gap, so the boss lair calls the heroes.
+
+1. **From `bossLairUnsealed`** the boss lair's `lairScore` gets `bossCallBonus` added (start 40,
+   Balance tunes), as if a flag stood on it. It then competes with flags and other lairs as
+   usual (`costPerDanger`, distance, traits), so a standing normal lair near town can still win.
+2. **When no normal lair stands**, the boss lair's score is at least `exploreValue +
+switchMin` for a party whose members are all above `bossCallHp` (0.7): exploring parties
+   head for it instead of wandering. A hurt party rests first, as today.
+3. **Nothing else changes:** the sticky-fight rule (`stickyFoeRange`) holds, flags still pull,
+   cowards still wait by their trait, a party that falls back keeps falling back. The call
+   ends when the boss lair falls.
+4. **Seen:** the party's intent icon turns to the lair goal (Scene row 10); no new hint or banner
+   (`h-vanguard` already says the boss lair is open).
+
+- **Why not move the Vanguard instead** (Balance's second option: march at the nearest party):
+  the call fixes the cause (nobody heads out) with one score term; a roaming Vanguard adds a new
+  target rule and still leaves parties wandering once it is dead. Keep it as the fallback if the
+  call alone does not close the gap.
+- **Target:** the human bot's longest quiet stretch p90 under 60 s (the fun gate), boss fight
+  reached in most runs, win rate inside the band after Balance's retune.
+
 ## 6. Smaller fixes
 
 | Today                                                                   | Proposed                                                                         |
@@ -222,22 +249,24 @@ by 9:39). Flags now steer (parts 1 to 3); the player needs a reason to use them.
 | state        | `lair.discovered`, `exploredCells` (snapshot and save), `unit.intent`; tuning `discoverRange` 400, `startDiscovered` 600, `cellSize` 200, `exploreRange` 150                                       |
 | events       | `intent`, `defend`, `partyRetreat`, `considering` (Fix 5)                                                                                                                                          |
 | Fix 5        | `BountyState.target`; tuning.bounty `huntSnap` 60, `claimClearRadius` 100, `freshFlagMs` 10000, `considerShare` 0.7; tuning.ai `stickyFoeRange` 100; event `bountyClaimed` gains `hunt`            |
+| Fix 6        | tuning.ai `bossCallBonus` 40, `bossCallHp` 0.7                                                                                                                                                     |
 
 ## 8. Proposed backlog rows
 
 ### Sim
 
-| Order | Row                                                                                                         |
-| ----- | ----------------------------------------------------------------------------------------------------------- |
-| 10    | `intent` on the party in the snapshot and as an event                                                       |
-| 20    | Score-and-commit choice (flag, lair, explore, shop, rest) with distance and the additive switch margin      |
-| 25    | Discovery: `lair.discovered`, explored cells, snapshot and save (version bump), unit intent overrides       |
-| 30    | Party retreat; coward solo flee keeps the bond cost                                                         |
-| 40    | Trait behaviours: brave charge, coward hang back, proud biggest foe, curious fog, loyal guard               |
-| 50    | Defend tied to buildings; `defend` event                                                                    |
-| 60    | TraitDef as data; optional god trait weights                                                                |
-| 70    | Fix 5.1: hunt bounties (attach, follow, pay the killer, drop on a non-hero kill); ground flags claim at 100 |
-| 80    | Fix 5.2: re-score on place and raise; fresh flag breaks a commit for 10 s; `considering` event              |
+| Order | Row                                                                                                                                                          |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 10    | `intent` on the party in the snapshot and as an event                                                                                                        |
+| 20    | Score-and-commit choice (flag, lair, explore, shop, rest) with distance and the additive switch margin                                                       |
+| 25    | Discovery: `lair.discovered`, explored cells, snapshot and save (version bump), unit intent overrides                                                        |
+| 30    | Party retreat; coward solo flee keeps the bond cost                                                                                                          |
+| 40    | Trait behaviours: brave charge, coward hang back, proud biggest foe, curious fog, loyal guard                                                                |
+| 50    | Defend tied to buildings; `defend` event                                                                                                                     |
+| 60    | TraitDef as data; optional god trait weights                                                                                                                 |
+| 70    | Fix 5.1: hunt bounties (attach, follow, pay the killer, drop on a non-hero kill); ground flags claim at 100                                                  |
+| 80    | Fix 5.2: re-score on place and raise; fresh flag breaks a commit for 10 s; `considering` event                                                               |
+| 90    | Fix 6: boss call: `bossCallBonus` on the unsealed boss lair's score; floor at explore + switchMin when no normal lair stands, for parties above `bossCallHp` |
 
 ### Scene
 
@@ -250,9 +279,10 @@ by 9:39). Flags now steer (parts 1 to 3); the player needs a reason to use them.
 
 ### Balance
 
-| Order | Row                                                                                   |
-| ----- | ------------------------------------------------------------------------------------- |
-| 10    | Fix 5.3 (done): `costPerDanger` 8, `flagBonus` 15, `flagDistanceCost` 0.02; win check |
+| Order | Row                                                                                              |
+| ----- | ------------------------------------------------------------------------------------------------ |
+| 10    | Fix 5.3 (done): `costPerDanger` 8, `flagBonus` 15, `flagDistanceCost` 0.02; win check            |
+| 20    | Fix 6: tune `bossCallBonus` and `bossCallHp` for the quiet gap (p90 under 60 s) and the win band |
 
 ### Art
 
