@@ -39,7 +39,15 @@ export function generateMap(seed: number, data: GameData, avoidBoss?: string): G
     1,
     rules.lairs[0] + Math.floor(rng() * (rules.lairs[1] - rules.lairs[0] + 1)),
   );
-  const lean = pickLean(rng, rules);
+  const drawn = pickLean(rng, rules);
+  // The pantheon the player chose at the Altar leads the list (the draw above still happens, so the
+  // rest of the map does not depend on the choice).
+  const lean = rules.forceLean
+    ? [rules.forceLean, ...drawn.filter((p) => p !== rules.forceLean)].slice(
+        0,
+        Math.max(1, rules.leanCount),
+      )
+    : drawn;
   const bossLair = pickBoss(rng, rules, lean, avoidBoss);
   const placed: { x: number; y: number }[] = [];
 

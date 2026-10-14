@@ -1,6 +1,7 @@
 import { hearthOf } from './hearth';
 import { isWorking } from './town';
 import { noteBeat } from './runstats';
+import { noteLevel } from './facts';
 import { curePoison } from './effects';
 import { armourBonus } from './items';
 import { autoPickCard, leaderOf, offerCards } from './cards';
@@ -156,6 +157,7 @@ export function shareXp(world: World, killer: number, xp: number): void {
   ) {
     party.xp -= xpNext(world, party.level);
     party.level++;
+    noteLevel(world, party);
     const ids = offerCards(world, party);
     if (ids.length > 0 && !tune(world).autoPick) party.offer = ids;
     world.events.push({ kind: 'levelUp', party: party.id, level: party.level, offer: ids });
