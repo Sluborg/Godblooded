@@ -1764,6 +1764,24 @@ export interface RunReport {
   lairsCleared: { lair: number; type: string; timeMs: number; by: number }[];
   // Town gold over the run, sampled every tuning.stats.goldSampleMs plus the final value.
   goldHistory: { timeMs: number; gold: number }[];
+  // Mean gear levels of the heroes standing at the end.
+  gear: { weapon: number; armour: number; headgear: number; offhand: number };
+  // What the shops sold: items (a plain market spend counts no item), gold spent, and the tax.
+  shops: Record<'smithy' | 'market', ShopTally>;
+  // When the run's first moments came (ms, null: never): a party of two or more, a hero at tier 2,
+  // the first lair to fall, a hero at tier 3.
+  beats: {
+    firstPartyMs: number | null;
+    firstTier2Ms: number | null;
+    firstLairFallMs: number | null;
+    firstTier3Ms: number | null;
+  };
+}
+
+export interface ShopTally {
+  items: number;
+  spent: number;
+  tax: number;
 }
 
 export interface Snapshot {

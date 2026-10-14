@@ -11,6 +11,7 @@ import { buyItem, hasItemRows, nearestShop, planShopping, type ShopStop } from '
 import { clearBossStatuses, curePoison, isBound } from './effects';
 import { passiveKoMult, passiveRestMult } from './passives';
 import { koTimeMult } from './quirks';
+import { noteSale } from './runstats';
 import { dist, maxHp, speed, stepToward, tierValue, TICK_MS } from './units';
 import type { World } from './world';
 import type { BountyState, LairState, PartyIntent, Vec2, UnitState } from './types';
@@ -249,6 +250,7 @@ function visitShops(
     if (price === 0) continue;
     const tax = Math.floor(price * tune(world).taxRate * tierValue(bt.shopTaxMult, shop.tier, 1));
     payIntoTill(world, shop.id, tax);
+    noteSale(world, shop.type === 'smithy' ? 'smithy' : 'market', 1, price, tax);
     world.events.push({ kind: 'shopped', unit: unit.id, spent: price, tax, item: id });
   }
   rt.shop = rt.shop?.slice(1);
@@ -416,6 +418,7 @@ export function heroMove(world: World, unit: UnitState): void {
         );
         unit.gold -= spent;
         payIntoTill(world, market.id, tax);
+        noteSale(world, 'market', 0, spent, tax);
         world.events.push({ kind: 'shopped', unit: unit.id, spent, tax });
         unit.mode = 'explore';
         rt.dest = null;
