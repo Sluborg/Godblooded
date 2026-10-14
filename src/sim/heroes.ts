@@ -1,4 +1,4 @@
-import { claimDrops, payIntoTill } from './collector';
+import { payIntoTill, payTithe } from './collector';
 import { lairSealed, nearSealedLair } from './boss';
 import { earn, newRecord } from './runstats';
 import { baseFleeOf, fledParty, fleeThreshold, newParty, pantheonOf, TRAITS } from './parties';
@@ -19,6 +19,8 @@ import type { BountyState, LairState, PartyIntent, Vec2, UnitState } from './typ
 
 export interface HeroRuntime {
   dest: Vec2 | null;
+  // Tithe set aside from bounties, paid into the home temple's till when the hero starts to rest.
+  titheOwed?: number;
   // The bounty flag this hero is heading for.
   bounty?: number;
   // The flags its party already weighed against its goal (event `considering`): said once each.
@@ -273,11 +275,20 @@ function defend(world: World, unit: UnitState, rt: HeroRuntime): void {
   world.events.push({ kind: 'defend', unit: unit.id });
 }
 
+// Pays what the hero set aside from its bounties (collector.ts).
+function payOwedTithe(world: World, unit: UnitState, rt: HeroRuntime): void {
+  const owed = rt.titheOwed ?? 0;
+  if (owed <= 0) return;
+  rt.titheOwed = 0;
+  payTithe(world, unit, owed);
+}
+
 function revive(world: World, unit: UnitState, rt: HeroRuntime): void {
   unit.ko = false;
   unit.hp = Math.ceil(unit.maxHp * tune(world).reviveHp);
   unit.pos = { ...world.data.townHall };
   unit.mode = 'rest';
+  payOwedTithe(world, unit, rt);
   rt.dest = null;
   world.events.push({ kind: 'revived', unit: unit.id });
 }
@@ -339,7 +350,10 @@ export function heroMove(world: World, unit: UnitState): void {
       break;
     }
     case 'return': {
-      if (step(restSpot(world, unit.pos).pos)) unit.mode = 'rest';
+      if (step(restSpot(world, unit.pos).pos)) {
+        unit.mode = 'rest';
+        payOwedTithe(world, unit, rt);
+      }
       break;
     }
     case 'rest': {
@@ -523,11 +537,6 @@ export function runBounties(world: World): void {
     world.bounties = world.bounties.filter((b) => b.id !== flag.id);
     world.events.push({ kind: 'bountyClaimed', bounty: flag.id, unit: hero.id, gold: flag.gold });
   }
-  // Gold a fallen collector dropped goes to the first hero standing on it.
-  claimDrops(world, (heroId, gold) => {
-    const hero = world.units.find((u) => u.id === heroId);
-    if (hero) earn(world, hero, gold);
-  });
   if (world.tick % 20 === 0) chooseGoals(world);
 }
 

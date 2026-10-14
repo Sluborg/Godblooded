@@ -101,7 +101,7 @@ import {
 } from './units';
 import type {
   BountyState,
-  DropState,
+  PileState,
   ConeArea,
   SkillEffect,
   GraveState,
@@ -159,6 +159,14 @@ export interface UnitRuntime {
   cooldownMs: number;
   target: Vec2 | null;
   idleMs: number;
+  // The tax collector's route (collector.ts): hp last seen (a drop means it was hit), running home,
+  // the stop it walks to and the time its stop at it ends.
+  collector?: {
+    hpSeen: number;
+    fleeing: boolean;
+    stop?: { kind: 'till' | 'pile'; id: number; pos: Vec2; gold: number };
+    waitUntilMs?: number;
+  };
   // Active riders on this unit (burn, chill, wither).
   status?: UnitStatus;
   // Set on a boss unit.
@@ -235,9 +243,10 @@ export interface World {
   tierUps: number;
   stats: RunStats;
   bounties: BountyState[];
-  // Gold on the ground, and when the town may send a new tax collector (collector.ts).
-  drops: DropState[];
-  collectorNextMs: number;
+  // Gold piles on the ground, and when replacements for fallen tax collectors may appear
+  // (collector.ts).
+  piles: PileState[];
+  collectorQueue: number[];
   // Generated map: the boss lair that wins the run and the pantheons the map leans on.
   bossLair: number | null;
   // The seal on the boss lairs has broken (runBossSeal).
@@ -293,10 +302,11 @@ export function createWorld(seed: number, data: GameData): World {
       knockouts: 0,
       buildingsLost: 0,
       taxCollected: 0,
+      taxLost: 0,
     },
     bounties: [],
-    drops: [],
-    collectorNextMs: 0,
+    piles: [],
+    collectorQueue: [],
     bossLair: null,
     bossUnsealed: false,
     mapLean: [],
@@ -487,7 +497,7 @@ function unitStats(world: World, unit: UnitState): Stats | undefined {
   if (unit.kind === 'summon') return summonStats(world, unit);
   // The tax collector does not fight (collector.ts moves it).
   if (unit.kind === 'collector') {
-    const none = { str: 0, dex: world.tuning.collector.dex, sta: 0, cha: 0, per: 0, int: 0, wp: 0 };
+    const none = { str: 0, dex: 0, sta: 0, cha: 0, per: 0, int: 0, wp: 0 };
     return { attrs: none, weapon: { baseAttackS: 99, range: 0 } };
   }
   if (unit.kind === 'hero') {
@@ -1121,7 +1131,7 @@ export function snapshot(world: World): Snapshot {
       ...(u.summon ? { summon: { ...u.summon } } : {}),
     })),
     bounties: world.bounties.map((b) => ({ ...b, pos: { ...b.pos } })),
-    drops: world.drops.map((d) => ({ ...d, pos: { ...d.pos } })),
+    piles: world.piles.map((d) => ({ ...d, pos: { ...d.pos } })),
     favour: (world.data.miracles ?? []).map((m) => ({
       pantheon: m.pantheon,
       value: world.favour[m.pantheon] ?? 0,

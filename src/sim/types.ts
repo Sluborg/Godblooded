@@ -868,19 +868,29 @@ export interface RiderTuning {
 // The tax collector (collector.ts). Off: shop tax and tithe go straight to the treasury.
 export interface CollectorTuning {
   enabled: boolean;
+  // Collectors per town hall tier, and one more once this many buildings stand besides the hall
+  // (until the hall has tiers).
+  perHallTier: number;
+  secondAtBuildings: number;
   // A till below this is not worth a trip.
   minTill: number;
   // Gold it carries before it must go home.
-  capacity: number;
+  carryCap: number;
+  // The stop at a building to empty its till.
+  collectMs: number;
+  // Walking speed as a share of a level-1 hero's.
+  speedMult: number;
   hp: number;
-  // Dexterity for its walking speed (40 + 8 x dex world units per second).
-  dex: number;
-  // How close counts as arrived at a till or the town hall.
+  // A new collector comes this long after one fell.
+  respawnMs: number;
+  // How close counts as arrived at a till, a pile or the town hall.
   reach: number;
   // A monster this close sends it running home.
   fearRange: number;
-  // A new collector comes this long after one fell.
-  respawnMs: number;
+  // With gold aboard it only goes on to stops this close, and a stop scores its gold minus
+  // distanceCost per world unit.
+  chainRange: number;
+  distanceCost: number;
 }
 
 export interface TownTuning {
@@ -1205,8 +1215,9 @@ export interface GraveState {
   timeMs: number;
 }
 
-// Gold lying on the ground (a fallen tax collector's load): the first hero to stand on it takes it.
-export interface DropState {
+// A pile of gold on the ground (a fallen collector's load, a destroyed building's till): the
+// town's, a collector picks it up. Heroes ignore it.
+export interface PileState {
   id: number;
   pos: Vec2;
   gold: number;
@@ -1360,17 +1371,26 @@ export type SimEvent =
   | { kind: 'lairTierUp'; lair: number; tier: number; pressure?: boolean }
   | { kind: 'lairDestroyed'; lair: number; type: string; by: number; bounty: number }
   | { kind: 'buildingDestroyed'; building: number; type: string }
-  // The town took its share of a hero's bounty (tuning.hero.tithe): a coin pop for Scene.
-  | { kind: 'tithe'; unit: number; gold: number }
+  // A hero paid its tithe into the till of `building` (its home temple; the town hall, banked at
+  // once, when none stands) as it started to rest.
+  | { kind: 'tithe'; unit: number; building: number; gold: number }
   // Gold went into a building's till (shop tax or tithe): a coin pop over the building.
   | { kind: 'till'; building: number; gold: number; total: number }
-  // The tax collector: comes out of the town hall, empties a till (carrying `carried` now),
-  // delivers at the hall, falls (its gold drops at pos); a hero takes dropped gold.
+  // The tax collector (docs/systems/tax-collector.md): comes out of the town hall; empties a till
+  // or picks up a pile (source) and now carries `carried`; is hit (it turns for home); brings
+  // `gold` home (`collected`); falls (its gold lies at pos as a pile).
   | { kind: 'collectorOut'; unit: number }
-  | { kind: 'tillEmptied'; unit: number; building: number; gold: number; carried: number }
-  | { kind: 'taxDelivered'; unit: number; gold: number }
-  | { kind: 'collectorDown'; unit: number; gold: number; pos: Vec2 }
-  | { kind: 'dropClaimed'; drop: number; unit: number; gold: number }
+  | {
+      kind: 'tillEmptied';
+      unit: number;
+      source: 'till' | 'pile';
+      id: number;
+      gold: number;
+      carried: number;
+    }
+  | { kind: 'collectorHit'; unit: number }
+  | { kind: 'collected'; unit: number; gold: number }
+  | { kind: 'collectorFell'; unit: number; pos: Vec2; gold: number }
   | { kind: 'bountyClaimed'; bounty: number; unit: number; gold: number; hunt?: true }
   | { kind: 'won' }
   | { kind: 'lost' }
@@ -1430,6 +1450,8 @@ export interface RunStats {
   knockouts: number;
   buildingsLost: number;
   taxCollected: number;
+  // Gold the collector carried when it fell (it lies as a pile; what no collector picks up is lost).
+  taxLost: number;
 }
 
 // One hero's line on the end screen. `mvp` marks the best hero of the run (kills, five per
@@ -1455,6 +1477,11 @@ export interface HeroReport {
 export interface RunReport {
   // The seed of the run (small text on the end screen: createWorld(seed, data) replays the map).
   seed: number;
+  // Tax: banked at the hall, lost when a collector fell, and still in tills, piles and sacks at the
+  // end ("left uncollected").
+  taxBanked: number;
+  taxLost: number;
+  uncollected: number;
   // 'abandoned': the player quit a run that was still going (api.runReport).
   outcome: 'won' | 'lost' | 'abandoned';
   timeMs: number;
@@ -1479,8 +1506,8 @@ export interface Snapshot {
   readonly parties: readonly Readonly<PartyState>[];
   readonly paths: readonly Readonly<PathState>[];
   readonly bounties: readonly Readonly<BountyState>[];
-  // Gold on the ground (a fallen tax collector's load).
-  readonly drops: readonly Readonly<DropState>[];
+  // Gold piles on the ground (a fallen tax collector's load).
+  readonly piles: readonly Readonly<PileState>[];
   // Favour bar of every pantheon with a miracle row (0 to max); a full bar waits for a fight.
   readonly favour: readonly Readonly<{ pantheon: string; value: number; max: number }>[];
   // Where heroes were slain; the markers stay for the run.
