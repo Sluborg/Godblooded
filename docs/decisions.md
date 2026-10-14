@@ -274,3 +274,57 @@ cartoony; the tax collector looks like an executioner; buildings look odd on the
 - **Collision:** units keep a minimum distance from each other and walk around building
   footprints; draw order by ground y so nobody hides under a roof.
 - **Lag:** Scene profiles a long run on a phone-sized view and fixes the top costs.
+
+## 2026-10-14 More to do in a run; first repaint batches go (Stefan)
+
+Stefan's run 2 in the browser: "I could only place buildings, and 1 or two flags." Two built
+features come on in the live game:
+
+- **The player picks level-up cards:** `autoPick` off; when a party levels up, the player picks
+  1 of 3 (LevelUpScene). Leader traits still pick if the offer times out.
+- **Town hall tiers and ruins on:** upgrading the hall unlocks buildings; ruins on the map can be
+  repaired at half cost.
+- Balance re-checks the human bot band with both on (the bot picks cards as a player would).
+- Art batches **G1** (Aesir heroes repainted) and **B13** (bounty flag as a carved banner pole,
+  plus build plot) are Ready. G3, G4 and the rest stay Draft.
+
+## 2026-10-14 Heroes stay animated parts, with painted pieces (Stefan)
+
+"I still want the style we used on heroes now. Just with cooler pieces of art, no svg. I don't
+want static heroes." Heroes keep the animated parts rig; each part becomes a painted piece in the
+one style (art-tasks/STYLE.md), replacing the code-drawn shapes. G1 is reworked from four stills
+into part sheets, test sheet first (Grim son of Odin), and goes back to Draft until then. Painted
+stills are for portraits and UI only. B13 stays Ready.
+
+## 2026-10-14 Hero look approved; heroes are built from a painted parts kit (Stefan)
+
+Stefan approved the ChatGPT test of Grim son of Odin (docs/playtest/hero-look-approved-grim.jpg:
+hooded, bearded, weathered cloak with raven feathers, carved staff) as the hero look: "This."
+Heroes are made like the cartoon parts were, as a kit: a few interchangeable painted heads, a
+few bodies, legs, cloaks, weapons and off-hands, combined per hero and animated by the rig. Art
+writes the kit batch (part list, grid, pivots agreed with Scene); Scene combines and animates.
+
+## 2026-10-14 Items have an icon and a worn part; bodies come in builds (Stefan)
+
+Stefan: the parts kit also serves gear. Each item found for the inventory has two pictures: a
+still icon (inventory, loot, shop) and a worn part that fits the hero rig in its slot (weapon,
+off-hand, head, torso, cloak, legs). Bodies come in a few builds (lean, broad, tall, short) so
+heroes differ in shape, and every worn part fits every build through the rig's sockets. Stefan
+suggested marking replaceable areas in magenta; magenta is the chroma key for every upload, so
+Art and Scene pick the technical form (separate layers on sockets, or a second key colour).
+Item rows in `src/data` name both ids; a missing worn part falls back to the base kit part.
+
+## 2026-10-14 Headgear, weapons and hand gear are their own items (Stefan)
+
+Answers to Design's hero-kit questions: headgear is its own item slot, not tied to the god or to
+armour level ("Headgear should be its own thing"). Every weapon and every piece of hand gear is
+its own item with its own painted worn piece and icon, not one piece per family with a level
+glow ("I thought all weapons and hand gear would be own things"). Design updates hero-kit.md;
+the M2 kit count grows accordingly, and Art batches it in priority order.
+
+## 2026-10-14 G1 Ready as a test only: floating vs bent limbs (Stefan)
+
+Stefan doubts bending limbs ("unsure it can be made to look good, prove it; floating hands and
+legs worked fine"). G1 is Ready as one test sheet of Grim (art/g1-parts): hands and boots are
+separate parts, so Scene renders the same art both ways (floating hands and feet, and bent IK
+limbs) for Stefan to pick. The full kit stays Draft until he picks.

@@ -50,6 +50,7 @@ import {
   type BossRuntime,
 } from './boss';
 import { buildReport, sampleGold, tally, type HeroRecord } from './runstats';
+import { notePositions, runCollision } from './collision';
 import { collectorFell, runCollector } from './collector';
 import { clearRuin, rebuildRuin, runRepair } from './ruins';
 import { raiderHeld } from './corrupt';
@@ -283,6 +284,8 @@ export interface World {
   raidPlans: { id: number; atMs: number; lair: number; size: number; early: boolean }[];
   raidPlannedFor: number;
   raidActive: number[];
+  // The boss lair's vanguard clock (town.ts runVanguard): next plan at nextMs, null once over.
+  vanguard: { nextMs: number | null; count: number; started: boolean };
   // Tier-ups seen so far that could have raided (for tuning.town.tierRaidEvery).
   tierUps: number;
   stats: RunStats;
@@ -346,6 +349,7 @@ export function createWorld(seed: number, data: GameData): World {
     respawns: [],
     nextRaidMs: 0,
     raidPlans: [],
+    vanguard: { nextMs: null, count: 0, started: false },
     raidPlannedFor: -1,
     raidActive: [],
     tierUps: 0,
@@ -449,6 +453,7 @@ export function step(world: World, dtMs: number): void {
 function runTick(world: World): void {
   world.tick++;
   world.timeMs += TICK_MS;
+  notePositions(world);
   runAutosave(world);
   sampleGold(world);
   runTemples(world);
@@ -483,6 +488,7 @@ function runTick(world: World): void {
   runFavour(world);
   runParties(world);
   runUnits(world);
+  runCollision(world);
   syncIntent(world);
   // Combat, heroes and the economy hook in here (Sim backlog 30 and up).
 }

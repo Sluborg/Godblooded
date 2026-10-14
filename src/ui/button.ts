@@ -7,6 +7,8 @@ import { drawWoodSlab } from './woodFrame';
 import { addIcon } from './icons';
 import { getSfx } from './sfxPlayer';
 import { nineSliceArgs } from './nineSlice';
+import { bakeTexture } from './bake';
+import { RENDER_SCALE } from '../config';
 
 export interface Button {
   container: Phaser.GameObjects.Container;
@@ -16,16 +18,41 @@ export interface Button {
   setActive(active: boolean): void;
 }
 
-// Draws the code-drawn button: a wood slab, lit, reddened when selected, greyed when disabled and
-// shaded when pressed (palettes in uiStyle.ts).
-function drawButton(
-  g: Phaser.GameObjects.Graphics,
+// The code-drawn button as a baked texture id (bake.ts: a Graphics slab is re-triangulated every
+// frame, a texture is not): a wood slab, lit, reddened when selected, greyed when disabled and
+// shaded when pressed (palettes in uiStyle.ts), or the flat title plate.
+function buttonTexture(
+  scene: Phaser.Scene,
   w: number,
   h: number,
   state: ButtonState,
-): void {
-  g.clear();
-  drawWoodSlab(g, w, h, WOOD_BUTTON[state]);
+  flat: boolean,
+): string {
+  return bakeTexture(
+    scene,
+    `btn:${flat ? 'flat' : 'wood'}:${w}x${h}:${state}`,
+    w / 2 + 4,
+    h / 2 + 8,
+    (g) => {
+      if (flat) {
+        // A clean dark plate with a thin gold rim: no wood grain (the title).
+        const fill = { normal: 0x241a14, active: 0x4a1f1a, pressed: 0x140d09, disabled: 0x2a2623 }[
+          state
+        ];
+        g.fillStyle(0x000000, 0.35).fillRoundedRect(-w / 2 + 2, -h / 2 + 5, w, h, 12);
+        g.fillStyle(fill, 0.96).fillRoundedRect(-w / 2, -h / 2, w, h, 12);
+        g.lineStyle(2, state === 'disabled' ? 0x6b6258 : 0xc9a45c, 0.95).strokeRoundedRect(
+          -w / 2,
+          -h / 2,
+          w,
+          h,
+          12,
+        );
+        return;
+      }
+      drawWoodSlab(g, w, h, WOOD_BUTTON[state]);
+    },
+  );
 }
 
 export interface ButtonOptions {
@@ -34,6 +61,8 @@ export interface ButtonOptions {
   iconOnly?: boolean;
   // The tap sound (default `sfx_ui_tap`); a Back or Close button uses `sfx_ui_back`.
   sfx?: string;
+  // A flat dark plate with a gold rim instead of the wood kit (the title screen).
+  flat?: boolean;
 }
 
 // A touch button centered on (x, y). Height and width are raised to MIN_TOUCH if smaller.
@@ -60,7 +89,7 @@ export function makeButton(
   const kit = ['ui_button', 'ui_button_pressed', 'ui_button_disabled'].map((id) =>
     scene.textures.exists(id) ? nineSliceArgs(rows?.get(id)) : null,
   );
-  const useKit = UI_STYLE.preferKitPictures && kit.every((k) => k !== null);
+  const useKit = !opts.flat && UI_STYLE.preferKitPictures && kit.every((k) => k !== null);
   const art = useKit
     ? scene.add.nineslice(
         0,
@@ -72,7 +101,11 @@ export function makeButton(
         ...(kit[0] as NonNullable<(typeof kit)[0]>),
       )
     : null;
-  const g = useKit ? null : scene.add.graphics();
+  const g = useKit
+    ? null
+    : scene.add
+        .image(0, 0, buttonTexture(scene, w, h, 'normal', !!opts.flat))
+        .setScale(1 / RENDER_SCALE);
   const text = scene.add
     .text(0, 0, label, {
       fontFamily: 'Georgia, serif',
@@ -123,7 +156,7 @@ export function makeButton(
       if (state === 'active') art.setTint(0xffb0a0);
       else art.clearTint();
     } else if (g) {
-      drawButton(g, w, h, state);
+      g.setTexture(buttonTexture(scene, w, h, state, !!opts.flat));
     }
     text.setAlpha(enabled ? 1 : 0.45);
     text.y = pressed ? 2 : 0;

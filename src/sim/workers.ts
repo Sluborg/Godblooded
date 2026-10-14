@@ -1,3 +1,4 @@
+import { arrival, gapTo, visitPoint } from './collision';
 import { payEscort } from './escort';
 import { dist, speed, stepToward, TICK_MS } from './units';
 import type { World } from './world';
@@ -169,10 +170,11 @@ export function runWorkers(world: World): void {
         if (w.phase === 'idle' || w.phase === 'out') w.phase = 'back';
       }
     }
-    const walk = (to: { x: number; y: number }, mult = 1): boolean => {
+    const walk = (target: { x: number; y: number }, mult = 1): boolean => {
+      const to = visitPoint(world, target, u.pos);
       const dir = stepToward(u.pos, to, base * mult);
       if (dir.x !== 0 || dir.y !== 0) u.facing = dir;
-      return dist(u.pos, to) <= t.reach;
+      return dist(u.pos, to) <= arrival(world, to === target, t.reach);
     };
     // Hit: drops the trip and runs home.
     if (u.hp < w.hpSeen) {
@@ -183,7 +185,7 @@ export function runWorkers(world: World): void {
     w.hpSeen = u.hp;
     if (!h) continue;
     // Hurt gatherers heal while they stand at the town hall.
-    if (u.hp < u.maxHp && dist(u.pos, h.pos) <= t.reach + 40) {
+    if (u.hp < u.maxHp && gapTo(world, h, u.pos) <= t.reach) {
       u.hp = Math.min(u.maxHp, u.hp + (u.maxHp * t.healPerS * TICK_MS) / 1000);
       w.hpSeen = u.hp;
     }

@@ -308,12 +308,21 @@ export function pickPath(
 export function pickUpgrade(
   world: World,
   partyId: number,
-  upgrade: string,
+  upgrade?: string,
 ): { ok: true; id: number } | { ok: false; reason: string } {
   const party = world.parties.get(partyId);
   if (!party) return { ok: false, reason: 'unknown party' };
   if (party.pathOffer) return { ok: false, reason: 'pick a path first' };
   if (!party.offer) return { ok: false, reason: 'no pick pending' };
+  // No card named: the leader chooses, as with tuning.party.autoPick.
+  if (upgrade === undefined) {
+    const leader = leaderOf(world, party);
+    const pick = autoPickCard(world, party, party.offer);
+    const god = world.data.upgrades?.find((u) => u.id === pick)?.god ?? leader?.god ?? undefined;
+    party.offer = null;
+    applyUpgrade(world, party, pick, { auto: true, hero: leader?.id, god });
+    return { ok: true, id: partyId };
+  }
   if (!party.offer.includes(upgrade)) return { ok: false, reason: 'not offered' };
   party.offer = null;
   applyUpgrade(world, party, upgrade, {});

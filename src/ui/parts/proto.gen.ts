@@ -1955,4 +1955,4 @@ function raven(x, y, f, ph) {
   OW = 1;
 }
 
-export { drawHuman, SWING };
+export { drawHuman, pose, SWING };

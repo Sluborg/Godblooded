@@ -75,16 +75,16 @@ tax collector", in M2). Sim builds it, Scene draws it, Balance sets the numbers.
 
 ## 2. What the player sees (Scene)
 
-| Order | Thing             | Look                                                                                                                                                |
-| ----- | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 10    | Till              | A small coin and a number above a building once its till reaches `minTill`. Light text on dark parchment (`look-sheet.md`). Hidden below `minTill`. |
-| 20    | Collector         | A small walking figure with a sack. The sack has 3 sizes: empty, under half `carryCap`, half or more.                                               |
-| 30    | Collecting        | The coin above the building flies into the sack, and the number clears.                                                                             |
-| 40    | Arrival at hall   | A `+N` coin pop over the town hall, and the top bar gold ticks up by N.                                                                             |
-| 50    | Tithe             | A small coin pop over the home temple when a hero pays (`tithe` event, `+N`).                                                                       |
-| 60    | Hit               | A hit flash, and the collector turns for home.                                                                                                      |
-| 70    | Gold pile         | A coin pile with its number where the collector fell; it pulses once.                                                                               |
-| 80    | Tap the collector | Info strip: "Tax collector: carrying 45 gold".                                                                                                      |
+| Order | Thing             | Look                                                                                                                                                                                                                                         |
+| ----- | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 10    | Till              | A small coin and a number above a building once its till reaches `minTill`. Light text on dark parchment (`look-sheet.md`). Hidden below `minTill`.                                                                                          |
+| 20    | Collector         | A small walking town clerk in the painted style: long dark coat, a ledger, a coin sack; no hood and no axe (Stefan, playtest run 2: the first one read as an executioner). The sack has 3 sizes: empty, under half `carryCap`, half or more. |
+| 30    | Collecting        | The coin above the building flies into the sack, and the number clears.                                                                                                                                                                      |
+| 40    | Arrival at hall   | A `+N` coin pop over the town hall, and the top bar gold ticks up by N.                                                                                                                                                                      |
+| 50    | Tithe             | A small coin pop over the home temple when a hero pays (`tithe` event, `+N`).                                                                                                                                                                |
+| 60    | Hit               | A hit flash, and the collector turns for home.                                                                                                                                                                                               |
+| 70    | Gold pile         | A coin pile with its number where the collector fell; it pulses once.                                                                                                                                                                        |
+| 80    | Tap the collector | Info strip: "Tax collector: carrying 45 gold".                                                                                                                                                                                               |
 
 - **Art:** manifest id `npc_collector_t1_<view>`. This is a new `npc_` prefix, and Art adds it
   to `asset-spec.md`. Until the art exists, the placeholder is a small tan circle with a darker

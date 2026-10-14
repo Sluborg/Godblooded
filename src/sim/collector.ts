@@ -1,3 +1,4 @@
+import { arrival, visitPoint } from './collision';
 import { speed, dist, stepToward, TICK_MS } from './units';
 import type { World } from './world';
 import type { BuildingCore, PileState, UnitState } from './types';
@@ -161,10 +162,11 @@ function runOne(world: World, c: UnitState, h: BuildingCore, all: UnitState[]): 
   const t = world.tuning.collector;
   const crt = world.unitRuntime.get(c.id)?.collector;
   if (!crt) return;
-  const walk = (to: { x: number; y: number }): boolean => {
+  const walk = (target: { x: number; y: number }): boolean => {
+    const to = visitPoint(world, target, c.pos);
     const dir = stepToward(c.pos, to, (walkOf(world) * TICK_MS) / 1000);
     if (dir.x !== 0 || dir.y !== 0) c.facing = dir;
-    return dist(c.pos, to) <= t.reach;
+    return dist(c.pos, to) <= arrival(world, to === target, t.reach);
   };
   const bank = (): void => {
     if (c.gold <= 0) return;

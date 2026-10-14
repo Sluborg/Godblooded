@@ -34,12 +34,20 @@ import { releaseSets } from '../ui/parts/bake';
 import { effectiveSpeed } from '../ui/pathSpeed';
 import { STYLE } from '../ui/style';
 import { LAIR_UI_DEPTH, LairIndicators, groundScale, plateColor } from '../ui/lairRings';
-import { groundShadow, lairDecal, lairPlate, townPatch } from '../ui/groundDecal';
+import {
+  footprintRing,
+  groundShadow,
+  lairDecal,
+  lairPlate,
+  ruinMark,
+  townPatch,
+} from '../ui/groundDecal';
 import { HALL_STYLE, drawBanners, isTownHall, plazaDecal } from '../ui/townHallLook';
 import {
   buildingArtCandidates,
   buildingScale,
   footOrigin,
+  footprintDepth,
   lairArtCandidates,
 } from '../ui/unitLook';
 import { OFFER_KEY, type LevelUpOffer } from './LevelUpScene';
@@ -97,12 +105,16 @@ export class MapScene extends Phaser.Scene {
   private world!: World;
   private snap!: Snapshot;
   private plotViews = new Map<number, Phaser.GameObjects.Rectangle>();
+  private plotLocks = new Map<number, Phaser.GameObjects.Container>();
   private unitViews!: UnitViews;
   // Lines from the selected hero's party to the flags it is heading for.
   private links!: Phaser.GameObjects.Graphics;
   private lairInd!: LairIndicators;
   // Lairs with a raid on the way: the run time the warning ends (a dotted trail to the town).
   private raidTrails = new Map<number, number>();
+  private selectRing: Phaser.GameObjects.Image | null = null;
+  private ruinMarks = new Map<number, Phaser.GameObjects.Image>();
+  private selectRingFor = 0;
   private nodeViews!: NodeViews;
   // Party whose level-up cards are open (the sim is frozen until it is picked), or null.
   private offerKey: string | null = null;
@@ -156,6 +168,9 @@ export class MapScene extends Phaser.Scene {
     // The title theme plays on Boot, Title and the hall only; there is no run music yet.
     getMusic(this).stop(800);
     this.sfxFeed.reset();
+    this.registry.set('selectedBuilding', 0);
+    this.selectRing = null;
+    this.selectRingFor = 0;
     this.fpsGuard = new FpsGuard();
     this.world = this.startWorld();
     this.registry.set('speed', getSettings().speed);
@@ -181,7 +196,16 @@ export class MapScene extends Phaser.Scene {
     this.registry.set('camMode', 'off');
     this.registry.set('modal', false);
     // A finished or restarted run gives its baked looks back.
+    // The app can be reloaded for an update when it comes back to the foreground: save the run
+    // the moment it goes to the background (and when the page is closed), not only on the autosave.
+    const onHide = () => {
+      if (document.visibilityState === 'hidden') this.saveNow();
+    };
+    document.addEventListener('visibilitychange', onHide);
+    window.addEventListener('pagehide', onHide);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      document.removeEventListener('visibilitychange', onHide);
+      window.removeEventListener('pagehide', onHide);
       releaseSets(this);
       releaseGround(this);
     });
@@ -387,6 +411,21 @@ export class MapScene extends Phaser.Scene {
   // Sim command entry for the HUD. The sim decides; the result carries the refusal reason.
   tryBuild(type: string, plot: number): CommandResult {
     return command(this.world, { kind: 'build', type, plot });
+  }
+
+  // Ruins (tuning.town.ruins): rebuild at tier 1 for part of the cost, or clear the plot.
+  tryRebuildRuin(ruin: number): CommandResult {
+    return command(this.world, { kind: 'rebuildRuin', ruin });
+  }
+
+  tryClearRuin(ruin: number): CommandResult {
+    return command(this.world, { kind: 'clearRuin', ruin });
+  }
+
+  // What rebuilding a ruin of this building type costs now.
+  ruinCost(type: string): number {
+    const def = this.world.data.buildings.find((d) => d.id === type);
+    return Math.round((def?.cost ?? 0) * this.world.tuning.town.rebuildCostMult);
   }
 
   tryPickPath(party: number, path: string): CommandResult {
@@ -686,6 +725,23 @@ export class MapScene extends Phaser.Scene {
         this.tweens.add({ targets: view, alpha: 0.55, duration: 60, yoyo: true });
     }
     this.syncPlots();
+    this.syncSelectRing();
+  }
+
+  // The thin footprint ring under the building whose panel is open (the HUD sets selectedBuilding).
+  private syncSelectRing(): void {
+    const id = (this.registry.get('selectedBuilding') as number | undefined) ?? 0;
+    if (id === this.selectRingFor) return;
+    this.selectRing?.destroy();
+    this.selectRing = null;
+    this.selectRingFor = id;
+    const b = id ? this.snap.buildings.find((x) => x.id === id) : undefined;
+    const view = b ? this.views.get(`b${b.id}t${b.tier}`) : undefined;
+    if (!(view instanceof Phaser.GameObjects.Container)) return;
+    const w = (view.getData('w') as number | undefined) ?? 250;
+    this.selectRing = footprintRing(this, w * 0.9)
+      .setPosition(view.x, view.y)
+      .setDepth(0.7);
   }
 
   // A hunt flag carries a ring on the ground at its foot.
@@ -1081,7 +1137,42 @@ export class MapScene extends Phaser.Scene {
           .setStrokeStyle(3, 0xffffff, 0.35);
         this.plotViews.set(p.id, view);
       }
-      view.setVisible(!p.occupied);
+      view.setVisible(!p.occupied && p.ruin === null);
+      // A ruin stands on its plot until it is rebuilt or cleared.
+      const mark = this.ruinMarks.get(p.id);
+      if (p.ruin !== null && !mark)
+        this.ruinMarks.set(p.id, ruinMark(this).setPosition(p.pos.x, p.pos.y).setDepth(p.pos.y));
+      else if (p.ruin === null && mark) {
+        mark.destroy();
+        this.ruinMarks.delete(p.id);
+      }
+      // A plot closed until the town hall reaches a tier: faint, with a padlock and the tier.
+      view
+        .setFillStyle(0xffffff, p.locked ? 0.02 : 0.08)
+        .setStrokeStyle(3, 0xffffff, p.locked ? 0.15 : 0.35);
+      let lock = this.plotLocks.get(p.id);
+      if (!lock && p.locked) {
+        lock = this.add.container(p.pos.x, p.pos.y, [
+          this.add
+            .graphics()
+            .fillStyle(0xd9c9a8, 0.75)
+            .fillRoundedRect(-14, -4, 28, 22, 4)
+            .lineStyle(5, 0xd9c9a8, 0.75)
+            .strokeCircle(0, -8, 9),
+          this.add
+            .text(0, 30, `Hall tier ${p.unlockTier}`, {
+              fontFamily: 'Georgia, serif',
+              fontSize: '20px',
+              color: '#d9c9a8',
+              stroke: '#000000',
+              strokeThickness: 4,
+            })
+            .setOrigin(0.5),
+        ]);
+        lock.setDepth(p.pos.y);
+        this.plotLocks.set(p.id, lock);
+      }
+      lock?.setVisible(p.locked && !p.occupied);
     }
   }
 
@@ -1094,7 +1185,12 @@ export class MapScene extends Phaser.Scene {
       const banners = this.add.graphics();
       view.add(banners);
       view.setData('banners', banners);
-    } else this.groundUnder(view, townPatch(this), pos);
+    } else
+      this.groundUnder(
+        view,
+        townPatch(this, ((view.getData('w') as number | undefined) ?? 250) * 0.9),
+        pos,
+      );
     const w = view.getData('w') as number | undefined;
     if (w) this.groundUnder(view, groundShadow(this, w), pos, 0.6);
     return view;
@@ -1104,7 +1200,7 @@ export class MapScene extends Phaser.Scene {
   // with its view: inside the depth-sorted view it would draw over units standing behind it.
   private groundUnder(
     view: Phaser.GameObjects.Container,
-    decal: Phaser.GameObjects.Graphics,
+    decal: Phaser.GameObjects.Image,
     pos: Vec2,
     depth = 0.5,
   ): void {
@@ -1124,7 +1220,7 @@ export class MapScene extends Phaser.Scene {
         .container(pos.x, pos.y, [img])
         .setData('top', o.y * img.height * k - FOOT_Y)
         .setData('w', img.width * k)
-        .setDepth(pos.y);
+        .setDepth(footprintDepth(pos.y, img.width * k));
     }
     const body = this.add
       .rectangle(
@@ -1164,7 +1260,9 @@ export class MapScene extends Phaser.Scene {
   // The lair tier in code (monsters-and-bosses.md section 4): the corrupted ground grows, the plate
   // takes the tier colour, and a tier 3 plate pulses slowly (heroes can die here).
   private styleLairTier(view: Phaser.GameObjects.Container, tier: number): void {
-    (view.getData('decal') as Phaser.GameObjects.Graphics | undefined)?.setScale(groundScale(tier));
+    (view.getData('decal') as Phaser.GameObjects.Image | undefined)?.setScale(
+      groundScale(tier) / RENDER_SCALE,
+    );
     const plate = view.getData('plate') as Phaser.GameObjects.Container | undefined;
     if (!plate) return;
     const label = plate.list[0] as Phaser.GameObjects.Text;
@@ -1203,8 +1301,9 @@ export class MapScene extends Phaser.Scene {
     const k = buildingScale(img.width, img.height) * (boss ? 1.35 : 1);
     img.setScale(k);
     view.setData('top', o.y * img.height * k - FOOT_Y);
+    view.setDepth(footprintDepth(view.y, img.width * k));
     // The shadow follows the picture's size (a tier-up or a boss lair is larger).
-    const old = view.getData('shadow') as Phaser.GameObjects.Graphics | undefined;
+    const old = view.getData('shadow') as Phaser.GameObjects.Image | undefined;
     old?.destroy();
     const shadow = groundShadow(this, img.width * k);
     shadow.setPosition(view.x, view.y).setDepth(0.6);
