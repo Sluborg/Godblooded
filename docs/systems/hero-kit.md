@@ -18,8 +18,9 @@ Lead write the item rows. Builds on `items-and-shops.md` (slots, levels, kits),
   for its socket. A missing worn part falls back to the base kit part, a missing icon to a plain
   slot icon: the game never breaks for lack of art.
 - **Four builds** (lean, broad, tall, short). Each god allows two; the hero's build is picked by
-  seed when it arrives and never changes. Every worn part fits every build through the sockets.
-- **M2 needs about 42 worn pieces and 10 icons** for the four Aesir gods (section 5).
+  seed when it arrives and never changes. A build is not separate art: Scene scales each segment
+  and moves its sockets (Art's parts kit rule), so every worn part fits every build.
+- **M2 needs about 46 painted layers and 10 icons** for the four Aesir gods (section 5).
 
 ## 1. Sockets
 
@@ -38,7 +39,11 @@ Lead write the item rows. Builds on `items-and-shops.md` (slots, levels, kits),
 - **Tier 3** adds no new pieces in M2: it is the tier 2 pieces plus code effects (trim glow,
   motes, the accent colour). The tier 3 mantles in the path table (raven feathers, wolf pelt,
   white fur) come with the M3 kit.
-- **Arms, hands and feet** belong to the build's body sheet, so they always match the build.
+- **Arms, hands and feet** are base segments, so a worn layer always sits on the same transform.
+- **Sockets and Art's segments** (`asset-spec.md`, "Parts kit"): head = head (+ headgear layer),
+  cloak = cloak, torso = torso (chest layer), legs = thigh + shin (trousers and boots layers),
+  weapon = weapon, off-hand = offhand. Upperarm and forearm stay base segments in M2 (bracers
+  and gloves can come later as forearm layers).
 
 ## 2. Item families per slot
 
@@ -55,6 +60,8 @@ Lead write the item rows. Builds on `items-and-shops.md` (slots, levels, kits),
 - **The lair relic** (M3) is a charm: icon only.
 
 ## 3. Builds
+
+Builds are rows of per-segment scale factors and socket offsets in Scene's data (no extra art).
 
 | Build | Reads as                        | Aesir gods that allow it |
 | ----- | ------------------------------- | ------------------------ |
@@ -86,33 +93,33 @@ Lead write the item rows. Builds on `items-and-shops.md` (slots, levels, kits),
 
 ## 5. M2 minimum (the four Aesir gods)
 
-| Group          | Pieces | What                                                                                                                            |
-| -------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------- |
-| Build bodies   | 4      | lean, broad, tall, short (torso base, arms, hands, legs base, feet)                                                             |
-| Faces          | 8      | 2 per god, with hair (beard, braids, hood edge)                                                                                 |
-| God headgear   | 2      | Odin's wide hat, Loki's hood (Thor and Freyja show their hair)                                                                  |
-| God cloaks     | 4      | one per god                                                                                                                     |
-| Path tier 2    | 8      | headgear for 6 paths (tall hat, iron helm, horned hood, dark hood, winged helm, frost hood), capes for Wanderer and Stormcaller |
-| Torso armour   | 6      | heavy, light, robe x plain, fine                                                                                                |
-| Legs           | 3      | heavy, light, robe                                                                                                              |
-| Weapons        | 5      | staff, spear, hammer, daggers, wand                                                                                             |
-| Off-hands      | 2      | round shield plain and fine (the second dagger reuses the dagger piece)                                                         |
-| **Worn total** | **42** |                                                                                                                                 |
-| Icons          | 10     | weapon level 1-3 for weapon kits and casters (6), armour level 1-3 (3), potion (1)                                              |
+| Group           | Pieces | What                                                                                                                            |
+| --------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------- |
+| Base body       | 5      | torso, upperarm, forearm (with hand), thigh, shin (with boot); builds scale it                                                  |
+| Faces           | 8      | 2 per god, with hair (beard, braids, hood edge)                                                                                 |
+| God headgear    | 2      | Odin's wide hat, Loki's hood (Thor and Freyja show their hair)                                                                  |
+| God cloaks      | 4      | one per god                                                                                                                     |
+| Path tier 2     | 8      | headgear for 6 paths (tall hat, iron helm, horned hood, dark hood, winged helm, frost hood), capes for Wanderer and Stormcaller |
+| Torso armour    | 6      | heavy, light, robe x plain, fine                                                                                                |
+| Legs            | 6      | heavy, light, robe x trousers (thigh) and boots (shin)                                                                          |
+| Weapons         | 5      | staff, spear, hammer, daggers, wand                                                                                             |
+| Off-hands       | 2      | round shield plain and fine (the second dagger reuses the dagger piece)                                                         |
+| **Layer total** | **46** |                                                                                                                                 |
+| Icons           | 10     | weapon level 1-3 for weapon kits and casters (6), armour level 1-3 (3), potion (1)                                              |
 
 - Greek and Egyptian gods add faces, headgear, cloaks, path pieces and their weapon families
   (sword, bow, khopesh, claws) in M3; the build bodies, torso, legs and shield pieces are shared.
 
 ## 6. Backlog rows (proposed)
 
-| Role  | Order | Row                                                                                           |
-| ----- | ----- | --------------------------------------------------------------------------------------------- |
-| Art   | 10    | Kit batch for the Aesir: the 42 pieces of section 5 on the agreed grid and pivots             |
-| Art   | 20    | Item icons: the 10 of section 5                                                               |
-| Scene | 10    | Combine a hero from build, face, headgear, cloak, path pieces and items; fall back per socket |
-| Scene | 20    | Inventory and shop show item icons; a hero tap shows its worn items                           |
-| Sim   | 10    | `build` on the hero (seeded pick from the god's two), in the snapshot; save bump              |
-| Lead  | 10    | GodDef and PathDef look fields; ItemDef `icon` and `worn`                                     |
+| Role  | Order | Row                                                                                                        |
+| ----- | ----- | ---------------------------------------------------------------------------------------------------------- |
+| Art   | 10    | Kit batch for the Aesir: the 46 layers of section 5 on the agreed grid and pivots                          |
+| Art   | 20    | Item icons: the 10 of section 5                                                                            |
+| Scene | 10    | Combine a hero from build (scale rows), face, headgear, cloak, path pieces and items; fall back per socket |
+| Scene | 20    | Inventory and shop show item icons; a hero tap shows its worn items                                        |
+| Sim   | 10    | `build` on the hero (seeded pick from the god's two), in the snapshot; save bump                           |
+| Lead  | 10    | GodDef and PathDef look fields; ItemDef `icon` and `worn`                                                  |
 
 ## OPEN
 
