@@ -30,6 +30,12 @@ Fetch repo files as `https://raw.githubusercontent.com/Sluborg/Godblooded/main/<
 
 A chat works on one track for its whole life. Only take batches and redo rows of that track.
 
+**Files win over memory.** Before every command, fetch `NEXT.md`, `STYLE.md`, `QA.md` and the
+batch file fresh (with `?t=<current time>`). Make **only** items listed in a batch marked
+**Ready** in that fresh `NEXT.md`. Never make anything from memory of earlier chats or old
+batches (old looks, old gods, old ids): if you remember something the files do not say now, it
+is out of date. Nothing Ready for your track: say so and stop.
+
 **Consistency:** heroes and monsters keep the same character across tiers and views. When a batch
 says "reference: <file>", fetch that shipped image from the repo and match it exactly (face,
 proportions, colours), changing only what the batch asks.
@@ -67,8 +73,9 @@ branch `art-wake`) is the bell. Art pushes a commit to it when there is new work
 
 ## Commands from Stefan
 
-- **"<track> start"** (e.g. "heroes start"): remember the track; read `STYLE.md`, `QA.md`, `NEXT.md`,
-  `REDO.md` and `docs/asset-spec.md`; check you can upload to the Drive folder and write to branch
+- **"<track> start"** (e.g. "heroes start"): forget earlier batches and looks; remember the track;
+  fetch fresh `STYLE.md`, `QA.md`, `NEXT.md`, `REDO.md`, `docs/asset-spec.md` and the batch file of
+  your first Ready batch; check you can upload to the Drive folder and write to branch
   `art-inbox`; set up the wake-up watch; report in 3-5 lines; then do "test".
 - **"test"**: make only the first item of your next batch, upload it as `test--<id>.png`, log it,
   report. It does not count as making the batch.

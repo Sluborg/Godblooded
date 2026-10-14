@@ -28,58 +28,58 @@ Review (PR open), Done. A worker takes its top Open row.
 
 ## Sim
 
-| Order | Item                                                                                                                                                               | Status  |
-| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------- |
-| 10    | `api.ts` + world: `createWorld(seed, data)`, `step(world, dtMs)`, `snapshot()`, `command()`; tick loop                                                             | Done    |
-| 20    | Units move on the map (simple steering, no pathfinding yet); lairs spawn monsters on a timer                                                                       | Done    |
-| 30    | Lean real-time combat from the Coda reference math (simplify if needed, log it in decisions)                                                                       | Done    |
-| 35    | Build plots in the sim: `GameData.plots`, `build` takes a plot, refuses occupied plots; snapshot lists plots                                                       | Done    |
-| 40    | Heroes: arrive at temples, explore, fight, return to heal and shop (gold flows to the town by tax)                                                                 | Done    |
-| 45    | Move hero tuning (recruit timer, flee, rest, shop, tax, revive) from `heroes.ts` into `GameData.tuning`; Lead fills the row                                        | Done    |
-| 50    | Parties: form by traits and bonds, move and fight together, share XP; party level up offers 3 upgrades                                                             | Done    |
-| 60    | Bounty flags: heroes weigh bounty vs danger by trait; win (last lair) and lose (town hall) conditions                                                              | Done    |
-| 70    | Headless balance sim (`npm run sim`): 100 seeded runs, report run length, win rate, deaths                                                                         | Done    |
-| 80    | Hero cap: at most `tuning.hero.maxPerClass` (2) heroes of each class alive; temples skip full classes                                                              | Done    |
-| 110   | Gods and paths (decision 2026-10-13): `GodDef`, path by god with a template, recruit a god's child, cap 2 per god on different paths                               | Done    |
-| 120   | Lair growth: lairs tier up over the run (spawn faster, tier 2/3 monsters), tuning in `GameData`                                                                    | Done    |
-| 130   | Building tiers: `upgrade` command, cost per tier, tier effects (temple recruit rate and cap, market stock, tower range and damage)                                 | Done    |
-| 140   | Run stats for the end screen: per hero kills, gold earned, knockouts, MVP; per run lairs cleared, gold over time                                                   | Done    |
-| 150   | Seeded map per run: lair layout from a pool (all 6 monster types), 4-6 lairs, a pantheon lean per run, a boss lair (wyrm) as the win goal; map rules as data       | Done    |
-| 160   | Save and load a run: versioned save of the world, migration hook, autosave every 30 s; `loadWorld` for Scene Continue                                              | Done    |
-| 170   | Rivalries: bonds below a threshold make rivals; `argue` events; rivals refuse one party; a vengeful hero hunts what knocked out a friend                           | Done    |
-| 175   | Raids: only `tuning.town.raidLairs` random non-boss lairs raid; the boss lair never raids                                                                          | Done    |
-| 180   | Combat: strike pipeline in one function (dodge, power, crit, type, mitigation, round, rider, down), new curves and K in `tuning.combat` (`docs/systems/combat.md`) | Done    |
-| 190   | Combat: armour on templates and monsters, magic resist from Wp, `spellMult`                                                                                        | Done    |
-| 200   | Combat: damage types on god/path/monster rows, monster type multipliers; `hit` carries `type`, `crit`, `weak`/`resist`                                             | Done    |
-| 210   | Combat: first strike on engage; riders (burn, chill, arc, wither, sear) as data, applied only when a strike carries one                                            | Review  |
-| 220   | Combat: boss unit (emerge, cleave, enrage, immunities); the boss lair cannot fall while the boss lives                                                             | Review  |
-| 230   | Combat: knockout costs 25% carried gold; permadeath by a boss or in a tier 3 lair, graves (#183)                                                                   | Review  |
-| 240   | Skills: engine (SkillDef, cooldowns, 6 triggers, 5 shapes, `cast`/`skill` events, trait nudge) (`docs/systems/paths-and-skills.md`)                                | Open    |
-| 250   | Skills: effects part 1 (damage, heal, shield, buff, stagger, mark, dash, taunt; chain)                                                                             | Open    |
-| 260   | Skills: god passives (12) as data on GodDef                                                                                                                        | Open    |
-| 270   | Skills: summons (decoy, falcon, thrall) and effects part 2 (knockback, bind, revive, execute) (waits on Stefan, skills OPEN 2-3)                                   | Blocked |
-| 280   | Items: ItemDef, hero slots, weapon power and armour by kit into the strike pipeline (`docs/systems/items-and-shops.md`)                                            | Open    |
-| 290   | Shopping: smithy then market, budget by trait, buy order, tax per item, `shopped` event with item id                                                               | Open    |
-| 300   | Potions: drink rule, coward and berserker offsets                                                                                                                  | Open    |
-| 310   | Charms and the lair relic (waits on Stefan, items OPEN)                                                                                                            | Blocked |
-| 320   | Card offers: families, rarity by level, needs, fitted rule, stacking, level cap from tuning (`docs/systems/progression.md`)                                        | Open    |
-| 330   | New card effects (combat and skill keys in progression.md)                                                                                                         | Open    |
-| 340   | Lair clock: staggered first tier-up and new mults; pressure tier-up behind a tuning flag (off until Stefan answers)                                                | Open    |
-| 350   | Elites, late recruits (waits on Stefan, progression OPEN)                                                                                                          | Blocked |
-| 360   | Monster roles: harrier, charger, pack, swarm (`docs/systems/monsters-and-bosses.md`)                                                                               | Open    |
-| 370   | Quirks: regen with fire stop, grave-cold, scavenger; snatch gold waits on Stefan                                                                                   | Open    |
-| 380   | Raids: warning event, raid after lair tier-up, raid shapes by role, town cheer gold (`docs/systems/events.md`)                                                     | Open    |
-| 390   | Omens: clock and deck, OmenDef rows, effects as tuning overrides, spawns, free bounty                                                                              | Open    |
-| 400   | Gods act on their own: favour bars per pantheon, automatic miracle in the most-hurt fight, `miracle` event (`events.md`)                                           | Open    |
-| 410   | Build and upgrade time (5 s) and repair (`docs/systems/buildings.md`); ruins, town hall gating and Hearth Hall wait on Stefan                                      | Open    |
-| 420   | Shrine tier values and tower warning by tier                                                                                                                       | Open    |
-| 430   | Monster skills through the skill engine (`owner: monster`), after 240                                                                                              | Open    |
-| 440   | Boss moves (breath, heads, swallow), boss by lean pantheon (waits on Stefan, boss picks)                                                                           | Blocked |
-| 450   | Run stats: gear levels, items bought, tax by shop; curve beats (first party, first tier 2, first lair fall, first tier 3)                                          | Open    |
-| 460   | Bosses by pantheon: `bossesByPantheon` (2 each), seeded pick, no repeat via meta `lastBoss`; moves for the 5 new bosses                                            | Open    |
-| 470   | Late recruits: parties below level 3 take new heroes; `hallJoinBelowLevel` with the Hearth Hall                                                                    | Open    |
-| 480   | Meta: Essence per run and the Altar upgrades (`meta.md`), meta save                                                                                                | Open    |
-| 490   | Hero AI (M2, `docs/systems/hero-ai.md` Sim rows 10-60): intent event, score-and-commit choices with distance, trait behaviours, party retreat, discovery state     | Open    |
+| Order | Item                                                                                                                                                               | Status |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------ |
+| 10    | `api.ts` + world: `createWorld(seed, data)`, `step(world, dtMs)`, `snapshot()`, `command()`; tick loop                                                             | Done   |
+| 20    | Units move on the map (simple steering, no pathfinding yet); lairs spawn monsters on a timer                                                                       | Done   |
+| 30    | Lean real-time combat from the Coda reference math (simplify if needed, log it in decisions)                                                                       | Done   |
+| 35    | Build plots in the sim: `GameData.plots`, `build` takes a plot, refuses occupied plots; snapshot lists plots                                                       | Done   |
+| 40    | Heroes: arrive at temples, explore, fight, return to heal and shop (gold flows to the town by tax)                                                                 | Done   |
+| 45    | Move hero tuning (recruit timer, flee, rest, shop, tax, revive) from `heroes.ts` into `GameData.tuning`; Lead fills the row                                        | Done   |
+| 50    | Parties: form by traits and bonds, move and fight together, share XP; party level up offers 3 upgrades                                                             | Done   |
+| 60    | Bounty flags: heroes weigh bounty vs danger by trait; win (last lair) and lose (town hall) conditions                                                              | Done   |
+| 70    | Headless balance sim (`npm run sim`): 100 seeded runs, report run length, win rate, deaths                                                                         | Done   |
+| 80    | Hero cap: at most `tuning.hero.maxPerClass` (2) heroes of each class alive; temples skip full classes                                                              | Done   |
+| 110   | Gods and paths (decision 2026-10-13): `GodDef`, path by god with a template, recruit a god's child, cap 2 per god on different paths                               | Done   |
+| 120   | Lair growth: lairs tier up over the run (spawn faster, tier 2/3 monsters), tuning in `GameData`                                                                    | Done   |
+| 130   | Building tiers: `upgrade` command, cost per tier, tier effects (temple recruit rate and cap, market stock, tower range and damage)                                 | Done   |
+| 140   | Run stats for the end screen: per hero kills, gold earned, knockouts, MVP; per run lairs cleared, gold over time                                                   | Done   |
+| 150   | Seeded map per run: lair layout from a pool (all 6 monster types), 4-6 lairs, a pantheon lean per run, a boss lair (wyrm) as the win goal; map rules as data       | Done   |
+| 160   | Save and load a run: versioned save of the world, migration hook, autosave every 30 s; `loadWorld` for Scene Continue                                              | Done   |
+| 170   | Rivalries: bonds below a threshold make rivals; `argue` events; rivals refuse one party; a vengeful hero hunts what knocked out a friend                           | Done   |
+| 175   | Raids: only `tuning.town.raidLairs` random non-boss lairs raid; the boss lair never raids                                                                          | Done   |
+| 180   | Combat: strike pipeline in one function (dodge, power, crit, type, mitigation, round, rider, down), new curves and K in `tuning.combat` (`docs/systems/combat.md`) | Done   |
+| 190   | Combat: armour on templates and monsters, magic resist from Wp, `spellMult`                                                                                        | Done   |
+| 200   | Combat: damage types on god/path/monster rows, monster type multipliers; `hit` carries `type`, `crit`, `weak`/`resist`                                             | Done   |
+| 210   | Combat: first strike on engage; riders (burn, chill, arc, wither, sear) as data, applied only when a strike carries one                                            | Done   |
+| 220   | Combat: boss unit (emerge, cleave, enrage, immunities); the boss lair cannot fall while the boss lives                                                             | Done   |
+| 230   | Combat: knockout costs 25% carried gold; permadeath by a boss or in a tier 3 lair, graves (#183)                                                                   | Done   |
+| 240   | Skills: engine (SkillDef, cooldowns, 6 triggers, 5 shapes, `cast`/`skill` events, trait nudge) (`docs/systems/paths-and-skills.md`)                                | Done   |
+| 250   | Skills: effects part 1 (damage, heal, shield, buff, stagger, mark, dash, taunt; chain)                                                                             | Done   |
+| 260   | Skills: god passives (12) as data on GodDef                                                                                                                        | Done   |
+| 270   | Skills: summons (decoy, falcon, thrall) and effects part 2 (knockback, bind, revive, execute) (waits on Stefan, skills OPEN 2-3)                                   | Done   |
+| 280   | Items: ItemDef, hero slots, weapon power and armour by kit into the strike pipeline (`docs/systems/items-and-shops.md`)                                            | Done   |
+| 290   | Shopping: smithy then market, budget by trait, buy order, tax per item, `shopped` event with item id                                                               | Done   |
+| 300   | Potions: drink rule, coward and berserker offsets                                                                                                                  | Done   |
+| 310   | Charms and the lair relic (waits on Stefan, items OPEN)                                                                                                            | Done   |
+| 320   | Card offers: families, rarity by level, needs, fitted rule, stacking, level cap from tuning (`docs/systems/progression.md`)                                        | Done   |
+| 330   | New card effects (combat and skill keys in progression.md)                                                                                                         | Review |
+| 340   | Lair clock: staggered first tier-up and new mults; pressure tier-up behind a tuning flag (off until Stefan answers)                                                | Done   |
+| 350   | Elites, late recruits (waits on Stefan, progression OPEN)                                                                                                          | Review |
+| 360   | Monster roles: harrier, charger, pack, swarm (`docs/systems/monsters-and-bosses.md`)                                                                               | Done   |
+| 370   | Quirks: regen with fire stop, grave-cold, scavenger; snatch gold waits on Stefan                                                                                   | Done   |
+| 380   | Raids: warning event, raid after lair tier-up, raid shapes by role, town cheer gold (`docs/systems/events.md`)                                                     | Done   |
+| 390   | Omens: clock and deck, OmenDef rows, effects as tuning overrides, spawns, free bounty                                                                              | Review |
+| 400   | Gods act on their own: favour bars per pantheon, automatic miracle in the most-hurt fight, `miracle` event (`events.md`)                                           | Done   |
+| 410   | Build and upgrade time (5 s) and repair (`docs/systems/buildings.md`); ruins, town hall gating and Hearth Hall wait on Stefan                                      | Open   |
+| 420   | Shrine tier values and tower warning by tier                                                                                                                       | Open   |
+| 430   | Monster skills through the skill engine (`owner: monster`), after 240                                                                                              | Open   |
+| 440   | Boss moves (breath, heads, swallow), boss by lean pantheon (waits on Stefan, boss picks)                                                                           | Done   |
+| 450   | Run stats: gear levels, items bought, tax by shop; curve beats (first party, first tier 2, first lair fall, first tier 3)                                          | Open   |
+| 460   | Bosses by pantheon: `bossesByPantheon` (2 each), seeded pick, no repeat via meta `lastBoss`; moves for the 5 new bosses                                            | Review |
+| 470   | Late recruits: parties below level 3 take new heroes; `hallJoinBelowLevel` with the Hearth Hall                                                                    | Review |
+| 480   | Meta: Essence per run and the Altar upgrades (`meta.md`), meta save                                                                                                | Review |
+| 490   | Hero AI (M2, `docs/systems/hero-ai.md` Sim rows 10-60): intent event, score-and-commit choices with distance, trait behaviours, party retreat, discovery state     | Done   |
 
 ## Scene
 
