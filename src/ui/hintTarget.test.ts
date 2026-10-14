@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { hintTargetPos, monsterSeenBy, upgradeAffordable } from './hintTarget';
+import { firstTill, hintTargetPos, idleGold, monsterSeenBy, upgradeAffordable } from './hintTarget';
 
 const snap = {
   plots: [
@@ -43,5 +43,30 @@ describe('conditions', () => {
     const b = (snap as { buildings: never }).buildings;
     expect(upgradeAffordable(b, 79)).toBeNull();
     expect(upgradeAffordable(b, 80)).toBe(10);
+  });
+});
+
+describe('idleGold', () => {
+  const b = (type: string) => ({ type }) as never;
+  const h = (gold: number, ko = false) => ({ kind: 'hero', gold, ko }) as never;
+
+  it('needs a market, no smithy, and 100 gold on living heroes', () => {
+    expect(idleGold({ buildings: [b('market')], units: [h(60), h(50)] })).toBe(true);
+    expect(idleGold({ buildings: [b('market')], units: [h(60), h(30)] })).toBe(false);
+    expect(idleGold({ buildings: [b('market')], units: [h(150, true)] })).toBe(false);
+    expect(idleGold({ buildings: [b('market'), b('smithy')], units: [h(500)] })).toBe(false);
+    expect(idleGold({ buildings: [], units: [h(500)] })).toBe(false);
+  });
+});
+
+describe('firstTill', () => {
+  it('finds the first building with a till of at least minTill', () => {
+    const bs = [
+      { id: 1, pos: { x: 1, y: 2 }, till: 5 },
+      { id: 2, pos: { x: 3, y: 4 }, till: 12 },
+      { id: 3, pos: { x: 5, y: 6 } },
+    ] as never;
+    expect(firstTill(bs, 10)).toEqual({ id: 2, pos: { x: 3, y: 4 } });
+    expect(firstTill(bs, 20)).toBeNull();
   });
 });

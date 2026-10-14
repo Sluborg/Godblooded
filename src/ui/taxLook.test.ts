@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { popText, sackSize, tillShown } from './taxLook';
+import { collectorInfo, popText, sackSize, tillShown } from './taxLook';
 
 describe('tax look', () => {
   it('shows a till from minTill', () => {
@@ -19,5 +19,10 @@ describe('tax look', () => {
   it('writes a +N pop', () => {
     expect(popText(45)).toBe('+45');
     expect(popText(12.4)).toBe('+12');
+  });
+
+  it('words the info strip', () => {
+    expect(collectorInfo(45)).toBe('Tax collector: carrying 45 gold');
+    expect(collectorInfo(0)).toContain('nothing carried');
   });
 });

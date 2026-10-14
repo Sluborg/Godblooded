@@ -154,6 +154,11 @@ export const SFX: readonly SfxPreset[] = [
     voices: [v('square', 660, 0.12, 0.18), v('square', 440, 0.16, 0.18, { at: 0.12 })],
   },
   { id: 'sfx_chime', voices: bell(880, 0.16, 0.8) },
+  // One soft drum beat: a lair is about to grow (once per tier-up, in its last 15 s).
+  {
+    id: 'sfx_drum',
+    voices: [v('sine', 90, 0.35, 0.45, { to: 55 }), v('noise', 400, 0.05, 0.08, { lp: 600 })],
+  },
   { id: 'sfx_horn', voices: [v('saw', 180, 1.2, 0.3, { lp: 900, a: 0.15 })] },
   {
     id: 'sfx_roar',
