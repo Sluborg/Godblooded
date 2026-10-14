@@ -51,6 +51,7 @@ import {
 } from './boss';
 import { buildReport, sampleGold, tally, type HeroRecord } from './runstats';
 import { notePositions, runCollision } from './collision';
+import { omenMods, omenSnapshot, runOmens } from './omens';
 import { collectorFell, runCollector } from './collector';
 import { clearRuin, rebuildRuin, runRepair } from './ruins';
 import { raiderHeld } from './corrupt';
@@ -296,6 +297,12 @@ export interface World {
   collectorQueue: number[];
   // Ruins of destroyed buildings (ruins.ts).
   ruins: RuinState[];
+  // The omen clock (omens.ts): when the next is drawn, the one in the sky, the deck's recent draws.
+  omen: {
+    nextMs: number;
+    current: { id: string; startMs: number; endMs: number; started: boolean } | null;
+    recent: string[];
+  };
   // A first run (data.firstRun overrides in force); the clock waits for a temple until `started`.
   firstRun: boolean;
   started: boolean;
@@ -376,6 +383,7 @@ export function createWorld(seed: number, data: GameData, opts: WorldOptions = {
     piles: [],
     collectorQueue: [],
     ruins: [],
+    omen: { nextMs: -1, current: null, recent: [] },
     firstRun: !!opts.firstRun,
     started: !opts.firstRun,
     nodes: [],
@@ -479,6 +487,7 @@ function runTick(world: World): void {
   runTemples(world);
   runTowers(world);
   runRepair(world);
+  runOmens(world);
   // Tower victims leave now, before the lairs count their monsters or the units act.
   settleDeaths(world);
   runStatuses(world);
@@ -587,7 +596,12 @@ function runLairs(world: World): void {
 }
 
 export function statsOf(world: World, unit: UnitState): Stats | undefined {
-  const base = unitStats(world, unit);
+  let base = unitStats(world, unit);
+  // An omen can slow everyone (Fimbul Frost).
+  const move = omenMods(world).moveSpeed;
+  if (base && move !== undefined && move !== 1) {
+    base = { ...base, speedMult: (base.speedMult ?? 1) * move };
+  }
   // Bound: cannot move, attacks take twice as long.
   if (base && isBound(world, unit.id)) {
     return { ...base, rooted: true, attackMult: (base.attackMult ?? 1) * 2 };
@@ -1330,6 +1344,7 @@ export function snapshot(world: World): Snapshot {
     })),
     bounties: world.bounties.map((b) => ({ ...b, pos: { ...b.pos } })),
     ruins: world.ruins.map((r) => ({ ...r, pos: { ...r.pos } })),
+    omen: omenSnapshot(world),
     piles: world.piles.map((d) => ({ ...d, pos: { ...d.pos } })),
     nodes: world.nodes.map((n) => ({ ...n, pos: { ...n.pos } })),
     ambrosia: world.ambrosia,

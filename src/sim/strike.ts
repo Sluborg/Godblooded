@@ -1,3 +1,4 @@
+import { omenDamageMult } from './omens';
 import { armourPct, critChance, dodgeChance, resistPct, type Stats } from './units';
 import type { World } from './world';
 import { applyRider } from './riders';
@@ -177,11 +178,14 @@ export function landStrike(
     }
   }
   const boost = buffOf(world, attacker.id, 'damage');
+  const omen = omenDamageMult(world, attacker, input.type);
   const vsTag = passiveVsTags(world, attacker, input.target?.tags);
   const crit = buffOf(world, attacker.id, 'crit');
   const out = resolveStrike(world, {
     ...input,
-    ...(boost || vsTag !== 1 ? { skillMult: (input.skillMult ?? 1) * (1 + boost) * vsTag } : {}),
+    ...(boost || vsTag !== 1 || omen !== 1
+      ? { skillMult: (input.skillMult ?? 1) * (1 + boost) * vsTag * omen }
+      : {}),
     ...(crit ? { critAdd: crit } : {}),
   });
   // A ward-ring halves the first hit of each fight that lands on its wearer.

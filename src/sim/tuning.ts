@@ -216,6 +216,13 @@ export const DEFAULT_TUNING: Tuning = {
     maxPush: 6,
     cell: 64,
   },
+  events: {
+    omenFirstMs: 180_000,
+    omenEveryMs: [100_000, 140_000],
+    omenNoRepeat: 3,
+    leanWeight: 2,
+    omenLeadMs: 20_000,
+  },
   collector: {
     enabled: false,
     perHallTier: 1,
@@ -346,6 +353,7 @@ export function resolveTuning(data: GameData, firstRun = false): Tuning {
     town: { ...DEFAULT_TUNING.town, ...t?.town },
     trait: { ...DEFAULT_TUNING.trait, ...t?.trait },
     collision: { ...DEFAULT_TUNING.collision, ...t?.collision },
+    events: { ...DEFAULT_TUNING.events, ...t?.events },
     collector: { ...DEFAULT_TUNING.collector, ...t?.collector },
     nodes: { ...DEFAULT_TUNING.nodes, ...t?.nodes },
     bounty: { ...DEFAULT_TUNING.bounty, ...t?.bounty },
