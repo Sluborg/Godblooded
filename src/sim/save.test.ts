@@ -312,7 +312,7 @@ describe('save v4 to v5', () => {
     plots: GRAYBOX.plots?.map((_, i) => ({ x: 1200 + i * 50, y: 1100 })),
   };
 
-  it('a version 4 save moves the hall, the plot buildings and the units beside them', () => {
+  it('a version 4 save moves the hall, the plot buildings, the units beside them and the map', () => {
     const a = createWorld(3, OLD);
     const built = command(a, { kind: 'build', type: 'temple_aesir', plot: 2 });
     expect(built.ok).toBe(true);
@@ -330,7 +330,13 @@ describe('save v4 to v5', () => {
     const beside = back.units.find((u) => u.id === id);
     expect(beside?.pos.x).toBeCloseTo(1210 + (GRAYBOX.townHall.x - 1200));
     expect(beside?.pos.y).toBeCloseTo(805 + (GRAYBOX.townHall.y - 800));
-    expect(back.units.find((u) => u.id === far)?.pos).toEqual({ x: 100, y: 100 });
+    // a hero far away and the lairs shift by the hall's move, so the map keeps its shape
+    const dx = GRAYBOX.townHall.x - 1200;
+    const dy = GRAYBOX.townHall.y - 800;
+    expect(back.units.find((u) => u.id === far)?.pos).toEqual({ x: 100 + dx, y: 100 + dy });
+    expect(back.lairs.map((l) => l.pos)).toEqual(
+      a.lairs.map((l) => ({ x: l.pos.x + dx, y: l.pos.y + dy })),
+    );
     // and it plays on
     for (let i = 0; i < 20; i++) step(back, 100);
   });

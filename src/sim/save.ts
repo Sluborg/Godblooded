@@ -134,27 +134,50 @@ export function loadWorld(raw: unknown, data: GameData): World {
   }
 }
 
-// Spacing option B moved the town hall and the plot ring: a run saved before that keeps its
-// buildings but stands them where the data puts the hall and each plot now. Heroes, collectors
-// and gold piles that were at a moved building (within `AT`) move with it.
+// Spacing option B moved the town hall and the plot ring. A run saved before it keeps its map
+// whole: everything on the ground shifts by the hall's move (so lair-to-town distances hold), then
+// each building on a plot stands where the data puts that plot now, and the heroes, collectors and
+// piles that were beside it (within AT) move with it.
 const AT = 80;
 function relocateTown(world: World, data: GameData): void {
-  const moves: { from: Vec2; to: Vec2 }[] = [];
+  const hall = world.buildings.find((b) => b.type === 'townhall');
+  if (!hall) return;
+  const dx = data.townHall.x - hall.pos.x;
+  const dy = data.townHall.y - hall.pos.y;
+  const seen = new Set<Vec2>();
+  const move = (pos: Vec2 | null | undefined) => {
+    if (!pos || seen.has(pos)) return;
+    seen.add(pos);
+    pos.x += dx;
+    pos.y += dy;
+  };
+  const carry: { from: Vec2; by: Vec2 }[] = [];
   for (const b of world.buildings) {
+    const old = { x: b.pos.x + dx, y: b.pos.y + dy };
     const to =
       b.type === 'townhall' ? data.townHall : b.plot === null ? undefined : data.plots?.[b.plot];
-    if (!to || (to.x === b.pos.x && to.y === b.pos.y)) continue;
-    moves.push({ from: { ...b.pos }, to: { ...to } });
-    b.pos = { ...to };
+    b.pos = to ? { ...to } : old;
+    if (to && (to.x !== old.x || to.y !== old.y)) {
+      carry.push({ from: old, by: { x: to.x - old.x, y: to.y - old.y } });
+    }
   }
-  const shift = (pos: Vec2) => {
-    const m = moves.find((v) => Math.hypot(pos.x - v.from.x, pos.y - v.from.y) <= AT);
-    if (!m) return;
-    pos.x += m.to.x - m.from.x;
-    pos.y += m.to.y - m.from.y;
+  for (const u of world.units) move(u.pos);
+  for (const l of world.lairs) move(l.pos);
+  for (const p of world.piles) move(p.pos);
+  for (const b of world.bounties) move(b.pos);
+  for (const g of world.graves) move(g.pos);
+  for (const rt of world.unitRuntime.values()) move(rt.target);
+  for (const k of world.recentKills) move(k.pos);
+  for (const m of world.miracleSteps) move(m.pos);
+  // What stood at a plot building (the shift already applied) follows it to its new spot.
+  const follow = (pos: Vec2) => {
+    const c = carry.find((v) => Math.hypot(pos.x - v.from.x, pos.y - v.from.y) <= AT);
+    if (!c) return;
+    pos.x += c.by.x;
+    pos.y += c.by.y;
   };
-  for (const u of world.units) if (u.kind !== 'monster') shift(u.pos);
-  for (const p of world.piles) shift(p.pos);
+  for (const u of world.units) if (u.kind !== 'monster') follow(u.pos);
+  for (const p of world.piles) follow(p.pos);
 }
 
 const kindOf = (v: unknown): string =>
