@@ -166,6 +166,7 @@ export class MapScene extends Phaser.Scene {
     this.registry.set('selectedBuilding', 0);
     this.selectRing = null;
     this.selectRingFor = 0;
+    this.starMarker = null;
     this.fpsGuard = new FpsGuard();
     this.world = this.startWorld();
     this.registry.set('speed', getSettings().speed);
