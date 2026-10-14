@@ -409,3 +409,13 @@ portraits, I want game graphics as portraits. Multiple faces, and headwear and t
 - **No separate portraits:** a portrait is the same in-game head and body drawn larger.
 - The full-size Grim parts test, the floating-vs-bent question and the por_ portraits are
   dropped. The approved Grim still stays the look reference for colour, cloth and mood.
+
+## 2026-10-15 Correction: keep the small rig, change the look (Stefan)
+
+"I liked the small legs and arms you made. I just didn't like the childish wizard and princess
+style art. If they had cool gear like on the painterly art. Dope." This replaces the RimWorld
+entry above: heroes keep the compact animated parts rig from the prototype (small body, small
+floating hands and feet that move in code). What changes is the art on it: painted pieces in the
+one style, adult grim faces, cool believable gear (mail, leather, furs, carved weapons, hoods and
+helms) instead of wizard hats and princess dresses. Still a kit: faces, headgear, bodies and gear
+combine per hero; portraits are the in-game hero drawn larger.
