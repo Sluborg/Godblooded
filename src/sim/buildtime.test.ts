@@ -78,4 +78,26 @@ describe('build and upgrade time', () => {
     const r = command(w, { kind: 'build', type: 'tower', plot: 0 });
     expect(r.ok && command(w, { kind: 'upgrade', building: r.id })).toMatchObject({ ok: false });
   });
+
+  it('a rebuilt ruin has a scaffold too', () => {
+    const w = createWorld(1, {
+      ...data(5_000),
+      tuning: {
+        ...data(5_000).tuning,
+        town: { raidFirstMs: 10_000_000, buildMs: 5_000, hallTiers: false, ruins: true },
+      },
+    });
+    const r = command(w, { kind: 'build', type: 'tower', plot: 0 });
+    run(w, 6_000);
+    const b = w.buildings.find((x) => r.ok && x.id === r.id);
+    if (!b) throw new Error('setup');
+    // knock it down by hand into a ruin
+    w.buildings = w.buildings.filter((x) => x.id !== b.id);
+    w.ruins.push({ id: w.nextId++, type: 'tower', plot: 0, pos: { ...b.pos } } as never);
+    const ruin = w.ruins[0];
+    const res = command(w, { kind: 'rebuildRuin', ruin: ruin.id });
+    expect(res.ok).toBe(true);
+    const nb = w.buildings.find((x) => x.type === 'tower');
+    expect(nb?.buildUntilMs).toBeGreaterThan(w.timeMs);
+  });
 });
