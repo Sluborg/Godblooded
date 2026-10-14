@@ -20,3 +20,12 @@ describe('node look', () => {
     expect(gatherersAt([{ node: 1 }, { node: 2 }, { node: 1 }, { node: null }], 1)).toBe(2);
   });
 });
+
+import { ambrosiaPop } from './ambrosiaLook';
+
+describe('ambrosia look', () => {
+  it('words the pop', () => {
+    expect(ambrosiaPop(7)).toBe('+7 Ambrosia');
+    expect(ambrosiaPop(7.4)).toBe('+7 Ambrosia');
+  });
+});
