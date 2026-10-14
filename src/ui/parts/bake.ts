@@ -5,8 +5,8 @@
 import Phaser from 'phaser';
 import type { PartsDef } from '../../data/heroParts';
 import { drawHuman, pose as rigPose, setState } from './proto.gen';
-import { drawPainted } from './painted';
-import { paintedFor } from './paintedLoad';
+import { drawKit, layout } from './painted';
+import { kitOf } from './paintedLoad';
 import { gradePixels } from './partsStyle';
 import {
   ATLAS_COLS as COLS,
@@ -49,8 +49,8 @@ export function ensureHeroSet(scene: Phaser.Scene, id: string, def: PartsDef, ti
   const rows = Math.ceil(total / COLS);
   const atlas = `parts_${id}`;
   if (scene.textures.exists(atlas)) scene.textures.remove(atlas);
-  // A painted look (manifest row `hero_<look>_parts`) is drawn from its pictures on the same rig.
-  const painted = paintedFor(scene, id);
+  // A painted look (a kit combo in data/heroKits.ts) is drawn from its pictures on the same rig.
+  const kit = kitOf(scene, id);
   const tex = scene.textures.createCanvas(atlas, fw * COLS, fh * rows);
   const frames = { idle: [], walk: [], attack: [], ko: [] } as Record<PoseName, string[]>;
   const set: BakedSet = {
@@ -93,9 +93,9 @@ export function ensureHeroSet(scene: Phaser.Scene, id: string, def: PartsDef, ti
         alpha: 1,
         hits: 0,
       };
-      if (painted) {
+      if (kit) {
         const p = rigPose(u);
-        drawPainted(c, painted.img, painted.sheet, p, p.armF > 2.0 && u.atkT >= 0);
+        drawKit(c, layout(kit, p, p.armF > 2.0 && u.atkT >= 0), p);
       } else drawHuman(u);
       setState({ ctx: null });
       c.restore();
@@ -103,7 +103,7 @@ export function ensureHeroSet(scene: Phaser.Scene, id: string, def: PartsDef, ti
   }
   // The palette grade, once over the whole atlas.
   const img = c.getImageData(0, 0, tex.width, tex.height);
-  if (!painted) gradePixels(img.data);
+  if (!kit) gradePixels(img.data);
   c.putImageData(img, 0, 0);
   tex.refresh();
   tex.setFilter(Phaser.Textures.FilterMode.LINEAR);

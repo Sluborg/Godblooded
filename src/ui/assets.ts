@@ -19,10 +19,10 @@ export interface ManifestAsset {
   weaponY?: number;
   weapon2X?: number;
   weapon2Y?: number;
-  // Painted parts rows (`hero_<look>_parts`): picture pixels per drawing unit and the rectangle and
-  // pivots of each part inside the image (ui/parts/painted.ts).
+  // Painted kit sheets (`kit_*`): picture pixels per drawing unit and a rectangle with pivots per
+  // part id inside the image (ui/parts/painted.ts, data/heroKits.ts).
   pxPerUnit?: number;
-  parts?: Record<
+  cells?: Record<
     string,
     { x: number; y: number; w: number; h: number; pivots?: Record<string, [number, number]> }
   >;
