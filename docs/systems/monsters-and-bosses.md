@@ -165,7 +165,7 @@ that an untouched lair was a threat. The growth ring makes the next lair tier-up
 flag on the lair becomes the obvious answer. This is a look only: no rule changes.
 
 1. **Ring:** a thin ring around each lair that is below its max tier, filling clockwise from its
-   last tier-up (or the run start) to its next one (`nextTierMs`). The ring is dim grey while
+   last tier-up (or the run start) to its next one. The ring is dim grey while
    more than 60 s are left.
 2. **Last 60 s:** the ring turns amber and a small "60" counts down beside the plate, in light
    text on dark parchment (`look-sheet.md`).
@@ -176,8 +176,9 @@ flag on the lair becomes the obvious answer. This is a look only: no rule change
    and its raid arrow appears at the same moment.
 5. **Hidden** at max tier, on a sealed boss lair, and while a lair is destroyed.
 
-- **Sim:** the lair snapshot carries `tierFromMs` (the last tier-up, or the run start) and
-  `nextTierMs` (null at max tier), so the ring can show its fill. A pressure tier-up restarts
+- **Sim:** the lair snapshot carries `nextTierMs`, the ms left until the next tier-up (null at
+  max tier or with no tier clock; built on `sim/lair-timer` de737b4), and `tierSpanMs`, the
+  length of the current wait, so the ring fills `1 - nextTierMs / tierSpanMs`. A pressure tier-up restarts
   it, so the ring jumps back to empty, which is correct.
 
 ## 5. What the player sees
@@ -254,14 +255,14 @@ still scales their hp with the lair tier (visual only). The
 
 ### Sim
 
-| Order | Row                                                                                 |
-| ----- | ----------------------------------------------------------------------------------- |
-| 10    | Monster roles: harrier, charger, pack, swarm (brute is today's)                     |
-| 20    | Quirks: regen with fire stop, snatch gold, grave-cold, scavenger (heal on KO)       |
-| 30    | Monster skills through the skill engine (`owner: 'monster'`), on elites             |
-| 40    | Boss moves: breath, heads, swallow, venom, howl, riddle; enrage variants            |
-| 50    | Boss pick: lean pantheon, seeded one of two, no repeat; boss lair guards            |
-| 60    | Lair snapshot: `tierFromMs` and `nextTierMs` (null at max tier) for the growth ring |
+| Order | Row                                                                                                |
+| ----- | -------------------------------------------------------------------------------------------------- |
+| 10    | Monster roles: harrier, charger, pack, swarm (brute is today's)                                    |
+| 20    | Quirks: regen with fire stop, snatch gold, grave-cold, scavenger (heal on KO)                      |
+| 30    | Monster skills through the skill engine (`owner: 'monster'`), on elites                            |
+| 40    | Boss moves: breath, heads, swallow, venom, howl, riddle; enrage variants                           |
+| 50    | Boss pick: lean pantheon, seeded one of two, no repeat; boss lair guards                           |
+| 60    | Lair snapshot: `nextTierMs` (ms left; done, `sim/lair-timer`) and `tierSpanMs` for the growth ring |
 
 ### Lead (data)
 
