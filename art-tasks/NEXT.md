@@ -21,7 +21,7 @@ log; never a **Draft** (Art is still waiting on Stefan). Art sets a batch to Don
 | B14   | buildings | `B14.md` | Buildings tier 3: all nine, per Design table                        | 9      | Ready  |
 | V2    | monsters  | `V2.md`  | Redo minotaur t1: a real two-handed grip                            | 1      | Ready  |
 | G7    | heroes    | `G7.md`  | Hero look test: 8 compact heroes, different mixes (nothing ships)   | 8      | Ready  |
-| G1    | heroes    | `G1.md`  | Hero parts kit test: Grim's segments sheet, axe icon, portrait      | 4      | Draft  |
+| G1    | heroes    | `G1.md`  | Compact hero kit: Grim, 3 more faces, 3 headgear (after G7)         | 2      | Draft  |
 | G2    | heroes    | `G2.md`  | Aesir paths t2 in the one style (after G1)                          | 8      | Draft  |
 | G3    | heroes    | `G3.md`  | Tax reeve as a parts kit, with portrait (gatherer, guard: G6)       | 3      | Draft  |
 | G6    | heroes    | `G6.md`  | Town folk kits: gatherer and guard, with portraits (after G3)       | 4      | Draft  |
