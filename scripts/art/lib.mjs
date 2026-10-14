@@ -80,6 +80,13 @@ export const KINDS = {
     nominal: { axis: 'width', share: 1, px: 256 },
     anchor: 'centre',
   },
+  // Hero portraits, one per kit face: head and shoulders, the same face as the in-game hero.
+  por: {
+    re: /^por_[a-z]+(-[a-z]+)*$/,
+    dir: 'portraits',
+    nominal: { axis: 'width', share: 1, px: 256 },
+    anchor: 'centre',
+  },
   // Key art (the splash): a full painting, opaque edge to edge.
   art: {
     re: /^art_[a-z0-9]+(_[a-z0-9]+)*$/,
