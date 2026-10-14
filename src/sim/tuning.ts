@@ -199,6 +199,13 @@ export const DEFAULT_TUNING: Tuning = {
     cowardHangBack: 60,
     loyalGuardRange: 50,
   },
+  events: {
+    omenFirstMs: 180_000,
+    omenEveryMs: [100_000, 140_000],
+    omenNoRepeat: 3,
+    leanWeight: 2,
+    omenLeadMs: 20_000,
+  },
   collector: {
     enabled: false,
     perHallTier: 1,
@@ -328,6 +335,7 @@ export function resolveTuning(data: GameData, firstRun = false): Tuning {
     favour: { ...DEFAULT_TUNING.favour, ...t?.favour },
     town: { ...DEFAULT_TUNING.town, ...t?.town },
     trait: { ...DEFAULT_TUNING.trait, ...t?.trait },
+    events: { ...DEFAULT_TUNING.events, ...t?.events },
     collector: { ...DEFAULT_TUNING.collector, ...t?.collector },
     nodes: { ...DEFAULT_TUNING.nodes, ...t?.nodes },
     bounty: { ...DEFAULT_TUNING.bounty, ...t?.bounty },
