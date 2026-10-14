@@ -482,7 +482,15 @@ export class MapScene extends Phaser.Scene {
     for (const b of this.snap.bounties) {
       const key = `f${b.id}`;
       seen.add(key);
-      if (!this.views.has(key)) this.views.set(key, this.makeBounty(b.gold, b.pos.x, b.pos.y));
+      const flagView = this.views.get(key);
+      if (!flagView) this.views.set(key, this.makeBounty(b.gold, b.pos.x, b.pos.y));
+      else if (flagView instanceof Phaser.GameObjects.Container) {
+        // A hunt flag follows its monster; a flag whose monster died stays where it fell.
+        flagView.x += (b.pos.x - flagView.x) * 0.4;
+        flagView.y += (b.pos.y - flagView.y) * 0.4;
+        flagView.setDepth(flagView.y);
+      }
+      this.markHunt(this.views.get(key), b.target !== undefined);
       this.updateInterest(
         this.views.get(key),
         this.snap.units.filter((u) => u.bounty === b.id),
@@ -510,12 +518,33 @@ export class MapScene extends Phaser.Scene {
     this.drawLinks();
     for (const e of this.snap.events) {
       if (e.kind === 'lairTierUp') this.lairGrows(e.lair, e.tier);
+      if (e.kind === 'considering') this.flagGlint(e.bounty);
       if (e.kind !== 'hit') continue;
       const view = this.views.get(`b${e.target}`) ?? this.views.get(`l${e.target}`);
       if (view && !e.dodged)
         this.tweens.add({ targets: view, alpha: 0.55, duration: 60, yoyo: true });
     }
     this.syncPlots();
+  }
+
+  // A hunt flag carries a ring on the ground at its foot.
+  private markHunt(view: Phaser.GameObjects.GameObject | undefined, hunt: boolean): void {
+    if (!(view instanceof Phaser.GameObjects.Container)) return;
+    let ring = view.getData('hunt') as Phaser.GameObjects.Graphics | undefined;
+    if (!ring && hunt) {
+      ring = this.add.graphics();
+      ring.lineStyle(4, 0xf2c14e, 0.9).strokeEllipse(0, 0, 90, 40);
+      ring.lineStyle(2, 0x000000, 0.5).strokeEllipse(0, 0, 100, 48);
+      view.addAt(ring, 0);
+      view.setData('hunt', ring);
+    }
+    ring?.setVisible(hunt);
+  }
+
+  // A party weighs this flag: a quick glint.
+  private flagGlint(bounty: number): void {
+    const view = this.views.get(`f${bounty}`);
+    if (view) this.tweens.add({ targets: view, scale: 1.25, duration: 160, yoyo: true });
   }
 
   // One dot per hero heading for this flag, in its party colour, under the gold amount.

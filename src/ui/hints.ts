@@ -224,6 +224,16 @@ export function hintsFromEvent(
               : [],
       };
     case 'bountyPlaced':
+      // A flag with a `target` is a hunt flag: it follows its monster (hero-ai 5b).
+      return typeof e.target === 'number'
+        ? {
+            fire: [
+              { trigger: 'bountyPlaced', unit: null },
+              { trigger: 'huntFlag', unit: null },
+            ],
+            skip: [],
+          }
+        : f(e.kind);
     case 'buildingDestroyed':
     case 'omen':
       return f(e.kind);
