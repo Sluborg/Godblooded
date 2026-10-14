@@ -192,11 +192,15 @@ function wantsToShop(world: World, unit: UnitState, rt: HeroRuntime): boolean {
 }
 
 // An exploring hero with enough gold and no fight on walks to the shops (tuning.hero.shopTripGold)
-// instead of waiting to be hurt enough to rest. About once a second per hero.
+// instead of waiting to be hurt enough to rest. Every 20 ticks per hero. Only a party's leader
+// (or a hero alone) goes, and not while heading for a flag or a lair; the party goes with it.
 function shopTrip(world: World, unit: UnitState, rt: HeroRuntime): void {
   const t = tune(world);
   if (t.shopTripGold < 0 || unit.target !== null || unit.gold < t.shopMinGold) return;
   if (!hasItemRows(world) || (world.timeMs / TICK_MS + unit.id) % 20 !== 0) return;
+  const lead = leaderOf(world, unit);
+  if (lead && lead.id !== unit.id) return;
+  if (rt.goal?.kind === 'flag' || rt.goal?.kind === 'lair') return;
   if (t.shopTripGold > 0 && unit.gold < t.shopTripGold) return;
   const plan = planShopping(world, unit);
   if (plan.length === 0) return;

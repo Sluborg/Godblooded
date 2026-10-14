@@ -219,6 +219,39 @@ describe('shopping trips for exploring heroes', () => {
     expect(poor.mode).toBe('shop');
   });
 
+  it('a follower does not shop alone; a hero heading for a flag or lair does not shop', () => {
+    const w = withTrip(0);
+    const a = explorer(w, 200);
+    const b = explorer(w, 200);
+    a.gold = 0;
+    b.gold = 0;
+    // b joins a's party
+    const pa = w.parties.get(a.party);
+    const pb = w.parties.get(b.party);
+    if (!pa || !pb) throw new Error('party');
+    pa.members.push(b.id);
+    w.parties.delete(b.party);
+    b.party = a.party;
+    run(w, 100);
+    // a leads (first exploring member); only b has gold
+    b.gold = 200;
+    run(w, 2_000);
+    expect(b.mode).toBe('explore');
+    // the leader with gold and a flag goal stays out; without it, goes
+    a.gold = 200;
+    const rt = w.heroRuntime.get(a.id);
+    if (!rt) throw new Error('rt');
+    rt.goal = { kind: 'flag', id: 1, score: 1, sinceMs: w.timeMs };
+    for (let t = 0; t < 2_000; t += TICK_MS) {
+      rt.goal = { kind: 'flag', id: 1, score: 1, sinceMs: w.timeMs };
+      step(w, TICK_MS);
+    }
+    expect(a.mode).toBe('explore');
+    rt.goal = undefined;
+    run(w, 1_500);
+    expect(a.mode).toBe('shop');
+  });
+
   it('does not leave a fight', () => {
     const w = withTrip(0);
     const h = explorer(w, 200);
