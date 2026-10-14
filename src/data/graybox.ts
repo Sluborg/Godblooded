@@ -934,19 +934,19 @@ export const GRAYBOX: GameData = {
     leanCount: 1,
     leanWeight: 3,
     margin: 150,
-    minTownDist: 600,
-    minLairDist: 350,
+    minTownDist: 760,
+    minLairDist: 520,
   },
-  // 8 build plots in a ring around the town hall (plot id = index).
+  // 8 build plots on a 520 x 380 ring around the town hall (plot id = index): room to read the town.
   plots: [
-    { x: 1590, y: 800 },
-    { x: 1476, y: 1012 },
-    { x: 1200, y: 1100 },
-    { x: 924, y: 1012 },
-    { x: 810, y: 800 },
-    { x: 924, y: 588 },
-    { x: 1200, y: 500 },
-    { x: 1476, y: 588 },
+    { x: 1720, y: 800 },
+    { x: 1568, y: 1069 },
+    { x: 1200, y: 1180 },
+    { x: 832, y: 1069 },
+    { x: 680, y: 800 },
+    { x: 832, y: 531 },
+    { x: 1200, y: 420 },
+    { x: 1568, y: 531 },
   ],
   buildings: [
     // `text`: one plain line for the build menu (docs/systems/buildings.md section 4).
