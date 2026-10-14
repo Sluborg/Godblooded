@@ -8,6 +8,7 @@ import {
   TICK_MS,
   type Stats,
 } from './units';
+import { gapTo } from './collision';
 import { dropTill } from './collector';
 import { leaveRuin } from './ruins';
 import { takeDamage } from './effects';
@@ -42,15 +43,24 @@ export function nearestBuilding(world: World, from: Vec2): BuildingCore | undefi
 }
 
 // Walks `unit` into weapon range of `to`; true once close enough to swing.
-function approach(unit: UnitState, stats: Stats, to: Vec2): boolean {
-  const d = dist(unit.pos, to);
+function approach(unit: UnitState, stats: Stats, to: Vec2, gap?: number): boolean {
+  // A building is reached at its edge: `gap` is the distance to the footprint, not to its middle.
+  const d = gap ?? dist(unit.pos, to);
   if (d > stats.weapon.range) {
     const dir = stepToward(unit.pos, to, (speedOf(stats) * TICK_MS) / 1000);
     if (dir.x !== 0 || dir.y !== 0) unit.facing = dir;
     return false;
   }
-  if (d > 0) unit.facing = { x: (to.x - unit.pos.x) / d, y: (to.y - unit.pos.y) / d };
+  const real = dist(unit.pos, to);
+  if (real > 0) {
+    unit.facing = { x: (to.x - unit.pos.x) / real, y: (to.y - unit.pos.y) / real };
+  }
   return true;
+}
+
+// The distance to a building a raider measures its reach by (to its middle without collision).
+function collisionGap(world: World, b: BuildingCore, from: Vec2): number | undefined {
+  return world.tuning.collision.enabled ? gapTo(world, b, from) : undefined;
 }
 
 // A raider hits a building. Destroyed buildings vanish and free their plot.
@@ -62,7 +72,7 @@ export function attackBuilding(
   b: BuildingCore,
 ): void {
   unit.target = b.id;
-  if (!approach(unit, stats, b.pos)) {
+  if (!approach(unit, stats, b.pos, collisionGap(world, b, unit.pos))) {
     rt.swing = undefined;
     return;
   }
@@ -112,7 +122,10 @@ export function attackLair(
   // A sealed boss lair cannot be attacked.
   if (lairSealed(world, lair.id)) return;
   unit.target = lair.id;
-  if (!approach(unit, stats, lair.pos)) {
+  const lairGap = world.tuning.collision.enabled
+    ? Math.max(0, dist(unit.pos, lair.pos) - world.tuning.collision.lairRadius)
+    : undefined;
+  if (!approach(unit, stats, lair.pos, lairGap)) {
     rt.swing = undefined;
     return;
   }
