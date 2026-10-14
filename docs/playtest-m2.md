@@ -80,14 +80,14 @@ Lead turns the answers into backlog rows; Design changes the specs the answers m
 
 ### Playtest 1 (2026-10-14, Stefan, relayed by Lead)
 
-| What            | Result                           |
-| --------------- | -------------------------------- |
-| Outcome         | Lost at 9:39, the town hall fell |
-| Lairs destroyed | 0                                |
-| Tax collected   | 0                                |
-| Knockouts       | 8                                |
-| Buildings lost  | 1                                |
-| Seed            | not shown (end screen row, Sim)  |
+| What            | Result                                                                             |
+| --------------- | ---------------------------------------------------------------------------------- |
+| Outcome         | Lost at 9:39, the town hall fell                                                   |
+| Lairs destroyed | 0                                                                                  |
+| Tax collected   | 0                                                                                  |
+| Knockouts       | 8                                                                                  |
+| Buildings lost  | 1                                                                                  |
+| Seed            | not shown (in the run report on `sim/human-bot` f605687; end screen pending Scene) |
 
 **How he played:** effectively run 1 (Watch): no flags. "Heroes were always fighting so I didn't
 feel a need to move them."
