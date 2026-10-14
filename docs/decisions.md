@@ -274,3 +274,16 @@ cartoony; the tax collector looks like an executioner; buildings look odd on the
 - **Collision:** units keep a minimum distance from each other and walk around building
   footprints; draw order by ground y so nobody hides under a roof.
 - **Lag:** Scene profiles a long run on a phone-sized view and fixes the top costs.
+
+## 2026-10-14 More to do in a run; first repaint batches go (Stefan)
+
+Stefan's run 2 in the browser: "I could only place buildings, and 1 or two flags." Two built
+features come on in the live game:
+
+- **The player picks level-up cards:** `autoPick` off; when a party levels up, the player picks
+  1 of 3 (LevelUpScene). Leader traits still pick if the offer times out.
+- **Town hall tiers and ruins on:** upgrading the hall unlocks buildings; ruins on the map can be
+  repaired at half cost.
+- Balance re-checks the human bot band with both on (the bot picks cards as a player would).
+- Art batches **G1** (Aesir heroes repainted) and **B13** (bounty flag as a carved banner pole,
+  plus build plot) are Ready. G3, G4 and the rest stay Draft.
