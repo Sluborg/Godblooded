@@ -1,6 +1,7 @@
 # Image QA (every image, before it is uploaded or shown)
 
-Lead's rule (2026-10-14, after Stefan rejected U1B: handles both in front of and behind the sun).
+Lead's rule (2026-10-14, after Stefan rejected U1B: handles both in front of and behind the sun;
+rules 7-10 from Stefan's reference check the same evening).
 Every image passes this check at **full size** before it leaves the chat; Art checks it again on
 arrival before anything reaches Lead or Stefan.
 
@@ -21,8 +22,16 @@ still fails, do not upload it: report the item and the fault instead.
    palette, no cartoon faces, no blur, no grain or noise texture.
 6. **Matches the batch:** every listed feature is there, the right number of things, nothing
    touches the canvas edge.
-7. **Reads at target size:** shrink it to the size the batch names (units 30-40 px, icons 32-48
-   px): the silhouette and the main shapes still read.
+7. **Believable and buildable:** every beam, log, plank and stone is placed so it could stand in
+   real life; nothing floats or sticks out without support; no unexplained extra bits (above all
+   on the back of a building); weapons are real and usable.
+8. **Reads as its function:** a temple has an inside you could enter, a forge has a hearth and an
+   anvil; no gate passing as a temple.
+9. **No painted effects:** no smoke columns, sparks, flying embers, glow halos or auras (the game
+   draws those). Fire inside a hearth or brazier and lit windows are fine.
+10. **Clear silhouette:** few, chunky props; if the eye cannot rest, remove things.
+11. **Reads at target size:** shrink it to the size the batch names (units 30-40 px, icons 32-48
+    px): the silhouette and the main shapes still read.
 
 **Not faults** (Art fixes these in the pipeline; never redo or withhold an image for them, just
 note them in the log): a background that is near the key colour instead of exact (it must be

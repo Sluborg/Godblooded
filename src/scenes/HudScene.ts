@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { COLORS, GAME_WIDTH, MIN_TOUCH, TAP_SLOP } from '../config';
+import { COLORS, GAME_HEIGHT, GAME_WIDTH, MIN_TOUCH, TAP_SLOP } from '../config';
 import { GRAYBOX, UPGRADES } from '../data/graybox';
 import { DEFAULT_TUNING, type BuildingState, type CommandResult } from '../sim/api';
 import { buildingEffect, buildingName, nextTierEffect } from '../ui/buildingInfo';
@@ -16,6 +16,7 @@ import { makeButton, type Button } from '../ui/button';
 import { addIcon } from '../ui/icons';
 import { PartyPanel } from '../ui/partyPanel';
 import type { SimEvent, Vec2 } from '../sim/api';
+import type { OmenView } from '../sim/api';
 import { describeEvent, EventFeed, type FeedWorld } from '../ui/eventFeed';
 import type { MapScene, MapTap } from './MapScene';
 import { collectorInfo } from '../ui/taxLook';
@@ -24,6 +25,8 @@ import { fitDesignCamera } from '../ui/designCamera';
 import { gatherersAt, poolLine } from '../ui/nodeLook';
 import { graveLabel, godPantheonOf, recallable, templeAmbrosiaCost } from '../ui/ambrosiaCards';
 import { AMBROSIA_STYLE, drawJar } from '../ui/ambrosiaLook';
+import { getSettings } from '../ui/settings';
+import { omenLabel, omenSky, skyAlpha, type OmenSky } from '../ui/omenLook';
 
 const ROSTER_PER_PAGE = 5;
 const ROSTER_W = 470;
@@ -36,6 +39,8 @@ interface MenuOption {
   pick: () => void;
   // Highlighted (the build menu's selected item).
   active?: boolean;
+  // Pulses to be found (the first temple while the clock waits for it).
+  pulse?: boolean;
 }
 const TEXT = { fontFamily: 'Georgia, serif', fontSize: '30px', color: COLORS.text };
 
@@ -47,8 +52,15 @@ export class HudScene extends Phaser.Scene {
   private ambIcon!: Phaser.GameObjects.Graphics;
   private ambText!: Phaser.GameObjects.Text;
   private raidArrows!: RaidArrowView;
+  // Omens: a tint over the map, a countdown under the clock (with a dot in the omen's colour).
+  private sky!: Phaser.GameObjects.Rectangle;
+  private omenText!: Phaser.GameObjects.Text;
+  private omenDot!: Phaser.GameObjects.Arc;
+  private omenSkyNow: OmenSky | null = null;
+  private omenLeadMs = 0;
   private goldIcon: Phaser.GameObjects.Image | null = null;
   private clockText!: Phaser.GameObjects.Text;
+  private clockWaiting = false;
   private toast!: Phaser.GameObjects.Text;
   private banner!: Phaser.GameObjects.Text;
   private panel!: PartyPanel;
@@ -116,6 +128,16 @@ export class HudScene extends Phaser.Scene {
       .setOrigin(0, 0.5)
       .setVisible(false);
     this.clockText = this.add.text(GAME_WIDTH / 2, 36, '0:00', TEXT).setOrigin(0.5);
+    this.clockWaiting = false;
+    this.sky = this.add
+      .rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0xffffff, 0)
+      .setDepth(-1);
+    this.omenText = this.add
+      .text(GAME_WIDTH / 2 + 14, 62, '', { ...TEXT, fontSize: '16px', color: '#e8dcff' })
+      .setOrigin(0.5)
+      .setVisible(false);
+    this.omenDot = this.add.circle(0, 62, 6, 0xffffff).setVisible(false);
+    this.omenSkyNow = null;
     SPEEDS.forEach((s, i) => {
       const b = makeButton(
         this,
@@ -208,7 +230,17 @@ export class HudScene extends Phaser.Scene {
     const ambOn = ambSnap.nodes.length > 0;
     this.ambIcon.setVisible(ambOn);
     this.ambText.setVisible(ambOn).setText(`${Math.floor(ambSnap.ambrosia)}`);
-    this.clockText.setText(formatClock((this.registry.get('timeMs') as number) ?? 0));
+    // On a first run the clock stands still until the first temple: say so instead of 0:00.
+    const waiting = (this.scene.get('Map') as MapScene).snapshot.waiting;
+    // setFontSize re-renders the text canvas: only when the state flips.
+    if (waiting !== this.clockWaiting) {
+      this.clockWaiting = waiting;
+      this.clockText.setFontSize(waiting ? 22 : 30);
+    }
+    this.clockText.setText(
+      waiting ? 'Build a temple' : formatClock((this.registry.get('timeMs') as number) ?? 0),
+    );
+    this.drawOmen(snap);
     const status = this.registry.get('status') as string | undefined;
     if ((status === 'won' || status === 'lost') && !this.ended) this.showEnd();
     this.panel.update((this.scene.get('Map') as MapScene).snapshot);
@@ -218,6 +250,34 @@ export class HudScene extends Phaser.Scene {
     for (const { button, cost, ambrosia, blocked } of this.menuButtons)
       button.setEnabled(!blocked && gold >= cost && (ambrosia === undefined || stock >= ambrosia));
     this.hints?.update(map.snapshot, gold, map.hintTuning);
+  }
+
+  // The leader's name for a party ("Thor-born"), else "A party" (players never see party numbers).
+  private partyWho(map: MapScene, partyId: number): string {
+    const party = map.snapshot.parties.find((p) => p.id === partyId);
+    const lead = map.snapshot.units.find((u) => u.id === party?.members[0]);
+    return lead ? heroLabel(lead) : 'A party';
+  }
+
+  private drawOmen(snap: Readonly<{ omen: Readonly<OmenView> | null }>): void {
+    const o = snap.omen;
+    if (o === null) {
+      this.omenSkyNow = null;
+      this.omenLeadMs = 0;
+      this.sky.setFillStyle(0xffffff, 0);
+      this.omenText.setVisible(false);
+      this.omenDot.setVisible(false);
+      return;
+    }
+    if (o.phase === 'announced') this.omenLeadMs = Math.max(this.omenLeadMs, o.msLeft);
+    const map = this.scene.get('Map') as MapScene;
+    this.omenSkyNow ??= omenSky(map.omenDef(o.id), o.id);
+    this.sky.setFillStyle(this.omenSkyNow.color, skyAlpha(this.omenSkyNow, o, this.omenLeadMs));
+    this.omenText.setText(omenLabel(o)).setVisible(true);
+    this.omenDot
+      .setFillStyle(this.omenSkyNow.color)
+      .setPosition(this.omenText.x - this.omenText.width / 2 - 12, 62)
+      .setVisible(true);
   }
 
   // The screen rectangle of a HUD hint target: a button of the build menu (`build-<type>`).
@@ -273,6 +333,19 @@ export class HudScene extends Phaser.Scene {
       }
       if (e.kind === 'raidWarning')
         this.raidArrows.add({ raid: e.raid, lair: e.lair, untilMs: snap.timeMs + e.inMs });
+      if (e.kind === 'omen') {
+        const o = snap.omen;
+        this.showBanner(o ? `${o.name}: ${o.text}` : 'An omen is coming', '#3a2a6add');
+      } else if (e.kind === 'omenStart') {
+        const o = snap.omen;
+        this.showBanner(o ? `${o.name} is upon us` : 'The omen begins', '#3a2a6add');
+      } else if (e.kind === 'starFallen') {
+        this.showBanner('A star falls near the town! Be the first to reach it', '#3a2a6add');
+      } else if (e.kind === 'starFound') {
+        this.showToast(`${this.partyWho(map, e.party)} found the star (+${e.xp} xp)`);
+      } else if (e.kind === 'bonusCard') {
+        this.showToast(`${this.partyWho(map, e.party)} wins the contest: a bonus card`);
+      }
       if (e.kind === 'raid') {
         const lair = snap.lairs.find((l) => l.id === e.lair);
         this.showBanner(
@@ -690,6 +763,8 @@ export class HudScene extends Phaser.Scene {
         // Cost 0: an item the town cannot afford stays tappable, it still shows its info.
         cost: 0,
         active: d.id === selected,
+        // On a first run the clock waits for a temple: the temple button pulses.
+        pulse: map.snapshot.waiting && d.id.startsWith('temple'),
         pick: () => {
           const now = (this.registry.get('gold') as number | undefined) ?? 0;
           const r = buildTap(selected, d.id, now, d.cost);
@@ -731,6 +806,15 @@ export class HudScene extends Phaser.Scene {
       const button = makeButton(this, x, cy + 20, bw, bh, opt.label, opt.pick);
       this.menu.push(button.container);
       if (opt.active) button.setActive(true);
+      if (opt.pulse && !getSettings().reducedMotion)
+        this.tweens.add({
+          targets: button.container,
+          scale: 1.07,
+          duration: 450,
+          yoyo: true,
+          repeat: -1,
+          ease: 'Sine.easeInOut',
+        });
       this.menuButtons.push({ button, cost: opt.cost });
     });
   }

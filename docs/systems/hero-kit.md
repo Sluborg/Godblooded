@@ -50,14 +50,14 @@ with Scene); Scene combines and animates; Balance and Lead write the item rows. 
 
 ## 2. Item slots and families
 
-| Slot     | Families (M2 Aesir in bold)                                                      | Levels | Buys at | Worn socket |
-| -------- | -------------------------------------------------------------------------------- | ------ | ------- | ----------- |
-| weapon   | **staff, spear, hammer, daggers, wand**; later sword, axe, bow, khopesh, claws   | 0-3    | smithy  | weapon      |
-| armour   | **heavy, light, robe** (the template's kit)                                      | 0-3    | smithy  | torso, legs |
-| headgear | **heavy helm, light hood, robe hat** (by kit)                                    | 0-3    | smithy  | headgear    |
-| off-hand | **shield** (heavy kit), **second blade** (rogue), **focus** (casters: rune tome) | 0-3    | smithy  | off-hand    |
-| potion   | **healing potion**                                                               | count  | market  | none        |
-| charm    | the four charms (M3)                                                             | one    | market  | none        |
+| Slot     | Families (M2 Aesir in bold)                                                           | Levels | Buys at | Worn socket |
+| -------- | ------------------------------------------------------------------------------------- | ------ | ------- | ----------- |
+| weapon   | **staff, spear, hammer, daggers, wand**; later sword, axe, bow, khopesh, claws        | 0-3    | smithy  | weapon      |
+| armour   | **heavy, light, robe** (the template's kit)                                           | 0-3    | smithy  | torso, legs |
+| headgear | **heavy helm, light hood, robe hat** (by kit)                                         | 0-3    | smithy  | headgear    |
+| off-hand | **shield** (heavy kit), **second blade** (light kit), **focus** (robe kit: rune tome) | 0-3    | smithy  | off-hand    |
+| potion   | **healing potion**                                                                    | count  | market  | none        |
+| charm    | the four charms (M3)                                                                  | one    | market  | none        |
 
 - **Each weapon level is its own item and piece:** for example staff 0 "Ash staff", 1
   "Tempered staff", 2 "Runed staff", 3 "Star staff"; Balance and Lead name the rows. The family
@@ -65,10 +65,26 @@ with Scene); Scene combines and animates; Balance and Lead write the item rows. 
   daggers, Freyja wand; Wanderer and Valkyrie spear, Stormcaller and Seidkona staff).
 - **Armour** stays one item (one level) that fills torso and legs; plain at level 1, finer at 2
   and 3, each level its own chest piece.
-- **Headgear and off-hand are new item slots** (Sim and Balance; section 4). Start effects for
-  Balance: headgear gives about a third of the armour row's armour or Wp by kit; a shield gives
-  armour, a second blade crit, a focus spell power; prices about half of the armour row.
-- **Flame in both hands** (Loki Flamebinder) and **ravens** stay code effects.
+- **Headgear and off-hand are new item slots** (Sim and Balance; section 4). Balance's rows
+  (`balance/hero-kit` 446bc1f): the off-hand follows the kit (heavy shield, light second blade,
+  robe focus).
+
+| Item       | Price | Heavy: armour / Wp | Light          | Robe           | Worn (heavy / light / robe)    |
+| ---------- | ----- | ------------------ | -------------- | -------------- | ------------------------------ |
+| Headgear 1 | 10    | +1 / 0             | +1 / 0         | 0 / +1         | helm, hood, hat (level 1)      |
+| Headgear 2 | 65    | +3 / 0             | +1 / +1        | 0 / +1         | helm, hood, hat (level 2)      |
+| Headgear 3 | 140   | +4 / +1            | +2 / +1        | +1 / +2        | helm, hood, hat (level 3)      |
+| Off-hand 1 | 10    | shield +1 armour   | blade +3% crit | focus +1 power | shield, blade, focus (level 1) |
+| Off-hand 2 | 65    | shield +3 armour   | blade +5% crit | focus +2 power | shield, blade, focus (level 2) |
+| Off-hand 3 | 140   | shield +4 armour   | blade +8% crit | focus +3 power | shield, blade, focus (level 3) |
+
+- **Ids follow Art's scheme** (`asset-spec.md` "Item ids", `art/item-ids` 900ce8c; Art owns
+  ids). One item per level, a worn piece per kit: icons `ui_item_armour_N`,
+  `ui_item_headgear_N`, `ui_item_offhand_N` (N 1-3) and `ui_item_weapon_<kind>_N` (N 0-3);
+  worn armour as three layers `layer_torso_<kit>_N`, `layer_thigh_<kit>_N`, `layer_boot_<kit>_N`
+  (levels 2-3 may reuse the level 1 leg layers), `layer_headgear_<helm|hood|hat>_N`,
+  `offhand_<shield|blade|focus>_N`, `weapon_<kind>_N`. Base parts are `<slot>_<variant>`
+  (`head_odin_a`, `cloak_odin`).
 
 ## 3. Builds
 
@@ -93,33 +109,33 @@ Builds are rows of per-segment scale factors and socket offsets in Scene's data 
 | PathDef   | `cloak` and `weapon` (family) for tier 2                                                                                                       |
 | ItemDef   | `slot` gains `headgear` and `offhand`; weapon rows get a `family`; every row gets `icon` and `worn` (part ids per kit for armour and headgear) |
 | UnitState | `build`; `items` gains `headgear` and `offhand` levels                                                                                         |
-| Manifest  | Art proposes the ids (`asset-spec.md` is Art's); Design suggests `part_<socket>_<name>` and `item_<id>`                                        |
+| Manifest  | Art's scheme in `asset-spec.md`: `ui_item_<item>` icons, `kit_<name>` sheets with `<slot>_<variant>` parts and `layer_<slot>_<item>` layers    |
 
 ### Paste-ready look rows (Aesir; Lead approved 2026-10-14)
 
-Part ids are Design's proposal until Art fixes them in `asset-spec.md`; colours are the god's
+Part ids follow Art's `<slot>_<variant>` scheme (`asset-spec.md`); the emblem is a layer on the cloak; colours are the god's
 cloak and trim from today's parts data (`src/data/heroParts.gen.ts`), so the look carries over.
 
 ```ts
 // GodDef look fields (with the existing id, pantheon, name, template, damageType)
-{ id: 'odin',   builds: ['tall', 'lean'],  faces: ['part_face_odin_a', 'part_face_odin_b'],
-  cloak: 'part_cloak_odin',   colours: ['#41507a', '#c8b27a'], emblem: 'part_emblem_raven' },
-{ id: 'thor',   builds: ['broad', 'short'], faces: ['part_face_thor_a', 'part_face_thor_b'],
-  cloak: 'part_cloak_thor',   colours: ['#a8392c', '#d9a441'], emblem: 'part_emblem_hammer' },
-{ id: 'loki',   builds: ['lean', 'short'], faces: ['part_face_loki_a', 'part_face_loki_b'],
-  cloak: 'part_cloak_loki',   colours: ['#4f8a3a', '#8fbf4a'], emblem: 'part_emblem_serpent' },
-{ id: 'freyja', builds: ['lean', 'broad'], faces: ['part_face_freyja_a', 'part_face_freyja_b'],
-  cloak: 'part_cloak_freyja', colours: ['#9d4f6a', '#f1e8d4'], emblem: 'part_emblem_feather' },
+{ id: 'odin',   builds: ['tall', 'lean'],  faces: ['head_odin_a', 'head_odin_b'],
+  cloak: 'cloak_odin',   colours: ['#41507a', '#c8b27a'], emblem: 'layer_cloak_emblem_raven' },
+{ id: 'thor',   builds: ['broad', 'short'], faces: ['head_thor_a', 'head_thor_b'],
+  cloak: 'cloak_thor',   colours: ['#a8392c', '#d9a441'], emblem: 'layer_cloak_emblem_hammer' },
+{ id: 'loki',   builds: ['lean', 'short'], faces: ['head_loki_a', 'head_loki_b'],
+  cloak: 'cloak_loki',   colours: ['#4f8a3a', '#8fbf4a'], emblem: 'layer_cloak_emblem_serpent' },
+{ id: 'freyja', builds: ['lean', 'broad'], faces: ['head_freyja_a', 'head_freyja_b'],
+  cloak: 'cloak_freyja', colours: ['#9d4f6a', '#f1e8d4'], emblem: 'layer_cloak_emblem_feather' },
 
 // PathDef look fields (tier 2 on): the path's cloak and its weapon family
-{ id: 'odin-seer',          cloak: 'part_cloak_odin_seer',          weapon: 'staff' },
-{ id: 'odin-wanderer',      cloak: 'part_cloak_odin_wanderer',      weapon: 'spear' },
-{ id: 'thor-hammerborn',    cloak: 'part_cloak_thor_hammerborn',    weapon: 'hammer' },
-{ id: 'thor-stormcaller',   cloak: 'part_cloak_thor_stormcaller',   weapon: 'staff' },
-{ id: 'loki-trickster',     cloak: 'part_cloak_loki_trickster',     weapon: 'daggers' },
-{ id: 'loki-flamebinder',   cloak: 'part_cloak_loki_flamebinder',   weapon: 'daggers' },
-{ id: 'freyja-valkyrie',    cloak: 'part_cloak_freyja_valkyrie',    weapon: 'spear' },
-{ id: 'freyja-seidkona',    cloak: 'part_cloak_freyja_seidkona',    weapon: 'staff' },
+{ id: 'odin-seer',          cloak: 'cloak_odin_seer',          weapon: 'staff' },
+{ id: 'odin-wanderer',      cloak: 'cloak_odin_wanderer',      weapon: 'spear' },
+{ id: 'thor-hammerborn',    cloak: 'cloak_thor_hammerborn',    weapon: 'hammer' },
+{ id: 'thor-stormcaller',   cloak: 'cloak_thor_stormcaller',   weapon: 'staff' },
+{ id: 'loki-trickster',     cloak: 'cloak_loki_trickster',     weapon: 'daggers' },
+{ id: 'loki-flamebinder',   cloak: 'cloak_loki_flamebinder',   weapon: 'daggers' },
+{ id: 'freyja-valkyrie',    cloak: 'cloak_freyja_valkyrie',    weapon: 'spear' },
+{ id: 'freyja-seidkona',    cloak: 'cloak_freyja_seidkona',    weapon: 'staff' },
 ```
 
 - **Tier 1 weapon family** comes from the god: Odin staff, Thor hammer, Loki daggers, Freyja
