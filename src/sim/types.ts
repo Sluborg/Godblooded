@@ -1660,6 +1660,9 @@ export interface RunReport {
   lairsCleared: { lair: number; type: string; timeMs: number; by: number }[];
   // Town gold over the run, sampled every tuning.stats.goldSampleMs plus the final value.
   goldHistory: { timeMs: number; gold: number }[];
+  // The replay code of the run (seed + every command, base64): paste it to `npm run replay`.
+  // null when the run was loaded from a save that has no command log.
+  replay: string | null;
 }
 
 export interface Snapshot {

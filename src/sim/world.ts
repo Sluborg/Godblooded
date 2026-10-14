@@ -283,6 +283,10 @@ export interface World {
   // (collector.ts).
   piles: PileState[];
   collectorQueue: number[];
+  // Every command that took effect, with the tick it came in at (replay.ts), and whether the log
+  // covers the whole run (false for a run loaded from a save that had none).
+  commandLog: { tick: number; cmd: Command }[];
+  replayable: boolean;
   // Celestial nodes and the Ambrosia the town holds (nodes.ts).
   nodes: NodeState[];
   ambrosia: number;
@@ -351,6 +355,8 @@ export function createWorld(seed: number, data: GameData): World {
     bounties: [],
     piles: [],
     collectorQueue: [],
+    commandLog: [],
+    replayable: true,
     nodes: [],
     ambrosia: 0,
     jars: [],
@@ -1077,6 +1083,17 @@ function wanderPoint(world: World, center: Vec2): Vec2 {
 export { spawnHero } from './heroes';
 
 export function command(world: World, cmd: Command): CommandResult {
+  const result = runCommand(world, cmd);
+  if (result.ok) world.commandLog.push({ tick: world.tick, cmd: structuredClone(cmd) });
+  return result;
+}
+
+// One tick of the run, whatever the frame rate (replay.ts drives the world with it).
+export function advanceTick(world: World): void {
+  runTick(world);
+}
+
+function runCommand(world: World, cmd: Command): CommandResult {
   if (world.status !== 'running') return { ok: false, reason: 'run over' };
   switch (cmd.kind) {
     case 'build': {
