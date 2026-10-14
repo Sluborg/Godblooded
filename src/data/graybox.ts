@@ -867,7 +867,8 @@ export const ITEMS: readonly ItemDef[] = [
   // Headgear and off-hand (hero-kit.md section 2): headgear about a third of the armour row by
   // kit, an off-hand a shield's armour for the heavy kit plus a focus's power and a second blade's
   // crit for everyone (one row per level until rows can name a kit or a family); about half the
-  // armour price.
+  // armour price. Bot (human, seeds 1 and 1001, 40 runs): wins 60% and 60% (50% and 63% without);
+  // the cheap level 1 pieces come first, so weapon and armour at 8:00 drop to 0.5 and 0.3.
   {
     id: 'headgear-1',
     slot: 'headgear',
