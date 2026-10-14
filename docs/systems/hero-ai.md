@@ -154,8 +154,13 @@ once-a-second re-score and a 6 s commit.
 - **Re-score on placement:** `placeBounty` and `raiseBounty` make every exploring leader (and lone
   hero) re-score that tick, not at the next 1 s step.
 - **Fresh flag breaks a commit:** for `freshFlagMs` (10 s) after it is placed or raised, a flag
-  may replace a goal inside its `commitMs` hold if it beats it by the usual margin. A lair goal
-  at its lair (the sticky case) still holds; the party finishes that fight first.
+  may replace a goal inside its `commitMs` hold if it beats it by the usual margin. Mid-fight nothing
+  breaks (Lead's ruling c, 2026-10-14):
+  - **In a fight** (a monster within `stickyFoeRange` 100 of the party): every goal holds, and
+    fresh flags are not even candidates until the fight ends.
+  - **At its lair with no foe near:** the party re-scores like an explorer and takes a fresh
+    flag if it beats the lair by the usual margin.
+  - **Walking to a lair:** the lair goal keeps its hold, as before.
 - **Considering beat:** when a re-score finds a flag scoring at least `considerShare` (0.7) of
   the party's current goal but not winning, Sim emits `considering {party, bounty}` once per
   party and flag. Scene shows a "?" over that party's banner for 2 s; if the party commits, the
@@ -189,7 +194,7 @@ once-a-second re-score and a 6 s commit.
 | GodDef       | `traitWeights` (decided)                                                                                                                                                                           |
 | state        | `lair.discovered`, `exploredCells` (snapshot and save), `unit.intent`; tuning `discoverRange` 400, `startDiscovered` 600, `cellSize` 200, `exploreRange` 150                                       |
 | events       | `intent`, `defend`, `partyRetreat`, `considering` (Fix 5)                                                                                                                                          |
-| Fix 5        | `BountyState.target`; tuning.bounty `huntSnap` 60, `claimClearRadius` 100, `freshFlagMs` 10000, `considerShare` 0.7; event `bountyClaimed` gains `hunt`                                            |
+| Fix 5        | `BountyState.target`; tuning.bounty `huntSnap` 60, `claimClearRadius` 100, `freshFlagMs` 10000, `considerShare` 0.7; tuning.ai `stickyFoeRange` 100; event `bountyClaimed` gains `hunt`            |
 
 ## 8. Proposed backlog rows
 
