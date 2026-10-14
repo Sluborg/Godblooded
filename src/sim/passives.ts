@@ -19,11 +19,37 @@ import type {
 // The passive effects that apply to a hero: its own god's, and the 'mates' and 'party' effects
 // of living party mates in range. A party effect of one passive counts once however many mates
 // carry it.
-export function passivesFor(world: World, unit: UnitState): PassiveEffect[] {
-  if (unit.kind !== 'hero') return [];
-  const out = new Map<string, PassiveEffect>();
+// Lookups by id over the content rows, built once per GameData (it does not change in a run).
+interface Index {
+  anyPassive: boolean;
+  gods: Map<string, PassiveDef | undefined>;
+  keys: Map<string, PassiveKeys | undefined>;
+}
+const indexes = new WeakMap<object, Index>();
+function indexOf(world: World): Index {
+  let ix = indexes.get(world.data);
+  if (!ix) {
+    ix = {
+      anyPassive: !!world.data.gods?.some((g) => g.passive),
+      gods: new Map(),
+      keys: new Map(),
+    };
+    for (const g of world.data.gods ?? []) if (!ix.gods.has(g.id)) ix.gods.set(g.id, g.passive);
+    for (const u of world.data.upgrades ?? []) {
+      if (!ix.keys.has(u.id)) ix.keys.set(u.id, u.effect.keys);
+    }
+    indexes.set(world.data, ix);
+  }
+  return ix;
+}
+
+const NONE: readonly PassiveEffect[] = [];
+
+export function passivesFor(world: World, unit: UnitState): readonly PassiveEffect[] {
+  if (unit.kind !== 'hero') return NONE;
   const cards = cardEffects(world, unit);
-  if (!world.data.gods?.some((g) => g.passive) && cards.length === 0) return [];
+  if (!indexOf(world).anyPassive && cards.length === 0) return NONE;
+  const out = new Map<string, PassiveEffect>();
   const own = passiveOf(world, unit);
   own?.effects.forEach((e, i) => {
     if (e.scope !== 'mates') out.set(`${own.id}:${i}`, e);
@@ -45,19 +71,20 @@ export function passivesFor(world: World, unit: UnitState): PassiveEffect[] {
 }
 
 // The cards the hero's party has taken that carry keys: each copy counts, for the whole party.
-function cardEffects(world: World, unit: UnitState): PassiveEffect[] {
+function cardEffects(world: World, unit: UnitState): readonly PassiveEffect[] {
   const upgrades = world.parties.get(unit.party)?.upgrades;
-  if (!upgrades || upgrades.length === 0) return [];
+  if (!upgrades || upgrades.length === 0) return NONE;
+  const ix = indexOf(world);
   const out: PassiveEffect[] = [];
   for (const id of upgrades) {
-    const keys = world.data.upgrades?.find((u) => u.id === id)?.effect.keys;
+    const keys = ix.keys.get(id);
     if (keys) out.push({ scope: 'party', keys });
   }
   return out;
 }
 
 function passiveOf(world: World, hero: UnitState): PassiveDef | undefined {
-  return world.data.gods?.find((g) => g.id === hero.god)?.passive;
+  return hero.god === null ? undefined : indexOf(world).gods.get(hero.god);
 }
 
 // Folds one numeric key over the unit's passives.

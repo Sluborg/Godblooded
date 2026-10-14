@@ -255,6 +255,18 @@ export const HINTS: readonly HintDef[] = [
     line1: 'This bounty follows its monster.',
     line2: 'The hero who kills it gets the gold.',
   },
+  // Scene condition `idleGold`: a market stands, no smithy yet, and the heroes carry 100+ gold
+  // between them; points at a free plot.
+  {
+    id: 'h-smithy',
+    order: 138,
+    group: 'first',
+    trigger: 'idleGold',
+    milestone: 2,
+    target: { kind: 'plot' },
+    line1: 'Heroes have gold and nothing to buy.',
+    line2: 'A smithy sells weapons and armour.',
+  },
   {
     id: 'h-ruin',
     order: 140,
