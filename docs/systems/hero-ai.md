@@ -210,7 +210,7 @@ while the unsealed boss lair waits; no data lever closed it (Vanguard size and c
 count, `lairAggro`, lair hp), and the Vanguard's raider dies to the towers before it meets anyone.
 The gap is a behaviour gap, so the boss lair calls the heroes.
 
-1. **From `bossLairUnsealed`** the boss lair's `lairScore` gets `bossCallBonus` added (start 40,
+1. **From `bossLairUnsealed`** the boss lair's `lairScore` gets `bossCallBonus` added (80 after Balance's tune; first draft 40,
    Balance tunes), as if a flag stood on it. It then competes with flags and other lairs as
    usual (`costPerDanger`, distance, traits), so a standing normal lair near town can still win.
 2. **When no normal lair stands**, the boss lair's score is at least `exploreValue +
@@ -228,6 +228,12 @@ switchMin` for a party whose members are all above `bossCallHp` (0.7): exploring
   call alone does not close the gap.
 - **Target:** the human bot's longest quiet stretch p90 under 60 s (the fun gate), boss fight
   reached in most runs, win rate inside the band after Balance's retune.
+
+- **Balance's tune** (with the playtest trim): `bossCallBonus` 80, `bossCallHp` 0.7 (0.5 made no
+  difference). The median run drops to 15 min (was 19), the quiet p90 to 80-102 s (was 156), wins
+  63-68%. The rest of the gap sits near 10 min, before the unseal: walks between normal lairs.
+  A mid-game floor on the nearest known lair would close it, but it also takes over the job the
+  flags have (`hero-ai.md` 5b part 4); Lead and Stefan decide.
 
 ## 6. Smaller fixes
 
@@ -249,7 +255,7 @@ switchMin` for a party whose members are all above `bossCallHp` (0.7): exploring
 | state        | `lair.discovered`, `exploredCells` (snapshot and save), `unit.intent`; tuning `discoverRange` 400, `startDiscovered` 600, `cellSize` 200, `exploreRange` 150                                       |
 | events       | `intent`, `defend`, `partyRetreat`, `considering` (Fix 5)                                                                                                                                          |
 | Fix 5        | `BountyState.target`; tuning.bounty `huntSnap` 60, `claimClearRadius` 100, `freshFlagMs` 10000, `considerShare` 0.7; tuning.ai `stickyFoeRange` 100; event `bountyClaimed` gains `hunt`            |
-| Fix 6        | tuning.ai `bossCallBonus` 40, `bossCallHp` 0.7                                                                                                                                                     |
+| Fix 6        | tuning.ai `bossCallBonus` 80, `bossCallHp` 0.7                                                                                                                                                     |
 
 ## 8. Proposed backlog rows
 
