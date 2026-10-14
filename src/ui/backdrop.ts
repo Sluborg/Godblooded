@@ -8,11 +8,13 @@ export function coverScale(picW: number, picH: number, w = GAME_WIDTH, h = GAME_
 
 // How much the key art is pushed: the title read muted and grainy on a phone, so the picture gets
 // more contrast and saturation (still the warm palette) and a lighter veil.
+// Stefan (run 2): the title was grainy. A contrast boost makes the painting's grain louder, so the
+// art is shown as it is (contrast and saturation 1) with smooth dark scrims above and below.
 export const BACKDROP_STYLE = {
-  contrast: 1.12,
-  saturation: 1.18,
-  veilTop: 0,
-  veilBottom: 0.32,
+  contrast: 1,
+  saturation: 1,
+  veilTop: 0.18,
+  veilBottom: 0.5,
 } as const;
 
 // Contrast about mid grey, then saturation, on RGBA pixels in place.
@@ -38,6 +40,7 @@ export function punchPixels(
 // The key art with the punch applied, baked once into its own texture; the plain art when a canvas
 // cannot be made (then the veil is all there is).
 function punchedSplash(scene: Phaser.Scene): string {
+  if (BACKDROP_STYLE.contrast === 1 && BACKDROP_STYLE.saturation === 1) return 'art_splash';
   const key = 'art_splash_punch';
   if (scene.textures.exists(key)) return key;
   try {

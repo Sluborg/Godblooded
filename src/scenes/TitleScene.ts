@@ -44,15 +44,21 @@ export class TitleScene extends Phaser.Scene {
         .setOrigin(0.5)
         .setShadow(0, 5, '#000000', 6, true, true);
     }
-    this.add
+    // The tagline sits on a dark plate sized to its text and shrinks to fit the box.
+    const tag = this.add
       .text(cx, 285, 'Build the town. Hire the children of gods. Watch them fight.', {
         fontFamily: FONT,
         fontSize: '26px',
         color: '#fff3d6',
-        stroke: '#1a0c06',
-        strokeThickness: 5,
       })
       .setOrigin(0.5);
+    const boxW = GAME_WIDTH - 160;
+    if (tag.width > boxW - 48) tag.setScale((boxW - 48) / tag.width);
+    this.add
+      .rectangle(cx, tag.y, tag.displayWidth + 48, tag.displayHeight + 22, 0x120b08, 0.72)
+      .setStrokeStyle(2, 0xc9a45c, 0.7)
+      .setDepth(0.5);
+    tag.setDepth(1);
 
     const canContinue = this.canContinue();
     const labels: [string, () => void][] = [['Play', () => this.play()]];
@@ -70,7 +76,7 @@ export class TitleScene extends Phaser.Scene {
     const y0 = tight ? 360 : canContinue ? 385 : 420;
     const icons: Record<string, string> = { Settings: 'ui_icon_settings' };
     labels.forEach(([label, fn], i) =>
-      makeButton(this, cx, y0 + i * gap, 320, 84, label, fn, { icon: icons[label] }),
+      makeButton(this, cx, y0 + i * gap, 320, 84, label, fn, { icon: icons[label], flat: true }),
     );
 
     this.add

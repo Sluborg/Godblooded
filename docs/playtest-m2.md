@@ -131,3 +131,32 @@ human-like bot).
   (median). Stefan's run was the slow tail.
 - **Spacing, option B** (branch `balance/spacing`): map 3000 x 2000, lairs at least 800 from
   town and 500 apart.
+
+### Playtest 2 (2026-10-14, Stefan, relayed by Lead)
+
+No numbers this run, only notes and one screenshot: `docs/playtest/run2-town.jpg` (about 5:00
+into a run, 18 gold, the Labyrinth and Barrow lairs on screen, two heroes stacked on one spot).
+
+**Fun gates:** not judged in run 2 (section 5 needs the end screen and the six answers).
+
+**Stefan's notes:**
+
+- Units stack on one spot, and heroes hide under buildings.
+- The game gets laggy quickly.
+- The mixed art styles look messy.
+- The title image is grainy, its text does not fit, and its buttons are ugly.
+- The flags do not fit.
+- Many heroes (the princess) look silly and cartoony.
+- The tax collector looks like an executioner.
+- Buildings look odd on their circles.
+
+**Decided** (`docs/decisions.md` 2026-10-14 "Playtest run 2"):
+
+- **One art style:** the painted buildings are the anchor; heroes, monsters, flags, the
+  collector, the title and the UI are repainted to match (Art; each batch needs Stefan's go).
+- **No round plate under buildings:** a ground patch shaped to the footprint plus a soft cast
+  shadow; a thin ring only when a building is tapped or being placed.
+- **Collision:** units keep a minimum distance and walk around footprints; draw order by ground y.
+- **Lag:** Scene profiles a long run on a phone-sized view and fixes the top costs.
+- **Specs updated** (Design): `look-sheet.md`, `paths-and-skills.md`, `monsters-and-bosses.md`,
+  `buildings.md`, `tax-collector.md`.
