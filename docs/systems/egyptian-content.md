@@ -294,11 +294,11 @@ export const EGYPTIAN_SKILLS: readonly SkillDef[] = [
 
 ### Pantheon cards (need an Egyptian hero in the party)
 
-| Id           | Name             | Rarity | Effect                                                     |
-| ------------ | ---------------- | ------ | ---------------------------------------------------------- |
-| scarab       | Scarab           | common | heal 3% max hp per kill                                    |
-| book-of-dead | Book of the Dead | rare   | death chances -10 points (boss), -5 (lair); +25% vs undead |
-| eye-of-ra    | Eye of Ra        | epic   | every 4th strike is holy and carries sear                  |
+| Id           | Name             | Rarity | Effect                                                                    |
+| ------------ | ---------------- | ------ | ------------------------------------------------------------------------- |
+| scarab       | Scarab           | common | +3 Sta; heal 3% max hp per kill                                           |
+| book-of-dead | Book of the Dead | rare   | +2 Sta, +2 Wp; death chances -10 points (boss), -5 (lair); +25% vs undead |
+| eye-of-ra    | Eye of Ra        | epic   | +2 Str, +3 Per; every 4th strike is holy and carries sear                 |
 
 ### Favour cards (level 7, one per god in the party, epic)
 

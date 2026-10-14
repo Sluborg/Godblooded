@@ -68,6 +68,10 @@ tiers) and on `combat.md`, `paths-and-skills.md` and `items-and-shops.md`.
 | pantheon | boons in the pantheon's theme, need a member of it | 9     |
 | favour   | level 7, one per god in the party                  | 12    |
 
+- **Pantheon cards beat stat cards** (Stefan via Lead, 2026-10-14): a god's pantheon card is
+  clearly better than the best stat card of its rarity, so each carries stats on top of its
+  effect (common +3, rare and epic about +4 to +5; Balance, `balance/cards` eb1c2b4).
+
 ### The pool (today's 9 marked "kept")
 
 | Id             | Name             | Family   | Rarity | Needs    | Effect                                                          |
@@ -95,9 +99,9 @@ tiers) and on `combat.md`, `paths-and-skills.md` and `items-and-shops.md`.
 | wide-reach     | Wide Reach       | skill    | rare   | tier 2   | skill radius and range +25%                                     |
 | twin-cast      | Twin Cast        | skill    | epic   | tier 2   | 25% chance a skill casts twice                                  |
 | opening-gambit | Opening Gambit   | skill    | common | tier 2   | skills start every fight ready                                  |
-| berserkergang  | Berserkergang    | pantheon | rare   | Aesir    | +20% damage below 50% hp                                        |
-| fimbulwinter   | Fimbulwinter     | pantheon | epic   | Aesir    | basic strikes carry the chill rider                             |
-| einherjar      | Einherjar        | pantheon | common | Aesir    | knocked out members wake 50% faster, at 50% hp                  |
+| berserkergang  | Berserkergang    | pantheon | rare   | Aesir    | +2 Str, +2 Sta; +20% damage below 50% hp                        |
+| fimbulwinter   | Fimbulwinter     | pantheon | epic   | Aesir    | +2 Str, +2 Dex; basic strikes carry the chill rider             |
+| einherjar      | Einherjar        | pantheon | common | Aesir    | +3 Sta; knocked out members wake 50% faster, at 50% hp          |
 | phalanx        | Phalanx          | pantheon | common | Greek    | +3 armour while 3 members stand within 100                      |
 | kleos          | Kleos            | pantheon | rare   | Greek    | +50% gold from flags and lairs; a kill shout per kill           |
 | metis          | Metis            | pantheon | epic   | Greek    | +10% crit; crits stagger                                        |
