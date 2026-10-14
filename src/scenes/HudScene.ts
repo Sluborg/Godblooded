@@ -197,7 +197,8 @@ export class HudScene extends Phaser.Scene {
     this.panel.update((this.scene.get('Map') as MapScene).snapshot);
     const gold = (this.registry.get('gold') as number) ?? 0;
     for (const { button, cost } of this.menuButtons) button.setEnabled(gold >= cost);
-    this.hints?.update((this.scene.get('Map') as MapScene).snapshot, gold);
+    const map = this.scene.get('Map') as MapScene;
+    this.hints?.update(map.snapshot, gold, map.hintTuning);
   }
 
   // The screen rectangle of a HUD hint target: a button of the build menu (`build-<type>`).

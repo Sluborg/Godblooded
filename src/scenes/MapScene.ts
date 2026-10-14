@@ -402,6 +402,11 @@ export class MapScene extends Phaser.Scene {
   }
 
   // The end-screen numbers for the run as it stands (Quit from Pause shows them as abandoned).
+  get hintTuning(): { minTill: number; maxTier: number } {
+    const t = this.world.tuning;
+    return { minTill: t.collector.minTill, maxTier: t.lair.maxTier };
+  }
+
   abandonReport(): RunReport {
     return runReport(this.world);
   }

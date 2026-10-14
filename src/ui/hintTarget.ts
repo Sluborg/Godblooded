@@ -57,3 +57,28 @@ export function upgradeAffordable(
 ): number | null {
   return buildings.find((b) => b.upgradeCost !== null && gold >= b.upgradeCost)?.id ?? null;
 }
+
+// The h-smithy condition: a market stands, no smithy does, and the living heroes carry this much
+// gold between them with nothing to buy.
+export const IDLE_GOLD = 100;
+
+export function idleGold(
+  snap: Pick<Snapshot, 'buildings' | 'units'>,
+  minGold = IDLE_GOLD,
+): boolean {
+  const has = (type: string) => snap.buildings.some((b) => b.type === type);
+  if (!has('market') || has('smithy')) return false;
+  const carried = snap.units
+    .filter((u) => u.kind === 'hero' && !u.ko)
+    .reduce((sum, u) => sum + u.gold, 0);
+  return carried >= minGold;
+}
+
+// The b-till condition: the first building whose till reached `minTill` (its id and spot), or null.
+export function firstTill(
+  buildings: Pick<Snapshot, 'buildings'>['buildings'],
+  minTill: number,
+): { id: number; pos: Vec2 } | null {
+  const b = buildings.find((x) => (x.till ?? 0) >= minTill);
+  return b ? { id: b.id, pos: b.pos } : null;
+}
