@@ -6,6 +6,7 @@ import { pickLogoId } from '../ui/assetPriority';
 import { drawBackdrop } from '../ui/backdrop';
 import { canInstall, onInstallChange, promptInstall } from '../ui/install';
 import { clearSave, hasSave } from '../ui/saveStore';
+import { readMeta } from '../ui/metaStore';
 import { makeButton } from '../ui/button';
 import { getMusic } from '../ui/musicPlayer';
 import { fitDesignCamera } from '../ui/designCamera';
@@ -63,6 +64,8 @@ export class TitleScene extends Phaser.Scene {
     const canContinue = this.canContinue();
     const labels: [string, () => void][] = [['Play', () => this.play()]];
     if (canContinue) labels.push(['Continue', () => this.continueRun()]);
+    // The Hall (Altar, Saga, Unlocks) is open once a run has been played.
+    if (readMeta().runs > 0) labels.push(['Hall', () => this.openHall()]);
     labels.push(['Settings', () => this.scene.launch('Settings')]);
     // The browser may decide the app is installable after the title is up (or the player may
     // install): rebuild the title then so the button appears or goes away.
@@ -114,10 +117,21 @@ export class TitleScene extends Phaser.Scene {
 
   // A new run starts with a fresh seed (MapScene) and drops the old save.
   private play(): void {
-    clearSave();
-    this.registry.set('startMode', 'new');
-    this.scene.stop('Hud');
-    this.scene.start('Map');
+    // The very first run goes straight in; every later one passes the run setup (portent, Trials).
+    if (readMeta().runs === 0) {
+      clearSave();
+      this.registry.set('startMode', 'new');
+      this.registry.set('runTrials', []);
+      this.scene.stop('Hud');
+      this.scene.start('Map');
+      return;
+    }
+    this.scene.start('Setup');
+  }
+
+  private openHall(): void {
+    this.registry.set('altarReturn', 'Title');
+    this.scene.launch('Altar');
   }
 
   private continueRun(): void {

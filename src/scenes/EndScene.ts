@@ -6,7 +6,10 @@ import { copyReplay, replayButtonLabel } from '../ui/replayCode';
 import { markRunEnded } from '../ui/hintStore';
 import { formatClock, sparkline, visibleHeroes } from '../ui/endReport';
 import { heroLabel } from '../ui/partyLook';
-import type { HeroReport, RunReport } from '../sim/api';
+import { applyRun, type HeroReport, type RunOutcome, type RunReport } from '../sim/api';
+import { GRAYBOX } from '../data/graybox';
+import { readMeta, writeMeta } from '../ui/metaStore';
+import { rowsShown, runningTotal, tallyRows } from '../ui/essenceTally';
 import type { MapScene } from './MapScene';
 import { fitDesignCamera } from '../ui/designCamera';
 
@@ -16,11 +19,15 @@ const ROWS = 7;
 // End screen v2: the outcome and run time, the MVP hero, every hero's line, the gold curve and
 // the run totals. Reads the sim's report (Snapshot.report); owns no rules.
 export class EndScene extends Phaser.Scene {
+  // The gold curve is showing instead of the Essence frame.
+  private showDetails = false;
+
   constructor() {
     super('End');
   }
 
   create(): void {
+    this.showDetails = false;
     fitDesignCamera(this);
     const snap = (this.scene.get('Map') as MapScene).snapshot;
     // Quit from Pause: the report of the unfinished run, marked as abandoned.
@@ -57,37 +64,162 @@ export class EndScene extends Phaser.Scene {
 
     this.heroTable(report?.heroes ?? []);
     this.mvpCard(report?.heroes.find((h) => h.mvp) ?? null);
+    // The gold curve moves behind "Run details"; the Essence tally takes its place (meta-ui.md 2).
+    const before = this.children.length;
     this.goldChart(report?.goldHistory ?? []);
+    const chart = this.children.list.slice(before);
+    chart.forEach((o) =>
+      (o as Phaser.GameObjects.Components.Visible & Phaser.GameObjects.GameObject).setVisible(
+        false,
+      ),
+    );
+    const outcome = report && !abandoned ? this.foldRun(report) : null;
+    const essenceFrom = this.children.length;
+    if (outcome) this.essencePanel(outcome);
+    const essence = this.children.list.slice(essenceFrom);
+    if (outcome) this.detailsToggle(chart, essence);
     this.totals(snap.stats);
     if (report) addSeedLabel(this, report.seed, 16, 112);
 
-    // A third button copies the replay code when the run has one (Sim: RunReport.replay).
+    // A button copies the replay code when the run has one (Sim: RunReport.replay).
     const replay = report?.replay ?? null;
-    const three = replayButtonLabel(replay, false) !== null;
-    const left = three ? cx - 330 : cx - 200;
-    const right = three ? cx + 330 : cx + 200;
-    if (three && replay) {
-      const copy = makeButton(
-        this,
-        cx,
-        668,
-        300,
-        80,
-        replayButtonLabel(replay, false) ?? '',
-        () =>
-          void copyReplay(replay).then((ok) => {
-            // The browser may refuse the clipboard (no permission, an insecure page): say so.
-            copy.setLabel(replayButtonLabel(replay, ok ? true : 'failed') ?? '');
-          }),
-      );
-    }
+    const hasCode = replayButtonLabel(replay, false) !== null;
     if (abandoned) {
+      const left = hasCode ? cx - 330 : cx - 200;
+      const right = hasCode ? cx + 330 : cx + 200;
+      this.codeButton(replay, cx);
       makeButton(this, left, 668, 300, 80, 'Back to run', () => this.backToRun());
       makeButton(this, right, 668, 300, 80, 'Title', () => this.leaveRun());
       return;
     }
-    makeButton(this, left, 668, 300, 80, 'Play again', () => this.playAgain());
-    makeButton(this, right, 668, 300, 80, 'Title', () => this.toTitle());
+    // Title, Altar, (Copy code), Play again in one row.
+    const labels = hasCode ? 4 : 3;
+    const w = hasCode ? 290 : 300;
+    const gap = hasCode ? 20 : 30;
+    const x0 = cx - ((labels - 1) * (w + gap)) / 2;
+    let i = 0;
+    const at = () => x0 + i++ * (w + gap);
+    makeButton(this, at(), 668, w, 80, 'Title', () => this.toTitle());
+    makeButton(this, at(), 668, w, 80, 'Altar', () => this.openAltar());
+    if (hasCode) this.codeButton(replay, at());
+    makeButton(this, at(), 668, w, 80, 'Play again', () => this.playAgain());
+  }
+
+  private codeButton(replay: RunReport['replay'] | null, x: number): void {
+    if (!replay || replayButtonLabel(replay, false) === null) return;
+    const copy = makeButton(
+      this,
+      x,
+      668,
+      290,
+      80,
+      replayButtonLabel(replay, false) ?? '',
+      () =>
+        void copyReplay(replay).then((ok) => {
+          // The browser may refuse the clipboard (no permission, an insecure page): say so.
+          copy.setLabel(replayButtonLabel(replay, ok ? true : 'failed') ?? '');
+        }),
+    );
+  }
+
+  // Folds the finished run into the meta save once (the End screen can be built again for the same
+  // run) and returns what it paid (the same again when the screen is rebuilt, e.g. back from the Altar).
+  private foldRun(report: RunReport): RunOutcome | null {
+    const key = `${report.seed}:${report.timeMs}`;
+    if (this.registry.get('metaApplied') === key)
+      return (this.registry.get('metaOutcome') as RunOutcome | undefined) ?? null;
+    this.registry.set('metaApplied', key);
+    const trials = (this.scene.get('Map') as MapScene).playTrials;
+    const out = applyRun(GRAYBOX, readMeta(), report, trials);
+    writeMeta(out.meta);
+    this.registry.set('metaOutcome', out);
+    return out;
+  }
+
+  // The Essence frame: a line per source counting up (a tap jumps to the end), the total, the new
+  // balance and the goals this run reached.
+  private essencePanel(out: RunOutcome): void {
+    const X = 670;
+    const Y = 320;
+    const W = 570;
+    this.frame(X, Y, W, 255, 'Essence');
+    const rows = tallyRows(out.essence.lines);
+    const shown = rows.slice(0, 5);
+    const labels = shown.map((r, i) => {
+      const y = Y + 84 + i * 24;
+      const t = this.add
+        .text(X + 16, y, r.label, { fontFamily: FONT, fontSize: '22px', color: COLORS.text })
+        .setOrigin(0, 0.5);
+      const d = this.add
+        .text(X + 330, y, r.detail, { fontFamily: FONT, fontSize: '20px', color: COLORS.textMuted })
+        .setOrigin(1, 0.5);
+      const a = this.add
+        .text(X + W - 16, y, `+${r.amount}`, {
+          fontFamily: FONT,
+          fontSize: '24px',
+          color: '#f2c14e',
+        })
+        .setOrigin(1, 0.5);
+      return [t, d, a];
+    });
+    const totalY = Y + 212;
+    this.add.rectangle(X + W / 2, totalY - 14, W - 32, 2, COLORS.gold, 0.4);
+    const total = this.add
+      .text(X + 16, totalY + 4, '', { fontFamily: FONT, fontSize: '30px', color: '#f2c14e' })
+      .setOrigin(0, 0.5);
+    this.add
+      .text(X + W - 16, totalY + 4, `Essence ${readMeta().essence}`, {
+        fontFamily: FONT,
+        fontSize: '22px',
+        color: COLORS.textMuted,
+      })
+      .setOrigin(1, 0.5);
+    const unlock = out.newUnlocks.length
+      ? `Unlocked: ${out.newUnlocks.map((u) => u.name).join(', ')}`
+      : '';
+    this.add
+      .text(X + 16, Y + 243, unlock, {
+        fontFamily: FONT,
+        fontSize: '20px',
+        color: '#9fd49f',
+        wordWrap: { width: W - 32 },
+      })
+      .setOrigin(0, 0.5);
+    const total0 = this.time.now;
+    let skip = false;
+    const hit = this.add.rectangle(X + W / 2, Y + 100, W, 200, 0x000000, 0).setInteractive();
+    hit.on('pointerup', () => (skip = true));
+    const tick = () => {
+      if (this.showDetails) return;
+      const t = skip ? 1e9 : this.time.now - total0;
+      const n = rowsShown(shown.length, t);
+      labels.forEach((l, i) => l.forEach((o) => o.setVisible(i < n)));
+      total.setText(`+${runningTotal(shown, t)} Essence`);
+    };
+    this.events.on('update', tick);
+    this.events.once('shutdown', () => this.events.off('update', tick));
+  }
+
+  // "Run details" swaps the Essence frame for the gold curve, and back.
+  private detailsToggle(
+    chart: Phaser.GameObjects.GameObject[],
+    essence: Phaser.GameObjects.GameObject[],
+  ): void {
+    const btn = makeButton(this, 1135, 355, 170, 52, 'Run details', () => {
+      this.showDetails = !this.showDetails;
+      const details = this.showDetails;
+      chart.forEach((o) =>
+        (o as Phaser.GameObjects.Components.Visible & Phaser.GameObjects.GameObject).setVisible(
+          details,
+        ),
+      );
+      essence.forEach((o) =>
+        (o as Phaser.GameObjects.Components.Visible & Phaser.GameObjects.GameObject).setVisible(
+          !details,
+        ),
+      );
+      btn.setLabel(details ? 'Essence' : 'Run details');
+    });
   }
 
   private text(x: number, y: number, s: string, size: number, color: string, ox = 0): void {
@@ -203,10 +335,18 @@ export class EndScene extends Phaser.Scene {
     this.scene.launch('Title');
   }
 
+  private openAltar(): void {
+    this.registry.set('altarReturn', 'End');
+    this.scene.stop();
+    this.scene.launch('Altar');
+  }
+
+  // Play again goes through the run setup (the portent, the Trials).
   private playAgain(): void {
     this.scene.stop('Hud');
+    this.scene.stop('Map');
     this.scene.stop();
-    this.scene.start('Map');
+    this.scene.start('Setup');
   }
 
   private toTitle(): void {
