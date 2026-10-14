@@ -93,16 +93,16 @@ a rule: once open, it sends raiders down the same road the heroes walk.
 
 **Banner lines** (Balance's data, `balance/omens`, 2026-10-14; one line under the omen's name):
 
-| Omen               | Banner line                                  |
-| ------------------ | -------------------------------------------- |
-| Fallen Star        | A star falls beyond the fog.                 |
-| Wandering Champion | A champion walks near the town.              |
-| Merchant Caravan   | A caravan sells potions and charms cheap.    |
-| Red Sky            | Monsters strike harder; bounties pay double. |
-| Fimbul Frost       | The winter of the gods slows every step.     |
-| Games of Olympia   | The most kills wins the favour of Olympus.   |
-| Plague of Scarabs  | Scarabs burst from the ground near town.     |
-| Eclipse of Ra      | The dead grow strong; holy light burns.      |
+| Omen               | Banner line                              |
+| ------------------ | ---------------------------------------- |
+| Fallen Star        | A star falls beyond the fog.             |
+| Wandering Champion | A champion walks near the town.          |
+| Merchant Caravan   | Potions and charms sell cheap.           |
+| Red Sky            | Monsters hit harder; bounties pay x2.    |
+| Fimbul Frost       | The winter of the gods slows every step. |
+| Games of Olympia   | Most kills win the favour of Zeus.       |
+| Plague of Scarabs  | Scarabs burst from the ground near town. |
+| Eclipse of Ra      | The dead grow strong; holy light burns.  |
 
 - **Balance's omen pass:** the 8 rows as specced, plus the Champion's 240 s cap and the
   Plague's 6 scarabs; elites as in `progression.md` (`eliteShare` 0 / 0.25 / 0.35, x1.5 hp,
