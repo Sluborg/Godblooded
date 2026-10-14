@@ -47,7 +47,7 @@ is **"follow system"** (below); everything he used to type is now an order.
 
 - **Orders:** `art-wake/orders/<track>.md` on branch `art-wake` (fetch raw with `?t=`). Art
   appends numbered orders, `O-<n>: <what to do>` (for example "upload your withheld finals of
-  ui_item_axe", "remake kit_grim_test per G1.md", "run all", "pause track", "stop"). A push of an
+  ui_item_axe", "remake bld_plot per B13.md item 1", "run all", "pause track", "stop"). A push of an
   order also rings the bell.
 - **Replies:** `art-inbox/replies/<track>.md` on branch `art-inbox` (create it if missing;
   append only, same 409 rule as the upload log). After each order write one line:
@@ -55,6 +55,9 @@ is **"follow system"** (below); everything he used to type is now an order.
   `O-<n> | <date time> | question | <question>`.
 - **Your last done order** is the highest `O-<n>` in your replies file. Do every newer order, in
   order, then continue with the first Ready batch of your track (`NEXT.md`).
+- **An order never makes items from a Draft batch**: only items of Ready batches (Stefan's go,
+  via Lead) and redo or upload orders for those items. An order naming a Draft batch: skip it and
+  write the question in replies.
 - **Questions go to Art, never to Stefan.** If an order or a batch is unclear or blocked, write
   the question in replies, skip that item and go on with the next one. Never wait for an answer;
   Art answers with a new order.
