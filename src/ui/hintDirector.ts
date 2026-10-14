@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { HINTS } from '../data/hints';
 import { GRAYBOX } from '../data/graybox';
 import { DEFAULT_TUNING, type SimEvent, type Snapshot, type Vec2 } from '../sim/api';
-import { GAME_WIDTH } from '../config';
+import { viewWidth } from './view';
 import { worldToHud } from './camMath';
 import { HintEngine, hintLines, hintsFromEvent, type ShownHint } from './hints';
 import { loadSeen, saveSeen } from './hintStore';
@@ -128,7 +128,7 @@ export class HintDirector {
     if (!s) return;
     const lines = hintLines(s.def);
     const text = this.scene.add
-      .text(GAME_WIDTH / 2, 0, lines.join('\n'), {
+      .text(viewWidth() / 2, 0, lines.join('\n'), {
         fontFamily: 'Georgia, serif',
         fontSize: '26px',
         color: '#f4ead5',
@@ -141,7 +141,7 @@ export class HintDirector {
     const h = text.height + 36;
     const y = 80 + 14 + h / 2;
     text.setY(y);
-    const panel = makePanel(this.scene, GAME_WIDTH / 2, y, w, h, 0.96);
+    const panel = makePanel(this.scene, viewWidth() / 2, y, w, h, 0.96);
     (panel as unknown as Phaser.GameObjects.Components.Depth).setDepth(61);
     this.bubble = [panel, text];
   }

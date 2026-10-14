@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { COLORS, GAME_HEIGHT, GAME_WIDTH, MIN_TOUCH, TAP_SLOP } from '../config';
+import { viewWidth } from '../ui/view';
 import { GRAYBOX, UPGRADES } from '../data/graybox';
 import { DEFAULT_TUNING, type BuildingState, type CommandResult } from '../sim/api';
 import { buildingEffect, buildingName, nextTierEffect } from '../ui/buildingInfo';
@@ -98,9 +99,14 @@ export class HudScene extends Phaser.Scene {
 
   create(): void {
     fitDesignCamera(this);
+    // The view got wider or narrower (the screen turned, a bar moved): build the bar again for it.
+    this.events.once('relayout', () => this.scene.restart());
+    const VW = viewWidth();
+    const dx = VW - GAME_WIDTH;
     // Scene instances are reused on restart: drop state that pointed at the old display list.
     this.panel = new PartyPanel(this);
-    this.ended = false;
+    // A rebuild (the view changed) while the End screen is up must not launch it again.
+    this.ended = this.scene.isActive('End');
     this.speedBtn = null;
     this.menu = [];
     this.menuButtons = [];
@@ -118,8 +124,8 @@ export class HudScene extends Phaser.Scene {
     this.places = new Map();
     const map = this.scene.get('Map') as MapScene;
     // A slim dark translucent bar with a gold hairline; the buttons are flat icon plates (hudButton.ts).
-    this.add.rectangle(GAME_WIDTH / 2, BAR_H / 2, GAME_WIDTH, BAR_H, 0x0e0907, 0.62);
-    this.add.rectangle(GAME_WIDTH / 2, BAR_H, GAME_WIDTH, 2, 0xc9a45c, 0.45);
+    this.add.rectangle(VW / 2, BAR_H / 2, VW, BAR_H, 0x0e0907, 0.62);
+    this.add.rectangle(VW / 2, BAR_H, VW, 2, 0xc9a45c, 0.45);
     this.goldIcon = addIcon(this, 'ui_icon_gold', 34, BAR_H / 2, 38);
     this.goldText = this.add
       .text(this.goldIcon ? 62 : 20, BAR_H / 2, '', { ...TEXT, color: '#f2c14e' })
@@ -131,13 +137,13 @@ export class HudScene extends Phaser.Scene {
       .text(238, BAR_H / 2, '', { ...TEXT, color: AMBROSIA_STYLE.text })
       .setOrigin(0, 0.5)
       .setVisible(false);
-    this.clockText = this.add.text(GAME_WIDTH / 2, BAR_H / 2, '0:00', TEXT).setOrigin(0.5);
+    this.clockText = this.add.text(VW / 2, BAR_H / 2, '0:00', TEXT).setOrigin(0.5);
     this.clockWaiting = false;
     this.sky = this.add
-      .rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0xffffff, 0)
+      .rectangle(VW / 2, GAME_HEIGHT / 2, VW, GAME_HEIGHT, 0xffffff, 0)
       .setDepth(-1);
     this.omenText = this.add
-      .text(GAME_WIDTH / 2 + 14, BAR_H + 16, '', { ...TEXT, fontSize: '16px', color: '#e8dcff' })
+      .text(VW / 2 + 14, BAR_H + 16, '', { ...TEXT, fontSize: '16px', color: '#e8dcff' })
       .setOrigin(0.5)
       .setVisible(false);
     this.omenDot = this.add.circle(0, BAR_H + 16, 6, 0xffffff).setVisible(false);
@@ -145,7 +151,7 @@ export class HudScene extends Phaser.Scene {
     // One speed button cycles 1x, 2x, 4x with a small label; Menu, Watch and Heroes are icons.
     this.speedBtn = makeHudButton(
       this,
-      1124,
+      1124 + dx,
       BAR_H / 2,
       () => {
         const cur = (this.registry.get('speed') as number) ?? 1;
@@ -154,10 +160,10 @@ export class HudScene extends Phaser.Scene {
       },
       { plateW: 88, icon: 'ui_icon_speed2', label: '1x' },
     );
-    makeHudButton(this, 1228, BAR_H / 2, () => this.openPause(), { icon: 'ui_icon_menu' });
+    makeHudButton(this, 1228 + dx, BAR_H / 2, () => this.openPause(), { icon: 'ui_icon_menu' });
     this.watchBtn = makeHudButton(
       this,
-      1020,
+      1020 + dx,
       BAR_H / 2,
       () => {
         const m = map.registry.get('camMode');
@@ -167,7 +173,7 @@ export class HudScene extends Phaser.Scene {
     );
     this.rosterBtn = makeHudButton(
       this,
-      926,
+      926 + dx,
       BAR_H / 2,
       () => {
         this.rosterOpen = !this.rosterOpen;
@@ -180,7 +186,7 @@ export class HudScene extends Phaser.Scene {
     );
     this.refreshSpeed();
     this.toast = this.add
-      .text(GAME_WIDTH / 2, 640, '', {
+      .text(VW / 2, 640, '', {
         ...TEXT,
         backgroundColor: '#000000aa',
         padding: { x: 14, y: 8 },
@@ -189,7 +195,7 @@ export class HudScene extends Phaser.Scene {
       .setAlpha(0)
       .setDepth(50);
     this.banner = this.add
-      .text(GAME_WIDTH / 2, 112, '', {
+      .text(VW / 2, 112, '', {
         ...TEXT,
         fontSize: '34px',
         backgroundColor: '#8a1c2bdd',
@@ -470,7 +476,7 @@ export class HudScene extends Phaser.Scene {
     this.rosterKey = key;
     this.clearRoster();
     // Left of the party panel (which owns the right edge), so both can be open.
-    const X = GAME_WIDTH - 340 - 12 - ROSTER_W;
+    const X = viewWidth() - 340 - 12 - ROSTER_W;
     const Y = 84;
     const rowH = MIN_TOUCH;
     const pitch = rowH + 4; // a gap so neighbouring outlines never overdraw
@@ -796,12 +802,12 @@ export class HudScene extends Phaser.Scene {
     options = [...options, { label: 'Close', cost: 0, pick: () => this.closeMenu() }];
     const n = options.length;
     const gap0 = 14;
-    const bw = Math.min(230, Math.floor((GAME_WIDTH - 40 - (n + 1) * gap0) / n));
+    const bw = Math.min(230, Math.floor((viewWidth() - 40 - (n + 1) * gap0) / n));
     const bh = 100;
     const gap = 14;
     const w = n * bw + (n + 1) * gap;
     const h = bh + 2 * gap + 40;
-    const cx = GAME_WIDTH / 2;
+    const cx = viewWidth() / 2;
     const cy = 720 - h / 2 - 12;
     this.menuRect = new Phaser.Geom.Rectangle(cx - w / 2, cy - h / 2, w, h);
     // The info strip of the build menu sits above the buttons.
@@ -869,7 +875,7 @@ export class HudScene extends Phaser.Scene {
     this.closeMenu();
     this.registry.set('selectedBuilding', b.id);
     this.closeRoster();
-    const cx = GAME_WIDTH / 2;
+    const cx = viewWidth() / 2;
     const w = 860;
     const h = 330;
     const cy = 720 - h / 2 - 12;

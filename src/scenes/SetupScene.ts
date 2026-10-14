@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { FILL_W } from '../ui/view';
 import { COLORS, GAME_HEIGHT, GAME_WIDTH, MIN_TOUCH } from '../config';
 import { GRAYBOX } from '../data/graybox';
 import { canAfford, pantheonName } from '../ui/altarLook';
@@ -20,13 +21,11 @@ export class SetupScene extends Phaser.Scene {
   }
 
   create(): void {
-    fitDesignCamera(this);
+    fitDesignCamera(this, 'centre');
     const meta = readMeta();
     this.trials = [];
     const cx = GAME_WIDTH / 2;
-    this.add
-      .rectangle(cx, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x0e0b08, 0.96)
-      .setInteractive();
+    this.add.rectangle(cx, GAME_HEIGHT / 2, FILL_W, GAME_HEIGHT, 0x0e0b08, 0.96).setInteractive();
     this.add
       .rectangle(cx, GAME_HEIGHT / 2, GAME_WIDTH - 48, GAME_HEIGHT - 48, 0x1a140f, 0.95)
       .setStrokeStyle(4, COLORS.gold, 0.6);

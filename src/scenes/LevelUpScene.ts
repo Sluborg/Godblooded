@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { FILL_W } from '../ui/view';
 import { COLORS, GAME_HEIGHT, GAME_WIDTH, TAP_SLOP } from '../config';
 import { GRAYBOX, UPGRADES } from '../data/graybox';
 import { godName } from '../ui/partyLook';
@@ -43,7 +44,7 @@ export class LevelUpScene extends Phaser.Scene {
   }
 
   create(): void {
-    fitDesignCamera(this);
+    fitDesignCamera(this, 'centre');
     const offer = this.registry.get(OFFER_KEY) as LevelUpOffer | undefined;
     if (!offer) return;
     const cx = GAME_WIDTH / 2;
@@ -52,9 +53,7 @@ export class LevelUpScene extends Phaser.Scene {
       return;
     }
     // Full-screen dim, interactive so nothing underneath receives taps.
-    this.add
-      .rectangle(cx, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.6)
-      .setInteractive();
+    this.add.rectangle(cx, GAME_HEIGHT / 2, FILL_W, GAME_HEIGHT, 0x000000, 0.6).setInteractive();
     this.banner(
       offer,
       partyHeader(offer.leader ?? 'the party', offer.level),
@@ -136,9 +135,7 @@ export class LevelUpScene extends Phaser.Scene {
   // and a small portrait when the art exists. The sim refuses upgrades until one is picked.
   private pathCards(offer: LevelUpOffer, paths: NonNullable<LevelUpOffer['paths']>): void {
     const cx = GAME_WIDTH / 2;
-    this.add
-      .rectangle(cx, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.6)
-      .setInteractive();
+    this.add.rectangle(cx, GAME_HEIGHT / 2, FILL_W, GAME_HEIGHT, 0x000000, 0.6).setInteractive();
     this.banner(
       offer,
       pathHeader(offer.pathHero ?? 'A hero'),
