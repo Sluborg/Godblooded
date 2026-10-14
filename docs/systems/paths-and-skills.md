@@ -271,22 +271,32 @@ skill effects (rule under the paths table).
 `passive: { id, name, scope: 'self' | 'party', range?, keys }`. Every passive is a set of keys
 from this list; Sim implements each key once:
 
-| Key                | Meaning                                             | Passives     |
-| ------------------ | --------------------------------------------------- | ------------ |
-| attr               | flat attributes                                     | Odin (Per)   |
-| firstStrike        | wins the first-strike check (`combat.md`)           | Odin         |
-| vsTag              | damage multiplier against a tag                     | Thor, Anubis |
-| firstHitMisses     | the first strike against the unit each fight misses | Loki         |
-| dodge, crit        | flat chance added after the curve                   | Loki, Horus  |
-| koGoldLoss, koMult | knockout gold loss and timer multipliers            | Freyja       |
-| armour             | flat armour                                         | Athena       |
-| onKillStack        | a buff per kill this fight, with a cap              | Ares         |
-| restMult           | resting speed multiplier                            | Apollo       |
-| everyNth           | effects on every nth strike (`n`, `effects`)        | Poseidon     |
-| aggroMult          | aggro range multiplier                              | Horus        |
-| bossDeathAdd       | added to the boss death chance (half to the lair's) | Anubis       |
-| belowHp            | a buff while below a share of max hp                | Sekhmet      |
-| healTakenMult      | healing received multiplier                         | Isis         |
+| Key                | Meaning                                                 | Passives            |
+| ------------------ | ------------------------------------------------------- | ------------------- |
+| attr               | flat attributes                                         | Odin (Per)          |
+| firstStrike        | wins the first-strike check (`combat.md`)               | Odin                |
+| vsTag              | damage multiplier against a tag                         | Thor, Anubis        |
+| firstHitMisses     | the first strike against the unit each fight misses     | Loki                |
+| dodge, crit        | flat chance added after the curve                       | Loki, Horus         |
+| koGoldLoss, koMult | knockout gold loss and timer multipliers                | Freyja              |
+| armour             | flat armour                                             | Athena              |
+| onKillStack        | a buff per kill this fight, with a cap                  | Ares                |
+| restMult           | resting speed multiplier                                | Apollo              |
+| everyNth           | effects on every nth strike (`n`, `effects`, `strike?`) | Poseidon, Eye of Ra |
+| aggroMult          | aggro range multiplier                                  | Horus               |
+| bossDeathAdd       | added to the boss death chance (half to the lair's)     | Anubis              |
+| belowHp            | a buff while below a share of max hp                    | Sekhmet             |
+| healTakenMult      | healing received multiplier                             | Isis                |
+
+- **everyNth, as built** (Sim, `sim/everynth2` f3423e7):
+  - `strike: { type, rider }` changes the nth basic strike itself (Eye of Ra: every 4th strike
+    is holy and sears); `effects` may include `damage` effects (extra hits).
+  - The counter counts every basic strike, a killing blow included. A killing nth strike spends
+    the effect; its extra effects skip the dead foe.
+- **Card keys Sim added** (all in code; used by the upgrade and pantheon cards,
+  `progression.md`): `koReviveHp`, `phalanx`, `goldMult`, `critStagger`, `healOnKill`, `regen`,
+  `twinCast`, `skillsReady`, `healSplash`, `lastStand` (strike damage only), `bondMult`,
+  `flagMult`, `loyalStays`, `discoverMult` (inert while `tuning.ai.discovery` is off).
 
 ### SummonDef (new rows, small)
 
