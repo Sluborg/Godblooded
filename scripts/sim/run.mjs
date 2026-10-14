@@ -550,6 +550,7 @@ function summarize(results) {
             'offerings',
           ].map((k) => [k, mean(results, k)]),
         )
+      : null,
     replayCheck: REPLAY_CHECK
       ? { identical: results.filter((r) => r.replayOk).length, of: results.length }
       : null,
@@ -613,6 +614,8 @@ function print(rep) {
     );
     console.log(
       `    nodes freed ${f(m.nodesFreed)}, defiled ${f(m.nodesDefiled)}, cleansed ${f(m.nodesCleansed)}, lairs sprouted ${f(m.lairsSprouted)}; gatherers hired ${f(m.gatherersHired)} lost ${f(m.gatherersLost)}; guards sent ${f(m.guardsSent)} lost ${f(m.guardsLost)}; escorts paid ${f(m.escortsPaid)}`,
+    );
+  }
   if (rep.replayCheck) {
     console.log(
       `  replay check: ${rep.replayCheck.identical} of ${rep.replayCheck.of} replays equal the original run report`,
