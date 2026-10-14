@@ -1,10 +1,6 @@
 import Phaser from 'phaser';
 import { COLORS, TAP_SLOP } from '../config';
-
-// The text of the seed label: createWorld(seed, GRAYBOX) replays the run's map.
-export function seedText(seed: number): string {
-  return `Seed ${seed}`;
-}
+import { seedText } from './seedText';
 
 // A small muted "Seed 123456" in the bottom left. A tap copies the number (where the browser allows
 // it) and says so, so a tester can paste it to the team instead of reading it off the screen.
