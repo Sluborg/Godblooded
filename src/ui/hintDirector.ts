@@ -73,8 +73,16 @@ export class HintDirector {
     }
   }
 
-  // `minTill`: the collector's smallest worthwhile till (the world's tuning), for b-till.
-  update(snap: Snapshot, gold: number, minTill = DEFAULT_TUNING.collector.minTill): void {
+  // `tuning`: the world's values the conditions read (the collector's smallest worthwhile till for
+  // b-till, the top lair tier for h-nudge).
+  update(
+    snap: Snapshot,
+    gold: number,
+    tuning: { minTill: number; maxTier: number } = {
+      minTill: DEFAULT_TUNING.collector.minTill,
+      maxTier: DEFAULT_TUNING.lair.maxTier,
+    },
+  ): void {
     const now = this.scene.time.now;
     this.timeMs = snap.timeMs;
     if (!this.started) {
@@ -85,10 +93,10 @@ export class HintDirector {
       this.nextCheck = now + CHECK_MS;
       const m = monsterSeenBy(snap.units);
       if (m !== null) this.engine.fire('monsterSeen', m);
-      const idleLair = this.nudge.update(snap.lairs, snap.timeMs, DEFAULT_TUNING.lair.maxTier);
+      const idleLair = this.nudge.update(snap.lairs, snap.timeMs, tuning.maxTier);
       if (idleLair !== null) this.engine.fire('noFlagIdle', idleLair);
       if (idleGold(snap)) this.engine.fire('idleGold');
-      const till = firstTill(snap.buildings, minTill);
+      const till = firstTill(snap.buildings, tuning.minTill);
       if (till) this.engine.fire('tillFirst', till.id, till.pos);
       const up = upgradeAffordable(snap.buildings, gold);
       if (up !== null) this.engine.fire('upgrade', up);

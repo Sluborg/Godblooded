@@ -8,6 +8,8 @@ export interface NudgeLair {
   id: number;
   tier: number;
   hp: number;
+  // The boss lair: it is sealed until late, nobody can hurt it, so it is never nudged.
+  boss?: boolean;
   // Time to the next tier-up, when the sim says (lair snapshot nextTierMs).
   nextTierMs?: number | null;
 }
@@ -31,7 +33,10 @@ export class NudgeWatch {
     for (const id of [...this.hp.keys()]) if (!alive.has(id)) this.hp.delete(id);
     if (timeMs < NUDGE_FROM_MS || timeMs - this.lastFlagMs < NUDGE_IDLE_MS) return null;
     const idle = lairs.filter(
-      (l) => l.tier < maxTier && timeMs - (this.hp.get(l.id)?.sinceMs ?? timeMs) >= NUDGE_IDLE_MS,
+      (l) =>
+        !l.boss &&
+        l.tier < maxTier &&
+        timeMs - (this.hp.get(l.id)?.sinceMs ?? timeMs) >= NUDGE_IDLE_MS,
     );
     if (idle.length === 0) return null;
     // Nearest its tier-up: the smallest nextTierMs, else the highest tier, then the lowest id.

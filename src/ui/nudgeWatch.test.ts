@@ -9,6 +9,13 @@ const lair = (id: number, tier = 1, hp = 100, nextTierMs?: number) => ({
 });
 
 describe('NudgeWatch', () => {
+  it('never nudges a boss lair', () => {
+    const w = new NudgeWatch();
+    const lairs = [{ ...lair(1, 1), boss: true }];
+    w.update(lairs, 0, 3);
+    expect(w.update(lairs, NUDGE_FROM_MS, 3)).toBeNull();
+  });
+
   it('waits for 3:00 and for 120 s without a flag', () => {
     const w = new NudgeWatch();
     const lairs = [lair(1)];
