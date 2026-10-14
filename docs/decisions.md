@@ -419,3 +419,9 @@ floating hands and feet that move in code). What changes is the art on it: paint
 one style, adult grim faces, cool believable gear (mail, leather, furs, carved weapons, hoods and
 helms) instead of wizard hats and princess dresses. Still a kit: faces, headgear, bodies and gear
 combine per hero; portraits are the in-game hero drawn larger.
+
+## 2026-10-15 G7 hero look test go (Stefan)
+
+"Proportions are fine. Have heroes make some test art so I can describe what works." G7 is
+Ready: eight assembled compact heroes at today's proportions (Grim, axeman, old warrior,
+shieldmaiden, son of Loki, son of Thor, two darker variants), QA-checked, then rated by Stefan.
