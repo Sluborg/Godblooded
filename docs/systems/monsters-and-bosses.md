@@ -165,7 +165,7 @@ that an untouched lair was a threat. The growth ring makes the next lair tier-up
 flag on the lair becomes the obvious answer. This is a look only: no rule changes.
 
 1. **Ring:** a thin ring around each lair that is below its max tier, filling clockwise from its
-   last tier-up (or the run start) to its next one (`nextTierMs`). The ring is dim grey while
+   last tier-up (or the run start) to its next one. The ring is dim grey while
    more than 60 s are left.
 2. **Last 60 s:** the ring turns amber and a small "60" counts down beside the plate, in light
    text on dark parchment (`look-sheet.md`).
@@ -176,9 +176,29 @@ flag on the lair becomes the obvious answer. This is a look only: no rule change
    and its raid arrow appears at the same moment.
 5. **Hidden** at max tier, on a sealed boss lair, and while a lair is destroyed.
 
-- **Sim:** the lair snapshot carries `tierFromMs` (the last tier-up, or the run start) and
-  `nextTierMs` (null at max tier), so the ring can show its fill. A pressure tier-up restarts
+- **Sim:** the lair snapshot carries `nextTierMs`, the ms left until the next tier-up (null at
+  max tier or with no tier clock; built on `sim/lair-timer` de737b4), and `tierSpanMs`, the
+  length of the current wait, so the ring fills `1 - nextTierMs / tierSpanMs`. A pressure tier-up restarts
   it, so the ring jumps back to empty, which is correct.
+
+### Guard pips (the push is working; Lead 2026-10-14)
+
+Sim's lair-kill check after playtest 1: a lair is slow to fall because it keeps refilling its
+monsters (a barrow spawns one every 10 s, up to 6). The player cannot see whether a fight at a
+lair is winning. Guard pips show it. This is a look only: no rule changes.
+
+1. **Pips:** a row of small dots under the lair plate, one per monster the lair may have alive
+   (`maxAlive`, with its tier and swarm adds). A filled dot is a living monster from this lair,
+   wherever it is (raiders it sent out do not count); an empty dot is a dead one not yet replaced.
+2. **Respawn:** the next empty dot fills slowly over the lair's spawn time, so the player sees the
+   refill coming.
+3. **A kill:** the dot empties with a small red flash. With every dot empty, the plate glows once:
+   the lair is open, and heroes hitting it now go straight at its hp.
+4. **Shown** while a hero is within the lair's aggro range, and for 10 s after; hidden otherwise
+   so a full map stays calm. Never on a sealed boss lair, or when `maxAlive` is 0.
+
+- **Sim:** the lair snapshot carries `alive` (its living monsters, raiders excluded), `maxAlive` (after tier and
+  swarm adds) and `nextSpawnMs` (ms left until its next spawn; null when full).
 
 ## 5. What the player sees
 
@@ -254,14 +274,15 @@ still scales their hp with the lair tier (visual only). The
 
 ### Sim
 
-| Order | Row                                                                                 |
-| ----- | ----------------------------------------------------------------------------------- |
-| 10    | Monster roles: harrier, charger, pack, swarm (brute is today's)                     |
-| 20    | Quirks: regen with fire stop, snatch gold, grave-cold, scavenger (heal on KO)       |
-| 30    | Monster skills through the skill engine (`owner: 'monster'`), on elites             |
-| 40    | Boss moves: breath, heads, swallow, venom, howl, riddle; enrage variants            |
-| 50    | Boss pick: lean pantheon, seeded one of two, no repeat; boss lair guards            |
-| 60    | Lair snapshot: `tierFromMs` and `nextTierMs` (null at max tier) for the growth ring |
+| Order | Row                                                                                               |
+| ----- | ------------------------------------------------------------------------------------------------- |
+| 10    | Monster roles: harrier, charger, pack, swarm (brute is today's)                                   |
+| 20    | Quirks: regen with fire stop, snatch gold, grave-cold, scavenger (heal on KO)                     |
+| 30    | Monster skills through the skill engine (`owner: 'monster'`), on elites                           |
+| 40    | Boss moves: breath, heads, swallow, venom, howl, riddle; enrage variants                          |
+| 50    | Boss pick: lean pantheon, seeded one of two, no repeat; boss lair guards                          |
+| 60    | Lair snapshot: `nextTierMs` and `tierSpanMs` (done, `sim/lair-timer` 0ad1a1b) for the growth ring |
+| 70    | Lair snapshot: `alive`, `maxAlive`, `nextSpawnMs` for the guard pips (done, 0ad1a1b)              |
 
 ### Lead (data)
 
@@ -273,12 +294,13 @@ still scales their hp with the lair tier (visual only). The
 
 ### Scene
 
-| Order | Row                                                                           |
-| ----- | ----------------------------------------------------------------------------- |
-| 10    | Role motion: harpy dart, minotaur paw and charge, pack clumping, swarm spill  |
-| 20    | Quirk effects: snatched coin, regen sparkle, scarab split                     |
-| 30    | Boss telegraphs: breath, head pips, swallow ring, venom, howl ring, riddle    |
-| 40    | Lair growth ring: fill, amber 60 s countdown, 15 s pulse and drum, tier flash |
+| Order | Row                                                                                      |
+| ----- | ---------------------------------------------------------------------------------------- |
+| 10    | Role motion: harpy dart, minotaur paw and charge, pack clumping, swarm spill             |
+| 20    | Quirk effects: snatched coin, regen sparkle, scarab split                                |
+| 30    | Boss telegraphs: breath, head pips, swallow ring, venom, howl ring, riddle               |
+| 40    | Lair growth ring: fill, amber 60 s countdown, 15 s pulse and drum, tier flash            |
+| 50    | Guard pips under the lair plate: fill, slow refill, red flash on a kill, glow when empty |
 
 ### Art (requests)
 
