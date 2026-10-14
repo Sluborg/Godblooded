@@ -3,7 +3,14 @@
 // arms and legs (two bones each, in code), places the kit parts on the joints and draws them.
 // bake.ts bakes the frames as before. Effects (glow, aura, trail, ravens) stay in code and are not
 // drawn on painted looks yet. The contract with Art is in docs/asset-spec.md (kit sheets).
-import { BUILDS, KIT_REQUIRED, type Build, type KitCombo, type KitSlot } from '../../data/heroKits';
+import {
+  BUILDS,
+  KIT_REQUIRED,
+  type Build,
+  type KitCombo,
+  type KitMode,
+  type KitSlot,
+} from '../../data/heroKits';
 
 export interface Cell {
   x: number;
@@ -26,6 +33,7 @@ export interface Kit {
   parts: PartMap;
   layers: PartMap;
   build: Build;
+  mode: KitMode;
 }
 
 // Pivot fallbacks (fractions) when a cell does not name one.
@@ -41,6 +49,7 @@ const FALLBACK: Readonly<Record<string, [number, number]>> = {
   shoulder: [0.5, 0.05],
   elbow: [0.5, 0.95],
   wrist: [0.5, 0.95],
+  ankle: [0.5, 0.95],
   knee: [0.5, 0.95],
   ground: [0.5, 0.95],
   grip: [0.5, 0.85],
@@ -48,7 +57,7 @@ const FALLBACK: Readonly<Record<string, [number, number]>> = {
 };
 
 export const pivot = (part: KitPart, name: string): [number, number] => {
-  const v = part.cell.pivots?.[name];
+  const v = part.cell.pivots?.[name] ?? (name === 'ankle' ? part.cell.pivots?.ground : undefined);
   const f = v ?? FALLBACK[name] ?? [0.5, 0.5];
   return [f[0], f[1]];
 };
@@ -63,13 +72,19 @@ export const sizeOf = (part: KitPart, sx = 1, sy = 1): [number, number] => [
 export const buildOf = (combo: KitCombo): Build => BUILDS[combo.build ?? 'standard'];
 
 // True when every part a painted look cannot do without has a picture.
-export const kitComplete = (parts: PartMap): boolean => KIT_REQUIRED.every((s) => parts[s]);
+export const kitComplete = (parts: PartMap, mode: KitMode = 'bent'): boolean =>
+  KIT_REQUIRED[mode].every((s) => parts[s]);
 
 // The standard figure, drawing units, feet at (0, 0), y up is negative: the torso's pelvis sits
 // here, and a part whose cell has no pivot for a socket gets the fallback above.
 export const HIP = { x: 0, y: -21 } as const;
+// A floating torso reaches lower (no legs under it): its pelvis pivot sits here.
+export const HIP_FLOAT = { x: 0, y: -15 } as const;
 // The prototype's joints are for a 32 unit hero; the painted figure is 44 units.
 export const PROTO_K = 44 / 32;
+// A painted hero is 44 drawing units tall, the prototype's code hero 32 (before its own scale
+// `codeScale`, usc in proto.gen.ts): the factor that gives both the same on-screen size.
+export const kitScale = (codeScale: number): number => (codeScale * 32) / 44;
 
 // A point in a part's picture as a point in drawing units, given where its anchor pivot sits.
 function offsetIn(
@@ -163,6 +178,8 @@ const ang = (v: V2): number => Math.atan2(v.y, v.x);
 export function layout(kit: Kit, p: RigPose, raised = false): Draw[] {
   const out: Draw[] = [];
   const { parts, layers, build } = kit;
+  const floating = kit.mode === 'floating';
+  const hipAt = floating ? HIP_FLOAT : HIP;
   const torso = parts.torso as KitPart;
   const tsx = build.torso[0];
   const tsy = build.torso[1];
@@ -175,15 +192,47 @@ export function layout(kit: Kit, p: RigPose, raised = false): Draw[] {
   // Sockets on the torso, in body coordinates.
   const sock = (name: string): V2 => {
     const [ox, oy] = offsetIn(torso, 'hip', name, tsx, tsy);
-    return { x: HIP.x + ox, y: HIP.y + oy };
+    return { x: hipAt.x + ox, y: hipAt.y + oy };
   };
   const neck = sock('neck');
   const head = parts.head as KitPart;
   const hsc = build.head;
   // Hands and feet from the prototype's pose, scaled to the painted figure.
   const hand = (h: V2): V2 => ({ x: h.x * PROTO_K, y: h.y * PROTO_K });
-  // An arm from a shoulder socket to a hand target: its two Draws and where the wrist ends up.
-  const arm = (slotShoulder: string, target: V2, far: boolean): { draws: Draw[]; end: V2 } => {
+  // The hand on a wrist: drawn with its wrist pivot there, turned with the forearm; where its grip
+  // point lands (the weapon's grip goes there; without a hand picture the wrist is the grip).
+  const handAt = (at: V2, rot: number, far: boolean): { draws: Draw[]; grip: V2 } => {
+    const h = parts.hand;
+    if (!h) return { draws: [], grip: at };
+    const [gx, gy] = offsetIn(h, 'wrist', 'grip', 1, 1);
+    const c = Math.cos(rot);
+    const sn = Math.sin(rot);
+    const grip = { x: at.x + gx * c - gy * sn, y: at.y + gx * sn + gy * c };
+    const d: Draw = {
+      part: h,
+      pivot: 'wrist',
+      x: at.x,
+      y: at.y,
+      rot,
+      sx: 1,
+      sy: 1,
+      inBody: true,
+      far,
+    };
+    return { draws: layers.hand ? [d, { ...d, part: layers.hand }] : [d], grip };
+  };
+  // An arm from a shoulder socket to a hand target: its Draws (upper arm, forearm, hand), the
+  // wrist and the point the weapon grip goes to.
+  const arm = (
+    slotShoulder: string,
+    target: V2,
+    far: boolean,
+  ): { draws: Draw[]; end: V2; grip: V2 } => {
+    // Floating: just the hand at the joint, like the code rig.
+    if (floating) {
+      const h = handAt(target, 0, far);
+      return { draws: h.draws, end: target, grip: h.grip };
+    }
     const up = parts.upperarm as KitPart;
     const fore = parts.forearm as KitPart;
     const [aw, al] = [build.arm[1], build.arm[0]];
@@ -201,18 +250,46 @@ export function layout(kit: Kit, p: RigPose, raised = false): Draw[] {
     };
     mk('upperarm', up, 'shoulder', shoulder, aUp);
     mk('forearm', fore, 'elbow', r.mid, aFore);
-    return { draws, end: r.end };
+    const h = handAt(r.end, aFore, far);
+    draws.push(...h.draws);
+    return { draws, end: r.end, grip: h.grip };
+  };
+  const bootDraw = (pv: 'ankle' | 'ground', at: V2, far: boolean) => {
+    const boot = parts.boot;
+    if (!boot) return;
+    const d: Draw = {
+      part: boot,
+      pivot: pv,
+      x: at.x,
+      y: at.y,
+      rot: 0,
+      sx: 1,
+      sy: 1,
+      inBody: false,
+      far,
+    };
+    out.push(d);
+    if (layers.boot) out.push({ ...d, part: layers.boot });
   };
   const drawLeg = (slotHip: string, foot: V2, far: boolean) => {
+    // Floating: just the boot at the foot, like the code rig.
+    if (floating) return bootDraw('ground', foot, far);
     const thigh = parts.thigh as KitPart;
     const shin = parts.shin as KitPart;
     const [lw, ll] = [build.leg[1], build.leg[0]];
     const hip = bodyPoint(p, sock(slotHip));
     const [kx, ky] = offsetIn(thigh, 'hip', 'knee', lw, ll);
-    const [gx, gy] = offsetIn(shin, 'knee', 'ground', lw, ll);
+    const [gx, gy] = offsetIn(shin, 'knee', 'ankle', lw, ll);
+    // The shin ends at the ankle; a boot picture carries the foot below it.
+    const ankle = parts.boot
+      ? (() => {
+          const [bx, by] = offsetIn(parts.boot, 'ankle', 'ground', 1, 1);
+          return { x: foot.x - bx, y: foot.y - by };
+        })()
+      : foot;
     const l1 = Math.hypot(kx, ky);
     const l2 = Math.hypot(gx, gy);
-    const r = solveTwoBone(hip, foot, l1, l2, (q) => q.x);
+    const r = solveTwoBone(hip, ankle, l1, l2, (q) => q.x);
     const aT = ang({ x: r.mid.x - hip.x, y: r.mid.y - hip.y }) - ang({ x: kx, y: ky });
     const aS = ang({ x: r.end.x - r.mid.x, y: r.end.y - r.mid.y }) - ang({ x: gx, y: gy });
     push('thigh', parts.thigh, {
@@ -235,6 +312,7 @@ export function layout(kit: Kit, p: RigPose, raised = false): Draw[] {
       inBody: false,
       far,
     });
+    bootDraw('ankle', r.end, far);
   };
   // Cloak behind everything.
   push('cloak', parts.cloak, {
@@ -252,7 +330,7 @@ export function layout(kit: Kit, p: RigPose, raised = false): Draw[] {
   out.push(...back.draws);
   push('torso', torso, {
     pivot: 'hip',
-    ...HIP,
+    ...hipAt,
     rot: 0,
     sx: tsx,
     sy: tsy,
@@ -263,13 +341,15 @@ export function layout(kit: Kit, p: RigPose, raised = false): Draw[] {
   // The front arm, with the weapon in its hand drawn under the hand.
   const fr = arm('shoulder_f', hand(p.hf), false);
   const frontDraws: Draw[] = [];
+  // The weapon is painted pointing straight UP with its grip pivot on the handle; the rig's weapon
+  // angle `wa` (0 = up, clockwise) turns it about the grip, which sits on the hand's grip point.
   const weapon = parts.weapon;
   if (weapon) {
     const w = {
       part: weapon,
       pivot: 'grip',
-      x: fr.end.x,
-      y: fr.end.y,
+      x: fr.grip.x,
+      y: fr.grip.y,
       rot: p.wa,
       sx: 1,
       sy: 1,
@@ -311,8 +391,8 @@ export function layout(kit: Kit, p: RigPose, raised = false): Draw[] {
     const holds = off.cell.pivots?.strap ? 'strap' : 'grip';
     push('offhand', off, {
       pivot: holds,
-      x: back.end.x,
-      y: back.end.y,
+      x: back.grip.x,
+      y: back.grip.y,
       rot: holds === 'grip' ? p.wb : 0,
       sx: 1,
       sy: 1,
@@ -382,6 +462,40 @@ export function drawKit(ctx: Ctx, draws: readonly Draw[], p: RigPose): void {
       ctx.drawImage(part.img, c.x, c.y, c.w, c.h, -fx * w, -fy * h, w, h);
     }
     ctx.restore();
+  }
+  ctx.restore();
+}
+
+// A head and shoulders portrait of the kit in a square canvas of `size` px: the torso's top, the
+// head and the headgear, facing right, centred. Transparent behind (the UI draws the plate).
+export function drawPortrait(ctx: Ctx, kit: Kit, size: number): void {
+  const { parts } = kit;
+  const head = parts.head as KitPart;
+  const torso = parts.torso as KitPart;
+  const [, headH] = sizeOf(head, kit.build.head, kit.build.head);
+  // The head takes about half the height; the neck sits two thirds down.
+  const k = (size * 0.5) / headH;
+  const nx = size / 2;
+  const ny = size * 0.68;
+  const put = (part: KitPart, name: string, x: number, y: number, sx: number, sy: number) => {
+    const [fx, fy] = pivot(part, name);
+    const [w, h] = sizeOf(part, sx, sy);
+    const c = part.cell;
+    ctx.drawImage(part.img, c.x, c.y, c.w, c.h, x - fx * w * k, y - fy * h * k, w * k, h * k);
+  };
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(0, 0, size, size);
+  ctx.clip();
+  if (parts.cloak) put(parts.cloak, 'clasp', nx - 4 * k, ny + 1 * k, 1, 1);
+  put(torso, 'neck', nx, ny, kit.build.torso[0], kit.build.torso[1]);
+  if (kit.layers.torso)
+    put(kit.layers.torso, 'neck', nx, ny, kit.build.torso[0], kit.build.torso[1]);
+  put(head, 'neck', nx, ny, kit.build.head, kit.build.head);
+  const gear = parts.headgear;
+  if (gear) {
+    const [bx, by] = offsetIn(head, 'neck', 'brow', kit.build.head, kit.build.head);
+    put(gear, 'brow', nx + bx * k, ny + by * k, kit.build.head, kit.build.head);
   }
   ctx.restore();
 }
