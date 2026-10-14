@@ -603,6 +603,8 @@ export interface LairTuning {
 // indexed by tier - 1 (the last entry holds for higher tiers).
 export interface BuildingTuning {
   maxTier: number;
+  // Resting at a shrine heals this many times faster by shrine tier (tier 1 keeps hero.shrineMult).
+  shrineRestMult: number[];
   // Cost of the next tier as a multiple of the building's cost (index = current tier - 1).
   upgradeCostMult: number[];
   // Multiplies the building's hp (an upgrade adds the difference to its current hp).

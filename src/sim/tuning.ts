@@ -109,6 +109,7 @@ export const DEFAULT_TUNING: Tuning = {
   },
   building: {
     maxTier: 3,
+    shrineRestMult: [3, 4, 5],
     upgradeCostMult: [1.5, 2.5],
     hpMult: [1, 1.5, 2],
     templeRecruitMult: [1, 0.8, 0.6],
