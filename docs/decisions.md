@@ -287,3 +287,11 @@ features come on in the live game:
 - Balance re-checks the human bot band with both on (the bot picks cards as a player would).
 - Art batches **G1** (Aesir heroes repainted) and **B13** (bounty flag as a carved banner pole,
   plus build plot) are Ready. G3, G4 and the rest stay Draft.
+
+## 2026-10-14 Heroes stay animated parts, with painted pieces (Stefan)
+
+"I still want the style we used on heroes now. Just with cooler pieces of art, no svg. I don't
+want static heroes." Heroes keep the animated parts rig; each part becomes a painted piece in the
+one style (art-tasks/STYLE.md), replacing the code-drawn shapes. G1 is reworked from four stills
+into part sheets, test sheet first (Grim son of Odin), and goes back to Draft until then. Painted
+stills are for portraits and UI only. B13 stays Ready.
