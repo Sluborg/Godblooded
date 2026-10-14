@@ -50,6 +50,9 @@ const BUILDING_COLORS: Record<string, number> = {
   tower: 0x9a9a9a,
 };
 const BUILDING_SIZE = 96;
+// The camera's start zoom: 0.7 shows 1830 x 1030 world units on a 1280 x 720 screen, enough for the
+// plot ring (about 1040 x 760) with the buildings on it.
+const DEFAULT_ZOOM = 0.7;
 // How long the camera takes to show the levelled party before its cards come up.
 const FOCUS_MS = 700;
 const TARGET_RADIUS = 70;
@@ -133,7 +136,7 @@ export class MapScene extends Phaser.Scene {
     this.registry.set('speed', getSettings().speed);
     const cam = this.cameras.main;
     const minZoom = Math.max(GAME_WIDTH / width, GAME_HEIGHT / height);
-    cam.setBounds(0, 0, width, height).setZoom(Math.max(minZoom, 0.8));
+    cam.setBounds(0, 0, width, height).setZoom(Math.max(minZoom, DEFAULT_ZOOM));
     cam.centerOn(GRAYBOX.townHall.x, GRAYBOX.townHall.y);
     cam.setBackgroundColor(COLORS.background);
     makeGround(this, width, height);
