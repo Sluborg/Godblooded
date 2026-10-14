@@ -133,8 +133,22 @@ describe('world', () => {
     expect(w.gold).toBe(400);
     const s = snapshot(w);
     expect(s.plots).toEqual([
-      { id: 0, pos: { x: 600, y: 300 }, occupied: true, building: r.ok ? r.id : -1 },
-      { id: 1, pos: { x: 400, y: 300 }, occupied: false, building: null },
+      {
+        id: 0,
+        pos: { x: 600, y: 300 },
+        occupied: true,
+        building: r.ok ? r.id : -1,
+        locked: false,
+        unlockTier: 1,
+      },
+      {
+        id: 1,
+        pos: { x: 400, y: 300 },
+        occupied: false,
+        building: null,
+        locked: false,
+        unlockTier: 1,
+      },
     ]);
     expect(s.buildings.find((b) => b.type === 'market')).toMatchObject({
       plot: 0,
