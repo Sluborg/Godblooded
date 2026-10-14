@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { command, createWorld, step, TICK_MS, type GameData } from './api';
-import { bond, addBond } from './parties';
+import { bond, addBond, refreshMaxHp } from './parties';
 import { hearthBuff } from './hearth';
 import { spawnHero } from './world';
 import type { UnitState } from './types';
@@ -127,7 +127,12 @@ describe('Hearth Hall', () => {
     expect(u.maxHp).toBe(base + Math.round(base * 0.1));
     const rt = w.heroRuntime.get(u.id);
     if (!rt) throw new Error('no runtime');
+    // A card or a new tier recomputes max hp: the buff counts once, not twice.
+    refreshMaxHp(w, u);
+    expect(u.maxHp).toBe(base + Math.round(base * 0.1));
     hearthBuff(w, u, rt, false);
+    expect(u.maxHp).toBe(base);
+    refreshMaxHp(w, u);
     expect(u.maxHp).toBe(base);
   });
 });
