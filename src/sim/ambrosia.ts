@@ -1,7 +1,7 @@
 import { addFavour, miracleOf } from './favour';
 import { godPantheon, pantheonOf } from './parties';
 import { spawnHero } from './heroes';
-import { raiseTier, upgradeCost } from './town';
+import { raiseTier, upgradeCost, upgradeGate } from './town';
 import { maxHp } from './units';
 import type { World } from './world';
 import type { BuildingCore, CommandResult } from './types';
@@ -30,6 +30,8 @@ export function upgradeWithAmbrosia(world: World, id: number): CommandResult {
   const b = temple(world, id);
   if (!t.enabled || !b) return { ok: false, reason: 'no such temple' };
   if (upgradeCost(world, b) === null) return { ok: false, reason: 'already at the top tier' };
+  const gate = upgradeGate(world, b);
+  if (gate !== null) return { ok: false, reason: `needs town hall tier ${gate}` };
   const cost = t.templeCost[b.tier - 1];
   if (cost === undefined) return { ok: false, reason: 'already at the top tier' };
   if (world.ambrosia < cost) return { ok: false, reason: 'not enough ambrosia' };

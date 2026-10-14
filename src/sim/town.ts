@@ -9,6 +9,7 @@ import {
   type Stats,
 } from './units';
 import { dropTill } from './collector';
+import { leaveRuin } from './ruins';
 import { takeDamage } from './effects';
 import { shareXp } from './parties';
 import { earn, tally } from './runstats';
@@ -76,6 +77,7 @@ export function attackBuilding(
     world.buildings = world.buildings.filter((x) => x.id !== b.id);
     world.stats.buildingsLost++;
     world.events.push({ kind: 'buildingDestroyed', building: b.id, type: b.type });
+    leaveRuin(world, b);
     if (b.type === 'townhall') {
       world.status = 'lost';
       world.events.push({ kind: 'lost' });
@@ -279,9 +281,42 @@ function launchRaid(world: World, plan: { id: number; lair: number; size: number
   world.events.push({ kind: 'raid', lair: lair.id, size: plan.size, raid: plan.id });
 }
 
-// Gold the next tier of a building costs; null for the town hall and at the top tier.
+// The town hall's tier (1 without hall tiers).
+export const hallTier = (world: World): number =>
+  world.tuning.town.hallTiers ? (world.buildings.find((b) => b.type === 'townhall')?.tier ?? 1) : 1;
+
+// Hit points of the town hall at a tier.
+export function hallHp(world: World, tier: number): number {
+  const t = world.tuning.town;
+  return t.hallTiers ? tierValue(t.hallHpByTier, tier, t.townHallHp) : t.townHallHp;
+}
+
+// A plot is closed until the town hall reaches the tier that opens it.
+export function plotUnlockTier(world: World, plot: number): number {
+  const t = world.tuning.town;
+  if (!t.hallTiers) return 1;
+  const tier = t.plotsByHallTier.findIndex((n) => plot < n) + 1;
+  return tier > 0 ? tier : t.plotsByHallTier.length + 1;
+}
+export const plotLocked = (world: World, plot: number): boolean =>
+  world.tuning.town.hallTiers && plotUnlockTier(world, plot) > hallTier(world);
+
+// The town hall tier the next upgrade of a building waits for (a building may not pass the town
+// hall's tier); null when nothing blocks it.
+export function upgradeGate(world: World, b: BuildingCore): number | null {
+  if (!world.tuning.town.hallTiers || b.type === 'townhall') return null;
+  return b.tier + 1 > hallTier(world) ? b.tier + 1 : null;
+}
+
+// Gold the next tier of a building costs; null at the top tier (and for the town hall without tiers).
 export function upgradeCost(world: World, b: BuildingCore): number | null {
   const t = world.tuning.building;
+  if (b.type === 'townhall') {
+    const tt = world.tuning.town;
+    return tt.hallTiers && b.tier < tt.hallUpgradeCost.length + 1
+      ? (tt.hallUpgradeCost[b.tier - 1] ?? null)
+      : null;
+  }
   const def = world.data.buildings.find((d) => d.id === b.type);
   if (!def || b.type === 'townhall' || b.tier >= t.maxTier) return null;
   return (
@@ -293,9 +328,13 @@ export function upgradeCost(world: World, b: BuildingCore): number | null {
 export function upgradeBuilding(world: World, id: number): CommandResult {
   const b = world.buildings.find((x) => x.id === id);
   if (!b) return { ok: false, reason: 'unknown building' };
-  if (b.type === 'townhall') return { ok: false, reason: 'cannot upgrade the town hall' };
+  if (b.type === 'townhall' && !world.tuning.town.hallTiers) {
+    return { ok: false, reason: 'cannot upgrade the town hall' };
+  }
   const cost = upgradeCost(world, b);
   if (cost === null) return { ok: false, reason: 'already at the top tier' };
+  const gate = upgradeGate(world, b);
+  if (gate !== null) return { ok: false, reason: `needs town hall tier ${gate}` };
   if (world.gold < cost) return { ok: false, reason: 'not enough gold' };
   world.gold -= cost;
   raiseTier(world, b);
@@ -305,9 +344,12 @@ export function upgradeBuilding(world: World, id: number): CommandResult {
 // The next tier of a building, whoever paid: hp goes up by the difference, damage stays.
 export function raiseTier(world: World, b: BuildingCore): void {
   b.tier++;
-  const maxHp = Math.round(
-    world.tuning.town.buildingHp * tierValue(world.tuning.building.hpMult, b.tier, 1),
-  );
+  const maxHp =
+    b.type === 'townhall'
+      ? hallHp(world, b.tier)
+      : Math.round(
+          world.tuning.town.buildingHp * tierValue(world.tuning.building.hpMult, b.tier, 1),
+        );
   b.hp += maxHp - b.maxHp;
   b.maxHp = maxHp;
   world.events.push({ kind: 'upgraded', building: b.id, type: b.type, tier: b.tier });
