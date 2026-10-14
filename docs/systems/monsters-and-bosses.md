@@ -94,7 +94,7 @@ signature move.
 
 Boss hp is a data value, not Sta x 8 + Str x 4 (`combat.md`). Fafnir follows the data after Balance's bot pass (hp 1200, Str 14, armour 7, 2026-10-14); a party of four tier 3 heroes does about 30-40 damage per second, so the fight lasts 30-40 s. The other five follow Balance's boss pass (`balance/bosses`, 2026-10-14): hp 1100-1300 and armour 7-9, Str, strike times and moves as specced; the bot wins 60-63% against each of the six, fights 2.8-3.9 min. Cerberus carries the `demon` tag, so holy's sear applies.
 
-- **Strike type:** Apep (death) and Cerberus (fire) need a non-physical monster strike; today monsters strike physical only. Sim row 80 adds a `strikeType` field on MonsterDef (default physical).
+- **Strike type:** Apep and Jormungandr (death) and Cerberus (fire) need a non-physical monster strike; today monsters strike physical only. Sim row 80 adds a `strikeType` field on MonsterDef (default physical).
 
 ### Signature moves
 
