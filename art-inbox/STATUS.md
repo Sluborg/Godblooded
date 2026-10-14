@@ -179,3 +179,6 @@ G1 test Grim: unchanged1254x1254 built-in PNG, 1885817 bytes; https://drive.goog
 
 B13-test | 2026-10-14T19:21:24.144Z | buildings | bld_plot | uploaded
 B13 test: test--bld_plot.png unchanged built-in PNG 1254x1254, https://drive.google.com/file/d/1PPBQLx9GyUwfoasnUOOUj3aDwZRaQ9Ik/view?usp=drivesdk . Current shipped townhall, tower, Aesir temple fetched and used as painted-pixel style/camera anchors; thin warm-brown outline requested. Drive metadata verified PNG, name, byte size and destination. Review: four stakes and connecting ropes, empty low earth footprint with stones at one corner; only two logs clearly visible instead of three. Framing96.4% width rather than85%; corner near-magenta RGB243,13,242 instead of exactFF00FF. No crop resize conversion recompression. Test does not complete B13. Watches remain paused under Stefan's prior instruction.
+
+G1 | 2026-10-14T20:39:44.499Z | heroes | started
+G1 current scope: Grim segments test kit, axe icon, assembled reference and portrait (request 300).
