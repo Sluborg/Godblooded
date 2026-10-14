@@ -204,6 +204,10 @@ export class UnitView {
   private statusSeq = 0;
   private readonly statusG: Phaser.GameObjects.Graphics;
   private statusDrawn = false;
+  private hiddenNow = false;
+  private stoneNow = false;
+  // How many heads a Hydra has now (null: not a Hydra), shown as pips over its bar.
+  heads: number | null = null;
   // Carried gear: armour outline, weapon shimmer or glow, flask pips.
   private readonly gearG: Phaser.GameObjects.Graphics;
   private gearDrawn = false;
@@ -563,6 +567,28 @@ export class UnitView {
     }
   }
 
+  // A short sign over the head for a moment: a "?" or "!" a boss move puts on its target.
+  cue(text: string, color: string, ms: number): void {
+    const t = this.scene.add
+      .text(0, -this.h - 58, text, {
+        fontFamily: 'Georgia, serif',
+        fontSize: '40px',
+        color,
+        stroke: '#000000',
+        strokeThickness: 5,
+      })
+      .setOrigin(0.5);
+    this.container.add(t);
+    this.scene.tweens.add({
+      targets: t,
+      y: t.y - 12,
+      alpha: { from: 1, to: 0.15 },
+      delay: ms * 0.6,
+      duration: ms * 0.4 + 200,
+      onComplete: () => t.destroy(),
+    });
+  }
+
   setStatus(kind: StatusKind, until: number): void {
     this.statuses.set(kind, { until, seq: this.statusSeq++ });
   }
@@ -571,6 +597,21 @@ export class UnitView {
   // newest buff or heal over time). Drawn only while something runs.
   private drawStatus(timeMs: number): void {
     const live = liveStatuses(this.statuses, timeMs);
+    // A swallowed hero is out of sight until it ends; stone greys the picture.
+    const hidden = live.includes('swallowed');
+    if (hidden !== this.hiddenNow) {
+      this.hiddenNow = hidden;
+      this.container.setVisible(!hidden);
+    }
+    const stone = live.includes('stone');
+    if (stone !== this.stoneNow) {
+      this.stoneNow = stone;
+      for (const img of [this.sprite, this.flash]) {
+        if (!img) continue;
+        if (stone) img.setTint(0x9a9a9a);
+        else img.clearTint();
+      }
+    }
     if (live.length === 0) {
       if (this.statusDrawn) this.statusG.clear();
       this.statusDrawn = false;
@@ -607,8 +648,12 @@ export class UnitView {
         g.lineStyle(2, look.color, 1).strokeCircle(x, y, 11);
         g.fillStyle(look.color, 1);
         if (k === 'mark') g.fillTriangle(x - 5, y - 4, x + 5, y - 4, x, y + 5);
-        else if (k === 'taunt') g.fillRect(x - 1.5, y - 6, 3, 8).fillCircle(x, y + 6, 1.8);
-        else g.fillRect(x - 6, y - 1.5, 12, 3).fillRect(x - 1.5, y - 6, 3, 12);
+        else if (k === 'taunt' || k === 'fear')
+          g.fillRect(x - 1.5, y - 6, 3, 8).fillCircle(x, y + 6, 1.8);
+        else if (k === 'poison') {
+          // A drop.
+          g.fillTriangle(x, y - 7, x - 4, y + 1, x + 4, y + 1).fillCircle(x, y + 2, 4);
+        } else g.fillRect(x - 6, y - 1.5, 12, 3).fillRect(x - 1.5, y - 6, 3, 12);
       }
     }
   }
@@ -999,6 +1044,14 @@ export class UnitView {
         .fillStyle(this.enraged ? 0xc41e1e : 0xcf4f4f, 1)
         .fillRect(-w / 2, y, (w * Math.max(0, u.hp)) / u.maxHp, 12);
       this.bar.lineStyle(2, 0xf2c14e, 0.9).strokeRect(-w / 2 - 3, y - 3, w + 6, 18);
+      // The Hydra's heads: a pip each (the empty ones are cut and regrowing).
+      if (this.heads !== null)
+        for (let i = 0; i < 3; i++) {
+          const px = (i - 1) * 22;
+          this.bar.fillStyle(0x1a1410, 0.85).fillCircle(px, y - 16, 8);
+          if (i < this.heads) this.bar.fillStyle(0x7fd45a, 1).fillCircle(px, y - 16, 5.5);
+          else this.bar.lineStyle(2, 0x7a7a7a, 0.9).strokeCircle(px, y - 16, 5.5);
+        }
       return;
     }
     if (u.hp >= u.maxHp) return;
@@ -1144,7 +1197,12 @@ export class UnitViews {
       else if (e.kind === 'built') this.onBuilt(e, others);
       else if (e.kind === 'rider') this.views.get(e.target)?.setRider(e.rider);
       else if (e.kind === 'drank') this.onDrank(e, ctx);
-      else if (e.kind === 'cast') this.onCast(e);
+      else if (e.kind === 'riddle' && e.answered)
+        this.views.get(e.target)?.cue('!', '#f2c14e', 1200);
+      else if (e.kind === 'bossHeads') {
+        const v = this.views.get(e.unit);
+        if (v) v.heads = e.heads;
+      } else if (e.kind === 'cast') this.onCast(e);
       else if (e.kind === 'skill') this.onSkill(e);
       else if (e.kind === 'status' && isStatusKind(e.status))
         this.views.get(e.unit)?.setStatus(e.status, e.until);
@@ -1474,6 +1532,53 @@ export class UnitViews {
     for (const v of skillVisuals(def)) this.skillFx.play(v, o, k);
   }
 
+  // The tells (monsters-and-bosses.md section 3): venom drops fall on the target, a howl sends a red
+  // ring out from the boss, the Sphinx puts a "?" over its target, Apep darkens the ground under it.
+  private onMoveWindup(
+    move: NonNullable<Extract<SimEvent, { kind: 'windup' }>['move']>,
+    e: Extract<SimEvent, { kind: 'windup' }>,
+  ): void {
+    const boss = this.views.get(e.attacker);
+    const target = this.views.get(e.target);
+    const life = e.inMs / 1000;
+    if (move === 'venom' && target)
+      this.fx.add([
+        {
+          type: 'drops',
+          x: target.container.x,
+          y: target.container.y,
+          color: 0x8ae04a,
+          age: 0,
+          life,
+        },
+      ]);
+    else if (move === 'howl' && boss)
+      this.fx.add([
+        {
+          type: 'ring',
+          x: boss.container.x,
+          y: boss.container.y,
+          r: 200,
+          age: 0,
+          life,
+          color: 0xe04a3a,
+        },
+      ]);
+    else if (move === 'riddle') target?.cue('?', '#f4ead5', e.inMs);
+    else if (move === 'swallow' && target)
+      this.fx.add([
+        {
+          type: 'ring',
+          x: target.container.x,
+          y: target.container.y,
+          r: 60,
+          age: 0,
+          life,
+          color: 0x6a3a8a,
+        },
+      ]);
+  }
+
   private onWindup(e: Extract<SimEvent, { kind: 'windup' }>): void {
     // A cleave shows its ground marker for the whole windup (the target is the centre).
     if (e.area)
@@ -1488,6 +1593,8 @@ export class UnitViews {
           life: e.inMs / 1000,
         },
       ]);
+    // A timed boss move announces itself on its target for the whole windup.
+    if (e.move) this.onMoveWindup(e.move, e);
     // A breath shows its cone on the ground for the whole windup.
     if (e.cone)
       this.fx.add([
