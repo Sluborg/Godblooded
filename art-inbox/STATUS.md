@@ -184,3 +184,6 @@ G1 | 2026-10-14T20:39:44.499Z | heroes | started
 G1 current scope: Grim segments test kit, axe icon, assembled reference and portrait (request 300).
 
 B13 | 2026-10-14T20:40:27.720Z | buildings | started
+
+B13 | 2026-10-14T20:45:16.772Z | buildings | bld_plot, ui_flag_bounty | QA failed; NOT uploaded
+B13 QA report: three built-in attempts per item, original PNGs unchanged. bld_plot final has four stakes, connected ropes and three countable logs, but width92.9% vs85%, cornerRGB238,13,240 vs exact255,0,255. ui_flag_bounty final has dragon head, oak carving, iron bands, red coin banner, pouch and earth tuft; height81.8% vs75%, lowest point89.9% vs88%, cornerRGB239,13,241. Per QA.md, failed assets withheld from delivery; batch remains incomplete. No main edits, no watch changes.
