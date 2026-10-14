@@ -10,6 +10,7 @@ import {
   createWorld,
   runReport,
   loadWorld,
+  playData,
   saveWorld,
   SaveError,
   snapshot,
@@ -28,6 +29,8 @@ import { clearSave, isNewerSave, newSeed, readSave, writeSave } from '../ui/save
 import { getSettings, updateSettings } from '../ui/settings';
 import { FpsGuard } from '../ui/fpsGuard';
 import { heroLabel, partyColor } from '../ui/partyLook';
+import { readMeta } from '../ui/metaStore';
+import { chosenLean } from '../ui/setupLook';
 import { UnitViews } from '../ui/unitViews';
 import { iconScale } from '../ui/icons';
 import { releaseSets } from '../ui/parts/bake';
@@ -157,7 +160,7 @@ export class MapScene extends Phaser.Scene {
           // A newer game wrote it: play a fresh run here. The storage layer never clears or
           // overwrites that save (storedIsNewer), so the newer client can still continue it.
           this.registry.set('notice', 'This save is from a newer version. Reload to update.');
-          return createWorld(newSeed(), GRAYBOX, { firstRun: isFirstRun() });
+          return this.freshWorld();
         }
         clearSave();
       }
@@ -165,7 +168,30 @@ export class MapScene extends Phaser.Scene {
     // Every fresh run (Play, Play again, Restart) drops the old checkpoint at once, so a reload
     // before the first autosave cannot bring the abandoned run back.
     clearSave();
-    return createWorld(newSeed(), GRAYBOX, { firstRun: isFirstRun() });
+    return this.freshWorld();
+  }
+
+  // A fresh run: the player's unlocked data, a gentle first run, and never the boss of the last run.
+  private freshWorld(): World {
+    return createWorld(newSeed(), this.playData(), {
+      firstRun: isFirstRun(),
+      avoidBoss: readMeta().lastBoss,
+    });
+  }
+
+  // The data a fresh run is played on: the content the player has unlocked, the Altar's ranks, the
+  // chosen Trials and the lean (sim/meta.ts playData), from the meta save.
+  private playData() {
+    const trials = (this.registry.get('runTrials') as string[] | undefined) ?? [];
+    const meta = readMeta();
+    // The run leans on the pantheon the setup screen showed (the chosen one, else the first open),
+    // not on a random pick: playData only forces a lean that is set in the meta.
+    return playData(GRAYBOX, { ...meta, lean: chosenLean(GRAYBOX, meta) }, trials);
+  }
+
+  // The Trials this run was started with (an End screen needs them for the Essence).
+  get playTrials(): readonly string[] {
+    return this.world.data.play?.trials ?? [];
   }
 
   // Writes the run to storage (autosave, and when the player quits to the title).
@@ -187,7 +213,13 @@ export class MapScene extends Phaser.Scene {
     this.registry.set('speed', getSettings().speed);
     const cam = this.cameras.main;
     const minZoom = Math.min(GAME_WIDTH / width, GAME_HEIGHT / height);
-    cam.setBounds(0, 0, width, height).setZoom(Math.max(minZoom, DEFAULT_ZOOM) * RENDER_SCALE);
+    // Zoomed right out the view can be wider or taller than the map: pad the bounds so the map
+    // sits in the middle of the view, not against one edge.
+    const padX = Math.max(0, (GAME_WIDTH / minZoom - width) / 2);
+    const padY = Math.max(0, (GAME_HEIGHT / minZoom - height) / 2);
+    cam
+      .setBounds(-padX, -padY, width + 2 * padX, height + 2 * padY)
+      .setZoom(Math.max(minZoom, DEFAULT_ZOOM) * RENDER_SCALE);
     cam.centerOn(GRAYBOX.townHall.x, GRAYBOX.townHall.y);
     cam.setBackgroundColor(COLORS.background);
     makeGround(this, width, height);

@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { bake, bakeTexture } from './bake';
+import { blobPoints, hash } from './organic';
 
 // What stands on the ground tells friend from foe at a glance: a town building sits on a warm,
 // trodden patch; a monster lair on dark cracked earth with a blood-red ring, a faint red glow and
@@ -14,57 +15,70 @@ export function lairTitle(type: string): string {
     .join(' ');
 }
 
-// Fixed crack lines (unit coordinates, half-width 1) so every lair has the same cracked look.
-const CRACKS: [number, number, number, number, number, number][] = [
-  [-0.95, 0.05, -0.55, -0.2, -0.3, 0.1],
-  [0.95, -0.05, 0.6, 0.25, 0.35, 0.05],
-  [-0.2, 0.55, 0.05, 0.25, 0.3, 0.5],
-  [-0.5, -0.55, -0.25, -0.25, 0.0, -0.4],
-  [0.45, -0.5, 0.25, -0.3, 0.1, -0.15],
-];
-
 export function lairDecal(scene: Phaser.Scene, boss: boolean): Phaser.GameObjects.Image {
   const w = boss ? 440 : 300;
   const h = w * 0.42;
-  // Dead ground, no ring: a faint red glow, then an uneven patch of ash and scorched earth made of
-  // overlapping blobs, cracks and a few scattered bones.
-  return bake(scene, `lair2:${boss}`, (w * 1.5) / 2 + 2, (h * 1.6) / 2 + 8, (g) => {
-    g.fillStyle(0xff3020, 0.05).fillEllipse(0, -6, w * 1.5, h * 1.6);
-    g.fillStyle(0xff3020, 0.06).fillEllipse(0, -6, w * 1.2, h * 1.3);
-    const blobs: [number, number, number, number, number, number][] = [
-      [0, 0, 1, 1, 0x140a10, 0.62],
-      [-0.28, 0.08, 0.6, 0.8, 0x0c0609, 0.5],
-      [0.3, -0.06, 0.55, 0.7, 0x1a0d12, 0.5],
-      [0.05, 0.22, 0.7, 0.45, 0x0c0609, 0.45],
-      [-0.4, -0.12, 0.35, 0.5, 0x1a0d12, 0.4],
-      [0.45, 0.18, 0.3, 0.4, 0x0c0609, 0.4],
+  const cy = -6;
+  // Dead ground with no circle silhouette (Stefan): ragged blobs of ash and scorched earth fading
+  // out into the grass, darker towards the middle, blotches scattered over it, cracks running out
+  // past the edge, a few bones. Everything is deterministic and baked once.
+  return bake(scene, `lair3:${boss}`, Math.ceil(w * 0.9), Math.ceil(h * 0.9) + 12, (g) => {
+    const layers: [number, number, number, number][] = [
+      [1.3, 0x5a4636, 0.14, 0.26],
+      [1.12, 0x4a382c, 0.22, 0.24],
+      [0.95, 0x32241d, 0.34, 0.22],
+      [0.78, 0x20151a, 0.5, 0.2],
+      [0.56, 0x120a0d, 0.62, 0.18],
     ];
-    for (const [x, y, bw, bh, c, a] of blobs)
-      g.fillStyle(c, a).fillEllipse((x * w) / 2, -6 + (y * h) / 2, w * bw, h * bh);
-    g.lineStyle(2, 0x050205, 0.8);
-    for (const [x1, y1, x2, y2, x3, y3] of CRACKS) {
-      g.beginPath()
-        .moveTo((x1 * w) / 2, -6 + (y1 * h) / 2)
-        .lineTo((x2 * w) / 2, -6 + (y2 * h) / 2)
-        .lineTo((x3 * w) / 2, -6 + (y3 * h) / 2)
-        .strokePath();
+    layers.forEach(([k, c, a, amp], i) => {
+      g.fillStyle(c, a).fillPoints(
+        blobPoints(0, cy + (i - 2) * 2, (w / 2) * k, (h / 2) * k, boss ? 20 + i : 10 + i, amp, 44),
+        true,
+      );
+    });
+    // Blotches of darker and paler dirt.
+    for (let i = 0; i < 16; i++) {
+      const ang = hash(i * 3 + 1) * Math.PI * 2;
+      const rad = Math.sqrt(hash(i * 3 + 2)) * 0.82;
+      const bx = Math.cos(ang) * rad * (w / 2);
+      const by = cy + Math.sin(ang) * rad * (h / 2);
+      const size = 8 + hash(i * 3 + 3) * (boss ? 30 : 20);
+      g.fillStyle(i % 3 === 0 ? 0x6a5444 : 0x07040a, i % 3 === 0 ? 0.3 : 0.55).fillPoints(
+        blobPoints(bx, by, size, size * 0.45, 100 + i, 0.3, 14),
+        true,
+      );
+    }
+    // A few cracks, mostly inside the patch with only a little run-out, tapering to a point, dark
+    // brown rather than black.
+    const cracks = boss ? 4 : 3;
+    for (let i = 0; i < cracks; i++) {
+      const a0 = (i / cracks) * Math.PI * 2 + 0.6 + hash(i + 50) * 0.6;
+      let x = Math.cos(a0) * w * 0.1;
+      let y = cy + Math.sin(a0) * h * 0.1;
+      const len = (0.42 + hash(i + 60) * 0.18) * (w / 2);
+      const segs = 4;
+      for (let k = 1; k <= segs; k++) {
+        const a = a0 + (hash(i * 7 + k) - 0.5) * 0.6;
+        const nx = x + Math.cos(a) * (len / segs);
+        const ny = y + Math.sin(a) * (len / segs) * (h / w) * 1.3;
+        g.lineStyle(3.2 * (1 - (k - 1) / segs) + 0.6, 0x2a1a12, 0.85).lineBetween(x, y, nx, ny);
+        x = nx;
+        y = ny;
+      }
     }
     // Bones in the ash.
     g.lineStyle(3, 0xd9ceb4, 0.55);
-    const bones: [number, number, number][] = [
-      [-0.55, 0.15, 0.4],
-      [0.6, -0.1, -0.3],
-      [-0.15, 0.32, 0.9],
-      [0.25, 0.3, -0.7],
-    ];
-    for (const [x, y, a] of bones) {
-      const cx = (x * w) / 2;
-      const cy = -6 + (y * h) / 2;
+    for (let i = 0; i < 5; i++) {
+      const ang = hash(i + 80) * Math.PI * 2;
+      const rad = 0.25 + hash(i + 90) * 0.5;
+      const bx = Math.cos(ang) * rad * (w / 2);
+      const by = cy + Math.sin(ang) * rad * (h / 2);
+      const a = (hash(i + 70) - 0.5) * 2;
       g.lineBetween(
-        cx - Math.cos(a) * 7,
-        cy - Math.sin(a) * 4,
-        cx + Math.cos(a) * 7,
-        cy + Math.sin(a) * 4,
+        bx - Math.cos(a) * 7,
+        by - Math.sin(a) * 4,
+        bx + Math.cos(a) * 7,
+        by + Math.sin(a) * 4,
       );
     }
   });
@@ -72,7 +86,8 @@ export function lairDecal(scene: Phaser.Scene, boss: boolean): Phaser.GameObject
 
 // A skull on a pole beside a lair, standing on its foot at (0, 0): baked once.
 export function skullPike(scene: Phaser.Scene): Phaser.GameObjects.Image {
-  return bake(scene, 'skull-pike', 26, 60, (g) => {
+  return bake(scene, 'skull-pike-hero', 52, 160, (g) => {
+    g.scaleCanvas(2.3, 2.3);
     g.fillStyle(0x000000, 0.28).fillEllipse(6, 0, 30, 9);
     g.fillStyle(0x3a2616, 1).fillRect(-2, -46, 4, 46);
     g.lineStyle(1.5, 0x120a05, 0.9).strokeRect(-2, -46, 4, 46);
