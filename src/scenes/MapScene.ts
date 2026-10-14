@@ -34,7 +34,14 @@ import { releaseSets } from '../ui/parts/bake';
 import { effectiveSpeed } from '../ui/pathSpeed';
 import { STYLE } from '../ui/style';
 import { LAIR_UI_DEPTH, LairIndicators, groundScale, plateColor } from '../ui/lairRings';
-import { footprintRing, groundShadow, lairDecal, lairPlate, townPatch } from '../ui/groundDecal';
+import {
+  footprintRing,
+  groundShadow,
+  lairDecal,
+  lairPlate,
+  ruinMark,
+  townPatch,
+} from '../ui/groundDecal';
 import { HALL_STYLE, drawBanners, isTownHall, plazaDecal } from '../ui/townHallLook';
 import {
   buildingArtCandidates,
@@ -106,6 +113,7 @@ export class MapScene extends Phaser.Scene {
   // Lairs with a raid on the way: the run time the warning ends (a dotted trail to the town).
   private raidTrails = new Map<number, number>();
   private selectRing: Phaser.GameObjects.Image | null = null;
+  private ruinMarks = new Map<number, Phaser.GameObjects.Image>();
   private selectRingFor = 0;
   private nodeViews!: NodeViews;
   // Party whose level-up cards are open (the sim is frozen until it is picked), or null.
@@ -391,6 +399,21 @@ export class MapScene extends Phaser.Scene {
   // Sim command entry for the HUD. The sim decides; the result carries the refusal reason.
   tryBuild(type: string, plot: number): CommandResult {
     return command(this.world, { kind: 'build', type, plot });
+  }
+
+  // Ruins (tuning.town.ruins): rebuild at tier 1 for part of the cost, or clear the plot.
+  tryRebuildRuin(ruin: number): CommandResult {
+    return command(this.world, { kind: 'rebuildRuin', ruin });
+  }
+
+  tryClearRuin(ruin: number): CommandResult {
+    return command(this.world, { kind: 'clearRuin', ruin });
+  }
+
+  // What rebuilding a ruin of this building type costs now.
+  ruinCost(type: string): number {
+    const def = this.world.data.buildings.find((d) => d.id === type);
+    return Math.round((def?.cost ?? 0) * this.world.tuning.town.rebuildCostMult);
   }
 
   tryPickPath(party: number, path: string): CommandResult {
@@ -1102,7 +1125,15 @@ export class MapScene extends Phaser.Scene {
           .setStrokeStyle(3, 0xffffff, 0.35);
         this.plotViews.set(p.id, view);
       }
-      view.setVisible(!p.occupied);
+      view.setVisible(!p.occupied && p.ruin === null);
+      // A ruin stands on its plot until it is rebuilt or cleared.
+      const mark = this.ruinMarks.get(p.id);
+      if (p.ruin !== null && !mark)
+        this.ruinMarks.set(p.id, ruinMark(this).setPosition(p.pos.x, p.pos.y).setDepth(p.pos.y));
+      else if (p.ruin === null && mark) {
+        mark.destroy();
+        this.ruinMarks.delete(p.id);
+      }
       // A plot closed until the town hall reaches a tier: faint, with a padlock and the tier.
       view
         .setFillStyle(0xffffff, p.locked ? 0.02 : 0.08)

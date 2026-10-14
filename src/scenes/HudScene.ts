@@ -563,6 +563,7 @@ export class HudScene extends Phaser.Scene {
     if (tap.plot !== null) {
       const plot = map.snapshot.plots.find((x) => x.id === tap.plot);
       if (plot?.locked) this.showToast(`Needs town hall tier ${plot.unlockTier}`, 1800);
+      else if (plot && plot.ruin !== null) this.openRuinMenu(map, plot.ruin);
       else this.openBuildMenu(map, tap.plot, null);
     } else if (tap.target) {
       const { pos, label } = tap.target;
@@ -653,6 +654,21 @@ export class HudScene extends Phaser.Scene {
 
   // Build menu: the first tap on an item shows what it does, the same item tapped again builds it,
   // another item switches the info, a tap outside cancels. Never builds on a single tap.
+  // A ruin on a plot: rebuild the building at tier 1 for part of its cost, or clear the plot.
+  private openRuinMenu(map: MapScene, ruinId: number): void {
+    const ruin = map.snapshot.ruins.find((r) => r.id === ruinId);
+    if (!ruin) return;
+    const cost = map.ruinCost(ruin.type);
+    this.openMenu(`Ruins of the ${buildingName(ruin.type)}`, [
+      {
+        label: `Rebuild\n${cost} gold`,
+        cost,
+        pick: () => this.run(map.tryRebuildRuin(ruinId)),
+      },
+      { label: 'Clear\nthe plot', cost: 0, pick: () => this.run(map.tryClearRuin(ruinId)) },
+    ]);
+  }
+
   private openBuildMenu(map: MapScene, plot: number, selected: string | null): void {
     if (selected === null) this.hints?.fire('buildMenu');
     const gold = (this.registry.get('gold') as number | undefined) ?? 0;
