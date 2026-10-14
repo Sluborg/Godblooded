@@ -455,13 +455,14 @@ export const MONSTERS: readonly MonsterDef[] = [
 
 // Lairs from docs/systems/monsters-and-bosses.md section 4; the wyrm nest is the boss lair (the
 // run is won when it falls) and spawns draugr guards. Balance passes (Lead 80, 90 and the human-bot
-// pass): big lairs 4800 hp, small 2400-2800, the nest 8000 (spec 9000 and 16000).
+// pass): big lairs 4800 hp, small 2400-2800, the nest 8000 (spec 9000 and 16000). Playtest trim for
+// collision and the live verbs: non-boss lairs at 70% (big 4200, small 2100-2450).
 export const LAIRS: readonly LairDef[] = [
-  { id: 'barrow', monster: 'draugr', spawnS: 10, maxAlive: 6, hp: 2800 },
-  { id: 'troll-den', monster: 'troll', spawnS: 25, maxAlive: 4, hp: 4800 },
-  { id: 'harpy-roost', monster: 'harpy', spawnS: 9, maxAlive: 6, hp: 2400 },
-  { id: 'jackal-camp', monster: 'jackal-man', spawnS: 10, maxAlive: 6, hp: 2800 },
-  { id: 'labyrinth', monster: 'minotaur', spawnS: 24, maxAlive: 4, hp: 4800 },
+  { id: 'barrow', monster: 'draugr', spawnS: 10, maxAlive: 6, hp: 2450 },
+  { id: 'troll-den', monster: 'troll', spawnS: 25, maxAlive: 4, hp: 4200 },
+  { id: 'harpy-roost', monster: 'harpy', spawnS: 9, maxAlive: 6, hp: 2100 },
+  { id: 'jackal-camp', monster: 'jackal-man', spawnS: 10, maxAlive: 6, hp: 2450 },
+  { id: 'labyrinth', monster: 'minotaur', spawnS: 24, maxAlive: 4, hp: 4200 },
   { id: 'wyrm-nest', monster: 'wyrm', spawnS: 30, maxAlive: 3, hp: 8000, escort: 'draugr' },
 ];
 
@@ -894,10 +895,23 @@ export const GRAYBOX: GameData = {
     hero: { maxPerTemple: 7, recruitMs: 22_000, taxRate: 0.55, shopTripGold: 0, tithe: 0.3 },
     // Town income besides shop tax (docs/systems/tax-collector.md): the collector walks the tills.
     collector: { enabled: true },
+    // Vanguard (events.md section 1): the unsealed boss lair raids the town with 1 of its escort
+    // every 90 s until the boss is out.
+    boss: { vanguardSize: 1 },
+    // The boss call (hero-ai.md 5c): from the unseal the boss lair scores 80 more for parties, so
+    // they head for it instead of exploring an empty map. Human bot with the trim, 40 runs, seeds 1
+    // and 1001, 35-min cap: wins 63% and 68% (60% and 65% at 30 min), median run 14.9 and 14.7 min,
+    // longest quiet stretch p90 102 and 80 s (156 s without the call; Sim's default 40 gave 55%
+    // and 95 s).
+    ai: { bossCallBonus: 80 },
     // Raids after a lair tier-up are on (Stefan): one raider on every tier-up.
+    // Playtest trim (main + collision + live verbs + vanguard, human bot, seeds 1 and 1001, 40 runs
+    // each, 35-min cap): the first raid at 7:00 and one every 3.5 min instead of 6:00 and 3 min,
+    // with the 70% lairs: wins 63% and 70% (57% and 63% at the bot's default 30-min cap); main
+    // without the trim 50% and 63% (48% and 53% at 30 min).
     town: {
-      raidFirstMs: 360_000,
-      raidEveryMs: 180_000,
+      raidFirstMs: 420_000,
+      raidEveryMs: 210_000,
       raidGrowEveryMs: 400_000,
       raidSize: 1,
       raidOnTierUp: true,

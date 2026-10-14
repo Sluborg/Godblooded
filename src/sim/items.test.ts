@@ -120,7 +120,14 @@ describe('hero items', () => {
   it('a new hero carries level 0 gear and no potions, and snapshots a copy', () => {
     const w = world();
     const h = hero(w, 'knight');
-    expect(h.items).toEqual({ weapon: 0, armour: 0, potions: 0, charm: null });
+    expect(h.items).toEqual({
+      weapon: 0,
+      armour: 0,
+      headgear: 0,
+      offhand: 0,
+      potions: 0,
+      charm: null,
+    });
     const snap = snapshot(w).units.find((u) => u.id === h.id);
     expect(snap?.items).toEqual(h.items);
     snap!.items!.weapon = 3;
@@ -212,6 +219,8 @@ describe('saves with gear', () => {
     expect(back.units.find((u) => u.id === k.id)?.items).toEqual({
       weapon: 0,
       armour: 0,
+      headgear: 0,
+      offhand: 0,
       potions: 0,
       charm: null,
     });
