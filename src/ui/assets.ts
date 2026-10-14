@@ -19,6 +19,13 @@ export interface ManifestAsset {
   weaponY?: number;
   weapon2X?: number;
   weapon2Y?: number;
+  // Painted parts rows (`hero_<look>_parts`): picture pixels per drawing unit and the rectangle and
+  // pivots of each part inside the image (ui/parts/painted.ts).
+  pxPerUnit?: number;
+  parts?: Record<
+    string,
+    { x: number; y: number; w: number; h: number; pivots?: Record<string, [number, number]> }
+  >;
   // 9-slice rows (ui_panel, ui_button*): the four corner sizes in shipped pixels.
   sliceLeft?: number;
   sliceRight?: number;

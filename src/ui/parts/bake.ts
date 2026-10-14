@@ -4,7 +4,9 @@
 // scale, one canvas per look (not one per frame), and looks nobody uses any more are released.
 import Phaser from 'phaser';
 import type { PartsDef } from '../../data/heroParts';
-import { drawHuman, setState } from './proto.gen';
+import { drawHuman, pose as rigPose, setState } from './proto.gen';
+import { drawPainted } from './painted';
+import { paintedFor } from './paintedLoad';
 import { gradePixels } from './partsStyle';
 import {
   ATLAS_COLS as COLS,
@@ -47,6 +49,8 @@ export function ensureHeroSet(scene: Phaser.Scene, id: string, def: PartsDef, ti
   const rows = Math.ceil(total / COLS);
   const atlas = `parts_${id}`;
   if (scene.textures.exists(atlas)) scene.textures.remove(atlas);
+  // A painted look (manifest row `hero_<look>_parts`) is drawn from its pictures on the same rig.
+  const painted = paintedFor(scene, id);
   const tex = scene.textures.createCanvas(atlas, fw * COLS, fh * rows);
   const frames = { idle: [], walk: [], attack: [], ko: [] } as Record<PoseName, string[]>;
   const set: BakedSet = {
@@ -78,7 +82,7 @@ export function ensureHeroSet(scene: Phaser.Scene, id: string, def: PartsDef, ti
       const st = frameState(pose, i);
       setState({ ctx: c, T: st.time, FL: 0 });
       // The prototype scales effects by the hero's tier (sel.t): subtle at 1, clearly effectful at 3.
-      drawHuman({
+      const u = {
         ...st.pose,
         d: def,
         kind: 'hero',
@@ -88,14 +92,18 @@ export function ensureHeroSet(scene: Phaser.Scene, id: string, def: PartsDef, ti
         face: 1,
         alpha: 1,
         hits: 0,
-      });
+      };
+      if (painted) {
+        const p = rigPose(u);
+        drawPainted(c, painted.img, painted.sheet, p, p.armF > 2.0 && u.atkT >= 0);
+      } else drawHuman(u);
       setState({ ctx: null });
       c.restore();
     }
   }
   // The palette grade, once over the whole atlas.
   const img = c.getImageData(0, 0, tex.width, tex.height);
-  gradePixels(img.data);
+  if (!painted) gradePixels(img.data);
   c.putImageData(img, 0, 0);
   tex.refresh();
   tex.setFilter(Phaser.Textures.FilterMode.LINEAR);
