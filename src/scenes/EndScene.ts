@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { FILL_W } from '../ui/view';
 import { COLORS, GAME_HEIGHT, GAME_WIDTH } from '../config';
 import { makeButton } from '../ui/button';
 import { addSeedLabel } from '../ui/seedLabel';
@@ -28,7 +29,7 @@ export class EndScene extends Phaser.Scene {
 
   create(): void {
     this.showDetails = false;
-    fitDesignCamera(this);
+    fitDesignCamera(this, 'centre');
     const snap = (this.scene.get('Map') as MapScene).snapshot;
     // Quit from Pause: the report of the unfinished run, marked as abandoned.
     const abandoned = (this.registry.get('abandonReport') as RunReport | undefined) ?? null;
@@ -36,9 +37,7 @@ export class EndScene extends Phaser.Scene {
     const report = abandoned ?? snap.report;
     const won = (report?.outcome ?? snap.status) === 'won';
     const cx = GAME_WIDTH / 2;
-    this.add
-      .rectangle(cx, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x0e0b08, 0.94)
-      .setInteractive();
+    this.add.rectangle(cx, GAME_HEIGHT / 2, FILL_W, GAME_HEIGHT, 0x0e0b08, 0.94).setInteractive();
     this.add
       .text(cx, 50, abandoned ? 'RUN ABANDONED' : won ? 'VICTORY' : 'TOWN LOST', {
         fontFamily: FONT,

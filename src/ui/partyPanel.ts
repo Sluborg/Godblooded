@@ -1,13 +1,15 @@
 import { getSettings } from './settings';
 import Phaser from 'phaser';
-import { COLORS, GAME_WIDTH } from '../config';
+import { COLORS } from '../config';
+import { viewWidth } from './view';
 import { GRAYBOX, UPGRADES } from '../data/graybox';
 import type { PartyState, Snapshot, UnitState } from '../sim/api';
 import { makeButton } from './button';
 import { heroLabel, modeLabel, partyColor, partyColorCss, traitLabel } from './partyLook';
 
 const W = 330;
-const X = GAME_WIDTH - W - 10;
+// The panel hugs the right edge of the view (set when a panel is built; one panel lives at a time).
+let X = 0;
 const Y = 84;
 const H = 480;
 const FONT = 'Georgia, serif';
@@ -16,13 +18,16 @@ const ROW_H = 78;
 // Side panel for the tapped hero's party: level, XP bar, upgrades and one row per member
 // (god or path, trait, state, hp, gold). Reads the snapshot every frame; owns no rules.
 export class PartyPanel {
-  readonly rect = new Phaser.Geom.Rectangle(X, Y, W, H);
+  readonly rect: Phaser.Geom.Rectangle;
   private objects: Phaser.GameObjects.GameObject[] = [];
   private heroId: number | null = null;
   private builtFor = '';
   private dynamic: Phaser.GameObjects.GameObject[] = [];
 
-  constructor(private readonly scene: Phaser.Scene) {}
+  constructor(private readonly scene: Phaser.Scene) {
+    X = viewWidth() - W - 10;
+    this.rect = new Phaser.Geom.Rectangle(X, Y, W, H);
+  }
 
   get isOpen(): boolean {
     return this.heroId !== null;

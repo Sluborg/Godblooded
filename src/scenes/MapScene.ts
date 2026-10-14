@@ -3,7 +3,8 @@ import { makeGround, releaseGround } from '../ui/ground';
 import { flagAt } from '../ui/flagCard';
 import { getMusic } from '../ui/musicPlayer';
 import Phaser from 'phaser';
-import { COLORS, GAME_HEIGHT, GAME_WIDTH, RENDER_SCALE } from '../config';
+import { COLORS, GAME_HEIGHT, RENDER_SCALE } from '../config';
+import { onViewResize, viewWidth } from '../ui/view';
 import { GRAYBOX } from '../data/graybox';
 import {
   command,
@@ -194,6 +195,22 @@ export class MapScene extends Phaser.Scene {
     return this.world.data.play?.trials ?? [];
   }
 
+  // The zoom at which the whole map fills the view (design units).
+  private minZoom(): number {
+    const { width, height } = GRAYBOX.map;
+    return Math.min(viewWidth() / width, GAME_HEIGHT / height);
+  }
+
+  // Zoomed right out the view can be wider or taller than the map: pad the bounds so the map sits
+  // in the middle of the view, not against one edge.
+  private fitBounds(): void {
+    const { width, height } = GRAYBOX.map;
+    const min = this.minZoom();
+    const padX = Math.max(0, (viewWidth() / min - width) / 2);
+    const padY = Math.max(0, (GAME_HEIGHT / min - height) / 2);
+    this.cameras.main.setBounds(-padX, -padY, width + 2 * padX, height + 2 * padY);
+  }
+
   // Writes the run to storage (autosave, and when the player quits to the title).
   saveNow(): void {
     if (this.snap.status === 'running') writeSave(saveWorld(this.world));
@@ -212,23 +229,26 @@ export class MapScene extends Phaser.Scene {
     this.world = this.startWorld();
     this.registry.set('speed', getSettings().speed);
     const cam = this.cameras.main;
-    const minZoom = Math.min(GAME_WIDTH / width, GAME_HEIGHT / height);
-    // Zoomed right out the view can be wider or taller than the map: pad the bounds so the map
-    // sits in the middle of the view, not against one edge.
-    const padX = Math.max(0, (GAME_WIDTH / minZoom - width) / 2);
-    const padY = Math.max(0, (GAME_HEIGHT / minZoom - height) / 2);
-    cam
-      .setBounds(-padX, -padY, width + 2 * padX, height + 2 * padY)
-      .setZoom(Math.max(minZoom, DEFAULT_ZOOM) * RENDER_SCALE);
+    cam.setSize(Math.round(viewWidth() * RENDER_SCALE), Math.round(GAME_HEIGHT * RENDER_SCALE));
+    this.fitBounds();
+    cam.setZoom(Math.max(this.minZoom(), DEFAULT_ZOOM) * RENDER_SCALE);
     cam.centerOn(GRAYBOX.townHall.x, GRAYBOX.townHall.y);
     cam.setBackgroundColor(COLORS.background);
     makeGround(this, width, height);
     attachCameraControls(this, {
-      minZoom,
+      minZoom: () => this.minZoom(),
       scale: RENDER_SCALE,
       onTap: (w) => this.events.emit('mapTapped', this.resolveTap(w)),
       onManual: () => this.setWatch(false),
       blocked: (x, y) => this.registry.get('modal') === true || (this.hud()?.blocks(x, y) ?? false),
+    });
+    // The screen turned or a bar moved: the view got wider or narrower. Keep looking at the same
+    // spot, and never zoomed out further than the whole map.
+    onViewResize(this, () => {
+      const mid = cam.midPoint.clone();
+      this.fitBounds();
+      cam.setZoom(Math.max(cam.zoom, this.minZoom() * RENDER_SCALE));
+      cam.centerOn(mid.x, mid.y);
     });
     this.offerKey = null;
     this.offerRing = null;

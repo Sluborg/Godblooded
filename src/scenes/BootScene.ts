@@ -22,7 +22,7 @@ export class BootScene extends Phaser.Scene {
   }
 
   create(): void {
-    fitDesignCamera(this);
+    fitDesignCamera(this, 'centre');
     this.started = this.time.now;
     this.cameras.main.setBackgroundColor(COLORS.background);
     this.drawBar();

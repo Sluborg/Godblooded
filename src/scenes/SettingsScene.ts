@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { FILL_W } from '../ui/view';
 import { COLORS, GAME_HEIGHT, GAME_WIDTH } from '../config';
 import { makeButton, type Button } from '../ui/button';
 import { stepVolume } from '../ui/musicPlan';
@@ -36,11 +37,11 @@ export class SettingsScene extends Phaser.Scene {
   }
 
   create(): void {
-    fitDesignCamera(this);
+    fitDesignCamera(this, 'centre');
     this.speedButtons = [];
     this.paletteButtons = [];
     const cx = GAME_WIDTH / 2;
-    this.add.rectangle(cx, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x0e0b08, 1).setInteractive();
+    this.add.rectangle(cx, GAME_HEIGHT / 2, FILL_W, GAME_HEIGHT, 0x0e0b08, 1).setInteractive();
     makePanel(this, cx, GAME_HEIGHT / 2, 1160, 660);
     this.add
       .text(cx, 56, 'Settings', { fontFamily: FONT, fontSize: '56px', color: '#f2c14e' })
