@@ -105,7 +105,7 @@ describe('gatherers', () => {
     const ev = run(w, 60_000);
     const homes = ev.filter((e) => e.kind === 'jarHome');
     expect(homes.length).toBeGreaterThanOrEqual(2);
-    expect(homes[0]).toMatchObject({ gold: 20 });
+    expect(homes[0]).toMatchObject({ amount: 20 });
     expect(snapshot(w).ambrosia).toBeGreaterThanOrEqual(40);
     // the pool fell by what was carried (it also refills a little)
     const now = snapshot(w).nodes.find((n) => n.id === node)?.pool ?? 0;
@@ -137,6 +137,22 @@ describe('gatherers', () => {
     expect(snapshot(w).workers[0]).toMatchObject({ phase: 'back', fleeing: true });
     run(w, 30_000);
     expect(u.hp).toBeGreaterThan(10);
+  });
+
+  it('can be made to heal before going out again', () => {
+    const { w, node } = freed({ enabled: true, returnAtHp: 0.9 });
+    const id = (command(w, { kind: 'hireGatherer' }) as { id: number }).id;
+    command(w, { kind: 'sendGatherer', node });
+    run(w, 5_000);
+    const u = w.units.find((x) => x.id === id);
+    if (!u) throw new Error('gone');
+    u.hp = 10;
+    run(w, 100);
+    for (let i = 0; i < 1000 && u.hp < u.maxHp * 0.9; i++) {
+      step(w, TICK_MS);
+      if (u.hp < u.maxHp * 0.9) expect(snapshot(w).workers[0].phase).not.toBe('out');
+    }
+    expect(u.hp).toBeGreaterThanOrEqual(u.maxHp * 0.9);
   });
 
   it('die for good when a foe kills them', () => {

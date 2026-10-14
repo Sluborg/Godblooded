@@ -225,6 +225,7 @@ export const DEFAULT_TUNING: Tuning = {
     carry: 20,
     fleeMult: 1.2,
     healPerS: 0.02,
+    returnAtHp: 0,
     reach: 40,
   },
   town: {

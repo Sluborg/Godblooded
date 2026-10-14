@@ -1264,6 +1264,9 @@ export interface NodesTuning {
   carry: number;
   fleeMult: number;
   healPerS: number;
+  // A gatherer that fled home waits at the hall until it has this share of its hp back before it
+  // goes out again (0: goes straight back out).
+  returnAtHp: number;
   reach: number;
 }
 
@@ -1434,7 +1437,7 @@ export type SimEvent =
   | { kind: 'lairTierUp'; lair: number; tier: number; pressure?: boolean }
   | { kind: 'gathererHired'; unit: number }
   | { kind: 'workerHit'; unit: number }
-  | { kind: 'jarHome'; unit: number; node: number | null; gold: number; total: number }
+  | { kind: 'jarHome'; unit: number; node: number | null; amount: number; total: number }
   | { kind: 'workerFell'; unit: number; pos: Vec2; carried: number }
   | { kind: 'nodeFreed'; node: number; lair: number; pos: Vec2; pool: number }
   | { kind: 'lairDestroyed'; lair: number; type: string; by: number; bounty: number }
