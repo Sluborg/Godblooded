@@ -166,8 +166,8 @@ tier-up raids on.
   are walk-overs. A flag on a monster 350-900 from the nearest hero (how a player uses it):
   at 50 gold almost no hero heads for it, at 100 gold one heads there after a median 115 s and
   half are never claimed, at 200 gold heroes head there at once but rarely claim it. Causes in
-  `src/sim/heroes.ts`: the claim needs no monster within 250, each monster near the flag costs
-  15 points against an explore value of 20, and goals hold 6 s. Proposals went to Lead
+  `src/sim/heroes.ts`: the claim needs no monster within 250, each monster near the flag needs
+  15 gold more for the flag to be worth it (plain exploring is worth 20), and goals hold 6 s. Proposals went to Lead
   (2026-10-14): a hunt bounty that follows its monster and pays the killer, a re-score on
   placement with a visible "considering" beat, then a Balance pass. Stefan's run 2 ("Steer")
   judges the result.
