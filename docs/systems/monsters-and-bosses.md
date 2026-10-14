@@ -172,7 +172,8 @@ flag on the lair becomes the obvious answer. This is a look only: no rule change
 3. **Last 15 s:** the ring and the plate pulse once a second, and one soft drum beat plays (once
    per lair tier-up, not per pulse).
 4. **Tier-up:** the ring flashes in the new tier's plate colour and empties. A timed tier-up of a
-   normal lair also sends a small raid (`events.md`; not a pressure tier-up, not a boss lair), so the raid arrow follows a few seconds later.
+   normal lair also sends a small raid (`events.md`; not a pressure tier-up, not a boss lair),
+   and its raid arrow appears at the same moment.
 5. **Hidden** at max tier, on a sealed boss lair, and while a lair is destroyed.
 
 - **Sim:** the lair snapshot carries `tierFromMs` (the last tier-up, or the run start) and
