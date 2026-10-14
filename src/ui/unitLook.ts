@@ -76,6 +76,13 @@ export function buildingScale(picW: number, picH: number): number {
 // plot centre, where the bottom edge used to be, which pushed the picture up and aside.
 export const FOOT_DEPTH = 0.2;
 
+// The depth a building or lair sorts at: the back edge of its footprint. A unit whose feet are in
+// or in front of the footprint draws over it (never hidden under a roof); only what stands clearly
+// behind it goes behind. `w` is the picture's width in world units; units sort by their own feet.
+export function footprintDepth(posY: number, w: number): number {
+  return posY - FOOT_DEPTH * w;
+}
+
 export function footOrigin(picW: number, picH: number): { x: number; y: number } {
   return { x: 0.5, y: Math.max(0.6, Math.min(1, 1 - (FOOT_DEPTH * picW) / picH)) };
 }

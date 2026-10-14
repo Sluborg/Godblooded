@@ -40,6 +40,7 @@ import {
   buildingArtCandidates,
   buildingScale,
   footOrigin,
+  footprintDepth,
   lairArtCandidates,
 } from '../ui/unitLook';
 import { OFFER_KEY, type LevelUpOffer } from './LevelUpScene';
@@ -1148,7 +1149,7 @@ export class MapScene extends Phaser.Scene {
         .container(pos.x, pos.y, [img])
         .setData('top', o.y * img.height * k - FOOT_Y)
         .setData('w', img.width * k)
-        .setDepth(pos.y);
+        .setDepth(footprintDepth(pos.y, img.width * k));
     }
     const body = this.add
       .rectangle(
@@ -1229,6 +1230,7 @@ export class MapScene extends Phaser.Scene {
     const k = buildingScale(img.width, img.height) * (boss ? 1.35 : 1);
     img.setScale(k);
     view.setData('top', o.y * img.height * k - FOOT_Y);
+    view.setDepth(footprintDepth(view.y, img.width * k));
     // The shadow follows the picture's size (a tier-up or a boss lair is larger).
     const old = view.getData('shadow') as Phaser.GameObjects.Image | undefined;
     old?.destroy();

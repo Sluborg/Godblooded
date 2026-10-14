@@ -23,8 +23,25 @@ function drawButton(
   w: number,
   h: number,
   state: ButtonState,
+  flat = false,
 ): void {
   g.clear();
+  if (flat) {
+    // A clean dark plate with a thin gold rim: no wood grain (the title).
+    const fill = { normal: 0x241a14, active: 0x4a1f1a, pressed: 0x140d09, disabled: 0x2a2623 }[
+      state
+    ];
+    g.fillStyle(0x000000, 0.35).fillRoundedRect(-w / 2 + 2, -h / 2 + 5, w, h, 12);
+    g.fillStyle(fill, 0.96).fillRoundedRect(-w / 2, -h / 2, w, h, 12);
+    g.lineStyle(2, state === 'disabled' ? 0x6b6258 : 0xc9a45c, 0.95).strokeRoundedRect(
+      -w / 2,
+      -h / 2,
+      w,
+      h,
+      12,
+    );
+    return;
+  }
   drawWoodSlab(g, w, h, WOOD_BUTTON[state]);
 }
 
@@ -34,6 +51,8 @@ export interface ButtonOptions {
   iconOnly?: boolean;
   // The tap sound (default `sfx_ui_tap`); a Back or Close button uses `sfx_ui_back`.
   sfx?: string;
+  // A flat dark plate with a gold rim instead of the wood kit (the title screen).
+  flat?: boolean;
 }
 
 // A touch button centered on (x, y). Height and width are raised to MIN_TOUCH if smaller.
@@ -60,7 +79,7 @@ export function makeButton(
   const kit = ['ui_button', 'ui_button_pressed', 'ui_button_disabled'].map((id) =>
     scene.textures.exists(id) ? nineSliceArgs(rows?.get(id)) : null,
   );
-  const useKit = UI_STYLE.preferKitPictures && kit.every((k) => k !== null);
+  const useKit = !opts.flat && UI_STYLE.preferKitPictures && kit.every((k) => k !== null);
   const art = useKit
     ? scene.add.nineslice(
         0,
@@ -123,7 +142,7 @@ export function makeButton(
       if (state === 'active') art.setTint(0xffb0a0);
       else art.clearTint();
     } else if (g) {
-      drawButton(g, w, h, state);
+      drawButton(g, w, h, state, opts.flat);
     }
     text.setAlpha(enabled ? 1 : 0.45);
     text.y = pressed ? 2 : 0;
