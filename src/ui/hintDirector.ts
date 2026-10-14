@@ -29,6 +29,7 @@ export class HintDirector {
   private timeMs = 0;
   // The boss lairs of the latest snapshot (a raid warning from one is a vanguard).
   private bossLairs = new Set<number>();
+  private raidWarned = false;
   private savedSize = this.seen.size;
 
   constructor(
@@ -74,8 +75,12 @@ export class HintDirector {
       for (const f of r.fire) this.engine.fire(f.trigger, f.unit, f.at ?? null);
       if (e.kind === 'bountyPlaced') this.nudge.flagPlaced(this.timeMs);
       // A raid warning from the boss lair is a vanguard (h-vanguard): the arrow is the target.
-      if (e.kind === 'raidWarning' && this.bossLairs.has(e.lair))
-        this.engine.fire('vanguard', null, e.from);
+      // The run's first raid warning belongs to h-raid: a vanguard waits for the next one.
+      if (e.kind === 'raidWarning') {
+        const first = !this.raidWarned;
+        this.raidWarned = true;
+        if (!first && this.bossLairs.has(e.lair)) this.engine.fire('vanguard', null, e.from);
+      }
     }
   }
 
