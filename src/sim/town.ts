@@ -126,10 +126,12 @@ export function attackLair(
     const tm = world.tuning.monster;
     world.lairs = world.lairs.filter((l) => l.id !== lair.id);
     world.lairRuntime.delete(lair.id);
-    world.stats.lairsDestroyed++;
+    if (!lair.sprouted) world.stats.lairsDestroyed++;
     earn(world, unit, tm.lairBounty, true);
     tally(world, unit.id, 'lairKills');
-    world.lairLog.push({ lair: lair.id, type: lair.type, timeMs: world.timeMs, by: unit.id });
+    if (!lair.sprouted) {
+      world.lairLog.push({ lair: lair.id, type: lair.type, timeMs: world.timeMs, by: unit.id });
+    }
     world.events.push({
       kind: 'lairDestroyed',
       lair: lair.id,
@@ -145,7 +147,7 @@ export function attackLair(
     const won =
       world.bossLair !== null
         ? lair.id === world.bossLair
-        : (world.data.lairSites?.length ?? 0) > 0 && world.lairs.length === 0;
+        : (world.data.lairSites?.length ?? 0) > 0 && world.lairs.every((l) => l.sprouted);
     if (won) {
       world.status = 'won';
       world.events.push({ kind: 'won' });
@@ -296,6 +298,12 @@ export function upgradeBuilding(world: World, id: number): CommandResult {
   if (cost === null) return { ok: false, reason: 'already at the top tier' };
   if (world.gold < cost) return { ok: false, reason: 'not enough gold' };
   world.gold -= cost;
+  raiseTier(world, b);
+  return { ok: true, id: b.id };
+}
+
+// The next tier of a building, whoever paid: hp goes up by the difference, damage stays.
+export function raiseTier(world: World, b: BuildingCore): void {
   b.tier++;
   const maxHp = Math.round(
     world.tuning.town.buildingHp * tierValue(world.tuning.building.hpMult, b.tier, 1),
@@ -303,7 +311,6 @@ export function upgradeBuilding(world: World, id: number): CommandResult {
   b.hp += maxHp - b.maxHp;
   b.maxHp = maxHp;
   world.events.push({ kind: 'upgraded', building: b.id, type: b.type, tier: b.tier });
-  return { ok: true, id: b.id };
 }
 
 const TOWER_ATTRS = { str: 0, dex: 0, sta: 0, cha: 0, per: 0, int: 0, wp: 0 };
