@@ -138,6 +138,9 @@ export const DEFAULT_TUNING: Tuning = {
     enrageAt: 0.5,
     enrageAttackMult: 0.7,
     enrageCalls: 2,
+    vanguardSize: 0,
+    vanguardEveryMs: 90_000,
+    vanguardWarnMs: 15_000,
   },
   rider: {
     burnTicks: 3,

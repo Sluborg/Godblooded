@@ -15,7 +15,7 @@ import { shareXp } from './parties';
 import { earn, tally } from './runstats';
 import { attackStrike, hitEvent, resolveStrike } from './strike';
 import { swing } from './swing';
-import { lairProtected, lairSealed } from './boss';
+import { bossLair, lairProtected, lairSealed } from './boss';
 import { buildingDamageMult } from './roles';
 import { addFavour, partyPantheons } from './favour';
 import { grantLairRelic } from './relic';
@@ -180,6 +180,7 @@ export function runRaids(world: World): void {
     for (const plan of due) launchRaid(world, plan);
   }
   if (world.timeMs >= world.nextRaidMs) world.nextRaidMs += t.raidEveryMs;
+  runVanguard(world);
   // A raid with no raider left alive: the town cheers.
   for (const id of [...world.raidActive]) {
     const alive = world.units.some((u) => u.hp > 0 && world.unitRuntime.get(u.id)?.raidId === id);
@@ -188,6 +189,26 @@ export function runRaids(world: World): void {
     world.gold += t.raidBeatenGold;
     world.events.push({ kind: 'raidBeaten', raid: id, gold: t.raidBeatenGold });
   }
+}
+
+// The unsealed boss lair marches its escort down the road, first vanguardSize, then half as many
+// every vanguardEveryMs, until the boss is out or the lair has fallen. Not a timed raid: it does
+// not use up raidLairs.
+function runVanguard(world: World): void {
+  const t = world.tuning.boss;
+  if (t.vanguardSize <= 0 || !world.bossUnsealed) return;
+  const v = (world.vanguard ??= { nextMs: world.timeMs, count: 0 });
+  if (v.nextMs === null || world.timeMs < v.nextMs) return;
+  const lair = bossLair(world);
+  const def = lair && world.data.lairs?.find((d) => d.id === lair.type);
+  if (!lair || !def?.escort || world.lairRuntime.get(lair.id)?.bossSpawned) {
+    v.nextMs = null;
+    return;
+  }
+  const size = v.count === 0 ? t.vanguardSize : Math.max(1, Math.floor(t.vanguardSize / 2));
+  announceRaid(world, lair, world.timeMs + t.vanguardWarnMs, size, false);
+  v.count++;
+  v.nextMs = world.timeMs + t.vanguardEveryMs;
 }
 
 // A lair that just tiered up raids once on its own (the boss lair never does).

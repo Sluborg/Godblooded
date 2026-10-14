@@ -72,6 +72,10 @@ const bossOf = (world: World, lair: LairState) => {
   return def && mon && isBoss(mon) ? { def, mon } : undefined;
 };
 
+// The boss lair, if the map has one (its monster is a boss).
+export const bossLair = (world: World): LairState | undefined =>
+  world.lairs.find((l) => !!bossOf(world, l));
+
 const bossUnits = (world: World, lairId: number) =>
   world.units.filter((u) => world.unitRuntime.get(u.id)?.boss?.lair === lairId && u.hp > 0);
 

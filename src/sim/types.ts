@@ -274,6 +274,12 @@ export interface BossTuning {
   // sealUntilMs or sealLairs other lairs have fallen, whichever comes first.
   sealUntilMs: number;
   sealLairs: number;
+  // Vanguard (docs/systems/events.md section 1): once the boss lair is unsealed it raids with its
+  // escort, vanguardSize of them (0 = off), then half as many every vanguardEveryMs, until the boss
+  // is out or the lair has fallen. Each is announced vanguardWarnMs ahead.
+  vanguardSize: number;
+  vanguardEveryMs: number;
+  vanguardWarnMs: number;
 }
 
 export interface LairDef {

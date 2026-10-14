@@ -280,6 +280,8 @@ export interface World {
   }[];
   nextRaidMs: number;
   // Raids announced and still to arrive, the timed raid already planned for, and raids on the way.
+  // The boss lair's vanguard clock (town.ts runVanguard): next plan at nextMs, null once over.
+  vanguard?: { nextMs: number | null; count: number };
   raidPlans: { id: number; atMs: number; lair: number; size: number; early: boolean }[];
   raidPlannedFor: number;
   raidActive: number[];
