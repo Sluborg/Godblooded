@@ -7,6 +7,7 @@ import type {
   ItemDef,
   LairDef,
   MonsterDef,
+  OmenDef,
   PathDef,
   SkillDef,
   SummonDef,
@@ -1019,6 +1020,83 @@ export const ITEMS: readonly ItemDef[] = [
   },
 ];
 
+// The omen deck (docs/systems/events.md section 2): announced 20 s ahead, one at a time, first at
+// 3:00 then every 100-140 s; the lean pantheon's omens weigh double.
+// Bot pass with elites (human bot, seeds 1 and 1001, 40 runs each): wins 57% and 68% (without
+// omens and elites 68% and 83%).
+export const OMENS: readonly OmenDef[] = [
+  {
+    id: 'fallen-star',
+    name: 'Fallen Star',
+    text: 'A star falls beyond the fog.',
+    weight: 1,
+    durationMs: 60_000,
+    star: { xp: 60 },
+  },
+  {
+    id: 'wandering-champion',
+    name: 'Wandering Champion',
+    text: 'A champion walks near the town.',
+    weight: 1,
+    // Until it falls; 4 minutes at most.
+    durationMs: 240_000,
+    untilKilled: true,
+    spawn: { monster: 'strongest', count: 1, at: 'town', elite: true, bounty: 150 },
+  },
+  {
+    id: 'merchant-caravan',
+    name: 'Merchant Caravan',
+    text: 'Potions and charms sell cheap.',
+    weight: 1,
+    durationMs: 60_000,
+    mods: { shopDiscount: 0.3 },
+  },
+  {
+    id: 'red-sky',
+    name: 'Red Sky',
+    text: 'Monsters hit harder; bounties pay x2.',
+    weight: 1,
+    durationMs: 60_000,
+    mods: { monsterDamage: 1.2, bountyMult: 2 },
+  },
+  {
+    id: 'fimbul-frost',
+    name: 'Fimbul Frost',
+    text: 'The winter of the gods slows every step.',
+    pantheon: 'aesir',
+    weight: 1,
+    durationMs: 60_000,
+    mods: { moveSpeed: 0.85, typeDamage: { frost: 1.25 } },
+  },
+  {
+    id: 'games-of-olympia',
+    name: 'Games of Olympia',
+    text: 'Most kills win the favour of Zeus.',
+    pantheon: 'greek',
+    weight: 1,
+    durationMs: 45_000,
+    contest: true,
+  },
+  {
+    id: 'plague-of-scarabs',
+    name: 'Plague of Scarabs',
+    text: 'Scarabs burst from the ground near town.',
+    pantheon: 'egyptian',
+    weight: 1,
+    durationMs: 45_000,
+    spawn: { monster: 'scarab', count: 6, at: 'plot', raid: true },
+  },
+  {
+    id: 'eclipse-of-ra',
+    name: 'Eclipse of Ra',
+    text: 'The dead grow strong; holy light burns.',
+    pantheon: 'egyptian',
+    weight: 1,
+    durationMs: 45_000,
+    mods: { undeadDamage: 1.25, typeDamage: { holy: 1.5 } },
+  },
+];
+
 export const GRAYBOX: GameData = {
   startGold: 480,
   map: { width: 3000, height: 2000 },
@@ -1030,11 +1108,12 @@ export const GRAYBOX: GameData = {
   // bot 62%. Town income is the collector's tithe plus shop tax (55%): start gold 480. Unset keys
   // use DEFAULT_TUNING.
   // A player's first run (docs/systems/onboarding.md section 4): the first raid at 8:00 instead of
-  // 6:00, every lair's first tier-up 2 minutes later (the stagger is unchanged). The omen delay
-  // waits for omens.
+  // 6:00, every lair's first tier-up 2 minutes later (the stagger is unchanged), the first omen at
+  // 6:00 instead of 3:00.
   firstRun: {
     town: { raidFirstMs: 480_000 },
     lair: { firstTierUpMs: 480_000 },
+    events: { omenFirstMs: 360_000 },
   },
   tuning: {
     hero: { maxPerTemple: 7, recruitMs: 22_000, taxRate: 0.55, shopTripGold: 0, tithe: 0.3 },
@@ -1061,7 +1140,13 @@ export const GRAYBOX: GameData = {
     bounty: { costPerDanger: 8, flagBonus: 15, flagDistanceCost: 0.02 },
     // Pacing (docs/systems/pacing-review.md): slower levels and a staggered lair clock.
     party: { xpPerLevel: 45 },
-    lair: { firstTierUpMs: 360_000, tierUpStaggerMs: 120_000, tierUpEveryMs: 420_000 },
+    // Elites (progression.md): a quarter of tier 2 spawns, 35% at tier 3.
+    lair: {
+      firstTierUpMs: 360_000,
+      tierUpStaggerMs: 120_000,
+      tierUpEveryMs: 420_000,
+      eliteShare: [0, 0.25, 0.35],
+    },
   },
   classes: CLASSES,
   gods: GODS,
@@ -1071,6 +1156,7 @@ export const GRAYBOX: GameData = {
   lairs: LAIRS,
   items: ITEMS,
   skills: SKILLS,
+  omens: OMENS,
   summons: SUMMONS,
   // Each run draws its own map (Sim 150): 4-6 lairs from the pool, leaning on one pantheon, and
   // the wyrm nest as the boss lair; the run is won when the boss falls.
