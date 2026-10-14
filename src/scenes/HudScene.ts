@@ -516,6 +516,14 @@ export class HudScene extends Phaser.Scene {
     } else this.closeMenu();
   }
 
+  // What a hunt flag is bound to, by its type name (a monster or a lair), or undefined.
+  private targetLabel(map: MapScene, target: number | undefined): string | undefined {
+    if (target === undefined) return undefined;
+    const snap = map.snapshot;
+    return (snap.units.find((u) => u.id === target) ?? snap.lairs.find((l) => l.id === target))
+      ?.type;
+  }
+
   // The flag card: how much the flag holds, who is heading for it, raise it or take it down.
   private openFlagCard(map: MapScene, id: number): void {
     const flag = map.snapshot.bounties.find((b) => b.id === id);
@@ -541,7 +549,7 @@ export class HudScene extends Phaser.Scene {
     this.openMenu('Bounty flag', options, {
       title: `Bounty flag  ·  ${flag.gold} gold`,
       affordable: true,
-      lines: flagLines(flag.gold, heading, rate),
+      lines: flagLines(flag.gold, heading, rate, this.targetLabel(map, flag.target)),
     });
   }
 
