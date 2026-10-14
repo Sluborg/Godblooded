@@ -7,7 +7,7 @@ log; never a **Draft** (Art is still waiting on Stefan). Art sets a batch to Don
 
 | Batch | Track     | File     | What                                                                | Images | Status |
 | ----- | --------- | -------- | ------------------------------------------------------------------- | ------ | ------ |
-| G1    | heroes    | `G1.md`  | Aesir Godbloods t1 in the one style (no cartoon, no princess)       | 4      | Draft  |
+| G1    | heroes    | `G1.md`  | Grim son of Odin t1 as a painted parts sheet (test, then the rest)  | 2      | Draft  |
 | G2    | heroes    | `G2.md`  | Aesir paths t2 in the one style (after G1)                          | 8      | Draft  |
 | G3    | heroes    | `G3.md`  | Town folk: tax reeve with ledger and coin chest, gatherer, guard    | 3      | Draft  |
 | G4    | buildings | `G4.md`  | Ground patches under buildings and lairs                            | 2      | Draft  |
