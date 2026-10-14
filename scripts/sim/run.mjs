@@ -225,7 +225,11 @@ try {
   function hintOrder(snap) {
     const s = flagRun.seen;
     const out = ['temple_aesir'];
-    if (s.arrivedMs !== null && snap.timeMs >= s.arrivedMs + 20_000) out.push('market');
+    if (s.arrivedMs !== null && snap.timeMs >= s.arrivedMs + 20_000) {
+      out.push('market');
+      // The smithy hint follows the market: the bot builds it next after it.
+      if (GRAYBOX.buildings.some((b) => b.id === 'smithy')) out.push('smithy');
+    }
     if (s.hurtMs !== null) out.push('shrine');
     if (s.raidMs !== null || snap.timeMs >= 360_000) out.push('tower');
     return out;
