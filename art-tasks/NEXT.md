@@ -37,7 +37,8 @@ log; never a **Draft** (Art is still waiting on Stefan). Art sets a batch to Don
 | B9    | buildings | `B9.md`  | Buildings tier 2: all eight, the three temples included             | 8      | Done   |
 | B10   | buildings | `B10.md` | Monster lairs tier 1: all six types (wyrm nest is the boss)         | 6      | Done   |
 | B11   | buildings | `B11.md` | Ground tiles (5, seamless) and map props (7)                        | 12     | Draft  |
-| B15   | buildings | `B15.md` | Buildings tier 1 in the new look: all nine, Hearth Hall added       | 9      | Draft  |
+| B15   | buildings | `B15.md` | Buildings tier 1 in the new look: eight (town hall: B18)            | 8      | Draft  |
+| B18   | buildings | `B18.md` | Town hall t1 as the great hall: clearly the main building           | 1      | Draft  |
 | B17   | buildings | `B17.md` | Lairs tier 1 in the new look (redraw)                               | 6      | Draft  |
 | B13   | buildings | `B13.md` | Map markers: build plot and bounty flag (M2)                        | 2      | Draft  |
 | B16   | buildings | `B16.md` | Buildings tier 2 in the new look: all nine (after B15)              | 9      | Draft  |
