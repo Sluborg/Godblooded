@@ -257,3 +257,20 @@ guild when they rest), and a tax collector walks from the town hall to each buil
 collects it and carries it home. The collector can be attacked; gold it carries drops if it
 falls. The town hall shows the gold arriving. Lands in M2 because income is core; Design writes
 the short spec, Sim builds it, Scene draws the collector and coin pops, Balance sets the numbers.
+
+## 2026-10-14 Playtest run 2: one art style, ground patches, collision (Stefan)
+
+Stefan's notes from run 2: units stack on one spot and heroes hide under buildings; the game
+gets laggy quickly; the mixed art styles look messy; the title image is grainy, its text does not
+fit and its buttons are ugly; the flags do not fit; many heroes (the princess) look silly and
+cartoony; the tax collector looks like an executioner; buildings look odd on their circles.
+
+- **One art style:** the painted buildings (longhouse, watch tower) are the anchor. Heroes,
+  monsters, flags, the collector, the title and UI are repainted to match: grim, mythic,
+  Norse-carved, no cartoon faces. Art writes the style rules and the batches; each batch still
+  needs Stefan's go before it is Ready.
+- **No round plate under buildings:** a ground patch shaped to the footprint plus a soft cast
+  shadow. A thin ring shows only when a building is tapped or being placed.
+- **Collision:** units keep a minimum distance from each other and walk around building
+  footprints; draw order by ground y so nobody hides under a roof.
+- **Lag:** Scene profiles a long run on a phone-sized view and fixes the top costs.
