@@ -26,6 +26,7 @@ export const LOOKS: Record<string, Partial<UnitLook>> = {
   rogue: { color: 0xd2782a, scale: 0.92, strike: 'double' },
   healer: { color: 0xe8dcb0, strike: 'bolt' },
   // the tax collector (art id npc_collector_t1_front when Art ships it): a small tan figure
+  // (it never fights: strike is only here because the field is required)
   collector: { color: 0xc9a45c, scale: 0.8, footprint: 0.3, strike: 'chop' },
   // monsters
   draugr: { color: 0x7a8c8f, strike: 'chop' },

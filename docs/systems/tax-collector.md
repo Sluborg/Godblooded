@@ -118,6 +118,20 @@ tax collector", in M2). Sim builds it, Scene draws it, Balance sets the numbers.
 - **Saves:** tills, `titheOwed`, collectors and piles join the run state. Bump the save
   version and add a migration: old saves get empty tills and one collector at the hall.
 
+### As built (Sim, `sim/collector` b0a5053)
+
+- **Off until Balance turns it on:** `tuning.collector.enabled`. With it off, the tithe is paid
+  at once and the `tithe` event carries building 0.
+- **Where things live:** `titheOwed` is on the hero runtime (`heroRuntime.titheOwed`); gold piles
+  are in `snapshot.piles`.
+- **Events:** `till`, `tithe` (with building), `collectorOut`, `tillEmptied` (a till or a pile),
+  `collectorHit`, `collected`, `collectorFell`. Scene's rows in section 2 map onto these.
+- **Run report:** `taxBanked`, `taxLost`, `uncollected`.
+- **Save version:** Sim made the change additive (old saves get empty tills and a collector at
+  the hall). Lead ruled v4 anyway (2026-10-14), with a trivial migration (empty
+  tills, no piles, a collector at the hall), following CLAUDE.md "Saves"; `save.ts` treats a new
+  field as safe, so the bump is Lead's call, not a code need.
+
 ## 5. Backlog rows (proposed)
 
 ### Sim
