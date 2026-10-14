@@ -72,7 +72,7 @@ export const sizeOf = (part: KitPart, sx = 1, sy = 1): [number, number] => [
 export const buildOf = (combo: KitCombo): Build => BUILDS[combo.build ?? 'standard'];
 
 // True when every part a painted look cannot do without has a picture.
-export const kitComplete = (parts: PartMap, mode: KitMode = 'bent'): boolean =>
+export const kitComplete = (parts: PartMap, mode: KitMode = 'floating'): boolean =>
   KIT_REQUIRED[mode].every((s) => parts[s]);
 
 // The standard figure, drawing units, feet at (0, 0), y up is negative: the torso's pelvis sits
