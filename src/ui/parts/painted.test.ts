@@ -4,6 +4,7 @@ import {
   HIP,
   bodyPoint,
   kitComplete,
+  kitScale,
   layout,
   solveTwoBone,
   type Kit,
@@ -19,6 +20,7 @@ const part = (w: number, h: number, pivots: Record<string, [number, number]> = {
 });
 const kit = (extra: Partial<Kit['parts']> = {}): Kit => ({
   build: BUILDS.standard,
+  mode: 'bent',
   layers: {},
   parts: {
     torso: part(120, 160, {
@@ -131,5 +133,65 @@ describe('kitFor', () => {
     expect(kitFor('odin-seer_t2')).toBe(kitFor('odin_t1'));
     expect(kitFor('odin-seer_t3')).toBe(kitFor('odin_t1'));
     expect(kitFor('thor_t1')).toBeUndefined();
+  });
+});
+
+describe('kitScale', () => {
+  it('maps the 44 unit painted figure to the code figure height (32 units at usc)', () => {
+    expect(kitScale(0.86) * 44).toBeCloseTo(32 * 0.86, 6);
+    expect(kitScale(0.86 * 1.3) * 44).toBeCloseTo(32 * 0.86 * 1.3, 6);
+  });
+});
+
+describe('floating mode', () => {
+  const k = (): Kit => ({
+    ...kit({ hand: part(24, 24), boot: part(40, 24) }),
+    mode: 'floating',
+  });
+  it('is complete with torso, head, hand and foot only', () => {
+    expect(kitComplete(k().parts, 'floating')).toBe(true);
+    expect(kitComplete(kit().parts, 'floating')).toBe(false);
+  });
+  it('draws only hands and boots at the joints, no limb segments', () => {
+    const draws = layout(k(), pose);
+    const pivots = draws.map((d) => d.pivot);
+    expect(pivots.filter((v) => v === 'shoulder' || v === 'elbow' || v === 'knee')).toHaveLength(0);
+    expect(pivots.filter((v) => v === 'wrist')).toHaveLength(2);
+    expect(pivots.filter((v) => v === 'ground')).toHaveLength(2);
+  });
+  it('sits the torso lower than the bent figure', () => {
+    const t = (kit: Kit) => layout(kit, pose).find((d) => d.part === kit.parts.torso)!;
+    expect(t(k()).y).toBeGreaterThan(t(kit()).y);
+  });
+  it('adds hand and boot on a bent limb when the sheet has them', () => {
+    const bent = layout({ ...kit({ hand: part(24, 24), boot: part(40, 24) }) }, pose);
+    expect(bent.filter((d) => d.pivot === 'wrist').length).toBe(2);
+    expect(bent.filter((d) => d.pivot === 'ankle').length).toBe(2);
+  });
+});
+
+describe('hand and boot', () => {
+  const withHand = (): Kit => ({
+    ...kit({
+      weapon: part(28, 168, { grip: [0.5, 0.88] }),
+      hand: part(24, 24, { wrist: [0.5, 0.1], grip: [0.5, 0.6] }),
+      boot: part(40, 24, { ankle: [0.3, 0.1], ground: [0.4, 0.95] }),
+    }),
+  });
+  it('puts the weapon grip on the hand grip point', () => {
+    const draws = layout(withHand(), pose);
+    const hand = draws.find((d) => d.pivot === 'wrist' && !d.far)!;
+    const weapon = draws.find((d) => d.pivot === 'grip')!;
+    // The grip point is below the wrist by (0.6 - 0.1) x 24 px / 8 = 1.5 units, turned by the hand.
+    expect(Math.hypot(weapon.x - hand.x, weapon.y - hand.y)).toBeCloseTo(1.5, 5);
+  });
+  it('ends the shin at the ankle so the boot reaches the ground', () => {
+    const k = withHand();
+    const boots = layout(k, pose).filter((d) => d.pivot === 'ankle');
+    const front = boots.find((d) => !d.far)!;
+    const [bx, by] = [(0.4 - 0.3) * 5, (0.95 - 0.1) * 3];
+    // The boot's ground point lands on the foot target (f1 scaled to the painted figure).
+    expect(front.x + bx).toBeCloseTo(pose.f1.x * (44 / 32), 4);
+    expect(front.y + by).toBeCloseTo(pose.f1.y * (44 / 32), 4);
   });
 });

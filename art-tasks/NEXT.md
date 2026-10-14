@@ -2,7 +2,7 @@
 
 **One style (Stefan, playtest run 2, 2026-10-14):** every batch follows the new `STYLE.md`
 (the painted buildings are the anchor). The big-head cartoon batches are Void. **Ready (Stefan's
-go 2026-10-14): U1B, B13, G1 (the parts kit test only).** Every other batch stays Draft until Stefan says go for it. Then take the first **Ready** batch of **your track** that is not in the upload
+go 2026-10-14): B13, G1 (the parts kit test only).** Every other batch stays Draft until Stefan says go for it. Then take the first **Ready** batch of **your track** that is not in the upload
 log; never a **Draft** (Art is still waiting on Stefan). Art sets a batch to Done when its images are shipped.
 
 | Batch | Track     | File     | What                                                                | Images | Status |
@@ -19,7 +19,8 @@ log; never a **Draft** (Art is still waiting on Stefan). Art sets a batch to Don
 | H2    | heroes    | `H2.md`  | Aesir paths tier 2 as parts sheets (after H1)                       | 8      | Void   |
 | A2    | heroes    | `A2.md`  | Aesir paths tier 3 as parts sheets (after H2)                       | 8      | Void   |
 | U1    | ui        | `U1.md`  | Logo and app icon: three options                                    | 6      | Done   |
-| U1B   | ui        | `U1B.md` | Logo option B revised: fixed khopesh, Greek spear, calmer sun, drop | 4      | Ready  |
+| U1B   | ui        | `U1B.md` | Logo option B revised: fixed khopesh, Greek spear, calmer sun, drop | 4      | Void   |
+| U1C   | ui        | `U1C.md` | Logo and app icon, simple: carved disc, gold drop, wordmark         | 2      | Draft  |
 | U8    | ui        | `U8.md`  | UI kit in carved oak and parchment: panel, 3 buttons, 9 icons       | 13     | Draft  |
 | U2    | ui        | `U2.md`  | UI kit: 9-slice panel, buttons (3 states), 9 icons, after U1        | 13     | Done   |
 | U3    | ui        | `U3.md`  | Splash key art: Godbloods facing a monster horde at dusk            | 1      | Done   |
