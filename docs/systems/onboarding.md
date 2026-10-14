@@ -71,7 +71,7 @@ line ("The next run will be harder.").
 
 - **Bot check** (Balance, human-like bot with hints, seeds 1-30): normal numbers win 50% and lose
   by 10:00 in 7 of 30 runs; first-run numbers win 70% and lose by 10:00 in 3 of 30, with the boss
-  fight at a median 14.4 min. Gentler as intended, inside the 55-75% target.
+  fight at a median 14.4 min. Gentler as intended; the first run sits inside the 55-75% target.
 
 ## 5. What the player sees
 
