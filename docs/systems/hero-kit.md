@@ -78,8 +78,10 @@ with Scene); Scene combines and animates; Balance and Lead write the item rows. 
 | Off-hand 2 | 65    | shield +3 armour   | blade +5% crit | focus +2 power | shield, blade, focus (level 2) |
 | Off-hand 3 | 140   | shield +4 armour   | blade +8% crit | focus +3 power | shield, blade, focus (level 3) |
 
-- **Ids:** icon `item_<id>` (`item_headgear-2`), worn `part_<socket>_<name>_<level>`
-  (`part_headgear_helm_2`, `part_offhand_blade_1`), Design's proposal until Art fixes them.
+- **Ids follow Art's scheme** (`asset-spec.md`, "Parts kit"; Art owns ids): icons
+  `ui_item_<item>` with underscores, no hyphens (`ui_item_helm_2`); worn layers are cells
+  `layer_<slot>_<item>` inside a `kit_<name>` sheet (`layer_headgear_helm2`,
+  `layer_offhand_blade1`); base parts are `<slot>_<variant>` (`head_odin_a`, `cloak_odin`).
 - **Flame in both hands** (Loki Flamebinder) and **ravens** stay code effects.
 
 ## 3. Builds
@@ -105,33 +107,33 @@ Builds are rows of per-segment scale factors and socket offsets in Scene's data 
 | PathDef   | `cloak` and `weapon` (family) for tier 2                                                                                                       |
 | ItemDef   | `slot` gains `headgear` and `offhand`; weapon rows get a `family`; every row gets `icon` and `worn` (part ids per kit for armour and headgear) |
 | UnitState | `build`; `items` gains `headgear` and `offhand` levels                                                                                         |
-| Manifest  | Art proposes the ids (`asset-spec.md` is Art's); Design suggests `part_<socket>_<name>_<level>` and `item_<id>` (Balance's rows use them)      |
+| Manifest  | Art's scheme in `asset-spec.md`: `ui_item_<item>` icons, `kit_<name>` sheets with `<slot>_<variant>` parts and `layer_<slot>_<item>` layers    |
 
 ### Paste-ready look rows (Aesir; Lead approved 2026-10-14)
 
-Part ids are Design's proposal until Art fixes them in `asset-spec.md`; colours are the god's
+Part ids follow Art's `<slot>_<variant>` scheme (`asset-spec.md`); the emblem is a layer on the cloak; colours are the god's
 cloak and trim from today's parts data (`src/data/heroParts.gen.ts`), so the look carries over.
 
 ```ts
 // GodDef look fields (with the existing id, pantheon, name, template, damageType)
-{ id: 'odin',   builds: ['tall', 'lean'],  faces: ['part_face_odin_a', 'part_face_odin_b'],
-  cloak: 'part_cloak_odin',   colours: ['#41507a', '#c8b27a'], emblem: 'part_emblem_raven' },
-{ id: 'thor',   builds: ['broad', 'short'], faces: ['part_face_thor_a', 'part_face_thor_b'],
-  cloak: 'part_cloak_thor',   colours: ['#a8392c', '#d9a441'], emblem: 'part_emblem_hammer' },
-{ id: 'loki',   builds: ['lean', 'short'], faces: ['part_face_loki_a', 'part_face_loki_b'],
-  cloak: 'part_cloak_loki',   colours: ['#4f8a3a', '#8fbf4a'], emblem: 'part_emblem_serpent' },
-{ id: 'freyja', builds: ['lean', 'broad'], faces: ['part_face_freyja_a', 'part_face_freyja_b'],
-  cloak: 'part_cloak_freyja', colours: ['#9d4f6a', '#f1e8d4'], emblem: 'part_emblem_feather' },
+{ id: 'odin',   builds: ['tall', 'lean'],  faces: ['head_odin_a', 'head_odin_b'],
+  cloak: 'cloak_odin',   colours: ['#41507a', '#c8b27a'], emblem: 'layer_cloak_emblem_raven' },
+{ id: 'thor',   builds: ['broad', 'short'], faces: ['head_thor_a', 'head_thor_b'],
+  cloak: 'cloak_thor',   colours: ['#a8392c', '#d9a441'], emblem: 'layer_cloak_emblem_hammer' },
+{ id: 'loki',   builds: ['lean', 'short'], faces: ['head_loki_a', 'head_loki_b'],
+  cloak: 'cloak_loki',   colours: ['#4f8a3a', '#8fbf4a'], emblem: 'layer_cloak_emblem_serpent' },
+{ id: 'freyja', builds: ['lean', 'broad'], faces: ['head_freyja_a', 'head_freyja_b'],
+  cloak: 'cloak_freyja', colours: ['#9d4f6a', '#f1e8d4'], emblem: 'layer_cloak_emblem_feather' },
 
 // PathDef look fields (tier 2 on): the path's cloak and its weapon family
-{ id: 'odin-seer',          cloak: 'part_cloak_odin_seer',          weapon: 'staff' },
-{ id: 'odin-wanderer',      cloak: 'part_cloak_odin_wanderer',      weapon: 'spear' },
-{ id: 'thor-hammerborn',    cloak: 'part_cloak_thor_hammerborn',    weapon: 'hammer' },
-{ id: 'thor-stormcaller',   cloak: 'part_cloak_thor_stormcaller',   weapon: 'staff' },
-{ id: 'loki-trickster',     cloak: 'part_cloak_loki_trickster',     weapon: 'daggers' },
-{ id: 'loki-flamebinder',   cloak: 'part_cloak_loki_flamebinder',   weapon: 'daggers' },
-{ id: 'freyja-valkyrie',    cloak: 'part_cloak_freyja_valkyrie',    weapon: 'spear' },
-{ id: 'freyja-seidkona',    cloak: 'part_cloak_freyja_seidkona',    weapon: 'staff' },
+{ id: 'odin-seer',          cloak: 'cloak_odin_seer',          weapon: 'staff' },
+{ id: 'odin-wanderer',      cloak: 'cloak_odin_wanderer',      weapon: 'spear' },
+{ id: 'thor-hammerborn',    cloak: 'cloak_thor_hammerborn',    weapon: 'hammer' },
+{ id: 'thor-stormcaller',   cloak: 'cloak_thor_stormcaller',   weapon: 'staff' },
+{ id: 'loki-trickster',     cloak: 'cloak_loki_trickster',     weapon: 'daggers' },
+{ id: 'loki-flamebinder',   cloak: 'cloak_loki_flamebinder',   weapon: 'daggers' },
+{ id: 'freyja-valkyrie',    cloak: 'cloak_freyja_valkyrie',    weapon: 'spear' },
+{ id: 'freyja-seidkona',    cloak: 'cloak_freyja_seidkona',    weapon: 'staff' },
 ```
 
 - **Tier 1 weapon family** comes from the god: Odin staff, Thor hammer, Loki daggers, Freyja
