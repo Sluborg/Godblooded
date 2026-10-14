@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { createWorld, step, TICK_MS, type GameData } from './api';
+import { createWorld, snapshot, step, TICK_MS, type GameData } from './api';
+import { spawnMonster } from './boss';
 import { addBond, bond, newParty } from './parties';
 import {
   hasCritStagger,
@@ -211,5 +212,49 @@ describe('Oath-Brothers: loyal stays', () => {
   });
   it('flees when it is the last one standing', () => {
     expect(stays('loyal', ['oathstay'], 0)).toBe('return');
+  });
+});
+
+describe('everyNth.strike: the nth basic strike changes type', () => {
+  it('every 2nd strike is holy and the others stay physical', () => {
+    const w = createWorld(1, {
+      ...data,
+      monsters: [
+        {
+          id: 'ogre',
+          attrs: { ...none, str: 1, sta: 400 },
+          weapon: { baseAttackS: 3, range: 40 },
+          bounty: 1,
+          xp: 1,
+        },
+      ],
+      lairs: [{ id: 'den', monster: 'ogre', spawnS: 100_000, maxAlive: 1, hp: 500 }],
+      lairSites: [{ lair: 'den', pos: { x: 900, y: 900 } }],
+      upgrades: [
+        {
+          id: 'ra',
+          name: 'ra',
+          text: 'ra',
+          effect: {
+            keys: { everyNth: { n: 2, effects: [], strike: { type: 'holy' as const } } },
+          },
+        },
+      ],
+    });
+    const id = spawnHero(w, 'knight', { x: 500, y: 500 });
+    const hero = w.units.find((u) => u.id === id) as UnitState;
+    w.parties.get(hero.party)?.upgrades.push('ra');
+    const lair = w.lairs[0];
+    const ogre = spawnMonster(w, lair, (w.data.monsters ?? [])[0]);
+    ogre.pos = { x: 520, y: 500 };
+    const types: string[] = [];
+    for (let t = 0; t < 12_000 && types.length < 6; t += TICK_MS) {
+      step(w, TICK_MS);
+      for (const e of snapshot(w).events) {
+        if (e.kind === 'hit' && e.attacker === id) types.push(e.type ?? 'physical');
+      }
+    }
+    expect(types.length).toBeGreaterThanOrEqual(4);
+    types.forEach((ty, i) => expect(ty).toBe(i % 2 === 1 ? 'holy' : 'physical'));
   });
 });
