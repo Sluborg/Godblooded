@@ -149,7 +149,7 @@ Boss hp is a data value, not Sta x 8 + Str x 4 (`combat.md`). Fafnir follows the
   stays 8000.
 - **Then 70%** (Balance, `balance/playtest-trim`, with the first raid at 7:00 and a 1-raider
   Vanguard): big 4200, small 2100-2450, the scarab pit 2100; the nest 8000. The human bot on the
-  playtest build wins 63-70%.
+  playtest build wins 63-70% in Balance's runs (Review reproduced 57-63%).
 - **Boss lair guards:** a boss lair spawns guards until the boss emerges: the wyrm nest spawns
   draugr (Balance, 2026-10-14: trolls at the nest made the boss fight a wall in the bot); Greek
   and Egyptian boss lairs spawn the minotaur and jackal-men until their bot pass.
