@@ -183,12 +183,15 @@ describe('lair goal near guards', () => {
     const h = hero(w, 600, 500);
     h.maxHp = 1e9;
     h.hp = 1e9;
-    const ev = run(w, 40_000);
+    // fighting at the lair the goal stays; the later retreat (a goal ends with exploring) is fine
+    const ev = run(w, 6_000);
+    expect(h.mode).toBe('explore');
+    expect(w.heroRuntime.get(h.id)?.goal?.kind).toBe('lair');
+    ev.push(...run(w, 34_000));
     const kinds = ev
       .filter((e): e is Extract<SimEvent, { kind: 'intent' }> => e.kind === 'intent')
       .map((e) => e.intent.kind);
     expect(kinds.join(',')).not.toMatch(/lair,explore,lair/);
-    expect(w.heroRuntime.get(h.id)?.goal?.kind).toBe('lair');
   });
 });
 
@@ -408,5 +411,23 @@ describe('sealed boss lair', () => {
     const h = hero(w);
     run(w, 3_000);
     expect(w.heroRuntime.get(h.id)?.goal?.kind).toBe('explore');
+  });
+});
+
+describe('goals end when a hero stops exploring', () => {
+  it('a hero that retreats loses its flag goal and shows none on the way back out', () => {
+    const w = createWorld(1, { ...base, startGold: 1000 });
+    const h = hero(w);
+    flag(w, 1500, 500, 200);
+    run(w, 1_100);
+    expect(w.heroRuntime.get(h.id)?.goal?.kind).toBe('flag');
+    h.mode = 'rest';
+    run(w, 100);
+    expect(w.heroRuntime.get(h.id)?.goal).toBeUndefined();
+    expect(w.heroRuntime.get(h.id)?.bounty).toBeUndefined();
+    // back out exploring: the intent is not the old flag until it chooses again
+    h.mode = 'explore';
+    const ev = run(w, 40);
+    expect(ev.filter((e) => e.kind === 'intent' && e.intent.kind === 'flag')).toHaveLength(0);
   });
 });
