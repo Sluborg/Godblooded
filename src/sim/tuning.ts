@@ -205,6 +205,8 @@ export const DEFAULT_TUNING: Tuning = {
     towerWarnAddMs: 5_000,
     // Off until Balance retunes (bot win rate drops from 70% to 36% with it on); then it flips on.
     raidOnTierUp: false,
+    tierRaidSize: 0,
+    tierRaidEvery: 1,
     raidBeatenGold: 20,
   },
   bounty: {

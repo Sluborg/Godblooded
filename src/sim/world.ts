@@ -216,6 +216,8 @@ export interface World {
   raidPlans: { id: number; atMs: number; lair: number; size: number; early: boolean }[];
   raidPlannedFor: number;
   raidActive: number[];
+  // Tier-ups seen so far that could have raided (for tuning.town.tierRaidEvery).
+  tierUps: number;
   stats: RunStats;
   bounties: BountyState[];
   // Generated map: the boss lair that wins the run and the pantheons the map leans on.
@@ -265,6 +267,7 @@ export function createWorld(seed: number, data: GameData): World {
     raidPlans: [],
     raidPlannedFor: -1,
     raidActive: [],
+    tierUps: 0,
     stats: {
       monstersKilled: 0,
       lairsDestroyed: 0,
