@@ -1,3 +1,4 @@
+import { isWorking } from './town';
 import { visitPoint } from './collision';
 import { swing } from './swing';
 import { attackStrike, landStrike } from './strike';
@@ -9,7 +10,8 @@ import type { BuildingCore, CommandResult, UnitState } from './types';
 // It fights what attacks, never strays beyond guardLeash of its gatherer, and goes home with it.
 // A guard that falls is replaced by the tower after guardRelendMs.
 
-const towers = (world: World): BuildingCore[] => world.buildings.filter((b) => b.type === 'tower');
+const towers = (world: World): BuildingCore[] =>
+  world.buildings.filter((b) => b.type === 'tower' && isWorking(b));
 
 // What a guard hits with: a share of a level 1 hero's strength, a short spear, a little armour.
 export function guardStats(world: World): Stats {

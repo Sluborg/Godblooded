@@ -1,4 +1,5 @@
 import { hearthOf } from './hearth';
+import { isWorking } from './town';
 import { curePoison } from './effects';
 import { armourBonus } from './items';
 import { autoPickCard, leaderOf, offerCards } from './cards';
@@ -181,6 +182,7 @@ export function pantheonOf(world: World, type: string): string | undefined {
 function builtPantheons(world: World): Set<string> {
   const out = new Set<string>();
   for (const b of world.buildings) {
+    if (!isWorking(b)) continue;
     const pantheon = pantheonOf(world, b.type);
     if (pantheon) out.add(pantheon);
   }

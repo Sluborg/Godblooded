@@ -1,3 +1,4 @@
+import { isWorking } from './town';
 import { addBond } from './parties';
 import { passiveDeathAdd, passiveKoGoldLoss } from './passives';
 import { isBoss } from './boss';
@@ -54,7 +55,7 @@ export function deathChance(world: World, unit: UnitState, by: number): number |
   const t = world.tuning.combat;
   const shrineTier = Math.max(
     0,
-    ...world.buildings.filter((b) => b.type === 'shrine').map((b) => b.tier),
+    ...world.buildings.filter((b) => b.type === 'shrine' && isWorking(b)).map((b) => b.tier),
   );
   const party = world.parties.get(unit.party);
   const healer = (party?.members ?? []).some((id) => {

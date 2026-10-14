@@ -177,7 +177,7 @@ export function attackLair(
 // `raidWarning`; a lair that tiers up sends a raid of its own (planTierRaid).
 export function runRaids(world: World): void {
   const t = world.tuning.town;
-  const tower = world.buildings.some((b) => b.type === 'tower' && b.tier >= 2);
+  const tower = world.buildings.some((b) => b.type === 'tower' && b.tier >= 2 && isWorking(b));
   const lead = t.raidWarnMs + (tower ? t.towerWarnAddMs : 0);
   if (world.raidPlannedFor !== world.nextRaidMs && world.timeMs >= world.nextRaidMs - lead) {
     world.raidPlannedFor = world.nextRaidMs;
@@ -374,10 +374,31 @@ export function upgradeBuilding(world: World, id: number): CommandResult {
   if (cost === null) return { ok: false, reason: 'already at the top tier' };
   const gate = upgradeGate(world, b);
   if (gate !== null) return { ok: false, reason: `needs town hall tier ${gate}` };
+  if (b.buildUntilMs !== undefined) return { ok: false, reason: 'still being built' };
+  if (b.upgradeUntilMs !== undefined) return { ok: false, reason: 'already being upgraded' };
   if (world.gold < cost) return { ok: false, reason: 'not enough gold' };
   world.gold -= cost;
-  raiseTier(world, b);
+  const ms = world.tuning.town.buildMs;
+  if (ms > 0) b.upgradeUntilMs = world.timeMs + ms;
+  else raiseTier(world, b);
   return { ok: true, id: b.id };
+}
+
+// A building works once it is built; while it upgrades it works at its old tier.
+export const isWorking = (b: { buildUntilMs?: number }): boolean => b.buildUntilMs === undefined;
+
+// Construction and upgrades finish (tuning.town.buildMs).
+export function runConstruction(world: World): void {
+  for (const b of world.buildings) {
+    if (b.buildUntilMs !== undefined && world.timeMs >= b.buildUntilMs) {
+      delete b.buildUntilMs;
+      world.events.push({ kind: 'finished', building: b.id, type: b.type });
+    }
+    if (b.upgradeUntilMs !== undefined && world.timeMs >= b.upgradeUntilMs) {
+      delete b.upgradeUntilMs;
+      raiseTier(world, b);
+    }
+  }
 }
 
 // The next tier of a building, whoever paid: hp goes up by the difference, damage stays.
@@ -404,7 +425,7 @@ export function runTowers(world: World): void {
     ? world.units.filter((c) => c.kind === 'collector' && c.hp > 0)
     : [];
   for (const b of world.buildings) {
-    if (b.type !== 'tower') continue;
+    if (b.type !== 'tower' || !isWorking(b)) continue;
     const next = world.towerNextMs.get(b.id) ?? 0;
     if (world.timeMs < next) continue;
     const range = tierValue(t.towerRange, b.tier, 0);

@@ -1,3 +1,4 @@
+import { isWorking } from './town';
 import { visitPoint } from './collision';
 import { omenBounty, omenMods } from './omens';
 import { payIntoTill, payTithe } from './collector';
@@ -98,7 +99,7 @@ export function runTemples(world: World): void {
   const gods = world.data.gods ?? [];
   if (gods.length === 0) return;
   for (const b of world.buildings) {
-    if (!isTemple(b.type)) continue;
+    if (!isTemple(b.type) || !isWorking(b)) continue;
     const next = world.templeNextMs.get(b.id) ?? world.timeMs + tune(world).firstRecruitMs;
     world.templeNextMs.set(b.id, next);
     if (world.timeMs < next) continue;
@@ -496,7 +497,7 @@ function nearest<T extends { pos: Vec2 }>(from: Vec2, list: readonly T[]): T | u
 function findMarket(world: World, from: Vec2) {
   return nearest(
     from,
-    world.buildings.filter((b) => b.type === 'market'),
+    world.buildings.filter((b) => b.type === 'market' && isWorking(b)),
   );
 }
 
@@ -507,7 +508,7 @@ function restSpot(
 ): { pos: Vec2; shrine: boolean; hearth: boolean } {
   const shrine = nearest(
     from,
-    world.buildings.filter((b) => b.type === 'shrine'),
+    world.buildings.filter((b) => b.type === 'shrine' && isWorking(b)),
   );
   const hearth = hearthOf(world, from);
   // With both, the closer one; a party below half its hp takes the shrine (hearth.ts).
