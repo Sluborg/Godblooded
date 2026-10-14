@@ -1,3 +1,4 @@
+import { hearthOf } from './hearth';
 import { curePoison } from './effects';
 import { armourBonus } from './items';
 import { autoPickCard, leaderOf, offerCards } from './cards';
@@ -119,7 +120,13 @@ export function fleeThreshold(world: World, unit: UnitState): number {
 const bondKey = (a: number, b: number) => (a < b ? `${a}:${b}` : `${b}:${a}`);
 export const bond = (world: World, a: number, b: number) => world.bonds.get(bondKey(a, b)) ?? 0;
 
-export function addBond(world: World, a: number, b: number, delta: number): void {
+export function addBond(world: World, a: number, b: number, rawDelta: number): void {
+  // A tier 2 Hearth Hall makes bonds grow faster.
+  const hearth = hearthOf(world);
+  const delta =
+    rawDelta > 0 && hearth && hearth.tier >= 2
+      ? rawDelta * world.tuning.building.hallBondMult
+      : rawDelta;
   const v = Math.max(-3, Math.min(tune(world).bondCap, bond(world, a, b) + delta));
   world.bonds.set(bondKey(a, b), v);
 }
@@ -235,11 +242,12 @@ function retier(world: World, party: Party): void {
 function refreshMaxHp(world: World, u: UnitState): void {
   const cls = world.data.classes?.find((c) => c.id === u.type);
   if (!cls) return;
-  const newMax = maxHp(effectiveAttrs(world, u, cls.attrs));
+  const newMax =
+    maxHp(effectiveAttrs(world, u, cls.attrs)) + (world.heroRuntime.get(u.id)?.hearthHp ?? 0);
   // A lower max (a path template with fewer hp) must not take a living hero to 0 hp, which
   // would leave it alive but untargetable: it keeps at least 1 hp.
   if (!u.ko) u.hp = Math.min(newMax, Math.max(1, u.hp + newMax - u.maxHp));
-  u.maxHp = newMax;
+  u.maxHp = newMax + (world.heroRuntime.get(u.id)?.hearthHp ?? 0);
 }
 
 function takePath(world: World, party: Party, unit: UnitState, path: string): void {
@@ -391,7 +399,7 @@ export function runParties(world: World): void {
     const leaderA = world.units.find((u) => u.id === a.members[0]);
     if (!leaderA) continue;
     let best: Party | null = null;
-    let bestD = tune(world).mergeRange;
+    let bestD = hearthOf(world) ? world.tuning.building.hallMergeRange : tune(world).mergeRange;
     for (const bId of ids) {
       const b = world.parties.get(bId);
       if (!b || b.id <= a.id || !mergeable(world, b)) continue;
