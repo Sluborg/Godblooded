@@ -4,6 +4,7 @@ import { isSwallowed } from './effects';
 import { targetOf } from './world';
 import type { Area } from './swing';
 import type { World } from './world';
+import { revealLair } from './discovery';
 import type { BossMove, BossTuning, ConeArea, LairState, MonsterDef, UnitState } from './types';
 
 // Bosses (Sim 220, docs/systems/combat.md section 7). A boss is a monster row with `boss`. It
@@ -129,7 +130,10 @@ export function runBossSeal(world: World): void {
   if (!by) return;
   world.bossUnsealed = true;
   for (const lair of world.lairs) {
-    if (bossOf(world, lair)) world.events.push({ kind: 'bossLairUnsealed', lair: lair.id, by });
+    if (!bossOf(world, lair)) continue;
+    // The unsealed boss lair calls: it is no longer in the fog.
+    revealLair(world, lair.id);
+    world.events.push({ kind: 'bossLairUnsealed', lair: lair.id, by });
   }
 }
 

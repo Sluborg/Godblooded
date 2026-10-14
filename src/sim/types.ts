@@ -120,6 +120,8 @@ export interface PassiveKeys {
   // A loyal member does not flee alone while a party mate stands (Oath-Brothers); the party's
   // retreat still takes it.
   loyalStays?: boolean;
+  // Odin's favour: the party sees this many times as far when discovering lairs and cells.
+  discoverMult?: number;
 }
 
 // One effect of a passive: a set of keys and who gets them. `scope` 'self' is the owner only,
@@ -1114,6 +1116,19 @@ export interface AiTuning {
   // exploreValue + switchMin. 0 turns it off.
   bossCallBonus: number;
   bossCallHp: number;
+  // Discovery (hero-ai.md section 3): lairs start in the fog and only discovered ones are scored;
+  // explore heads for unexplored cells. Off: every lair is known, as before.
+  discovery: boolean;
+  // What exploring the fog is worth while a cell is unexplored (else exploreValue).
+  fogValue: number;
+  // A lair becomes discovered when a hero comes within this; lairs within startDiscovered of the
+  // town hall start discovered.
+  discoverRange: number;
+  startDiscovered: number;
+  // The map is split into square cells of this size; a hero within exploreRange of a cell's
+  // centre explores it.
+  cellSize: number;
+  exploreRange: number;
 }
 
 export interface BountyTuning {
@@ -1333,6 +1348,8 @@ export interface LairState {
   pos: Vec2;
   hp: number;
   maxHp: number;
+  // False while the lair is in the fog (tuning.ai.discovery); missing means discovered.
+  discovered?: boolean;
   // Grew on a node late in the run (corrupt.ts): it does not count toward lair-count rules.
   sprouted?: true;
   // Snapshot only. The growth ring: ms until the next tier-up and the length of the current wait
@@ -1650,6 +1667,8 @@ export type SimEvent =
   | { kind: 'pathOffer'; party: number; hero: number; options: string[] }
   // A hero saw a kind of monster or lair for the first time this run (hints, barks).
   | { kind: 'discovered'; what: 'monster' | 'lair'; type: string; unit: number; pos: Vec2 }
+  // A lair came out of the fog (tuning.ai.discovery).
+  | { kind: 'lairFound'; lair: number; unit: number; pos: Vec2 }
   // A charger starts its charge toward `to`.
   | { kind: 'charge'; unit: number; to: Vec2 }
   // A swarm splits into two halves.
@@ -2042,6 +2061,9 @@ export interface Snapshot {
   readonly plots: readonly Readonly<PlotState>[];
   readonly buildings: readonly Readonly<BuildingState>[];
   readonly lairs: readonly Readonly<LairState>[];
+  // The fog: cells of `cell` units, `cols` x `rows`, with the indices a hero has explored. Null
+  // while tuning.ai.discovery is off.
+  readonly fog: { cell: number; cols: number; rows: number; explored: readonly number[] } | null;
   readonly units: readonly Readonly<UnitState>[];
   readonly parties: readonly Readonly<PartyState>[];
   readonly paths: readonly Readonly<PathState>[];
