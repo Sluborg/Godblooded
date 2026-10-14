@@ -6,6 +6,7 @@ import {
   buildingArtCandidates,
   buildingScale,
   lairArtCandidates,
+  townLabel,
   unitArtId,
 } from './unitLook';
 
@@ -99,5 +100,19 @@ describe('building art', () => {
   it('fits wide pictures by width and tall ones by height', () => {
     expect(buildingScale(380, 300) * 380).toBeCloseTo(190);
     expect(buildingScale(346, 583) * 583).toBeCloseTo(280);
+  });
+});
+
+describe('town units', () => {
+  it('names the town kinds and leaves others alone', () => {
+    expect(townLabel('worker')).toBe('Gatherer');
+    expect(townLabel('guard')).toBe('Guard');
+    expect(townLabel('collector')).toBe('Tax collector');
+    expect(townLabel('hero')).toBeUndefined();
+  });
+
+  it('gives workers and guards the npc art prefix', () => {
+    expect(unitArtId('worker', 'gatherer', 1)).toBe('npc_gatherer_t1_front');
+    expect(unitArtId('guard', 'guard', 1)).toBe('npc_guard_t1_front');
   });
 });

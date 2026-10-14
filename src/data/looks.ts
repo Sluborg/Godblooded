@@ -28,6 +28,12 @@ export const LOOKS: Record<string, Partial<UnitLook>> = {
   // the tax collector (art id npc_collector_t1_front when Art ships it): a small tan figure
   // (it never fights: strike is only here because the field is required)
   collector: { color: 0xc9a45c, scale: 0.8, footprint: 0.3, strike: 'chop' },
+  // M3 town units (nodes.md): a gatherer in earthy green, a tower guard in steel; placeholders until
+  // Art ships npc_gatherer_t1_front and npc_guard_t1_front. They never fight with a strike of their
+  // own (the field is required).
+  gatherer: { color: 0x8aa05a, scale: 0.85, footprint: 0.3, strike: 'chop' },
+  worker: { color: 0x8aa05a, scale: 0.85, footprint: 0.3, strike: 'chop' },
+  guard: { color: 0x8f98a3, scale: 1, footprint: 0.4, strike: 'thrust' },
   // monsters
   draugr: { color: 0x7a8c8f, strike: 'chop' },
   troll: { color: 0x6b4a2f, scale: 1.45, footprint: 0.95, strike: 'stomp' },
