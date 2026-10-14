@@ -268,6 +268,7 @@ try {
         console.error(`replay differs (seed ${seed0 + r}): ${keys.join(', ')}; ticks ${w.tick}`);
       }
     }
+    const fun = sim.runReport(w).fun;
     results.push({
       replayOk,
       ...(replayCode ? { replayCode } : {}),
@@ -285,6 +286,13 @@ try {
       huntClaimed: flagRun.huntClaimed,
       probes: [...flagRun.probes.values()],
       ...(M3 ? { ...m3, ambrosiaLeft: Math.round(snap.ambrosia) } : {}),
+      castShare: fun.castShareAfter6,
+      typesShare: fun.typesShareTier2,
+      decisionsPerMin: fun.decisionsPerMin,
+      decisionMinuteShare: fun.decisionMinuteShare,
+      quietS: fun.longestQuietMs / 1000,
+      quietAtS: fun.longestQuietAtMs / 1000,
+      fights: fun.fights,
       gold3: goldAt[180_000],
       gold5: goldAt[300_000],
       weapon8: gear8?.weapon ?? null,
@@ -569,6 +577,23 @@ function summarize(results) {
     replayCheck: REPLAY_CHECK
       ? { identical: results.filter((r) => r.replayOk).length, of: results.length }
       : null,
+    fun: {
+      fights: mean(results, 'fights'),
+      castShare: meanOf(results, 'castShare'),
+      typesShare: meanOf(results, 'typesShare'),
+      decisionsPerMin: mean(results, 'decisionsPerMin'),
+      decisionMinuteShare: meanOf(results, 'decisionMinuteShare'),
+      quiet: (() => {
+        const v = results.map((r) => r.quietS).sort((a, b) => a - b);
+        const at = results.map((r) => r.quietAtS).sort((a, b) => a - b);
+        return {
+          p50: pct(v, 0.5),
+          p90: pct(v, 0.9),
+          max: v[v.length - 1] ?? 0,
+          atP50: pct(at, 0.5),
+        };
+      })(),
+    },
     probes: results.flatMap((r) => r.probes ?? []),
     flags: {
       placed: meanOf(results, 'flagsPlaced'),
@@ -634,6 +659,13 @@ function print(rep) {
   if (rep.replayCheck) {
     console.log(
       `  replay check: ${rep.replayCheck.identical} of ${rep.replayCheck.of} replays equal the original run report`,
+    );
+  }
+  {
+    const u = rep.fun;
+    const p = (x) => (x === null ? '-' : `${(x * 100).toFixed(0)}%`);
+    console.log(
+      `  fun checks: skill cast in ${p(u.castShare)} of fights after 6:00 (target 60%), 2+ damage types in ${p(u.typesShare)} of tier 2 fights; ${f(u.fights)} fights a run; decisions ${f(u.decisionsPerMin)} per min, one in ${p(u.decisionMinuteShare)} of minutes; longest quiet gap p50 ${f(u.quiet.p50)} s, p90 ${f(u.quiet.p90)} s, max ${f(u.quiet.max)} s (target under 60); the longest ends at about ${f(u.quiet.atP50 / 60)} min (median)`,
     );
   }
   if (FLAGS) {
