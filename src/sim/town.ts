@@ -8,6 +8,7 @@ import {
   TICK_MS,
   type Stats,
 } from './units';
+import { dropTill } from './collector';
 import { takeDamage } from './effects';
 import { shareXp } from './parties';
 import { earn, tally } from './runstats';
@@ -70,6 +71,7 @@ export function attackBuilding(
     b.hp -= dmg;
     world.events.push(hitEvent(unit.id, b.id, hit));
     if (b.hp > 0) return;
+    dropTill(world, b);
     world.buildings = world.buildings.filter((x) => x.id !== b.id);
     world.stats.buildingsLost++;
     world.events.push({ kind: 'buildingDestroyed', building: b.id, type: b.type });
@@ -317,7 +319,12 @@ export function runTowers(world: World): void {
     for (const u of world.units) {
       if (u.kind !== 'monster' || u.hp <= 0) continue;
       const d = dist(b.pos, u.pos);
-      if (d <= range && d < best) {
+      // A monster in range, or one that is attacking a tax collector within the tower's range.
+      const onCollector = world.units.some(
+        (c) =>
+          c.kind === 'collector' && c.id === u.target && c.hp > 0 && dist(b.pos, c.pos) <= range,
+      );
+      if ((d <= range || onCollector) && d < best) {
         foe = u;
         best = d;
       }

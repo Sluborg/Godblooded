@@ -10,8 +10,13 @@ export const ART_NOMINAL_PX = 256;
 // right and is mirrored by direction, so facing up or down never picks another picture.
 // Any unit kind: a summon (decoy, falcon, thrall) has `sum_<def>_t1_front`, and without that picture
 // it falls back to a placeholder shape like every other unit.
-export type ArtKind = 'hero' | 'monster' | 'summon';
-const ART_PREFIX: Record<ArtKind, string> = { hero: 'hero', monster: 'mon', summon: 'sum' };
+export type ArtKind = 'hero' | 'monster' | 'summon' | 'collector';
+const ART_PREFIX: Record<ArtKind, string> = {
+  hero: 'hero',
+  monster: 'mon',
+  summon: 'sum',
+  collector: 'npc',
+};
 
 export function unitArtId(kind: ArtKind, type: string, tier: number): string {
   return `${ART_PREFIX[kind]}_${type}_t${tier}_front`;
