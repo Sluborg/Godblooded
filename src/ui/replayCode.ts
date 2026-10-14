@@ -3,9 +3,10 @@
 // an old save without a command log.
 export function replayButtonLabel(
   replay: string | null | undefined,
-  copied: boolean,
+  copied: boolean | 'failed',
 ): string | null {
   if (!replay) return null;
+  if (copied === 'failed') return 'Copy failed';
   return copied ? 'Replay code copied' : 'Copy replay code';
 }
 

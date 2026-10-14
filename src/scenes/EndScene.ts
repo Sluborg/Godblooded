@@ -76,7 +76,8 @@ export class EndScene extends Phaser.Scene {
         replayButtonLabel(replay, false) ?? '',
         () =>
           void copyReplay(replay).then((ok) => {
-            if (ok) copy.setLabel(replayButtonLabel(replay, true) ?? '');
+            // The browser may refuse the clipboard (no permission, an insecure page): say so.
+            copy.setLabel(replayButtonLabel(replay, ok ? true : 'failed') ?? '');
           }),
       );
     }

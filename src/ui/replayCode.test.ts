@@ -23,3 +23,9 @@ describe('replay code', () => {
     expect(await copyReplay('xyz', undefined)).toBe(false);
   });
 });
+
+describe('replayButtonLabel failure', () => {
+  it('says so when the clipboard refused', () => {
+    expect(replayButtonLabel('abc', 'failed')).toBe('Copy failed');
+  });
+});
