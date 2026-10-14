@@ -1,3 +1,4 @@
+import { uncollected } from './collector';
 import type { World } from './world';
 import type { HeroReport, RunReport, UnitState } from './types';
 
@@ -38,9 +39,16 @@ export function earn(world: World, hero: UnitState, gold: number, tithe = false)
   // The end screen counts what reached the purse, not the gross bounty.
   tally(world, hero.id, 'goldEarned', gold - cut);
   if (cut > 0) {
-    world.gold += cut;
-    world.stats.taxCollected += cut;
-    world.events.push({ kind: 'tithe', unit: hero.id, gold: cut });
+    const rt = world.heroRuntime.get(hero.id);
+    if (world.tuning.collector.enabled && rt) {
+      // Set aside: the hero pays it into its home temple's till when it starts to rest.
+      rt.titheOwed = (rt.titheOwed ?? 0) + cut;
+    } else {
+      // No collector: straight to the treasury, as before.
+      world.gold += cut;
+      world.stats.taxCollected += cut;
+      world.events.push({ kind: 'tithe', unit: hero.id, building: 0, gold: cut });
+    }
   }
 }
 
@@ -100,6 +108,9 @@ export function runReport(world: World): RunReport {
   if (heroes.length > 0 && score(heroes[0]) > 0) heroes[0].mvp = true;
   return {
     seed: world.seed,
+    taxBanked: world.stats.taxCollected,
+    taxLost: world.stats.taxLost,
+    uncollected: uncollected(world),
     outcome: world.status === 'running' ? 'abandoned' : world.status,
     timeMs: world.timeMs,
     mvp: heroes.find((h) => h.mvp)?.unit ?? null,

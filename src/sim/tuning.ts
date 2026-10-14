@@ -193,6 +193,21 @@ export const DEFAULT_TUNING: Tuning = {
     dangerHp: 0.5,
     tellMs: 1500,
   },
+  collector: {
+    enabled: false,
+    perHallTier: 1,
+    secondAtBuildings: 6,
+    minTill: 10,
+    carryCap: 150,
+    collectMs: 1_000,
+    speedMult: 0.7,
+    hp: 40,
+    respawnMs: 20_000,
+    reach: 40,
+    fearRange: 160,
+    chainRange: 400,
+    distanceCost: 0.02,
+  },
   town: {
     townHallHp: 500,
     buildingHp: 200,
@@ -250,6 +265,7 @@ export function resolveTuning(data: GameData): Tuning {
     role: { ...DEFAULT_TUNING.role, ...t?.role },
     favour: { ...DEFAULT_TUNING.favour, ...t?.favour },
     town: { ...DEFAULT_TUNING.town, ...t?.town },
+    collector: { ...DEFAULT_TUNING.collector, ...t?.collector },
     bounty: { ...DEFAULT_TUNING.bounty, ...t?.bounty },
   };
 }

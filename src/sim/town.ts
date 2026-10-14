@@ -8,6 +8,7 @@ import {
   TICK_MS,
   type Stats,
 } from './units';
+import { dropTill } from './collector';
 import { takeDamage } from './effects';
 import { shareXp } from './parties';
 import { earn, tally } from './runstats';
@@ -70,6 +71,7 @@ export function attackBuilding(
     b.hp -= dmg;
     world.events.push(hitEvent(unit.id, b.id, hit));
     if (b.hp > 0) return;
+    dropTill(world, b);
     world.buildings = world.buildings.filter((x) => x.id !== b.id);
     world.stats.buildingsLost++;
     world.events.push({ kind: 'buildingDestroyed', building: b.id, type: b.type });
@@ -307,6 +309,10 @@ const TOWER_ATTRS = { str: 0, dex: 0, sta: 0, cha: 0, per: 0, int: 0, wp: 0 };
 // Towers shoot the nearest monster in range on their own cooldown, by building tier.
 export function runTowers(world: World): void {
   const t = world.tuning.building;
+  // Live tax collectors, looked up once per tick (the monsters that attack them are covered too).
+  const collectors = world.tuning.collector.enabled
+    ? world.units.filter((c) => c.kind === 'collector' && c.hp > 0)
+    : [];
   for (const b of world.buildings) {
     if (b.type !== 'tower') continue;
     const next = world.towerNextMs.get(b.id) ?? 0;
@@ -317,7 +323,12 @@ export function runTowers(world: World): void {
     for (const u of world.units) {
       if (u.kind !== 'monster' || u.hp <= 0) continue;
       const d = dist(b.pos, u.pos);
-      if (d <= range && d < best) {
+      // A monster in range, or one that is attacking a tax collector within the tower's range.
+      const onCollector =
+        d > range &&
+        u.target !== null &&
+        collectors.some((c) => c.id === u.target && dist(b.pos, c.pos) <= range);
+      if ((d <= range || onCollector) && d < best) {
         foe = u;
         best = d;
       }

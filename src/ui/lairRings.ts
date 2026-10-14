@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { DEFAULT_TUNING, type LairState, type Snapshot } from '../sim/api';
+import type { LairState, Snapshot } from '../sim/api';
 import { getSfx } from './sfxPlayer';
 import {
   PIPS_HOLD_MS,
@@ -36,6 +36,7 @@ export class LairIndicators {
   private readonly g: Phaser.GameObjects.Graphics;
   private readonly texts = new Map<number, Phaser.GameObjects.Text>();
   private readonly mem = new Map<number, Memory>();
+  private readonly beats = new Map<number, number>();
 
   constructor(private readonly scene: Phaser.Scene) {
     this.g = scene.add.graphics().setDepth(LAIR_UI_DEPTH - 1);
@@ -52,11 +53,16 @@ export class LairIndicators {
     if (m) m.redFlashMs = 700;
   }
 
-  update(snap: Snapshot, dtMs: number): void {
+  // 0 to 1 pulse of a lair in its last 15 s before a tier-up (0 otherwise), for its plate.
+  beatOf(lairId: number): number {
+    return this.beats.get(lairId) ?? 0;
+  }
+
+  // `aggro`: how far a hero notices a lair (the world's tuning), for when the pips show.
+  update(snap: Snapshot, dtMs: number, aggro: number): void {
     const g = this.g;
     g.clear();
     const seen = new Set<number>();
-    const aggro = DEFAULT_TUNING.monster.lairAggro;
     const heroes = snap.units.filter((u) => u.kind === 'hero' && !u.ko);
     for (const l of snap.lairs) {
       seen.add(l.id);
@@ -104,6 +110,7 @@ export class LairIndicators {
     const fill = sealed ? null : ringFill(l.nextTierMs, l.tierSpanMs);
     const next = l.nextTierMs ?? null;
     text.setVisible(false);
+    this.beats.set(l.id, 0);
     if (m.redFlashMs > 0)
       g.lineStyle(7, 0xff3b30, m.redFlashMs / 700).strokeEllipse(cx, cy, rx * 2, ry * 2);
     if (m.tierFlashMs > 0)
@@ -116,6 +123,7 @@ export class LairIndicators {
     const stage = ringStage(next);
     const t = this.scene.time.now / 1000;
     const beat = stage === 'pulse' ? 0.5 + 0.5 * Math.sin(t * Math.PI * 2) : 0;
+    this.beats.set(l.id, beat);
     const color = stage === 'dim' ? 0xe6e1d2 : 0xffb43a;
     // A dark track so the empty part reads on the grass.
     g.lineStyle(7, 0x1a1410, 0.55).strokeEllipse(cx, cy, rx * 2, ry * 2);
@@ -144,7 +152,7 @@ export class LairIndicators {
     // One soft drum beat per tier-up, when the last 15 s begin.
     if (stage === 'pulse' && !m.drummed) {
       m.drummed = true;
-      getSfx(this.scene).play({ id: 'sfx_drum' });
+      getSfx(this.scene).play({ id: 'sfx_drum', at: { x: l.pos.x, y: l.pos.y } });
     }
     if (stage !== 'pulse') m.drummed = false;
   }

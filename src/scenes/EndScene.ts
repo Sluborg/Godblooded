@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { COLORS, GAME_HEIGHT, GAME_WIDTH } from '../config';
 import { makeButton } from '../ui/button';
+import { addSeedLabel } from '../ui/seedLabel';
 import { markRunEnded } from '../ui/hintStore';
 import { formatClock, sparkline, visibleHeroes } from '../ui/endReport';
 import { heroLabel } from '../ui/partyLook';
@@ -55,6 +56,7 @@ export class EndScene extends Phaser.Scene {
     this.mvpCard(report?.heroes.find((h) => h.mvp) ?? null);
     this.goldChart(report?.goldHistory ?? []);
     this.totals(snap.stats);
+    if (report) addSeedLabel(this, report.seed, 16, GAME_HEIGHT - 12);
 
     if (abandoned) {
       makeButton(this, cx - 200, 668, 300, 80, 'Back to run', () => this.backToRun());
