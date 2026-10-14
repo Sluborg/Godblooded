@@ -3,7 +3,10 @@ import type { Snapshot } from '../sim/api';
 
 // The sim's intent kinds, read off the snapshot type (api.ts does not export them by name).
 export type PartyIntent = Snapshot['parties'][number]['intent'];
-export type IntentKind = PartyIntent['kind'];
+export type SimIntentKind = PartyIntent['kind'];
+// The kinds with a look: the sim's, and 'escort' (a party walking with a gatherer, M3). Listed here
+// as well so the look exists before and after the sim's kind union grows.
+export type IntentKind = SimIntentKind | 'escort';
 
 // The icon over a party's head for what it is doing (docs/systems/hero-ai.md section 2): coin
 // over a flag, crossed swords, a red skull, a compass, a broken shield, a coin bag, a bed, a tower.
@@ -27,6 +30,7 @@ export const INTENT_LOOK: Record<IntentKind, IntentLook> = {
   shop: { color: 0xf2c14e, dim: false, label: 'Going shopping' },
   rest: { color: 0x9a9aa8, dim: true, label: 'Resting' },
   defend: { color: 0x9fc9a0, dim: false, label: 'Defending the town' },
+  escort: { color: 0x6fd0c8, dim: false, label: 'Escort' },
 };
 
 export function isIntentKind(k: string): k is IntentKind {
@@ -106,6 +110,13 @@ export function drawIntentIcon(
       g.fillRect(x - 10, y, 20, 5);
       g.fillRect(x - 10, y - 6, 4, 11);
       g.fillStyle(0xf4ead5, a).fillRect(x - 5, y - 5, 9, 5);
+      break;
+    case 'escort':
+      // A flag over a small walking figure: the party goes with a gatherer.
+      g.lineBetween(x - 5, y + 1, x - 5, y - 9);
+      g.fillTriangle(x - 5, y - 9, x + 7, y - 6, x - 5, y - 2);
+      g.fillCircle(x + 3, y + 3, 2.6);
+      g.fillRect(x + 1, y + 5, 4, 5);
       break;
     case 'defend':
       g.fillRect(x - 6, y - 3, 12, 12);
