@@ -410,12 +410,15 @@ export class MapScene extends Phaser.Scene {
     }
     const building = this.buildingAt(w);
     if (building !== null) return { plot: null, building, target: null };
-    const flag = flagAt(this.snap.bounties, w);
-    if (flag !== null) return { plot: null, flag, target: null };
     const hit = [...this.snap.units, ...this.snap.lairs]
       .map((e) => ({ e, d: Math.hypot(e.pos.x - w.x, e.pos.y - w.y) }))
       .filter(({ d }) => d < TARGET_RADIUS)
       .sort((a, b) => a.d - b.d)[0];
+    // A flag stands on the monster or lair it was placed on: the nearer wins a tap, and a tie (a flag sits exactly on its target) goes to the flag.
+    const flag = flagAt(this.snap.bounties, w);
+    const flagPos = this.snap.bounties.find((b) => b.id === flag)?.pos;
+    if (flag !== null && flagPos && (!hit || Math.hypot(flagPos.x - w.x, flagPos.y - w.y) <= hit.d))
+      return { plot: null, flag, target: null };
     if (hit) return { plot: null, target: { pos: { ...hit.e.pos }, label: hit.e.type } };
     return {
       plot: null,
