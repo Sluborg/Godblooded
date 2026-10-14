@@ -75,3 +75,45 @@ Then Pause, Quit to title.
   (`m2-plan.md` section 4).
 
 Lead turns the answers into backlog rows; Design changes the specs the answers move.
+
+## 6. Results
+
+### Playtest 1 (2026-10-14, Stefan, relayed by Lead)
+
+| What            | Result                           |
+| --------------- | -------------------------------- |
+| Outcome         | Lost at 9:39, the town hall fell |
+| Lairs destroyed | 0                                |
+| Tax collected   | 0                                |
+| Knockouts       | 8                                |
+| Buildings lost  | 1                                |
+| Seed            | not shown (end screen row, Sim)  |
+
+**Stefan's feedback:**
+
+- Buildings need shadows.
+- The town never earns money.
+- Everything is too close together.
+- Sprites sit off-centre on their circles.
+- Lairs are extremely hard to kill.
+- The title screen is too muted and grainy.
+
+**Routed by Lead:** Sim (tax root cause, lair kill rate, a human-like bot, seed on the end
+screen, spacing), Scene (shadows, sprite anchors, spacing, title), Balance (retune against the
+human-like bot).
+
+**Why the bot missed it (Design, `scripts/sim/run.mjs` on main cf41c99, seeds 1-100):**
+
+| Bot habit                                                                    | Effect on its numbers                                                                    |
+| ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| Builds market and smithy in its first turn (fixed order, every 5 s)          | Tax 344 a run. The same bot without market and smithy: tax 0, town gold flat at 130      |
+| We reported medians and win rate only                                        | A loss by 9:39 is 10 of 100 bot runs; ending with 0 lairs is 2 of 100 (6 without market) |
+| Keeps a 50 gold flag on the nearest lair                                     | Small: turning it off moves lairs 3.6 to 3.6, wins 65% to 70%                            |
+| Takes every upgrade and path card at once; never pauses, never misses a card | Not measured yet (Sim's human-like bot)                                                  |
+| Has no eyes                                                                  | Shadows, anchors, spacing and the title are outside what a bot can see                   |
+
+- **Tax is the only town income:** with no market or smithy, nothing earns gold after the
+  start purse. Assumed: Stefan's run had no market or smithy, or no hero shopped in them;
+  Sim confirms (tax root cause).
+- **Lairs:** the bot kills 3.6 a run, even with no tax (3.3), so "lairs too hard" is not the tax
+  alone. Stefan's run sits in the bot's worst 2 to 6%.

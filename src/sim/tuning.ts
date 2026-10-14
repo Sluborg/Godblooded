@@ -51,6 +51,7 @@ export const DEFAULT_TUNING: Tuning = {
     drinkMs: 500,
     // Share of what heroes spend that the town collects.
     taxRate: 0.5,
+    tithe: 0,
     // How close counts as arrived, in world units.
     arrive: 50,
     lairSearchRadius: 250,

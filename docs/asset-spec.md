@@ -78,9 +78,15 @@ Each variant is a full manifest row with its own measured weapon point.
   - buildings: a building at the nominal 85% of canvas width becomes 512 px wide
     (`public/assets/buildings/`)
   - terrain and ui: full canvas width becomes 256 px (`public/assets/terrain/`, `ui/`)
-- **Anchor:** units and buildings at the feet / base (centre of the lowest 6% of the object,
-  bottom edge); terrain and ui at the centre. Stored as 0..1 of the shipped image, i.e. the
-  Phaser origin: `sprite.setOrigin(anchorX, anchorY)` puts the feet on the unit's map position.
+- **Anchor:** stored as 0..1 of the shipped image, i.e. the Phaser origin:
+  `sprite.setOrigin(anchorX, anchorY)` puts that point on the map position.
+  - units (hero, mon, sum): at the feet (centre of the lowest 6% of the object, bottom edge).
+  - buildings and lairs (bld): at the iso footprint centre, `x = 0.5`,
+    `y = 1 - 0.2 * width / height` (clamped 0.6..1). The lowest band of an iso building is its
+    front corner, which sits off the plot centre. Same rule as Scene's `footOrigin`
+    (`src/ui/unitLook.ts`), so the art must keep the building centred left to right and its base a
+    full iso footprint; a building that breaks this needs a note to Scene with its depth share.
+  - terrain, ui and art: at the centre.
 
 ## Rig pieces
 

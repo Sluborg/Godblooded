@@ -63,6 +63,16 @@ export function buildingScale(picW: number, picH: number): number {
   return Math.min(BUILDING_FIT.w / picW, BUILDING_FIT.h / picH);
 }
 
+// Isometric building and lair pictures stand on a diamond footprint: the footprint's centre sits
+// half its depth above the picture's bottom edge, about this share of the picture width (a 2:1
+// iso diamond that fills the picture). Anchoring there puts the footprint centre on the ring or
+// plot centre, where the bottom edge used to be, which pushed the picture up and aside.
+export const FOOT_DEPTH = 0.2;
+
+export function footOrigin(picW: number, picH: number): { x: number; y: number } {
+  return { x: 0.5, y: Math.max(0.6, Math.min(1, 1 - (FOOT_DEPTH * picW) / picH)) };
+}
+
 // Skin variants of one unit share its look: `draugr-v2` is a draugr. Strips a trailing `-v<n>`.
 export function baseType(name: string): string {
   return name.replace(/-v\d+$/, '');

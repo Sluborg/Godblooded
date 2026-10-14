@@ -31,15 +31,24 @@ export class TitleScene extends Phaser.Scene {
       logo.setScale(Math.min(1, 200 / logo.height));
     } else {
       this.add
-        .text(cx, 170, 'GODBLOODED', { fontFamily: FONT, fontSize: '104px', color: '#f2c14e' })
+        .text(cx, 170, 'GODBLOODED', {
+          fontFamily: FONT,
+          fontSize: '104px',
+          fontStyle: 'bold',
+          color: '#ffd35e',
+          stroke: '#2a1208',
+          strokeThickness: 10,
+        })
         .setOrigin(0.5)
-        .setShadow(0, 6, '#000000', 10, false, true);
+        .setShadow(0, 5, '#000000', 6, true, true);
     }
     this.add
       .text(cx, 285, 'Build the town. Hire the children of gods. Watch them fight.', {
         fontFamily: FONT,
         fontSize: '26px',
-        color: COLORS.text,
+        color: '#fff3d6',
+        stroke: '#1a0c06',
+        strokeThickness: 5,
       })
       .setOrigin(0.5);
 

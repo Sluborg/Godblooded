@@ -30,9 +30,13 @@ import { iconScale } from '../ui/icons';
 import { releaseSets } from '../ui/parts/bake';
 import { effectiveSpeed } from '../ui/pathSpeed';
 import { STYLE } from '../ui/style';
-import { lairDecal, lairPlate, townPatch } from '../ui/groundDecal';
-import { buildingArtCandidates, buildingScale, lairArtCandidates } from '../ui/unitLook';
-import { ASSETS_KEY, type ManifestAsset } from '../ui/assets';
+import { groundShadow, lairDecal, lairPlate, townPatch } from '../ui/groundDecal';
+import {
+  buildingArtCandidates,
+  buildingScale,
+  footOrigin,
+  lairArtCandidates,
+} from '../ui/unitLook';
 import { OFFER_KEY, type LevelUpOffer } from './LevelUpScene';
 import { attachCameraControls } from '../ui/cameraControls';
 import { easeToward, WatchDirector } from '../ui/watchCam';
@@ -50,6 +54,8 @@ const BUILDING_COLORS: Record<string, number> = {
   tower: 0x9a9a9a,
 };
 const BUILDING_SIZE = 96;
+// The ground decals' centre is 6 above the point; pictures stand their footprint centre there.
+const FOOT_Y = -6;
 // How long the camera takes to show the levelled party before its cards come up.
 const FOCUS_MS = 700;
 const TARGET_RADIUS = 70;
@@ -680,6 +686,8 @@ export class MapScene extends Phaser.Scene {
   private makeBuilding(type: string, tier: number, pos: Vec2): Phaser.GameObjects.Container {
     const view = this.makeBuildingView(type, tier, pos);
     this.groundUnder(view, townPatch(this), pos);
+    const w = view.getData('w') as number | undefined;
+    if (w) this.groundUnder(view, groundShadow(this, w), pos, 0.6);
     return view;
   }
 
@@ -689,23 +697,24 @@ export class MapScene extends Phaser.Scene {
     view: Phaser.GameObjects.Container,
     decal: Phaser.GameObjects.Graphics,
     pos: Vec2,
+    depth = 0.5,
   ): void {
-    decal.setPosition(pos.x, pos.y).setDepth(0.5);
+    decal.setPosition(pos.x, pos.y).setDepth(depth);
     view.once(Phaser.GameObjects.Events.DESTROY, () => decal.destroy());
   }
 
   private makeBuildingView(type: string, tier: number, pos: Vec2): Phaser.GameObjects.Container {
     const art = buildingArtCandidates(type, tier).find((id) => this.textures.exists(id));
     if (art) {
-      const row = (this.registry.get(ASSETS_KEY) as Map<string, ManifestAsset> | undefined)?.get(
-        art,
-      );
-      const img = this.add.image(0, 0, art).setOrigin(row?.anchorX ?? 0.5, row?.anchorY ?? 1);
+      const img = this.add.image(0, FOOT_Y, art);
+      const o = footOrigin(img.width, img.height);
+      img.setOrigin(o.x, o.y);
       const k = buildingScale(img.width, img.height);
       img.setScale(k);
       return this.add
         .container(pos.x, pos.y, [img])
-        .setData('top', img.height * k)
+        .setData('top', o.y * img.height * k - FOOT_Y)
+        .setData('w', img.width * k)
         .setDepth(pos.y);
     }
     const body = this.add
@@ -750,22 +759,29 @@ export class MapScene extends Phaser.Scene {
     view.setData('tier', tier);
     const art = lairArtCandidates(type, tier).find((id) => this.textures.exists(id));
     if (!art) return;
-    const row = (this.registry.get(ASSETS_KEY) as Map<string, ManifestAsset> | undefined)?.get(art);
     let img = view.getData('img') as Phaser.GameObjects.Image | undefined;
     if (!img) {
       // The first picture replaces the placeholder dot and its name.
       for (const o of [...view.list])
         if (o !== view.getData('bar') && o !== view.getData('plate')) o.destroy();
-      img = this.add.image(0, 0, art);
+      img = this.add.image(0, FOOT_Y, art);
       view.add(img);
       view.setData('img', img);
       // With the picture in, the red plate names the lair (the placeholder had its own label).
       (view.getData('plate') as Phaser.GameObjects.Container | undefined)?.setVisible(true);
     } else img.setTexture(art);
-    img.setOrigin(row?.anchorX ?? 0.5, row?.anchorY ?? 1);
+    const o = footOrigin(img.width, img.height);
+    img.setOrigin(o.x, o.y);
     const k = buildingScale(img.width, img.height) * (boss ? 1.35 : 1);
     img.setScale(k);
-    view.setData('top', img.height * k);
+    view.setData('top', o.y * img.height * k - FOOT_Y);
+    // The shadow follows the picture's size (a tier-up or a boss lair is larger).
+    const old = view.getData('shadow') as Phaser.GameObjects.Graphics | undefined;
+    old?.destroy();
+    const shadow = groundShadow(this, img.width * k);
+    shadow.setPosition(view.x, view.y).setDepth(0.6);
+    view.once(Phaser.GameObjects.Events.DESTROY, () => shadow.destroy());
+    view.setData('shadow', shadow);
   }
 
   // Stand-in for lairs and monsters until the unit view (Scene 50): a dot with its type.

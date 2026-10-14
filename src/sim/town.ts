@@ -124,7 +124,7 @@ export function attackLair(
     world.lairs = world.lairs.filter((l) => l.id !== lair.id);
     world.lairRuntime.delete(lair.id);
     world.stats.lairsDestroyed++;
-    earn(world, unit, tm.lairBounty);
+    earn(world, unit, tm.lairBounty, true);
     tally(world, unit.id, 'lairKills');
     world.lairLog.push({ lair: lair.id, type: lair.type, timeMs: world.timeMs, by: unit.id });
     world.events.push({

@@ -22,12 +22,17 @@ const runs = opt('runs', 100);
 const seed0 = opt('seed', 1);
 const maxMin = opt('max-min', 30);
 const json = args.includes('--json');
+// --human: a player who builds a few buildings at the start and then only watches: no upgrades,
+// no flags, no lair flag. --build a,b,c sets the buildings (default temple_aesir,tower,shrine).
+const HUMAN = args.includes('--human');
+const buildIdx = args.indexOf('--build');
+const BUILD_ARG = buildIdx >= 0 ? args[buildIdx + 1].split(',') : undefined;
 // The bot buys building tiers unless --no-upgrade is given.
-const UPGRADE = !args.includes('--no-upgrade');
+const UPGRADE = !args.includes('--no-upgrade') && !HUMAN;
 const HUNT = args.includes('--hunt');
 const FLAGS = args.includes('--flags') || HUNT;
 const FLAG_GOLD = opt('flag-gold', HUNT ? 50 : 40);
-const LAIR_FLAG = !args.includes('--no-lair-flag');
+const LAIR_FLAG = !args.includes('--no-lair-flag') && !HUMAN;
 const dataIdx = args.indexOf('--data');
 const dataFile = dataIdx >= 0 ? args[dataIdx + 1] : undefined;
 
@@ -45,6 +50,12 @@ try {
   // The smithy joins the order once the data has one (heroes then buy weapons and armour).
   const BUILD_ORDER = ['temple_aesir', 'market', 'shrine', 'tower'];
   if (GRAYBOX.buildings.some((b) => b.id === 'smithy')) BUILD_ORDER.splice(2, 0, 'smithy');
+  if (HUMAN)
+    BUILD_ORDER.splice(
+      0,
+      BUILD_ORDER.length,
+      ...(BUILD_ARG ?? ['temple_aesir', 'tower', 'shrine']),
+    );
   const DT = 100;
   const results = [];
 
@@ -63,6 +74,7 @@ try {
     let snap = sim.snapshot(w);
     let timeout = false;
     // Minutes of the first boss emerge and the first blow to or from a boss (null: never).
+    let firstLairMin = null;
     let bossOutMin = null;
     let bossFightMin = null;
     const bossIds = new Set();
@@ -83,6 +95,7 @@ try {
           p.headedS ??= (sn.timeMs - p.at) / 1000;
         }
         if (e.kind === 'bountyClaimed' && probe(e.bounty)) probe(e.bounty).paid = !!e.hunt;
+        if (e.kind === 'lairDestroyed') firstLairMin ??= sn.timeMs / 60_000;
         if (e.kind === 'bossEmerged') {
           bossIds.add(e.unit);
           bossOutMin ??= sn.timeMs / 60_000;
@@ -112,6 +125,7 @@ try {
           weapon: avg('weapon'),
           armour: avg('armour'),
           heroes: heroes.length,
+          carried: heroes.reduce((a, u) => a + (u.gold ?? 0), 0),
           geared:
             heroes.length === 0
               ? 0
@@ -139,6 +153,7 @@ try {
       outcome: timeout ? 'timeout' : snap.status,
       minutes: snap.timeMs / 60_000,
       bossOutMin,
+      firstLairMin,
       bossFightMin,
       flagsPlaced: flagRun.placed,
       flagsClaimed: flagRun.claimed,
@@ -150,6 +165,7 @@ try {
       weapon8: gear8?.weapon ?? null,
       armour8: gear8?.armour ?? null,
       geared8: gear8?.geared ?? null,
+      carried8: gear8?.carried ?? null,
       ...snap.stats,
       heroes: snap.units.filter((u) => u.kind === 'hero').length,
       maxPartyLevel: Math.max(1, ...snap.parties.map((p) => p.level)),
@@ -320,6 +336,7 @@ function summarize(results) {
       median: pct(minutes, 0.5),
       p90: pct(minutes, 0.9),
     },
+    firstLair: bossTimes(results, 'firstLairMin'),
     bossOut: bossTimes(results, 'bossOutMin'),
     bossFight: bossTimes(results, 'bossFightMin'),
     pacing: {
@@ -328,6 +345,7 @@ function summarize(results) {
       weapon8: meanOf(results, 'weapon8'),
       armour8: meanOf(results, 'armour8'),
       geared8: meanOf(results, 'geared8'),
+      carried8: meanOf(results, 'carried8'),
     },
     probes: results.flatMap((r) => r.probes ?? []),
     flags: {
@@ -362,6 +380,7 @@ function print(rep) {
     `  run length (min, ended runs): mean ${f(rep.minutes.mean)}  p10 ${f(rep.minutes.p10)}  median ${f(rep.minutes.median)}  p90 ${f(rep.minutes.p90)}`,
   );
   for (const [name, b] of [
+    ['first lair down', rep.firstLair],
     ['boss out', rep.bossOut],
     ['boss fight', rep.bossFight],
   ]) {
@@ -371,7 +390,7 @@ function print(rep) {
   }
   const n = (x) => (x === null ? '-' : f(x));
   console.log(
-    `  town gold: 3:00 ${n(rep.pacing.gold3)}  5:00 ${n(rep.pacing.gold5)}   hero gear level at 8:00: weapon ${n(rep.pacing.weapon8)}  armour ${n(rep.pacing.armour8)}  with any gear ${rep.pacing.geared8 === null ? '-' : `${(rep.pacing.geared8 * 100).toFixed(0)}%`}`,
+    `  town gold: 3:00 ${n(rep.pacing.gold3)}  5:00 ${n(rep.pacing.gold5)}   hero gear level at 8:00: weapon ${n(rep.pacing.weapon8)}  armour ${n(rep.pacing.armour8)}  with any gear ${rep.pacing.geared8 === null ? '-' : `${(rep.pacing.geared8 * 100).toFixed(0)}%`}  gold carried by heroes at 8:00 ${n(rep.pacing.carried8)}`,
   );
   if (FLAGS) {
     const share = rep.flags.placed > 0 ? rep.flags.claimed / rep.flags.placed : 0;
