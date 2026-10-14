@@ -171,3 +171,21 @@ tier-up raids on.
   (2026-10-14): a hunt bounty that follows its monster and pays the killer, a re-score on
   placement with a visible "considering" beat, then a Balance pass. Stefan's run 2 ("Steer")
   judges the result.
+
+## 7. Flags after hunt bounties (main 845b1c5, 2026-10-14)
+
+Sim's hunt bounties and fresh-flag re-scoring (`hero-ai.md` 5b, parts 1 and 2) are in;
+Balance's part 3 (danger cost) is not yet. One flag at a time on a monster 350-900 from the
+nearest hero, 60 seeds each; "heading" means a hero's snapshot `bounty` is that flag.
+
+| Flag gold | Heading (share, median time)     | Paid (share, median time) | Before 5b (section 6)           |
+| --------- | -------------------------------- | ------------------------- | ------------------------------- |
+| 50        | 0% median, 126 s when it happens | 100% median, 358 s        | heading 0%, paid only by chance |
+| 100       | 100%, 55 s                       | 100%, 167 s               | heading after 115 s, half paid  |
+
+- **Hunt flags now pay:** most flags on monsters get paid, so the bounty is no longer wasted.
+- **Responsiveness is not there yet:** the spec's target (a party heading within 5 s, paid 70%+)
+  is met for payment but not for heading. A 50 gold flag still loses to exploring until
+  Balance's part 3 lowers the danger cost; a 100 gold flag draws a party after about a minute.
+- **The base pacing holds** with the flag bot (100 seeds, flags 150 from a hero): wins 68%,
+  run 15.9 min, boss 13.0, gear gate 100% median.
