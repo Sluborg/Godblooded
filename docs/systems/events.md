@@ -23,13 +23,13 @@ events.
 
 ## 1. Raids
 
-| Rule    | Today                                        | Proposed                                                                      |
-| ------- | -------------------------------------------- | ----------------------------------------------------------------------------- |
-| Timing  | first at `raidFirstMs` (6:00), every 2 min   | unchanged; also one raid right after a lair tiers up (from that lair)         |
-| Warning | none                                         | event `raidWarning` 15 s ahead: lair, direction, size                         |
-| Who     | 2 per lair, +1 per `raidGrowEveryMs` (300 s) | unchanged count; the lair's monster row decides the shape (below)             |
-| Target  | nearest building                             | by shape (below)                                                              |
-| Reward  | bounty and XP per raider                     | unchanged, plus 20 gold to the town per raid fully beaten ("the town cheers") |
+| Rule    | Today                                                           | Proposed                                                                                                                        |
+| ------- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Timing  | first at `raidFirstMs` (6:00), every 3:30 (`raidEveryMs` 210 s) | also a small raid after a lair tier-up: 1 raider on every 2nd tier-up (`tierRaidSize` 1, `tierRaidEvery` 2, Balance 2026-10-14) |
+| Warning | none                                                            | event `raidWarning` 15 s ahead: lair, direction, size                                                                           |
+| Who     | 2 per lair, +1 per `raidGrowEveryMs` (400 s)                    | unchanged count; the lair's monster row decides the shape (below)                                                               |
+| Target  | nearest building                                                | by shape (below)                                                                                                                |
+| Reward  | bounty and XP per raider                                        | unchanged, plus 20 gold to the town per raid fully beaten ("the town cheers")                                                   |
 
 | Shape (from role) | Raid behaviour                                                            |
 | ----------------- | ------------------------------------------------------------------------- |

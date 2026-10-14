@@ -231,3 +231,9 @@ towers, Recall once per hero, escort paid on return, far nodes hold more.
 - Design's docs also go through batches (its session cannot push to `main`).
 - `src/data/sfx.ts` (sound presets) belongs to **Scene**, like the look rows; Balance or Lead
   may suggest tuning by message.
+
+## 2026-10-14 Gear fun gate redefined (Lead, Stefan may veto)
+
+The M2 gear gate "average gear level 1+ at 8:00" is not reachable with data alone. It is now:
+at least 80% of heroes alive at 8:00 (knocked-out ones count, slain ones do not) own a gear
+piece (weapon or armour). Heroes buy their first gear piece before their first potion.
