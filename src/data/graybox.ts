@@ -82,6 +82,11 @@ export const GODS: readonly GodDef[] = [
     name: 'Odin',
     template: 'wizard',
     builds: ['tall', 'lean'],
+    faces: ['head_odin_a', 'head_odin_b'],
+    cloak: 'cloak_odin',
+    colours: ['#41507a', '#c8b27a'],
+    emblem: 'layer_cloak_emblem_raven',
+    weapon: 'staff',
     damageType: 'death',
     passive: {
       id: 'allfather-eye',
@@ -95,6 +100,11 @@ export const GODS: readonly GodDef[] = [
     name: 'Thor',
     template: 'warrior',
     builds: ['broad', 'short'],
+    faces: ['head_thor_a', 'head_thor_b'],
+    cloak: 'cloak_thor',
+    colours: ['#a8392c', '#d9a441'],
+    emblem: 'layer_cloak_emblem_hammer',
+    weapon: 'hammer',
     passive: {
       id: 'giant-bane',
       name: 'Giant-Bane',
@@ -107,6 +117,11 @@ export const GODS: readonly GodDef[] = [
     name: 'Loki',
     template: 'rogue',
     builds: ['lean', 'short'],
+    faces: ['head_loki_a', 'head_loki_b'],
+    cloak: 'cloak_loki',
+    colours: ['#4f8a3a', '#8fbf4a'],
+    emblem: 'layer_cloak_emblem_serpent',
+    weapon: 'daggers',
     passive: {
       id: 'slippery',
       name: 'Slippery',
@@ -119,6 +134,11 @@ export const GODS: readonly GodDef[] = [
     name: 'Freyja',
     template: 'healer',
     builds: ['lean', 'broad'],
+    faces: ['head_freyja_a', 'head_freyja_b'],
+    cloak: 'cloak_freyja',
+    colours: ['#9d4f6a', '#f1e8d4'],
+    emblem: 'layer_cloak_emblem_feather',
+    weapon: 'wand',
     damageType: 'holy',
     passive: {
       id: 'chooser',
@@ -144,6 +164,8 @@ export const PATHS: readonly PathDef[] = [
     god: 'odin',
     template: 'wizard',
     name: 'Seer',
+    cloak: 'cloak_odin_seer',
+    weapon: 'staff',
     damageType: 'death',
     attrs: [{ int: 2 }, { int: 4 }],
   },
@@ -152,6 +174,8 @@ export const PATHS: readonly PathDef[] = [
     god: 'odin',
     template: 'warrior',
     name: 'Wanderer',
+    cloak: 'cloak_odin_wanderer',
+    weapon: 'spear',
     attrs: [
       { str: 1, sta: 1 },
       { str: 2, sta: 2 },
@@ -162,6 +186,8 @@ export const PATHS: readonly PathDef[] = [
     god: 'thor',
     template: 'paladin',
     name: 'Hammerborn',
+    cloak: 'cloak_thor_hammerborn',
+    weapon: 'hammer',
     attrs: [
       { sta: 1, wp: 1 },
       { sta: 2, wp: 2 },
@@ -172,6 +198,8 @@ export const PATHS: readonly PathDef[] = [
     god: 'thor',
     template: 'wizard',
     name: 'Stormcaller',
+    cloak: 'cloak_thor_stormcaller',
+    weapon: 'staff',
     damageType: 'lightning',
     attrs: [{ int: 2 }, { int: 4 }],
   },
@@ -180,6 +208,8 @@ export const PATHS: readonly PathDef[] = [
     god: 'loki',
     template: 'rogue',
     name: 'Trickster',
+    cloak: 'cloak_loki_trickster',
+    weapon: 'daggers',
     attrs: [
       { dex: 1, str: 1 },
       { dex: 2, str: 2 },
@@ -190,6 +220,8 @@ export const PATHS: readonly PathDef[] = [
     god: 'loki',
     template: 'wizard',
     name: 'Flamebinder',
+    cloak: 'cloak_loki_flamebinder',
+    weapon: 'daggers',
     damageType: 'fire',
     attrs: [{ int: 2 }, { int: 4 }],
   },
@@ -198,6 +230,8 @@ export const PATHS: readonly PathDef[] = [
     god: 'freyja',
     template: 'warrior',
     name: 'Valkyrie',
+    cloak: 'cloak_freyja_valkyrie',
+    weapon: 'spear',
     attrs: [
       { str: 1, sta: 1 },
       { str: 2, sta: 2 },
@@ -208,6 +242,8 @@ export const PATHS: readonly PathDef[] = [
     god: 'freyja',
     template: 'healer',
     name: 'Seidkona',
+    cloak: 'cloak_freyja_seidkona',
+    weapon: 'staff',
     damageType: 'frost',
     attrs: [
       { int: 1, wp: 1 },
@@ -979,6 +1015,12 @@ export const ITEMS: readonly ItemDef[] = [
         robe: { armour: 0, wp: 2 },
       },
     },
+    icon: 'ui_item_armour_1',
+    worn: {
+      heavy: 'layer_torso_heavy_1',
+      light: 'layer_torso_light_1',
+      robe: 'layer_torso_robe_1',
+    },
   },
   {
     id: 'armour-2',
@@ -993,6 +1035,12 @@ export const ITEMS: readonly ItemDef[] = [
         light: { armour: 4, wp: 2 },
         robe: { armour: 1, wp: 4 },
       },
+    },
+    icon: 'ui_item_armour_2',
+    worn: {
+      heavy: 'layer_torso_heavy_2',
+      light: 'layer_torso_light_2',
+      robe: 'layer_torso_robe_2',
     },
   },
   {
@@ -1009,12 +1057,18 @@ export const ITEMS: readonly ItemDef[] = [
         robe: { armour: 2, wp: 7 },
       },
     },
+    icon: 'ui_item_armour_3',
+    worn: {
+      heavy: 'layer_torso_heavy_3',
+      light: 'layer_torso_light_3',
+      robe: 'layer_torso_robe_3',
+    },
   },
   // Headgear and off-hand (hero-kit.md section 2): headgear about a third of the armour row by
-  // kit, an off-hand a shield's armour for the heavy kit plus a focus's power and a second blade's
-  // crit for everyone (one row per level until rows can name a kit or a family); about half the
-  // armour price. Bot (human, seeds 1 and 1001, 40 runs): wins 60% and 60% (50% and 63% without);
-  // the cheap level 1 pieces come first, so weapon and armour at 8:00 drop to 0.5 and 0.3.
+  // kit; an off-hand is a shield (heavy kit: armour), a second blade (light: crit) or a focus
+  // (robe: power); about half the armour price. Icon and worn ids follow asset-spec.md
+  // (Item ids): armour's worn id names its torso layer; the thigh and boot layers follow the same
+  // <kit>_<level> (layer_thigh_heavy_1, layer_boot_heavy_1).
   {
     id: 'headgear-1',
     slot: 'headgear',
@@ -1029,6 +1083,12 @@ export const ITEMS: readonly ItemDef[] = [
         light: { armour: 1, wp: 0 },
         robe: { armour: 0, wp: 1 },
       },
+    },
+    icon: 'ui_item_headgear_1',
+    worn: {
+      heavy: 'layer_headgear_helm_1',
+      light: 'layer_headgear_hood_1',
+      robe: 'layer_headgear_hat_1',
     },
   },
   {
@@ -1046,6 +1106,12 @@ export const ITEMS: readonly ItemDef[] = [
         robe: { armour: 0, wp: 1 },
       },
     },
+    icon: 'ui_item_headgear_2',
+    worn: {
+      heavy: 'layer_headgear_helm_2',
+      light: 'layer_headgear_hood_2',
+      robe: 'layer_headgear_hat_2',
+    },
   },
   {
     id: 'headgear-3',
@@ -1062,6 +1128,12 @@ export const ITEMS: readonly ItemDef[] = [
         robe: { armour: 1, wp: 2 },
       },
     },
+    icon: 'ui_item_headgear_3',
+    worn: {
+      heavy: 'layer_headgear_helm_3',
+      light: 'layer_headgear_hood_3',
+      robe: 'layer_headgear_hat_3',
+    },
   },
   {
     id: 'offhand-1',
@@ -1071,7 +1143,19 @@ export const ITEMS: readonly ItemDef[] = [
     price: 10,
     shop: 'smithy',
     shopTier: 1,
-    effects: { kits: { heavy: { armour: 1, wp: 0 } }, power: 1, crit: 0.03 },
+    effects: {
+      kits: {
+        heavy: { armour: 1, wp: 0 },
+        light: { armour: 0, wp: 0, crit: 0.03 },
+        robe: { armour: 0, wp: 0, power: 1 },
+      },
+    },
+    icon: 'ui_item_offhand_1',
+    worn: {
+      heavy: 'offhand_shield_1',
+      light: 'offhand_blade_1',
+      robe: 'offhand_focus_1',
+    },
   },
   {
     id: 'offhand-2',
@@ -1081,7 +1165,19 @@ export const ITEMS: readonly ItemDef[] = [
     price: 65,
     shop: 'smithy',
     shopTier: 2,
-    effects: { kits: { heavy: { armour: 3, wp: 0 } }, power: 2, crit: 0.05 },
+    effects: {
+      kits: {
+        heavy: { armour: 3, wp: 0 },
+        light: { armour: 0, wp: 0, crit: 0.05 },
+        robe: { armour: 0, wp: 0, power: 2 },
+      },
+    },
+    icon: 'ui_item_offhand_2',
+    worn: {
+      heavy: 'offhand_shield_2',
+      light: 'offhand_blade_2',
+      robe: 'offhand_focus_2',
+    },
   },
   {
     id: 'offhand-3',
@@ -1091,7 +1187,19 @@ export const ITEMS: readonly ItemDef[] = [
     price: 140,
     shop: 'smithy',
     shopTier: 3,
-    effects: { kits: { heavy: { armour: 4, wp: 0 } }, power: 3, crit: 0.08 },
+    effects: {
+      kits: {
+        heavy: { armour: 4, wp: 0 },
+        light: { armour: 0, wp: 0, crit: 0.08 },
+        robe: { armour: 0, wp: 0, power: 3 },
+      },
+    },
+    icon: 'ui_item_offhand_3',
+    worn: {
+      heavy: 'offhand_shield_3',
+      light: 'offhand_blade_3',
+      robe: 'offhand_focus_3',
+    },
   },
   {
     id: 'healing',
