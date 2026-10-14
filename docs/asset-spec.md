@@ -10,6 +10,7 @@ concept sheets in `docs/concept/`); this is the technical contract.
 | Hero     | `hero_<god>[-<path>]_t<1-3>_front` | `hero_thor-hammerborn_t2_front`   |
 | Monster  | `mon_<type>[-v2\|-v3]_t1_front`    | `mon_draugr-v2_t1_front`          |
 | Summon   | `sum_<type>_t<1-3>_front`          | `sum_falcon_t1_front`             |
+| Npc      | `npc_<type>_t<1-3>_front`          | `npc_collector_t1_front`          |
 | Building | `bld_<type>[_t<1-3>]`              | `bld_temple_aesir_t3`, `bld_ruin` |
 | Terrain  | `ter_<name>`                       | `ter_grass_a`                     |
 | UI       | `ui_<name>`                        | `ui_flag_bounty`                  |
