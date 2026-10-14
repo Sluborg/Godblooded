@@ -4,7 +4,10 @@ import {
   command,
   createWorld,
   decodeReplay,
+  emptyMeta,
   encodeReplay,
+  metaRules,
+  playData,
   loadWorld,
   replayHash,
   runReplay,
@@ -104,5 +107,28 @@ describe('replay code', () => {
     expect(back.firstRun).toBe(true);
     expect(back.started).toBe(w.started);
     expect(runReport(back)).toEqual(runReport(w));
+  });
+
+  it('plays an Altar and Trial run back from the base data', () => {
+    const meta = {
+      ...emptyMeta(),
+      unlocks: metaRules(GRAYBOX).unlocks.map((u) => u.id),
+      altar: { 'war-chest': 2 },
+    };
+    const played = playData(GRAYBOX, meta, ['blood-moon']);
+    const w = createWorld(9, played);
+    command(w, { kind: 'build', type: 'temple_aesir', plot: 0 });
+    for (let i = 0; i < 400; i++) step(w, 50);
+    const code = encodeReplay(w);
+    expect(decodeReplay(code).play).toMatchObject({
+      altar: { 'war-chest': 2 },
+      trials: ['blood-moon'],
+    });
+    const back = runReplay(code, GRAYBOX);
+    expect(back.dataMatches).toBe(true);
+    expect(back.world.tuning).toEqual(w.tuning);
+    expect(runReport(back.world)).toEqual(runReport(w));
+    // plain runs carry no play inputs
+    expect(decodeReplay(encodeReplay(createWorld(1, GRAYBOX))).play).toBeNull();
   });
 });
