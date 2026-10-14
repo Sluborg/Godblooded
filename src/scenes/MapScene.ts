@@ -412,6 +412,34 @@ export class MapScene extends Phaser.Scene {
     return command(this.world, { kind: 'cancelBounty', bounty });
   }
 
+  tryAmbrosiaUpgrade(building: number): CommandResult {
+    return command(this.world, { kind: 'upgradeWithAmbrosia', building });
+  }
+
+  tryOffering(building: number): CommandResult {
+    return command(this.world, { kind: 'offering', building });
+  }
+
+  tryRecallFallen(building: number, grave: number): CommandResult {
+    return command(this.world, { kind: 'recallFallen', building, grave });
+  }
+
+  trySendGuard(unit: number): CommandResult {
+    return command(this.world, { kind: 'sendGuard', unit });
+  }
+
+  // The world's node tuning (costs of the Ambrosia cards, the gatherer and the guard).
+  get nodeTuning() {
+    const t = this.world.tuning.nodes;
+    return {
+      gathererCost: t.gathererCost,
+      guardCost: t.guardCost,
+      templeCost: t.templeCost,
+      offeringCost: t.offeringCost,
+      recallCost: t.recallCost,
+    };
+  }
+
   tryHireGatherer(): CommandResult {
     return command(this.world, { kind: 'hireGatherer' });
   }
