@@ -18,6 +18,7 @@ import { PartyPanel } from '../ui/partyPanel';
 import type { SimEvent, Vec2 } from '../sim/api';
 import { describeEvent, EventFeed, type FeedWorld } from '../ui/eventFeed';
 import type { MapScene, MapTap } from './MapScene';
+import { RaidArrowView } from '../ui/raidArrowView';
 
 const ROSTER_PER_PAGE = 5;
 const ROSTER_W = 470;
@@ -38,6 +39,7 @@ const TEXT = { fontFamily: 'Georgia, serif', fontSize: '30px', color: COLORS.tex
 // through MapScene.tryBuild; it holds no rules.
 export class HudScene extends Phaser.Scene {
   private goldText!: Phaser.GameObjects.Text;
+  private raidArrows!: RaidArrowView;
   private goldIcon: Phaser.GameObjects.Image | null = null;
   private clockText!: Phaser.GameObjects.Text;
   private toast!: Phaser.GameObjects.Text;
@@ -150,6 +152,8 @@ export class HudScene extends Phaser.Scene {
       .setAlpha(0)
       .setDepth(50);
 
+    this.raidArrows?.destroy();
+    this.raidArrows = new RaidArrowView(this, (pos) => map.jumpTo(pos));
     this.hints?.destroy();
     this.hints = new HintDirector(
       this,
@@ -177,6 +181,7 @@ export class HudScene extends Phaser.Scene {
     this.rosterBtn?.setActive(this.rosterOpen);
     this.drawRoster(this.scene.get('Map') as MapScene);
     const snap = (this.scene.get('Map') as MapScene).snapshot;
+    this.raidArrows?.update(snap, (this.scene.get('Map') as MapScene).cameras.main);
     for (const l of snap.lairs) this.places.set(l.id, l.pos);
     for (const b of snap.buildings) this.places.set(b.id, b.pos);
     // Toasts wait while the pause menu is up and are not redrawn over the end screen.
@@ -209,6 +214,7 @@ export class HudScene extends Phaser.Scene {
     if (y < 72 || this.ended) return true;
     if (this.panel.isOpen && this.panel.rect.contains(x, y)) return true;
     if (this.rosterRect?.contains(x, y)) return true;
+    if (this.raidArrows?.blocks(x, y)) return true;
     if (this.feedRects.some((r) => r.contains(x, y))) return true;
     return this.menuRect?.contains(x, y) ?? false;
   }
@@ -230,6 +236,8 @@ export class HudScene extends Phaser.Scene {
     const levels = new Map<number, number>();
     for (const e of events) {
       if (e.kind === 'levelUp') levels.set(e.party, e.level);
+      if (e.kind === 'raidWarning')
+        this.raidArrows.add({ raid: e.raid, lair: e.lair, untilMs: snap.timeMs + e.inMs });
       if (e.kind === 'raid') {
         const lair = snap.lairs.find((l) => l.id === e.lair);
         this.showBanner(

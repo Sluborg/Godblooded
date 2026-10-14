@@ -42,6 +42,7 @@ import { OFFER_KEY, type LevelUpOffer } from './LevelUpScene';
 import { attachCameraControls } from '../ui/cameraControls';
 import { easeToward, WatchDirector } from '../ui/watchCam';
 import type { HudScene } from './HudScene';
+import { trailDots } from '../ui/raidArrow';
 
 // The first picture of a skill's row; its sound follows it (sfx_skill_<picture>).
 const skillVisual = (id: string): string | undefined =>
@@ -85,6 +86,8 @@ export class MapScene extends Phaser.Scene {
   private unitViews!: UnitViews;
   // Lines from the selected hero's party to the flags it is heading for.
   private links!: Phaser.GameObjects.Graphics;
+  // Lairs with a raid on the way: the run time the warning ends (a dotted trail to the town).
+  private raidTrails = new Map<number, number>();
   // Party whose level-up cards are open (the sim is frozen until it is picked), or null.
   private offerKey: string | null = null;
   // The ring on the ground around the party that levelled, while its cards are up.
@@ -536,6 +539,7 @@ export class MapScene extends Phaser.Scene {
     for (const e of this.snap.events) {
       if (e.kind === 'lairTierUp') this.lairGrows(e.lair, e.tier);
       if (e.kind === 'considering') this.flagGlint(e.bounty);
+      if (e.kind === 'raidWarning') this.raidTrails.set(e.lair, this.snap.timeMs + e.inMs);
       if (e.kind !== 'hit') continue;
       const view = this.views.get(`b${e.target}`) ?? this.views.get(`l${e.target}`);
       if (view && !e.dodged)
@@ -635,8 +639,25 @@ export class MapScene extends Phaser.Scene {
     });
   }
 
+  // For the 15 s of a raid warning, a dotted trail runs from the source lair toward the town.
+  private drawRaidTrails(): void {
+    const hall = this.snap.buildings.find((b) => b.type === 'townhall')?.pos;
+    for (const [lairId, untilMs] of this.raidTrails) {
+      const lair = this.snap.lairs.find((l) => l.id === lairId);
+      if (!lair || this.snap.timeMs >= untilMs) {
+        this.raidTrails.delete(lairId);
+        continue;
+      }
+      if (!hall) continue;
+      const phase = (this.snap.timeMs / 900) % 1;
+      for (const d of trailDots(lair.pos, hall, 0.6, 46, phase))
+        this.links.fillStyle(0xe03a2a, 0.9).fillCircle(d.x, d.y, 8);
+    }
+  }
+
   private drawLinks(): void {
     this.links.clear();
+    this.drawRaidTrails();
     const selected = this.snap.units.find((u) => u.id === this.registry.get('selectedUnit'));
     if (!selected) return;
     for (const u of this.snap.units) {
