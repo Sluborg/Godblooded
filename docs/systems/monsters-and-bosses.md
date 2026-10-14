@@ -129,7 +129,7 @@ Boss hp is a data value, not Sta x 8 + Str x 4 (`combat.md`). Fafnir follows the
 | labyrinth     | minotaur     | greek    | big   | 6000  | 24      | 4         | `bld_lair_labyrinth_t1`    |
 | jackal-camp   | jackal-man   | egyptian | small | 3500  | 10      | 6         | `bld_lair_jackal-camp_t1`  |
 | scarab-pit    | scarab swarm | egyptian | small | 3000  | 6       | 10        | new                        |
-| wyrm-nest     | Fafnir       | aesir    | boss  | 6000  | 30      | 3 guards  | `bld_lair_wyrm-nest_t1`    |
+| wyrm-nest     | Fafnir       | aesir    | boss  | 8000  | 30      | 3 guards  | `bld_lair_wyrm-nest_t1`    |
 | hydra-marsh   | Hydra        | greek    | boss  | 16000 | 30      | 3 guards  | new                        |
 | apep-tomb     | Apep         | egyptian | boss  | 16000 | 30      | 3 guards  | new                        |
 | serpent-shore | Jormungandr  | aesir    | boss  | 16000 | 30      | 3 guards  | new                        |
@@ -138,7 +138,7 @@ Boss hp is a data value, not Sta x 8 + Str x 4 (`combat.md`). Fafnir follows the
 
 - **Troll den changes:** today it is the final lair (24000 hp). With the boss lair as the win
   goal (Sim 150) it becomes a big normal lair: 6000 hp, 4 alive (Balance, 2026-10-14). The wyrm
-  nest is 6000 hp; the other boss lairs keep 16000 until their M3 bot pass.
+  nest is 8000 hp; the other boss lairs keep 16000 until their M3 bot pass.
 - **Boss lair guards:** a boss lair spawns guards until the boss emerges: the wyrm nest spawns
   draugr (Balance, 2026-10-14: trolls at the nest made the boss fight a wall in the bot); Greek
   and Egyptian boss lairs spawn the minotaur and jackal-men until their bot pass.
