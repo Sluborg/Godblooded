@@ -88,8 +88,8 @@ export function sfxFor(e: SimEvent, ctx: SfxCtx): SfxRequest[] {
     case 'tierUp':
       return [{ id: 'sfx_tierup', at: ctx.unitPos(e.unit) }];
     case 'lairSprouting':
-    case 'nodeThreat':
       return [{ id: 'sfx_horn_far', high: true }];
+    case 'nodeThreat':
     case 'nodeDefiled':
       return [{ id: 'sfx_alarm' }];
     case 'workerHit':

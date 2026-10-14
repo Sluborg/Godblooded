@@ -77,7 +77,15 @@ export class NodeViews {
     this.beams.destroy();
   }
 
-  update(snap: Snapshot): void {
+  // `timing`: the world's tuning.nodes defileCountdownMs, cleanseMs and sproutWarnMs.
+  update(
+    snap: Snapshot,
+    timing: { defileMs: number; cleanseMs: number; sproutWarnMs: number } = {
+      defileMs: 10_000,
+      cleanseMs: 10_000,
+      sproutWarnMs: 30_000,
+    },
+  ): void {
     const g = this.ground;
     const b = this.beams;
     g.clear();
@@ -85,17 +93,18 @@ export class NodeViews {
     const t = this.scene.time.now / 1000;
     const still = getSettings().reducedMotion;
     for (const n of snap.nodes) {
-      this.sprout(g, n.pos, sproutProgress(n.sproutAtMs, snap.timeMs), t);
+      this.sprout(g, n.pos, sproutProgress(n.sproutAtMs, snap.timeMs, timing.sproutWarnMs), t);
       // A locked node lies under its lair: the lair's own ground shows; no glow of its own.
       if (n.state === 'locked') continue;
       // Raiders at a freed node: its light flickers red and a ring runs down 10 s to the defile.
-      const left = n.state === 'freed' ? threatLeft(n.threatSinceMs, snap.timeMs) : null;
-      const flicker = left !== null && !still && Math.sin(t * 22) > 0;
+      const left =
+        n.state === 'freed' ? threatLeft(n.threatSinceMs, snap.timeMs, timing.defileMs) : null;
+      const flicker = left !== null && !still && Math.sin(t * 12.5) > 0;
       const color = left !== null && flicker ? NODE_STYLE.defiled : NODE_STYLE[n.state];
       const s = glowStrength(n.state, n.pool, n.max);
       if (left !== null) this.ring(g, n.pos, left, 0xff3b30, 7);
       // Cleansing a defiled node: a gold ring fills as a hero or guard stands there.
-      const done = n.state === 'defiled' ? cleanseDone(n.cleanseMs) : null;
+      const done = n.state === 'defiled' ? cleanseDone(n.cleanseMs, timing.cleanseMs) : null;
       if (done !== null) this.ring(g, n.pos, done, NODE_STYLE.freed, 7);
       const breathe = still ? 1 : 0.88 + 0.12 * Math.sin(t * 1.6 + n.id);
       const { x, y } = n.pos;

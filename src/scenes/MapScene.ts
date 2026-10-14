@@ -438,6 +438,12 @@ export class MapScene extends Phaser.Scene {
     return command(this.world, { kind: 'sendGuard', unit });
   }
 
+  // The world's node timings for the rings (defile countdown, cleanse, sprout warning).
+  get nodeTiming() {
+    const t = this.world.tuning.nodes;
+    return { defileMs: t.defileCountdownMs, cleanseMs: t.cleanseMs, sproutWarnMs: t.sproutWarnMs };
+  }
+
   // The world's node tuning (costs of the Ambrosia cards, the gatherer and the guard).
   get nodeTuning() {
     const t = this.world.tuning.nodes;
@@ -660,7 +666,7 @@ export class MapScene extends Phaser.Scene {
       this.snap.paths,
     );
     this.drawLinks();
-    this.nodeViews.update(this.snap);
+    this.nodeViews.update(this.snap, this.nodeTiming);
     this.lairInd.update(this.snap, dtMs, this.world.tuning.monster.lairAggro);
     // The plate pulses with its ring in the last 15 s before a tier-up.
     for (const l of this.snap.lairs)
