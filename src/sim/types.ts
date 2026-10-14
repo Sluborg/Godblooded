@@ -458,6 +458,9 @@ export interface HeroTuning {
   plainPotionPct: number;
   drinkMs: number;
   taxRate: number;
+  // Share of a monster or lair bounty the town takes before the hero's purse gets it (the town's
+  // income besides shop tax). Flags are not taxed.
+  tithe: number;
   arrive: number;
   lairSearchRadius: number;
   lairSearchShare: number;
@@ -1328,6 +1331,8 @@ export type SimEvent =
   | { kind: 'lairTierUp'; lair: number; tier: number; pressure?: boolean }
   | { kind: 'lairDestroyed'; lair: number; type: string; by: number; bounty: number }
   | { kind: 'buildingDestroyed'; building: number; type: string }
+  // The town took its share of a hero's bounty (tuning.hero.tithe): a coin pop for Scene.
+  | { kind: 'tithe'; unit: number; gold: number }
   | { kind: 'bountyClaimed'; bounty: number; unit: number; gold: number; hunt?: true }
   | { kind: 'won' }
   | { kind: 'lost' }
@@ -1410,6 +1415,8 @@ export interface HeroReport {
 }
 
 export interface RunReport {
+  // The seed of the run (small text on the end screen: createWorld(seed, data) replays the map).
+  seed: number;
   // 'abandoned': the player quit a run that was still going (api.runReport).
   outcome: 'won' | 'lost' | 'abandoned';
   timeMs: number;

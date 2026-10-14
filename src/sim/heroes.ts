@@ -294,7 +294,7 @@ export function heroKnockedOut(world: World, unit: UnitState, by?: number): void
 
 export function payBounty(world: World, killer: number, gold: number): void {
   const hero = world.units.find((u) => u.id === killer && u.kind === 'hero');
-  if (hero) earn(world, hero, gold);
+  if (hero) earn(world, hero, gold, true);
 }
 
 // Moves a hero that is not fighting: explore, walk home, rest, shop.

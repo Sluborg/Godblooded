@@ -170,11 +170,19 @@ once-a-second re-score and a 6 s commit.
 
 ### 3. Balance after 1 and 2
 
-- `costPerDanger` 15 to about 8, and the smallest flag (25) priced so it pulls within about 600
-  (Balance chooses: lower `distanceCost` for flags, or a flat flag bonus). Then a win-rate
-  pass: in the probe, chasing flags into danger cost wins.
-- **Target for the bot** (Design re-measures): a 50 gold hunt flag 350-900 away gets a party
-  heading for it within 5 s in most runs and is paid in at least 70% of cases.
+- **Shipped (Balance, Lead approved, 2026-10-14):** tuning.bounty `costPerDanger` 8 (was 15),
+  `flagBonus` 15 (a flat pull on every flag), `flagDistanceCost` 0.02 (flags only; lairs keep
+  `distanceCost` 0.05); `taxRate` 0.55.
+- **Gold size is the steering dial** (Lead's rule): a big flag steers fast, a small one is a
+  nudge. Balance's bot with all of 5b in (hunt flag on a monster 350-900 from heroes):
+
+| Flag gold | A party heads for it within 10 s | Paid |
+| --------- | -------------------------------- | ---- |
+| 100       | 70%                              | 75%  |
+| 50        | 18%                              | 70%  |
+
+- The first target (a 50 gold flag drawing a party within 5 s) is replaced by this rule: the
+  player who wants a fast answer pays for it. Fights still hold a party (part 2).
 
 ## 6. Smaller fixes
 
@@ -224,9 +232,9 @@ once-a-second re-score and a 6 s commit.
 
 ### Balance
 
-| Order | Row                                                                                  |
-| ----- | ------------------------------------------------------------------------------------ |
-| 10    | Fix 5.3: `costPerDanger` about 8, the 25 gold flag pulls within about 600; then wins |
+| Order | Row                                                                                   |
+| ----- | ------------------------------------------------------------------------------------- |
+| 10    | Fix 5.3 (done): `costPerDanger` 8, `flagBonus` 15, `flagDistanceCost` 0.02; win check |
 
 ### Art
 
