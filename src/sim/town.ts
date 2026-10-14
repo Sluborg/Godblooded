@@ -9,6 +9,7 @@ import {
   type Stats,
 } from './units';
 import { gapTo } from './collision';
+import { passiveGoldMult } from './passives';
 import { dropTill } from './collector';
 import { leaveRuin } from './ruins';
 import { takeDamage } from './effects';
@@ -142,7 +143,7 @@ export function attackLair(
     world.lairs = world.lairs.filter((l) => l.id !== lair.id);
     world.lairRuntime.delete(lair.id);
     if (!lair.sprouted) world.stats.lairsDestroyed++;
-    earn(world, unit, tm.lairBounty, true);
+    earn(world, unit, Math.round(tm.lairBounty * passiveGoldMult(world, unit)), true);
     tally(world, unit.id, 'lairKills');
     if (!lair.sprouted) {
       world.lairLog.push({ lair: lair.id, type: lair.type, timeMs: world.timeMs, by: unit.id });

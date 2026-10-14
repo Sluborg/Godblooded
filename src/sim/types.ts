@@ -90,6 +90,31 @@ export interface PassiveKeys {
   rangeMult?: number;
   // Basic strikes carry this rider.
   rider?: RiderId;
+  // Card keys (progression.md section 2), summed or multiplied over the cards taken:
+  // Knocked out members wake at this share of max hp (Einherjar 0.5; the larger of it and the base).
+  koReviveHp?: number;
+  // Armour while at least `members` party members (self included) stand within `within` (Phalanx).
+  phalanx?: { armour: number; within: number; members: number };
+  // Gold from flags and lairs x this (Kleos 1.5).
+  goldMult?: number;
+  // A crit staggers its target (Metis).
+  critStagger?: boolean;
+  // Heals this share of max hp per kill (Scarab 0.03).
+  healOnKill?: number;
+  // Heals this share of max hp each second while in a fight (Apollo's favour).
+  regen?: number;
+  // Chance a skill casts twice (Twin Cast 0.25).
+  twinCast?: number;
+  // Skills start every fight ready (Opening Gambit).
+  skillsReady?: boolean;
+  // A healer's heal also touches the most hurt second ally for this share (Mending Bond 0.5).
+  healSplash?: number;
+  // Once per fight a member at 0 hp stays up at 1 hp for this many ms (Last Stand 3000).
+  lastStand?: number;
+  // Bonds between party mates grow this many times faster (Oath-Brothers 2).
+  bondMult?: number;
+  // Bounty flags look this many times richer to the party (Bounty Hunters 1.5).
+  flagMult?: number;
 }
 
 // One effect of a passive: a set of keys and who gets them. `scope` 'self' is the owner only,
