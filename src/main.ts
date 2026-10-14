@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { initInstall } from './ui/install';
 import { registerSW } from 'virtual:pwa-register';
-import { COLORS, GAME_HEIGHT, GAME_WIDTH } from './config';
+import { COLORS, GAME_HEIGHT, GAME_WIDTH, RENDER_SCALE } from './config';
 import { BootScene } from './scenes/BootScene';
 import { HudScene } from './scenes/HudScene';
 import { EndScene } from './scenes/EndScene';
@@ -31,6 +31,20 @@ document.addEventListener('touchmove', (e) => e.touches.length > 1 && e.preventD
 });
 document.addEventListener('dblclick', prevent);
 
+// Text is drawn into its own canvas: render it at the canvas's pixel density too, or it is a
+// blurry 1x picture on a sharper screen. A style that sets its own resolution keeps it.
+type TextFactory = (
+  x: number,
+  y: number,
+  text: string | string[],
+  style?: Phaser.Types.GameObjects.Text.TextStyle,
+) => Phaser.GameObjects.Text;
+const factory = Phaser.GameObjects.GameObjectFactory.prototype as unknown as { text: TextFactory };
+const makeText = factory.text;
+factory.text = function (this: unknown, x, y, text, style) {
+  return makeText.call(this, x, y, text, { resolution: RENDER_SCALE, ...style });
+};
+
 const game = new Phaser.Game({
   type: Phaser.AUTO,
   parent: 'game',
@@ -38,8 +52,8 @@ const game = new Phaser.Game({
   scale: {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
-    width: GAME_WIDTH,
-    height: GAME_HEIGHT,
+    width: Math.round(GAME_WIDTH * RENDER_SCALE),
+    height: Math.round(GAME_HEIGHT * RENDER_SCALE),
   },
   input: { activePointers: 2 },
   scene: [

@@ -118,6 +118,12 @@ tax collector", in M2). Sim builds it, Scene draws it, Balance sets the numbers.
 - **Saves:** tills, `titheOwed`, collectors and piles join the run state. Bump the save
   version and add a migration: old saves get empty tills and one collector at the hall.
 
+### Balance (human-bot pass, `balance/spacing-collector`)
+
+- **On by default** (`tuning.collector.enabled`), with this spec's start numbers and a tithe of
+  0.3.
+- **Target met:** town gold is about 165 at 3:00 for the human-like bot (target: 150 by 5:00).
+
 ### As built (Sim, `sim/collector` b0a5053)
 
 - **Off until Balance turns it on:** `tuning.collector.enabled`. With it off, the tithe is paid

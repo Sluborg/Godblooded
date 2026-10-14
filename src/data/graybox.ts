@@ -454,14 +454,14 @@ export const MONSTERS: readonly MonsterDef[] = [
 ];
 
 // Lairs from docs/systems/monsters-and-bosses.md section 4; the wyrm nest is the boss lair (the
-// run is won when it falls) and spawns draugr guards. Balance passes (Lead 80, 90): big lairs 6000 hp
-// and the nest 8000 hp (spec 9000 and 16000) keep the median run at 15-18 min.
+// run is won when it falls) and spawns draugr guards. Balance passes (Lead 80, 90 and the human-bot
+// pass): big lairs 3600 hp, small 1800-2100, the nest 8000 (spec 9000 and 16000).
 export const LAIRS: readonly LairDef[] = [
-  { id: 'barrow', monster: 'draugr', spawnS: 10, maxAlive: 6, hp: 3500 },
-  { id: 'troll-den', monster: 'troll', spawnS: 25, maxAlive: 4, hp: 6000 },
-  { id: 'harpy-roost', monster: 'harpy', spawnS: 9, maxAlive: 6, hp: 3000 },
-  { id: 'jackal-camp', monster: 'jackal-man', spawnS: 10, maxAlive: 6, hp: 3500 },
-  { id: 'labyrinth', monster: 'minotaur', spawnS: 24, maxAlive: 4, hp: 6000 },
+  { id: 'barrow', monster: 'draugr', spawnS: 10, maxAlive: 6, hp: 2100 },
+  { id: 'troll-den', monster: 'troll', spawnS: 25, maxAlive: 4, hp: 3600 },
+  { id: 'harpy-roost', monster: 'harpy', spawnS: 9, maxAlive: 6, hp: 1800 },
+  { id: 'jackal-camp', monster: 'jackal-man', spawnS: 10, maxAlive: 6, hp: 2100 },
+  { id: 'labyrinth', monster: 'minotaur', spawnS: 24, maxAlive: 4, hp: 3600 },
   { id: 'wyrm-nest', monster: 'wyrm', spawnS: 30, maxAlive: 3, hp: 8000, escort: 'draugr' },
 ];
 
@@ -882,16 +882,17 @@ export const ITEMS: readonly ItemDef[] = [
 
 export const GRAYBOX: GameData = {
   startGold: 480,
-  map: { width: 2400, height: 1600 },
-  townHall: { x: 1200, y: 800 },
-  // Balance pass (flag pricing on top of gear before the first potion, roles and quirks, Fafnir's
-  // breath, raids after a lair tier-up, shop trips, Aesir, item, card and pacing rows; 300 runs,
-  // seeds 1 and 1001): 68-71% wins with the lair-flag bot and 62-66% with a flag a minute
-  // (--flags), median about 15 min, no timeouts. Town income is item tax only: start gold 480
-  // builds a temple, market and smithy, and tax is 55% of an item's price. Unset keys use
-  // DEFAULT_TUNING.
+  map: { width: 3000, height: 2000 },
+  townHall: { x: 1500, y: 1000 },
+  // Balance pass (human-bot pass: spacing option B, tax collector on with a 30% tithe, lairs at
+  // 60% hp; on top of flag pricing, gear first, roles, raids and the Aesir rows; 200 runs, seeds 1
+  // and 1001): the human-like bot (--human --hints) wins 63-64% and kills its first lair at about
+  // 6.3 min, the full bot 74%. Town income is the collector's tithe plus shop tax (55%): start gold
+  // 480. Unset keys use DEFAULT_TUNING.
   tuning: {
-    hero: { maxPerTemple: 7, recruitMs: 22_000, taxRate: 0.55, shopTripGold: 0 },
+    hero: { maxPerTemple: 7, recruitMs: 22_000, taxRate: 0.55, shopTripGold: 0, tithe: 0.3 },
+    // Town income besides shop tax (docs/systems/tax-collector.md): the collector walks the tills.
+    collector: { enabled: true },
     // Raids after a lair tier-up are on (Stefan): one raider on every tier-up.
     town: {
       raidFirstMs: 360_000,
@@ -934,19 +935,19 @@ export const GRAYBOX: GameData = {
     leanCount: 1,
     leanWeight: 3,
     margin: 150,
-    minTownDist: 600,
-    minLairDist: 350,
+    minTownDist: 800,
+    minLairDist: 500,
   },
-  // 8 build plots in a ring around the town hall (plot id = index).
+  // 8 build plots on a 520 x 380 ring around the town hall (plot id = index): room to read the town.
   plots: [
-    { x: 1590, y: 800 },
-    { x: 1476, y: 1012 },
-    { x: 1200, y: 1100 },
-    { x: 924, y: 1012 },
-    { x: 810, y: 800 },
-    { x: 924, y: 588 },
-    { x: 1200, y: 500 },
-    { x: 1476, y: 588 },
+    { x: 2020, y: 1000 },
+    { x: 1868, y: 1269 },
+    { x: 1500, y: 1380 },
+    { x: 1132, y: 1269 },
+    { x: 980, y: 1000 },
+    { x: 1132, y: 731 },
+    { x: 1500, y: 620 },
+    { x: 1868, y: 731 },
   ],
   buildings: [
     // `text`: one plain line for the build menu (docs/systems/buildings.md section 4).

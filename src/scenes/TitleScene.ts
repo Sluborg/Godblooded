@@ -8,6 +8,7 @@ import { canInstall, onInstallChange, promptInstall } from '../ui/install';
 import { clearSave, hasSave } from '../ui/saveStore';
 import { makeButton } from '../ui/button';
 import { getMusic } from '../ui/musicPlayer';
+import { fitDesignCamera } from '../ui/designCamera';
 
 const FONT = 'Georgia, serif';
 
@@ -19,6 +20,7 @@ export class TitleScene extends Phaser.Scene {
   }
 
   create(): void {
+    fitDesignCamera(this);
     const cx = GAME_WIDTH / 2;
     getMusic(this).play(this, 'mus_title');
     drawBackdrop(this);

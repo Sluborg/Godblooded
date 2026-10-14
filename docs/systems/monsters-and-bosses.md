@@ -123,12 +123,12 @@ Boss hp is a data value, not Sta x 8 + Str x 4 (`combat.md`). Fafnir follows the
 
 | Lair          | Monster      | Pantheon | Size  | Hp    | Spawn s | Max alive | Art                        |
 | ------------- | ------------ | -------- | ----- | ----- | ------- | --------- | -------------------------- |
-| barrow        | draugr       | aesir    | small | 3500  | 10      | 6         | `bld_lair_barrow_t1` (B10) |
-| troll-den     | troll        | aesir    | big   | 6000  | 25      | 4         | `bld_lair_troll-den_t1`    |
-| harpy-roost   | harpy        | greek    | small | 3000  | 9       | 6         | `bld_lair_harpy-roost_t1`  |
-| labyrinth     | minotaur     | greek    | big   | 6000  | 24      | 4         | `bld_lair_labyrinth_t1`    |
-| jackal-camp   | jackal-man   | egyptian | small | 3500  | 10      | 6         | `bld_lair_jackal-camp_t1`  |
-| scarab-pit    | scarab swarm | egyptian | small | 3000  | 6       | 10        | new                        |
+| barrow        | draugr       | aesir    | small | 2100  | 10      | 6         | `bld_lair_barrow_t1` (B10) |
+| troll-den     | troll        | aesir    | big   | 3600  | 25      | 4         | `bld_lair_troll-den_t1`    |
+| harpy-roost   | harpy        | greek    | small | 1800  | 9       | 6         | `bld_lair_harpy-roost_t1`  |
+| labyrinth     | minotaur     | greek    | big   | 3600  | 24      | 4         | `bld_lair_labyrinth_t1`    |
+| jackal-camp   | jackal-man   | egyptian | small | 2100  | 10      | 6         | `bld_lair_jackal-camp_t1`  |
+| scarab-pit    | scarab swarm | egyptian | small | 1800  | 6       | 10        | new                        |
 | wyrm-nest     | Fafnir       | aesir    | boss  | 8000  | 30      | 3 guards  | `bld_lair_wyrm-nest_t1`    |
 | hydra-marsh   | Hydra        | greek    | boss  | 16000 | 30      | 3 guards  | new                        |
 | apep-tomb     | Apep         | egyptian | boss  | 16000 | 30      | 3 guards  | new                        |
@@ -137,8 +137,11 @@ Boss hp is a data value, not Sta x 8 + Str x 4 (`combat.md`). Fafnir follows the
 | sphinx-plinth | Sphinx       | egyptian | boss  | 16000 | 30      | 3 guards  | new                        |
 
 - **Troll den changes:** today it is the final lair (24000 hp). With the boss lair as the win
-  goal (Sim 150) it becomes a big normal lair: 6000 hp, 4 alive (Balance, 2026-10-14). The wyrm
-  nest is 8000 hp; the other boss lairs keep 16000 until their M3 bot pass.
+  goal (Sim 150) it becomes a big normal lair, 4 alive. The wyrm nest is 8000 hp; the other boss
+  lairs keep 16000 until their M3 bot pass.
+- **Lair hp after playtest 1** (Balance, human-bot pass, `balance/spacing-collector`): non-boss
+  lairs at 60% of the earlier hp (big 6000 to 3600, small 3000-3500 to 1800-2100; the scarab pit follows, 1800 before its own pass). The human-like
+  bot then wins 63-64% and kills its first lair at about 6.2 min; the full bot wins 74%.
 - **Boss lair guards:** a boss lair spawns guards until the boss emerges: the wyrm nest spawns
   draugr (Balance, 2026-10-14: trolls at the nest made the boss fight a wall in the bot); Greek
   and Egyptian boss lairs spawn the minotaur and jackal-men until their bot pass.

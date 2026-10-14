@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { seedText } from './seedLabel';
+import { seedText } from './seedText';
 
 describe('seedText', () => {
   it('names the seed', () => {

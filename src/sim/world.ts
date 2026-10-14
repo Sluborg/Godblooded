@@ -51,6 +51,18 @@ import {
 } from './boss';
 import { buildReport, sampleGold, tally, type HeroRecord } from './runstats';
 import { collectorFell, runCollector } from './collector';
+import { guardFell, guardStats, runGuard, sendGuard } from './guards';
+import { dropStolenJar } from './workers';
+import { runNodes } from './nodes';
+import {
+  hireGatherer,
+  recallGatherers,
+  runWorkers,
+  sendGatherer,
+  workerFell,
+  workerInfos,
+  gathererCap,
+} from './workers';
 import {
   attackBuilding,
   attackLair,
@@ -101,6 +113,8 @@ import {
 } from './units';
 import type {
   BountyState,
+  JarState,
+  NodeState,
   PileState,
   ConeArea,
   SkillEffect,
@@ -162,6 +176,20 @@ export interface UnitRuntime {
   cooldownMs: number;
   target: Vec2 | null;
   idleMs: number;
+  // A gatherer's trip (workers.ts): the node it is sent to, where it is in the loop, when its
+  // gathering ends, the Ambrosia it carries, hp last seen (a drop means it was hit) and whether
+  // it is running home.
+  guard?: { escort: number; tower: number };
+  // A thief's stolen jar (Ambrosia), dropped where it falls.
+  jar?: number;
+  worker?: {
+    node: number | null;
+    phase: 'idle' | 'out' | 'gather' | 'back';
+    untilMs: number;
+    carry: number;
+    hpSeen: number;
+    fleeing: boolean;
+  };
   // The tax collector's route (collector.ts): hp last seen (a drop means it was hit), running home,
   // the stop it walks to and the time its stop at it ends.
   collector?: {
@@ -250,6 +278,11 @@ export interface World {
   // (collector.ts).
   piles: PileState[];
   collectorQueue: number[];
+  // Celestial nodes and the Ambrosia the town holds (nodes.ts).
+  nodes: NodeState[];
+  ambrosia: number;
+  jars: JarState[];
+  guardQueue: { tower: number; atMs: number }[];
   // Generated map: the boss lair that wins the run and the pantheons the map leans on.
   bossLair: number | null;
   // The seal on the boss lairs has broken (runBossSeal).
@@ -310,6 +343,10 @@ export function createWorld(seed: number, data: GameData): World {
     bounties: [],
     piles: [],
     collectorQueue: [],
+    nodes: [],
+    ambrosia: 0,
+    jars: [],
+    guardQueue: [],
     bossLair: null,
     bossUnsealed: false,
     mapLean: [],
@@ -417,6 +454,8 @@ function runTick(world: World): void {
   runSummonUpkeep(world);
   runBounties(world);
   runCollector(world);
+  runNodes(world);
+  runWorkers(world);
   runQuirks(world);
   runFavour(world);
   runParties(world);
@@ -508,9 +547,10 @@ export function statsOf(world: World, unit: UnitState): Stats | undefined {
 }
 
 function unitStats(world: World, unit: UnitState): Stats | undefined {
+  if (unit.kind === 'guard') return guardStats(world);
   if (unit.kind === 'summon') return summonStats(world, unit);
-  // The tax collector does not fight (collector.ts moves it).
-  if (unit.kind === 'collector') {
+  // The tax collector and the gatherers do not fight (collector.ts and workers.ts move them).
+  if (unit.kind === 'collector' || unit.kind === 'worker') {
     const none = { str: 0, dex: 0, sta: 0, cha: 0, per: 0, int: 0, wp: 0 };
     return { attrs: none, weapon: { baseAttackS: 99, range: 0 } };
   }
@@ -612,7 +652,11 @@ function runUnits(world: World): void {
       cancelDrink(rt);
       continue;
     }
-    if (unit.kind === 'collector') continue;
+    if (unit.kind === 'collector' || unit.kind === 'worker') continue;
+    if (unit.kind === 'guard') {
+      runGuard(world, unit, rt, stats);
+      continue;
+    }
     rt.cooldownMs = Math.max(0, rt.cooldownMs - TICK_MS);
     tickSkill(rt);
     if (unit.kind === 'summon') {
@@ -882,6 +926,10 @@ function settleDeaths(world: World): void {
       removeSummon(world, unit, 'died');
     } else if (unit.kind === 'collector') {
       collectorFell(world, unit);
+    } else if (unit.kind === 'worker') {
+      workerFell(world, unit);
+    } else if (unit.kind === 'guard') {
+      guardFell(world, unit);
     } else if (unit.kind === 'hero') {
       unit.target = null;
       world.stats.knockouts++;
@@ -927,6 +975,7 @@ function settleDeaths(world: World): void {
         tierValue(world.tuning.lair.rewardMult, unit.tier, 1) * rewardShare(world, mrt);
       const bounty = Math.round((mon?.bounty ?? 0) * reward);
       const xp = Math.round((mon?.xp ?? 0) * reward);
+      dropStolenJar(world, unit);
       world.events.push({ kind: 'died', unit: unit.id, type: unit.type, by, bounty, xp });
       // Only `kill` triggers read this; keep it to the window and only when skills exist.
       if (world.data.skills?.length) {
@@ -1031,6 +1080,14 @@ export function command(world: World, cmd: Command): CommandResult {
       world.events.push({ kind: 'built', building: id, type: def.id });
       return { ok: true, id };
     }
+    case 'hireGatherer':
+      return hireGatherer(world);
+    case 'sendGuard':
+      return sendGuard(world, cmd.unit);
+    case 'sendGatherer':
+      return sendGatherer(world, cmd.node);
+    case 'recallGatherers':
+      return recallGatherers(world, cmd.node);
     case 'upgrade':
       return upgradeBuilding(world, cmd.building);
     case 'pickUpgrade':
@@ -1167,6 +1224,11 @@ export function snapshot(world: World): Snapshot {
     })),
     bounties: world.bounties.map((b) => ({ ...b, pos: { ...b.pos } })),
     piles: world.piles.map((d) => ({ ...d, pos: { ...d.pos } })),
+    nodes: world.nodes.map((n) => ({ ...n, pos: { ...n.pos } })),
+    ambrosia: world.ambrosia,
+    workers: workerInfos(world),
+    jars: world.jars.map((j) => ({ ...j, pos: { ...j.pos } })),
+    gathererCap: gathererCap(world),
     favour: (world.data.miracles ?? []).map((m) => ({
       pantheon: m.pantheon,
       value: world.favour[m.pantheon] ?? 0,
