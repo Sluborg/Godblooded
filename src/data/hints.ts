@@ -233,6 +233,16 @@ export const HINTS: readonly HintDef[] = [
     line2: 'Bosses and tier 3 lairs can kill.',
   },
   {
+    id: 'h-hunt',
+    order: 135,
+    group: 'first',
+    trigger: 'huntFlag',
+    milestone: 2,
+    target: { kind: 'flag' },
+    line1: 'This bounty follows its monster.',
+    line2: 'The hero who kills it gets the gold.',
+  },
+  {
     id: 'h-ruin',
     order: 140,
     group: 'first',
