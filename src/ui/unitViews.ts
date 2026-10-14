@@ -44,7 +44,7 @@ import { pickVariant, rotateHue, sizeJitter, tierStyle } from './monsterLook';
 import { RIDER_LOOK, riderDurationMs } from './riderLook';
 import { damageLook, MAX_FLOATS, typeTint, type FloatLook, type HitInfo } from './damageLook';
 import { getSettings } from './settings';
-import { sackSize, drawCollector, drawCollectorProps } from './taxLook';
+import { sackSize, drawCollector } from './taxLook';
 import { drawJar } from './ambrosiaLook';
 import { heroLabel, partyColor, partyRole, type PartyRole } from './partyLook';
 import { SpeechLimit } from './speechLimit';
@@ -235,6 +235,7 @@ export class UnitView {
   private jarDrawn = false;
   private collector = false;
   private sackDrawn = -1;
+  private carryCap = DEFAULT_TUNING.collector.carryCap;
   private intentDrawn = false;
   private hiddenNow = false;
   private stoneNow = false;
@@ -364,7 +365,9 @@ export class UnitView {
     }
     if (u.kind === 'hero' && ART_BEATS_PARTS && this.stillOk) return this.leaveParts();
     const look =
-      u.kind === 'collector' ? collectorPartsLook() : heroPartsLook(u.god, u.path, u.tier);
+      u.kind === 'collector'
+        ? collectorPartsLook(sackSize(u.gold ?? 0, this.carryCap))
+        : heroPartsLook(u.god, u.path, u.tier);
     if (!look) return this.leaveParts();
     const id = look.id;
     if (id === this.partsId) return true;
@@ -636,16 +639,19 @@ export class UnitView {
     if (carrying) drawJar(this.jarG, -this.w * 0.55, -this.h * 0.55, 1.2);
   }
 
+  // The round figure's sack (only when there is no rig: with the parts rig the sack and the ledger
+  // are baked into the frames, per sack size).
   private drawSackFor(carried: number, cap = DEFAULT_TUNING.collector.carryCap): void {
     if (!this.sackG) return;
+    if (this.partsId !== '') {
+      if (this.sackDrawn !== -2) this.sackG.clear();
+      this.sackDrawn = -2;
+      return;
+    }
     const size = sackSize(carried, cap);
-    // On the parts rig only the props are drawn (sack, strap, ledger); else the whole round figure.
-    const onRig = this.partsId !== '';
-    const key = size + (onRig ? 10 : 0);
-    if (key === this.sackDrawn) return;
-    this.sackDrawn = key;
-    if (onRig) drawCollectorProps(this.sackG.setScale(1), size);
-    else drawCollector(this.sackG.setScale(0.78), size);
+    if (size === this.sackDrawn) return;
+    this.sackDrawn = size;
+    drawCollector(this.sackG.setScale(0.78), size);
   }
 
   // A short sign over the head for a moment: a "?" or "!" a boss move puts on its target.
@@ -830,6 +836,7 @@ export class UnitView {
 
   update(u: UnitState, ctx: FrameCtx, role: PartyRole = 'solo'): void {
     this.tierNow = u.tier;
+    this.carryCap = ctx.carryCap;
     if (u.kind === 'worker') this.drawJarFor((ctx.carry.get(u.id) ?? 0) > 0);
     if (!this.applyParts(u)) this.applyArt(u);
     // After the look is chosen: on the parts rig the sack is just a prop.
