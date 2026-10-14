@@ -86,6 +86,7 @@ export function slayHero(world: World, unit: UnitState): void {
     tier: unit.tier,
     pos: { ...unit.pos },
     timeMs: world.timeMs,
+    level: world.parties.get(unit.party)?.level ?? 1,
   });
   const party = world.parties.get(unit.party);
   if (party) {

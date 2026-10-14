@@ -1,5 +1,6 @@
 import { dist, tierValue, TICK_MS } from './units';
 import type { World } from './world';
+import { runCorruption } from './corrupt';
 import type { LairState, NodeState } from './types';
 
 // Celestial nodes (docs/systems/nodes.md): one under every non-boss lair, locked while it stands,
@@ -13,7 +14,10 @@ function capacity(world: World, lair: LairState): { start: number; max: number }
   const t = world.tuning.nodes;
   const from = hall(world)?.pos ?? world.data.townHall;
   const steps = Math.max(0, Math.floor((dist(lair.pos, from) - t.distFrom) / t.distStep));
-  const mult = (1 + t.distBonus * steps) * tierValue(t.tierMult, lair.tier, 1);
+  const mult =
+    (1 + t.distBonus * steps) *
+    tierValue(t.tierMult, lair.tier, 1) *
+    (lair.sprouted ? t.sproutPoolMult : 1);
   return { start: t.start * mult, max: t.max * mult };
 }
 
@@ -66,6 +70,7 @@ export function runNodes(world: World): void {
   for (const n of world.nodes) {
     if (n.state === 'freed' && n.pool < n.max) n.pool = Math.min(n.max, n.pool + per);
   }
+  runCorruption(world);
 }
 
 export type { NodeState };
