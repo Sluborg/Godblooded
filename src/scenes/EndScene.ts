@@ -309,10 +309,12 @@ export class EndScene extends Phaser.Scene {
     this.scene.launch('Altar');
   }
 
+  // Play again goes through the run setup (the portent, the Trials).
   private playAgain(): void {
     this.scene.stop('Hud');
+    this.scene.stop('Map');
     this.scene.stop();
-    this.scene.start('Map');
+    this.scene.start('Setup');
   }
 
   private toTitle(): void {
