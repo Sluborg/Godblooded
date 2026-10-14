@@ -8,8 +8,8 @@ first-time hints, and the few fixed lines around them.
 
 - **Plain hints, no narrator** (Stefan, 2026-10-13): short, clear sentences in a hint bubble.
   They say what happened and what the player can do. No Skald, no portrait.
-- **30 lines in all:** 9 beats, 16 first-time hints (10 from `onboarding.md`, 5 for M2
-  features: skills, gear, potions, fleeing, quarrels, and 1 for permadeath), 5 fixed lines.
+- **31 lines in all:** 9 beats, 17 first-time hints (10 from `onboarding.md`, 5 for M2
+  features: skills, gear, potions, fleeing, quarrels, 1 for permadeath and 1 for hunt flags), 5 fixed lines.
 - **Phone-sized:** at most 2 lines of at most 40 characters each, broken by hand (the `line 1`
   and `line 2` columns), so the bubble never wraps on its own at 26 px.
 - **Milestone tag** on each row: M2 rows ship with "Aesir, alive" (`content-roadmap.md`); M3
@@ -40,24 +40,25 @@ first-time hints, and the few fixed lines around them.
 
 ## 3. First-time hints
 
-| Order | Id        | Trigger (Sim event)                   | Points at       | M   | Line 1                         | Line 2                                |
-| ----- | --------- | ------------------------------------- | --------------- | --- | ------------------------------ | ------------------------------------- |
-| 10    | h-raid    | first `raidWarning` (today: `raid`)   | the arrow       | M2  | Raiders are coming.            | The arrow shows where from.           |
-| 20    | h-ko      | first `knockout`                      | the downed hero | M2  | Knocked out, not dead.         | Heroes wake up at the town hall.      |
-| 30    | h-path    | first `pathOffer`                     | the cards       | M2  | Pick a path for this hero.     | Each god offers two.                  |
-| 40    | h-tier    | first `tierUp` to tier 2              | the hero        | M2  | This hero reached tier 2.      | New look, new skill.                  |
-| 50    | h-skill   | first skill `cast`                    | the caster      | M2  | A hero used a skill.           | Skills come with the hero's path.     |
-| 60    | h-gear    | first `shopped` of a weapon or armour | the hero        | M2  | Heroes buy gear at the smithy. | The town gets a share.                |
-| 70    | h-potion  | first potion drunk                    | the hero        | M2  | A hero drank a potion.         | The market sells them.                |
-| 80    | h-flee    | first `fled`                          | the hero        | M2  | Hurt heroes flee to town.      | Cowards flee first.                   |
-| 90    | h-argue   | first `argue`                         | the two heroes  | M2  | Heroes can fall out.           | Rivals won't share a party.           |
-| 100   | h-upgrade | first time gold covers an upgrade     | a building      | M2  | You can upgrade buildings.     | Tap one to see the cost.              |
-| 110   | h-lair    | first `lairTierUp`                    | the lair        | M2  | A lair grew stronger.          | So did its monsters.                  |
-| 120   | h-boss    | the boss emerges                      | the boss        | M2  | The boss has emerged.          | Slay it to win the run.               |
-| 130   | h-slain   | first `slain`                         | the grave       | M2  | A hero has died.               | Bosses and tier 3 lairs can kill.     |
-| 140   | h-ruin    | first `buildingDestroyed`             | the ruin        | M3  | A building was destroyed.      | Tap the ruin to rebuild at half cost. |
-| 150   | h-omen    | first `omen`                          | the banner      | M3  | An omen: something is coming.  | Watch the banner.                     |
-| 160   | h-favour  | first full favour bar                 | the favour bar  | M3  | A god's favour is full.        | The god acts when heroes need it.     |
+| Order | Id        | Trigger (Sim event)                                   | Points at       | M   | Line 1                           | Line 2                                |
+| ----- | --------- | ----------------------------------------------------- | --------------- | --- | -------------------------------- | ------------------------------------- |
+| 10    | h-raid    | first `raidWarning` (today: `raid`)                   | the arrow       | M2  | Raiders are coming.              | The arrow shows where from.           |
+| 20    | h-ko      | first `knockout`                                      | the downed hero | M2  | Knocked out, not dead.           | Heroes wake up at the town hall.      |
+| 30    | h-path    | first `pathOffer`                                     | the cards       | M2  | Pick a path for this hero.       | Each god offers two.                  |
+| 40    | h-tier    | first `tierUp` to tier 2                              | the hero        | M2  | This hero reached tier 2.        | New look, new skill.                  |
+| 50    | h-skill   | first skill `cast`                                    | the caster      | M2  | A hero used a skill.             | Skills come with the hero's path.     |
+| 60    | h-gear    | first `shopped` of a weapon or armour                 | the hero        | M2  | Heroes buy gear at the smithy.   | The town gets a share.                |
+| 70    | h-potion  | first potion drunk                                    | the hero        | M2  | A hero drank a potion.           | The market sells them.                |
+| 80    | h-flee    | first `fled`                                          | the hero        | M2  | Hurt heroes flee to town.        | Cowards flee first.                   |
+| 90    | h-argue   | first `argue`                                         | the two heroes  | M2  | Heroes can fall out.             | Rivals won't share a party.           |
+| 100   | h-upgrade | first time gold covers an upgrade                     | a building      | M2  | You can upgrade buildings.       | Tap one to see the cost.              |
+| 110   | h-lair    | first `lairTierUp`                                    | the lair        | M2  | A lair grew stronger.            | So did its monsters.                  |
+| 120   | h-boss    | the boss emerges                                      | the boss        | M2  | The boss has emerged.            | Slay it to win the run.               |
+| 130   | h-slain   | first `slain`                                         | the grave       | M2  | A hero has died.                 | Bosses and tier 3 lairs can kill.     |
+| 135   | h-hunt    | first flag that becomes a hunt flag (`hero-ai.md` 5b) | the flag        | M2  | This bounty follows its monster. | The hero who kills it gets the gold.  |
+| 140   | h-ruin    | first `buildingDestroyed`                             | the ruin        | M3  | A building was destroyed.        | Tap the ruin to rebuild at half cost. |
+| 150   | h-omen    | first `omen`                                          | the banner      | M3  | An omen: something is coming.    | Watch the banner.                     |
+| 160   | h-favour  | first full favour bar                                 | the favour bar  | M3  | A god's favour is full.          | The god acts when heroes need it.     |
 
 ## 4. Fixed lines
 
