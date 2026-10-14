@@ -791,7 +791,7 @@ export const ITEMS: readonly ItemDef[] = [
     slot: 'weapon',
     level: 1,
     name: 'Tempered',
-    price: 35,
+    price: 20,
     shop: 'smithy',
     shopTier: 1,
     effects: { power: 2 },
@@ -820,7 +820,7 @@ export const ITEMS: readonly ItemDef[] = [
     id: 'armour-1',
     slot: 'armour',
     level: 1,
-    price: 30,
+    price: 20,
     shop: 'smithy',
     shopTier: 1,
     effects: {
@@ -885,10 +885,11 @@ export const GRAYBOX: GameData = {
   startGold: 480,
   map: { width: 2400, height: 1600 },
   townHall: { x: 1200, y: 800 },
-  // Balance pass (Aesir skills and passives, items, potions, card auto-pick, level cap 8,
-  // knockout cost, sealed boss lair, pacing review; 300 runs, seeds 1 and 1001). Town income is
-  // item tax only: start gold 420 builds a temple, market and smithy, and tax is 60% of an
-  // item's price. Unset keys use DEFAULT_TUNING.
+  // Balance pass (roles and quirks, Fafnir's breath, raids after a lair tier-up, shop trips, on
+  // top of the Aesir, item, card and pacing rows; 300 runs, seeds 1 and 1001): about 68% wins,
+  // median 16-17 min, boss fight about 14.5 min, timeouts under 1%. Town income is item tax only:
+  // start gold 480 builds a temple, market and smithy, and tax is 60% of an item's price. Unset
+  // keys use DEFAULT_TUNING.
   tuning: {
     hero: { maxPerTemple: 7, recruitMs: 22_000, taxRate: 0.6, shopTripGold: 0 },
     // Raids after a lair tier-up are on (Stefan): one raider, every second tier-up.
