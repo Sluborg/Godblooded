@@ -62,12 +62,16 @@ The first run (no run finished in the meta save) uses gentler numbers, all tunin
 
 | Key                | Normal                            | First run   |
 | ------------------ | --------------------------------- | ----------- |
-| town.raidFirstMs   | about 5 min                       | 8 min       |
+| town.raidFirstMs   | 6 min                             | 8 min       |
 | lair first tier-up | 6 / 8 / 10 min (`progression.md`) | +2 min each |
 | events omenFirstMs | 3 min                             | 6 min       |
 
 From the second run on, everything is normal. The end screen of the first run says so in one
 line ("The next run will be harder.").
+
+- **Bot check** (Balance, human-like bot with hints, seeds 1-30): normal numbers win 50% and lose
+  by 10:00 in 7 of 30 runs; first-run numbers win 70% and lose by 10:00 in 3 of 30, with the boss
+  fight at a median 14.4 min. Gentler as intended; the first run sits inside the 55-75% target.
 
 ## 5. What the player sees
 
