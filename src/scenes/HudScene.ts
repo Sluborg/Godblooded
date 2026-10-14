@@ -12,6 +12,7 @@ import { buildRoster, paginate } from '../ui/roster';
 import { makePanel } from '../ui/panel';
 import { autoPickToast, pickToast } from '../ui/levelUpLook';
 import { heroLabel } from '../ui/partyLook';
+import { makeHudButton } from '../ui/hudButton';
 import { makeButton, type Button } from '../ui/button';
 import { addIcon } from '../ui/icons';
 import { PartyPanel } from '../ui/partyPanel';
@@ -31,6 +32,8 @@ import { omenLabel, omenSky, skyAlpha, type OmenSky } from '../ui/omenLook';
 const ROSTER_PER_PAGE = 5;
 const ROSTER_W = 470;
 const SPEEDS = [1, 2, 4];
+// The top bar's height (design px); the buttons' hit areas are larger than their drawing.
+const BAR_H = 64;
 const BOUNTY_AMOUNTS = [25, 50, 100, 200];
 
 interface MenuOption {
@@ -65,7 +68,7 @@ export class HudScene extends Phaser.Scene {
   private banner!: Phaser.GameObjects.Text;
   private panel!: PartyPanel;
   private ended = false;
-  private speedButtons: Button[] = [];
+  private speedBtn: Button | null = null;
   private watchBtn: Button | null = null;
   private rosterBtn: Button | null = null;
   // Hero roster: a list on the right (5 rows a page), rebuilt when what it shows changes.
@@ -98,7 +101,7 @@ export class HudScene extends Phaser.Scene {
     // Scene instances are reused on restart: drop state that pointed at the old display list.
     this.panel = new PartyPanel(this);
     this.ended = false;
-    this.speedButtons = [];
+    this.speedBtn = null;
     this.menu = [];
     this.menuButtons = [];
     this.menuRect = null;
@@ -114,61 +117,67 @@ export class HudScene extends Phaser.Scene {
     this.feedRects = [];
     this.places = new Map();
     const map = this.scene.get('Map') as MapScene;
-    this.add.rectangle(GAME_WIDTH / 2, 36, GAME_WIDTH, 72, 0x000000, 0.45);
-    // The gold amount with the kit's gold icon in front of it (the word "Gold" when there is none).
-    this.goldIcon = addIcon(this, 'ui_icon_gold', 36, 36, 44);
+    // A slim dark translucent bar with a gold hairline; the buttons are flat icon plates (hudButton.ts).
+    this.add.rectangle(GAME_WIDTH / 2, BAR_H / 2, GAME_WIDTH, BAR_H, 0x0e0907, 0.62);
+    this.add.rectangle(GAME_WIDTH / 2, BAR_H, GAME_WIDTH, 2, 0xc9a45c, 0.45);
+    this.goldIcon = addIcon(this, 'ui_icon_gold', 34, BAR_H / 2, 38);
     this.goldText = this.add
-      .text(this.goldIcon ? 66 : 20, 36, '', { ...TEXT, color: '#f2c14e' })
+      .text(this.goldIcon ? 62 : 20, BAR_H / 2, '', { ...TEXT, color: '#f2c14e' })
       .setOrigin(0, 0.5);
     // Ambrosia (M3, once the map has celestial nodes): a jar and the amount, beside the gold.
     this.ambIcon = this.add.graphics().setVisible(false);
-    drawJar(this.ambIcon, 214, 36, 1.2);
+    drawJar(this.ambIcon, 214, BAR_H / 2, 1.2);
     this.ambText = this.add
-      .text(238, 36, '', { ...TEXT, color: AMBROSIA_STYLE.text })
+      .text(238, BAR_H / 2, '', { ...TEXT, color: AMBROSIA_STYLE.text })
       .setOrigin(0, 0.5)
       .setVisible(false);
-    this.clockText = this.add.text(GAME_WIDTH / 2, 36, '0:00', TEXT).setOrigin(0.5);
+    this.clockText = this.add.text(GAME_WIDTH / 2, BAR_H / 2, '0:00', TEXT).setOrigin(0.5);
     this.clockWaiting = false;
     this.sky = this.add
       .rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0xffffff, 0)
       .setDepth(-1);
     this.omenText = this.add
-      .text(GAME_WIDTH / 2 + 14, 62, '', { ...TEXT, fontSize: '16px', color: '#e8dcff' })
+      .text(GAME_WIDTH / 2 + 14, BAR_H + 16, '', { ...TEXT, fontSize: '16px', color: '#e8dcff' })
       .setOrigin(0.5)
       .setVisible(false);
-    this.omenDot = this.add.circle(0, 62, 6, 0xffffff).setVisible(false);
+    this.omenDot = this.add.circle(0, BAR_H + 16, 6, 0xffffff).setVisible(false);
     this.omenSkyNow = null;
-    SPEEDS.forEach((s, i) => {
-      const b = makeButton(
-        this,
-        GAME_WIDTH - 60 - (SPEEDS.length - 1 - i) * 100,
-        40,
-        90,
-        MIN_TOUCH,
-        `${s}x`,
-        () => {
-          this.registry.set('speed', s);
-          this.refreshSpeed();
-        },
-        { icon: `ui_icon_speed${s}`, iconOnly: true },
-      );
-      this.speedButtons.push(b);
-    });
-    makeButton(this, 900, 40, 130, MIN_TOUCH, 'Menu', () => this.openPause(), {
-      icon: 'ui_icon_menu',
-    });
-    // In the gap between the gold and the run clock (the clock sits at x 640).
-    this.rosterBtn = makeButton(this, 430, 40, 120, MIN_TOUCH, 'Heroes', () => {
-      this.rosterOpen = !this.rosterOpen;
-      this.rosterKey = '';
-      this.rosterNextAt = 0;
-      if (this.rosterOpen) this.closeMenu();
-      else this.clearRoster();
-    });
-    this.watchBtn = makeButton(this, 770, 40, 110, MIN_TOUCH, 'Watch', () => {
-      const m = map.registry.get('camMode');
-      map.setWatch(m !== 'watch');
-    });
+    // One speed button cycles 1x, 2x, 4x with a small label; Menu, Watch and Heroes are icons.
+    this.speedBtn = makeHudButton(
+      this,
+      1124,
+      BAR_H / 2,
+      () => {
+        const cur = (this.registry.get('speed') as number) ?? 1;
+        this.registry.set('speed', SPEEDS[(SPEEDS.indexOf(cur) + 1) % SPEEDS.length]);
+        this.refreshSpeed();
+      },
+      { plateW: 88, icon: 'ui_icon_speed2', label: '1x' },
+    );
+    makeHudButton(this, 1228, BAR_H / 2, () => this.openPause(), { icon: 'ui_icon_menu' });
+    this.watchBtn = makeHudButton(
+      this,
+      1020,
+      BAR_H / 2,
+      () => {
+        const m = map.registry.get('camMode');
+        map.setWatch(m !== 'watch');
+      },
+      { glyph: 'eye' },
+    );
+    this.rosterBtn = makeHudButton(
+      this,
+      926,
+      BAR_H / 2,
+      () => {
+        this.rosterOpen = !this.rosterOpen;
+        this.rosterKey = '';
+        this.rosterNextAt = 0;
+        if (this.rosterOpen) this.closeMenu();
+        else this.clearRoster();
+      },
+      { glyph: 'heroes' },
+    );
     this.refreshSpeed();
     this.toast = this.add
       .text(GAME_WIDTH / 2, 640, '', {
@@ -276,7 +285,7 @@ export class HudScene extends Phaser.Scene {
     this.omenText.setText(omenLabel(o)).setVisible(true);
     this.omenDot
       .setFillStyle(this.omenSkyNow.color)
-      .setPosition(this.omenText.x - this.omenText.width / 2 - 12, 62)
+      .setPosition(this.omenText.x - this.omenText.width / 2 - 12, BAR_H + 16)
       .setVisible(true);
   }
 
@@ -595,7 +604,8 @@ export class HudScene extends Phaser.Scene {
 
   private refreshSpeed(): void {
     const cur = this.registry.get('speed') as number;
-    this.speedButtons.forEach((b, i) => b.setActive(SPEEDS[i] === cur));
+    this.speedBtn?.setLabel(`${cur}x`);
+    this.speedBtn?.setActive(cur > 1);
   }
 
   private onMapTap(map: MapScene, tap: MapTap): void {
