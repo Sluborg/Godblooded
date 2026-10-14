@@ -24,11 +24,11 @@ export function lairDecal(scene: Phaser.Scene, boss: boolean): Phaser.GameObject
   // past the edge, a few bones. Everything is deterministic and baked once.
   return bake(scene, `lair3:${boss}`, Math.ceil(w * 0.9), Math.ceil(h * 0.9) + 12, (g) => {
     const layers: [number, number, number, number][] = [
-      [1.3, 0x3a2a22, 0.07, 0.26],
-      [1.12, 0x2c1f1b, 0.1, 0.24],
-      [0.95, 0x1f1514, 0.16, 0.22],
-      [0.78, 0x150d10, 0.26, 0.2],
-      [0.56, 0x0c0609, 0.34, 0.18],
+      [1.3, 0x5a4636, 0.14, 0.26],
+      [1.12, 0x4a382c, 0.22, 0.24],
+      [0.95, 0x32241d, 0.34, 0.22],
+      [0.78, 0x20151a, 0.5, 0.2],
+      [0.56, 0x120a0d, 0.62, 0.18],
     ];
     layers.forEach(([k, c, a, amp], i) => {
       g.fillStyle(c, a).fillPoints(
@@ -43,33 +43,28 @@ export function lairDecal(scene: Phaser.Scene, boss: boolean): Phaser.GameObject
       const bx = Math.cos(ang) * rad * (w / 2);
       const by = cy + Math.sin(ang) * rad * (h / 2);
       const size = 8 + hash(i * 3 + 3) * (boss ? 30 : 20);
-      g.fillStyle(i % 3 === 0 ? 0x4a3a30 : 0x080406, i % 3 === 0 ? 0.18 : 0.3).fillPoints(
+      g.fillStyle(i % 3 === 0 ? 0x6a5444 : 0x07040a, i % 3 === 0 ? 0.3 : 0.55).fillPoints(
         blobPoints(bx, by, size, size * 0.45, 100 + i, 0.3, 14),
         true,
       );
     }
-    // Cracks running out of the patch: a main line with a branch.
-    g.lineStyle(2, 0x050205, 0.75);
-    const cracks = boss ? 9 : 7;
+    // A few cracks, mostly inside the patch with only a little run-out, tapering to a point, dark
+    // brown rather than black.
+    const cracks = boss ? 4 : 3;
     for (let i = 0; i < cracks; i++) {
-      const a0 = (i / cracks) * Math.PI * 2 + hash(i + 50) * 0.5;
-      let x = Math.cos(a0) * w * 0.08;
-      let y = cy + Math.sin(a0) * h * 0.08;
-      const len = (0.55 + hash(i + 60) * 0.35) * (w / 2) * 1.5;
-      g.beginPath().moveTo(x, y);
-      const segs = 5;
+      const a0 = (i / cracks) * Math.PI * 2 + 0.6 + hash(i + 50) * 0.6;
+      let x = Math.cos(a0) * w * 0.1;
+      let y = cy + Math.sin(a0) * h * 0.1;
+      const len = (0.42 + hash(i + 60) * 0.18) * (w / 2);
+      const segs = 4;
       for (let k = 1; k <= segs; k++) {
-        const a = a0 + (hash(i * 7 + k) - 0.5) * 0.7;
-        x += Math.cos(a) * (len / segs);
-        y += Math.sin(a) * (len / segs) * (h / w) * 1.3;
-        g.lineTo(x, y);
-        if (k === 3) {
-          g.strokePath().beginPath().moveTo(x, y);
-          g.lineTo(x + Math.cos(a + 0.9) * len * 0.18, y + Math.sin(a + 0.9) * len * 0.1);
-          g.strokePath().beginPath().moveTo(x, y);
-        }
+        const a = a0 + (hash(i * 7 + k) - 0.5) * 0.6;
+        const nx = x + Math.cos(a) * (len / segs);
+        const ny = y + Math.sin(a) * (len / segs) * (h / w) * 1.3;
+        g.lineStyle(3.2 * (1 - (k - 1) / segs) + 0.6, 0x2a1a12, 0.85).lineBetween(x, y, nx, ny);
+        x = nx;
+        y = ny;
       }
-      g.strokePath();
     }
     // Bones in the ash.
     g.lineStyle(3, 0xd9ceb4, 0.55);
@@ -91,8 +86,8 @@ export function lairDecal(scene: Phaser.Scene, boss: boolean): Phaser.GameObject
 
 // A skull on a pole beside a lair, standing on its foot at (0, 0): baked once.
 export function skullPike(scene: Phaser.Scene): Phaser.GameObjects.Image {
-  return bake(scene, 'skull-pike-hero', 40, 124, (g) => {
-    g.scaleCanvas(1.75, 1.75);
+  return bake(scene, 'skull-pike-hero', 52, 160, (g) => {
+    g.scaleCanvas(2.3, 2.3);
     g.fillStyle(0x000000, 0.28).fillEllipse(6, 0, 30, 9);
     g.fillStyle(0x3a2616, 1).fillRect(-2, -46, 4, 46);
     g.lineStyle(1.5, 0x120a05, 0.9).strokeRect(-2, -46, 4, 46);
