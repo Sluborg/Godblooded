@@ -59,14 +59,19 @@ try {
     if (m.type() === 'error') problems.push(`console error: ${m.text()}`);
   });
 
-  // Screen position of a point in design (1280x720) coordinates.
-  const designToScreen = ([x, y]) =>
+  // Screen position of a point in design coordinates: the view is 720 high and as wide as the
+  // screen allows (1280 up to 1680). The HUD is laid out from the view's left edge; modal screens
+  // (title, level-up) for the 1280 area centred in the view: pass `centred` for those.
+  const designToScreen = ([x, y], centred = false) =>
     page.evaluate(
-      ([x, y]) => {
-        const r = window.__game.canvas.getBoundingClientRect();
-        return [r.left + (x * r.width) / 1280, r.top + (y * r.height) / 720];
+      ([x, y, centred]) => {
+        const c = window.__game.canvas;
+        const r = c.getBoundingClientRect();
+        const viewW = (c.width / c.height) * 720;
+        const dx = x + (centred ? (viewW - 1280) / 2 : 0);
+        return [r.left + (dx * r.width) / viewW, r.top + (y * r.height) / 720];
       },
-      [x, y],
+      [x, y, centred],
     );
   const worldToScreen = ([wx, wy]) =>
     page.evaluate(
@@ -112,7 +117,7 @@ try {
   });
   await sleep(500);
   // Title: Play is the first button (design y 420 when there is no run to continue).
-  await tap(await designToScreen([640, 420]));
+  await tap(await designToScreen([640, 420], true));
   await page.waitForFunction(
     () => window.__game.scene.isActive('Map') && window.__game.scene.isActive('Hud'),
   );
@@ -237,7 +242,7 @@ try {
       break;
     }
     // Upgrade cards are three wide (first at x 260); path cards are two (first at x 450).
-    if (s.levelUp) await tap(await designToScreen([s.pathCards ? 450 : 260, 400]));
+    if (s.levelUp) await tap(await designToScreen([s.pathCards ? 450 : 260, 400], true));
     if (s.timeMs >= nextShot) {
       await page.screenshot({ path: `${OUT}/${String(nextShot / 1000).padStart(3, '0')}s.png` });
       nextShot += SHOT_EVERY_MS;

@@ -8,6 +8,7 @@ import { drawHuman, pose as rigPose, setState, usc } from './proto.gen';
 import { drawKit, kitScale, layout } from './painted';
 import { kitOf } from './paintedLoad';
 import { gradePixels } from './partsStyle';
+import { drawLedgerHeld, drawSackBack } from './collectorProps';
 import {
   ATLAS_COLS as COLS,
   FRAME_COUNT,
@@ -50,7 +51,10 @@ export function ensureHeroSet(scene: Phaser.Scene, id: string, def: PartsDef, ti
   const atlas = `parts_${id}`;
   if (scene.textures.exists(atlas)) scene.textures.remove(atlas);
   // A painted look (a kit combo in data/heroKits.ts) is drawn from its pictures on the same rig.
-  const kit = kitOf(scene, id);
+  // The tax collector's look carries a sack size (0 to 2) and names the kit it would use.
+  const sack =
+    typeof def.sack === 'number' ? (Math.min(2, Math.max(0, def.sack)) as 0 | 1 | 2) : -1;
+  const kit = kitOf(scene, typeof def.kit === 'string' ? def.kit : id);
   const tex = scene.textures.createCanvas(atlas, fw * COLS, fh * rows);
   const frames = { idle: [], walk: [], attack: [], ko: [] } as Record<PoseName, string[]>;
   const set: BakedSet = {
@@ -93,6 +97,14 @@ export function ensureHeroSet(scene: Phaser.Scene, id: string, def: PartsDef, ti
         alpha: 1,
         hits: 0,
       };
+      // The collector's sack hangs behind him; the ledger is drawn over the body at the front hand.
+      const props = sack >= 0 ? rigPose(u) : null;
+      if (props) {
+        c.save();
+        c.scale(usc(u), usc(u));
+        drawSackBack(c, sack as 0 | 1 | 2, props);
+        c.restore();
+      }
       if (kit) {
         const p = rigPose(u);
         // The same on-screen size as the code look: the painted figure is 44 units tall, the
@@ -102,6 +114,12 @@ export function ensureHeroSet(scene: Phaser.Scene, id: string, def: PartsDef, ti
         drawKit(c, layout(kit, p, p.armF > 2.0 && u.atkT >= 0), p);
         c.restore();
       } else drawHuman(u);
+      if (props) {
+        c.save();
+        c.scale(usc(u), usc(u));
+        drawLedgerHeld(c, props, String(def.skin ?? '#d3ab88'));
+        c.restore();
+      }
       setState({ ctx: null });
       c.restore();
     }

@@ -23,13 +23,13 @@ events.
 
 ## 1. Raids
 
-| Rule    | Today                                                                                  | Proposed                                                                                                       |
-| ------- | -------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| Timing  | first at `raidFirstMs` (7:00), every 3:30 (`raidEveryMs` 210 s; Balance playtest trim) | also a small raid after every lair tier-up: 1 raider (`tierRaidSize` 1, `tierRaidEvery` 1, Balance 2026-10-14) |
-| Warning | none                                                                                   | event `raidWarning` 15 s ahead: lair, direction, size                                                          |
-| Who     | 2 per lair, +1 per `raidGrowEveryMs` (400 s)                                           | unchanged count; the lair's monster row decides the shape (below)                                              |
-| Target  | nearest building                                                                       | by shape (below)                                                                                               |
-| Reward  | bounty and XP per raider                                                               | unchanged, plus 20 gold to the town per raid fully beaten ("the town cheers")                                  |
+| Rule    | Today                                                                                                                                            | Proposed                                                                                                       |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------- |
+| Timing  | first at `raidFirstMs` (7:30; 8:00 on the first run), every 3:30 (`raidEveryMs` 210 s; Balance, with the M3 cards, miracles and elite skills in) | also a small raid after every lair tier-up: 1 raider (`tierRaidSize` 1, `tierRaidEvery` 1, Balance 2026-10-14) |
+| Warning | none                                                                                                                                             | event `raidWarning` 15 s ahead: lair, direction, size                                                          |
+| Who     | 2 per lair, +1 per `raidGrowEveryMs` (400 s)                                                                                                     | unchanged count; the lair's monster row decides the shape (below)                                              |
+| Target  | nearest building                                                                                                                                 | by shape (below)                                                                                               |
+| Reward  | bounty and XP per raider                                                                                                                         | unchanged, plus 20 gold to the town per raid fully beaten ("the town cheers")                                  |
 
 | Shape (from role) | Raid behaviour                                                            |
 | ----------------- | ------------------------------------------------------------------------- |
@@ -115,9 +115,12 @@ a rule: once open, it sends raiders down the same road the heroes walk.
 
 | Pantheon | Miracle        | Effect at the chosen spot                                                          | Visual                   |
 | -------- | -------------- | ---------------------------------------------------------------------------------- | ------------------------ |
-| Aesir    | Thor's Storm   | 6 lightning pillars over 3 s on random monsters within 250: 60 lightning each, arc | pillars, dark sky flash  |
-| Greek    | Athena's Aegis | every hero within 250: shield 40% max hp for 8 s, +3 armour                        | gold dome, owl cry       |
-| Egyptian | Ra's Dawn      | every hero within 250 heals 35%; undead within 250 take 80 holy with sear          | sunrise flare, gold rays |
+| Aesir    | Thor's Storm   | 6 lightning pillars over 3 s on random monsters within 250: 35 lightning each, arc | pillars, dark sky flash  |
+| Greek    | Athena's Aegis | every hero within 250: shield 25% max hp, armour x1.5, for 8 s                     | gold dome, owl cry       |
+| Egyptian | Ra's Dawn      | every hero within 250 heals 20%; undead within 250 take 50 holy with sear          | sunrise flare, gold rays |
+
+- **Strength** (Balance, `balance/miracles` 3e36f7d): about half the first draft; at full
+  strength miracles alone added about 15 points of wins (full bot 77% to 93%).
 
 Miracle damage is flat (gods do not use attributes) and goes through the strike pipeline as a
 spell (no dodge, resisted by Wp).

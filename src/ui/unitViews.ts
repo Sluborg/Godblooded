@@ -4,7 +4,7 @@ import { lookOf, type UnitLook } from '../data/looks';
 import { bossState } from './bossLook';
 import { bakeRings, type RingSpec } from './bake';
 import { RENDER_SCALE } from '../config';
-import { heroPartsLook } from '../data/heroParts';
+import { collectorPartsLook, heroPartsLook } from '../data/heroParts';
 import {
   STATUS_LOOK,
   isStatusKind,
@@ -235,6 +235,7 @@ export class UnitView {
   private jarDrawn = false;
   private collector = false;
   private sackDrawn = -1;
+  private carryCap = DEFAULT_TUNING.collector.carryCap;
   private intentDrawn = false;
   private hiddenNow = false;
   private stoneNow = false;
@@ -353,7 +354,8 @@ export class UnitView {
 
   // A hero with a parts row is drawn from baked parts frames; false when it has none.
   private applyParts(u: UnitState): boolean {
-    if (!USE_PARTS || u.kind !== 'hero' || !u.god) return this.leaveParts();
+    if (!USE_PARTS || (u.kind !== 'hero' && u.kind !== 'collector')) return this.leaveParts();
+    if (u.kind === 'hero' && !u.god) return this.leaveParts();
     const sk = `${u.god}:${u.path}:${u.tier}`;
     if (sk !== this.stillKey) {
       this.stillKey = sk;
@@ -361,8 +363,11 @@ export class UnitView {
         this.scene.textures.exists(c),
       );
     }
-    if (ART_BEATS_PARTS && this.stillOk) return this.leaveParts();
-    const look = heroPartsLook(u.god, u.path, u.tier);
+    if (u.kind === 'hero' && ART_BEATS_PARTS && this.stillOk) return this.leaveParts();
+    const look =
+      u.kind === 'collector'
+        ? collectorPartsLook(sackSize(u.gold ?? 0, this.carryCap))
+        : heroPartsLook(u.god, u.path, u.tier);
     if (!look) return this.leaveParts();
     const id = look.id;
     if (id === this.partsId) return true;
@@ -634,12 +639,19 @@ export class UnitView {
     if (carrying) drawJar(this.jarG, -this.w * 0.55, -this.h * 0.55, 1.2);
   }
 
+  // The round figure's sack (only when there is no rig: with the parts rig the sack and the ledger
+  // are baked into the frames, per sack size).
   private drawSackFor(carried: number, cap = DEFAULT_TUNING.collector.carryCap): void {
     if (!this.sackG) return;
+    if (this.partsId !== '') {
+      if (this.sackDrawn !== -2) this.sackG.clear();
+      this.sackDrawn = -2;
+      return;
+    }
     const size = sackSize(carried, cap);
     if (size === this.sackDrawn) return;
     this.sackDrawn = size;
-    drawCollector(this.sackG, size);
+    drawCollector(this.sackG.setScale(0.78), size);
   }
 
   // A short sign over the head for a moment: a "?" or "!" a boss move puts on its target.
@@ -824,9 +836,11 @@ export class UnitView {
 
   update(u: UnitState, ctx: FrameCtx, role: PartyRole = 'solo'): void {
     this.tierNow = u.tier;
-    if (u.kind === 'collector') this.drawSackFor(u.gold ?? 0, ctx.carryCap);
+    this.carryCap = ctx.carryCap;
     if (u.kind === 'worker') this.drawJarFor((ctx.carry.get(u.id) ?? 0) > 0);
     if (!this.applyParts(u)) this.applyArt(u);
+    // After the look is chosen: on the parts rig the sack is just a prop.
+    if (u.kind === 'collector') this.drawSackFor(u.gold ?? 0, ctx.carryCap);
     if (u.kind === 'hero') {
       this.label.setText(heroLabel(u));
       // The path name can be wider than "<God>-born": keep the party badge beside the label.
