@@ -1221,6 +1221,8 @@ export interface PileState {
   id: number;
   pos: Vec2;
   gold: number;
+  // Dropped by a fallen collector (counted in taxLost until a collector brings it home).
+  fell?: boolean;
 }
 
 export interface BountyState {
