@@ -136,3 +136,30 @@ once it lands.
 `taxRate` 0.5, raids every 3:00, a one-raider raid on every lair tier-up, wyrm nest back to
 8000 hp. Balance's bot: 68-69% wins, median run 15.6 min, boss out at 12.4-13.0, 88% of heroes
 geared at 8:00 (the gate is 80%).
+
+## 6. Re-measure on main 44bfefe (2026-10-14, after both Balance passes)
+
+Probe variant B (a 40 gold flag 150 from a hero once a minute when gold allows), 100 seeds,
+tier-up raids on.
+
+| Event                            | Target     | Median (middle half) |
+| -------------------------------- | ---------- | -------------------- |
+| Tier 2                           | 4-6        | 3.6 (2.9-4.6)        |
+| First raid                       | 6          | 6.0                  |
+| First lair falls                 | 7-11       | 6.3 (5.2-7.6)        |
+| Tier 3                           | 11-14      | 9.3 (7.7-10.5)       |
+| Boss emerges                     | 12-15      | 13.4 (11.2-15.6)     |
+| Run ends                         | 15-18      | 15.9 (12.9-18.4)     |
+| Wins                             | 55-75%     | 63%                  |
+| Longest quiet stretch            | under 60 s | 18.6 s               |
+| Heroes with a gear piece at 8:00 | 80%+       | 100% (90-100%)       |
+| Flags placed per run             |            | 5 (3-7)              |
+| Flags a party turns to           |            | 50% (30-70%)         |
+| Time until a party turns         |            | 27 s (7-66)          |
+
+- **The gear gate passes** (100% median, 90% at the lower quarter) and wins, run length, boss
+  and quiet stretches sit inside their targets, with a bot that spends on flags.
+- **Still early:** tier 2 (3.6) and tier 3 (9.3) come a little before their windows. Not a fun
+  gate; Stefan's playtest decides whether it matters.
+- **Steering is the open fun-gate item:** half the flags get a party, the median after 27 s.
+  Stefan's run 2 ("Steer") is where this is judged.
