@@ -51,6 +51,7 @@ import {
 } from './boss';
 import { buildReport, sampleGold, tally, type HeroRecord } from './runstats';
 import { collectorFell, runCollector } from './collector';
+import { placeEscort, runEscorts } from './escort';
 import { guardFell, guardStats, runGuard, sendGuard } from './guards';
 import { dropStolenJar } from './workers';
 import { runNodes } from './nodes';
@@ -456,6 +457,7 @@ function runTick(world: World): void {
   runCollector(world);
   runNodes(world);
   runWorkers(world);
+  runEscorts(world);
   runQuirks(world);
   runFavour(world);
   runParties(world);
@@ -1082,6 +1084,8 @@ export function command(world: World, cmd: Command): CommandResult {
     }
     case 'hireGatherer':
       return hireGatherer(world);
+    case 'placeEscort':
+      return placeEscort(world, cmd.unit, cmd.gold);
     case 'sendGuard':
       return sendGuard(world, cmd.unit);
     case 'sendGatherer':
