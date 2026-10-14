@@ -25,6 +25,7 @@ import { fitDesignCamera } from '../ui/designCamera';
 import { gatherersAt, poolLine } from '../ui/nodeLook';
 import { graveLabel, godPantheonOf, recallable, templeAmbrosiaCost } from '../ui/ambrosiaCards';
 import { AMBROSIA_STYLE, drawJar } from '../ui/ambrosiaLook';
+import { getSettings } from '../ui/settings';
 import { omenLabel, omenSky, skyAlpha, type OmenSky } from '../ui/omenLook';
 
 const ROSTER_PER_PAGE = 5;
@@ -38,6 +39,8 @@ interface MenuOption {
   pick: () => void;
   // Highlighted (the build menu's selected item).
   active?: boolean;
+  // Pulses to be found (the first temple while the clock waits for it).
+  pulse?: boolean;
 }
 const TEXT = { fontFamily: 'Georgia, serif', fontSize: '30px', color: COLORS.text };
 
@@ -225,7 +228,12 @@ export class HudScene extends Phaser.Scene {
     const ambOn = ambSnap.nodes.length > 0;
     this.ambIcon.setVisible(ambOn);
     this.ambText.setVisible(ambOn).setText(`${Math.floor(ambSnap.ambrosia)}`);
-    this.clockText.setText(formatClock((this.registry.get('timeMs') as number) ?? 0));
+    // On a first run the clock stands still until the first temple: say so instead of 0:00.
+    const waiting = (this.scene.get('Map') as MapScene).snapshot.waiting;
+    this.clockText.setFontSize(waiting ? 22 : 30);
+    this.clockText.setText(
+      waiting ? 'Build a temple' : formatClock((this.registry.get('timeMs') as number) ?? 0),
+    );
     this.drawOmen(snap);
     const status = this.registry.get('status') as string | undefined;
     if ((status === 'won' || status === 'lost') && !this.ended) this.showEnd();
@@ -749,6 +757,8 @@ export class HudScene extends Phaser.Scene {
         // Cost 0: an item the town cannot afford stays tappable, it still shows its info.
         cost: 0,
         active: d.id === selected,
+        // On a first run the clock waits for a temple: the temple button pulses.
+        pulse: map.snapshot.waiting && d.id.startsWith('temple'),
         pick: () => {
           const now = (this.registry.get('gold') as number | undefined) ?? 0;
           const r = buildTap(selected, d.id, now, d.cost);
@@ -790,6 +800,15 @@ export class HudScene extends Phaser.Scene {
       const button = makeButton(this, x, cy + 20, bw, bh, opt.label, opt.pick);
       this.menu.push(button.container);
       if (opt.active) button.setActive(true);
+      if (opt.pulse && !getSettings().reducedMotion)
+        this.tweens.add({
+          targets: button.container,
+          scale: 1.07,
+          duration: 450,
+          yoyo: true,
+          repeat: -1,
+          ease: 'Sine.easeInOut',
+        });
       this.menuButtons.push({ button, cost: opt.cost });
     });
   }

@@ -59,6 +59,7 @@ import type { HudScene } from './HudScene';
 import { trailDots } from '../ui/raidArrow';
 import { NodeViews } from '../ui/nodeViews';
 import { AMBROSIA_STYLE, ambrosiaPop, drawJarOnGround } from '../ui/ambrosiaLook';
+import { isFirstRun } from '../ui/hintStore';
 
 // The first picture of a skill's row; its sound follows it (sfx_skill_<picture>).
 const skillVisual = (id: string): string | undefined =>
@@ -151,7 +152,7 @@ export class MapScene extends Phaser.Scene {
           // A newer game wrote it: play a fresh run here. The storage layer never clears or
           // overwrites that save (storedIsNewer), so the newer client can still continue it.
           this.registry.set('notice', 'This save is from a newer version. Reload to update.');
-          return createWorld(newSeed(), GRAYBOX);
+          return createWorld(newSeed(), GRAYBOX, { firstRun: isFirstRun() });
         }
         clearSave();
       }
@@ -159,7 +160,7 @@ export class MapScene extends Phaser.Scene {
     // Every fresh run (Play, Play again, Restart) drops the old checkpoint at once, so a reload
     // before the first autosave cannot bring the abandoned run back.
     clearSave();
-    return createWorld(newSeed(), GRAYBOX);
+    return createWorld(newSeed(), GRAYBOX, { firstRun: isFirstRun() });
   }
 
   // Writes the run to storage (autosave, and when the player quits to the title).
