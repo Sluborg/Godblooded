@@ -20,6 +20,7 @@ const part = (w: number, h: number, pivots: Record<string, [number, number]> = {
 });
 const kit = (extra: Partial<Kit['parts']> = {}): Kit => ({
   build: BUILDS.standard,
+  mode: 'bent',
   layers: {},
   parts: {
     torso: part(120, 160, {
@@ -139,5 +140,32 @@ describe('kitScale', () => {
   it('maps the 44 unit painted figure to the code figure height (32 units at usc)', () => {
     expect(kitScale(0.86) * 44).toBeCloseTo(32 * 0.86, 6);
     expect(kitScale(0.86 * 1.3) * 44).toBeCloseTo(32 * 0.86 * 1.3, 6);
+  });
+});
+
+describe('floating mode', () => {
+  const k = (): Kit => ({
+    ...kit({ hand: part(24, 24), foot: part(40, 24) }),
+    mode: 'floating',
+  });
+  it('is complete with torso, head, hand and foot only', () => {
+    expect(kitComplete(k().parts, 'floating')).toBe(true);
+    expect(kitComplete(kit().parts, 'floating')).toBe(false);
+  });
+  it('draws only hands and boots at the joints, no limb segments', () => {
+    const draws = layout(k(), pose);
+    const pivots = draws.map((d) => d.pivot);
+    expect(pivots.filter((v) => v === 'shoulder' || v === 'elbow' || v === 'knee')).toHaveLength(0);
+    expect(pivots.filter((v) => v === 'wrist')).toHaveLength(2);
+    expect(pivots.filter((v) => v === 'ground')).toHaveLength(2);
+  });
+  it('sits the torso lower than the bent figure', () => {
+    const t = (kit: Kit) => layout(kit, pose).find((d) => d.part === kit.parts.torso)!;
+    expect(t(k()).y).toBeGreaterThan(t(kit()).y);
+  });
+  it('adds hand and boot on a bent limb when the sheet has them', () => {
+    const bent = layout({ ...kit({ hand: part(24, 24), foot: part(40, 24) }) }, pose);
+    expect(bent.filter((d) => d.pivot === 'wrist').length).toBe(2);
+    expect(bent.filter((d) => d.pivot === 'ground').length).toBe(2);
   });
 });

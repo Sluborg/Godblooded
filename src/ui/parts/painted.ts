@@ -3,7 +3,14 @@
 // arms and legs (two bones each, in code), places the kit parts on the joints and draws them.
 // bake.ts bakes the frames as before. Effects (glow, aura, trail, ravens) stay in code and are not
 // drawn on painted looks yet. The contract with Art is in docs/asset-spec.md (kit sheets).
-import { BUILDS, KIT_REQUIRED, type Build, type KitCombo, type KitSlot } from '../../data/heroKits';
+import {
+  BUILDS,
+  KIT_REQUIRED,
+  type Build,
+  type KitCombo,
+  type KitMode,
+  type KitSlot,
+} from '../../data/heroKits';
 
 export interface Cell {
   x: number;
@@ -26,6 +33,7 @@ export interface Kit {
   parts: PartMap;
   layers: PartMap;
   build: Build;
+  mode: KitMode;
 }
 
 // Pivot fallbacks (fractions) when a cell does not name one.
@@ -63,11 +71,14 @@ export const sizeOf = (part: KitPart, sx = 1, sy = 1): [number, number] => [
 export const buildOf = (combo: KitCombo): Build => BUILDS[combo.build ?? 'standard'];
 
 // True when every part a painted look cannot do without has a picture.
-export const kitComplete = (parts: PartMap): boolean => KIT_REQUIRED.every((s) => parts[s]);
+export const kitComplete = (parts: PartMap, mode: KitMode = 'bent'): boolean =>
+  KIT_REQUIRED[mode].every((s) => parts[s]);
 
 // The standard figure, drawing units, feet at (0, 0), y up is negative: the torso's pelvis sits
 // here, and a part whose cell has no pivot for a socket gets the fallback above.
 export const HIP = { x: 0, y: -21 } as const;
+// A floating torso reaches lower (no legs under it): its pelvis pivot sits here.
+export const HIP_FLOAT = { x: 0, y: -15 } as const;
 // The prototype's joints are for a 32 unit hero; the painted figure is 44 units.
 export const PROTO_K = 44 / 32;
 // A painted hero is 44 drawing units tall, the prototype's code hero 32 (before its own scale
@@ -166,6 +177,8 @@ const ang = (v: V2): number => Math.atan2(v.y, v.x);
 export function layout(kit: Kit, p: RigPose, raised = false): Draw[] {
   const out: Draw[] = [];
   const { parts, layers, build } = kit;
+  const floating = kit.mode === 'floating';
+  const hipAt = floating ? HIP_FLOAT : HIP;
   const torso = parts.torso as KitPart;
   const tsx = build.torso[0];
   const tsy = build.torso[1];
@@ -178,7 +191,7 @@ export function layout(kit: Kit, p: RigPose, raised = false): Draw[] {
   // Sockets on the torso, in body coordinates.
   const sock = (name: string): V2 => {
     const [ox, oy] = offsetIn(torso, 'hip', name, tsx, tsy);
-    return { x: HIP.x + ox, y: HIP.y + oy };
+    return { x: hipAt.x + ox, y: hipAt.y + oy };
   };
   const neck = sock('neck');
   const head = parts.head as KitPart;
@@ -187,6 +200,24 @@ export function layout(kit: Kit, p: RigPose, raised = false): Draw[] {
   const hand = (h: V2): V2 => ({ x: h.x * PROTO_K, y: h.y * PROTO_K });
   // An arm from a shoulder socket to a hand target: its two Draws and where the wrist ends up.
   const arm = (slotShoulder: string, target: V2, far: boolean): { draws: Draw[]; end: V2 } => {
+    const handDraw = (at: V2): Draw[] =>
+      parts.hand
+        ? [
+            {
+              part: parts.hand,
+              pivot: 'wrist',
+              x: at.x,
+              y: at.y,
+              rot: 0,
+              sx: 1,
+              sy: 1,
+              inBody: true,
+              far,
+            },
+          ]
+        : [];
+    // Floating: just the hand at the joint, like the code rig.
+    if (floating) return { draws: handDraw(target), end: target };
     const up = parts.upperarm as KitPart;
     const fore = parts.forearm as KitPart;
     const [aw, al] = [build.arm[1], build.arm[0]];
@@ -204,9 +235,26 @@ export function layout(kit: Kit, p: RigPose, raised = false): Draw[] {
     };
     mk('upperarm', up, 'shoulder', shoulder, aUp);
     mk('forearm', fore, 'elbow', r.mid, aFore);
+    draws.push(...handDraw(r.end));
     return { draws, end: r.end };
   };
+  const footDraw = (at: V2, far: boolean) => {
+    if (parts.foot)
+      out.push({
+        part: parts.foot,
+        pivot: 'ground',
+        x: at.x,
+        y: at.y,
+        rot: 0,
+        sx: 1,
+        sy: 1,
+        inBody: false,
+        far,
+      });
+  };
   const drawLeg = (slotHip: string, foot: V2, far: boolean) => {
+    // Floating: just the boot at the foot, like the code rig.
+    if (floating) return footDraw(foot, far);
     const thigh = parts.thigh as KitPart;
     const shin = parts.shin as KitPart;
     const [lw, ll] = [build.leg[1], build.leg[0]];
@@ -238,6 +286,7 @@ export function layout(kit: Kit, p: RigPose, raised = false): Draw[] {
       inBody: false,
       far,
     });
+    footDraw(r.end, far);
   };
   // Cloak behind everything.
   push('cloak', parts.cloak, {
@@ -255,7 +304,7 @@ export function layout(kit: Kit, p: RigPose, raised = false): Draw[] {
   out.push(...back.draws);
   push('torso', torso, {
     pivot: 'hip',
-    ...HIP,
+    ...hipAt,
     rot: 0,
     sx: tsx,
     sy: tsy,

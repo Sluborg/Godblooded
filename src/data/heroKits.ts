@@ -14,20 +14,24 @@ export const KIT_SLOTS = [
   'forearm',
   'thigh',
   'shin',
+  'hand',
+  'foot',
   'weapon',
   'offhand',
 ] as const;
 export type KitSlot = (typeof KIT_SLOTS)[number];
 
-// Parts a painted look cannot do without; any other slot may be empty.
-export const KIT_REQUIRED: readonly KitSlot[] = [
-  'torso',
-  'head',
-  'upperarm',
-  'forearm',
-  'thigh',
-  'shin',
-];
+// How the limbs are drawn: `bent` solves two-bone arms and legs from the upper arm, forearm, thigh
+// and shin; `floating` draws only hands and feet at the joints, like the code rig (Stefan wants to
+// compare the two on one sheet).
+export type KitMode = 'bent' | 'floating';
+
+// Parts a painted look cannot do without, by mode; any other slot may be empty. In bent mode a
+// `hand` and a `foot` are optional extras on the wrist and the ankle.
+export const KIT_REQUIRED: Readonly<Record<KitMode, readonly KitSlot[]>> = {
+  bent: ['torso', 'head', 'upperarm', 'forearm', 'thigh', 'shin'],
+  floating: ['torso', 'head', 'hand', 'foot'],
+};
 
 // Body builds are scale factors on the same art: width and height of the torso, length and width of
 // the arms and legs, and the head. Sockets stay where the torso's pivots put them (scaled with it).
@@ -48,6 +52,8 @@ export type BuildName = keyof typeof BUILDS;
 
 export interface KitCombo {
   build?: BuildName;
+  // `bent` (default) or `floating`.
+  mode?: KitMode;
   // Part id per slot, from the kit sheets (`head_hooded`, `weapon_staff`, ...).
   parts: Partial<Record<KitSlot, string>>;
   // Worn item layers over a base part, per slot: a layer has the same pivots as the part it covers
@@ -68,6 +74,8 @@ export const HERO_KITS: Readonly<Record<string, KitCombo>> = {
       forearm: 'forearm_grim',
       thigh: 'thigh_grim',
       shin: 'shin_grim',
+      hand: 'hand_grim',
+      foot: 'foot_grim',
       weapon: 'weapon_staff',
     },
   },
