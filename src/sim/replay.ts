@@ -7,7 +7,8 @@ import {
   type World,
   type WorldOptions,
 } from './world';
-import type { Command, GameData, SimEvent } from './types';
+import { replayPlay } from './meta';
+import type { Command, GameData, PlayInputs, SimEvent } from './types';
 
 // Replay code: the seed and every command that took effect, with its tick, as base64 of compact
 // JSON. A run is a pure function of the seed, the data and the commands, so `runReplay` plays it
@@ -46,6 +47,8 @@ export interface ReplayCode {
   end: number;
   // The createWorld options the run started with (a first run, a boss to avoid).
   opts: WorldOptions;
+  // How the data was shaped for the run (Altar ranks, Trials, unlock filter): null for plain data.
+  play: PlayInputs | null;
   log: { tick: number; cmd: Command }[];
 }
 
@@ -81,6 +84,7 @@ export function encodeReplay(world: World): string {
     world.tick,
     log,
     world.options,
+    world.play,
   ]);
   // btoa wants Latin-1: escape anything beyond it.
   return b64(unescape(encodeURIComponent(body)));
@@ -96,13 +100,14 @@ export function decodeReplay(code: string): ReplayCode {
   if (!Array.isArray(raw) || raw[0] !== VERSION || !Array.isArray(raw[4])) {
     throw new Error('not a replay code (or from another version)');
   }
-  const [, seed, hash, end, rows, opts] = raw as [
+  const [, seed, hash, end, rows, opts, play] = raw as [
     number,
     number,
     string,
     number,
     unknown[][],
     WorldOptions | undefined,
+    PlayInputs | null | undefined,
   ];
   let tick = 0;
   const log = rows.map((row) => {
@@ -110,7 +115,7 @@ export function decodeReplay(code: string): ReplayCode {
     const kind = typeof row[1] === 'number' ? KINDS[row[1]] : String(row[1]);
     return { tick, cmd: { kind, ...(row[2] as object) } as Command };
   });
-  return { v: VERSION, seed, hash, end, opts: opts ?? {}, log };
+  return { v: VERSION, seed, hash, end, opts: opts ?? {}, play: play ?? null, log };
 }
 
 // Plays a replay code back on the given data. `onTick` sees each tick's events (as a snapshot
@@ -121,7 +126,9 @@ export function runReplay(
   onTick?: (world: World, events: SimEvent[]) => void,
 ): { world: World; code: ReplayCode; dataMatches: boolean } {
   const rc = typeof code === 'string' ? decodeReplay(code) : code;
-  const world = createWorld(rc.seed, data, rc.opts);
+  // A run played with Altar ranks or Trials is replayed on the base data shaped the same way.
+  const played = rc.play && !data.play ? replayPlay(data, rc.play) : data;
+  const world = createWorld(rc.seed, played, rc.opts);
   let next = 0;
   // Not stopped by the run ending: a step() that ends the run goes on to the end of its frame.
   while (world.tick < rc.end) {
@@ -133,5 +140,5 @@ export function runReplay(
     advanceTick(world);
     if (onTick) onTick(world, snapshot(world).events as SimEvent[]);
   }
-  return { world, code: rc, dataMatches: rc.hash === replayHash(data) };
+  return { world, code: rc, dataMatches: rc.hash === replayHash(played) };
 }

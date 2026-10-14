@@ -110,6 +110,16 @@ whole party (Odin: the party always wins first strike and sees through fog; Thor
 giants and bosses; and so on, written with the passives in `paths-and-skills.md`).
 Lead writes them as data once the passives are in.
 
+### As built (Sim, `sim/everynth2` f3423e7)
+
+- **Card keys:** every card in the pool is a set of keys Sim implements once
+  (`paths-and-skills.md` section 7, the key table and the notes under it).
+- **Eye of Ra:** an `everyNth` with `strike` makes every 4th basic strike holy with sear. A
+  killing 4th strike spends it.
+- **Switches** (Balance's numbers): `tuning.party.joinBelowLevel` 3 and
+  `building.hallJoinBelowLevel` 5 (who may join a party late), `tuning.town.buildMs` (a build
+  or upgrade scaffold, default 0), `tuning.ai.discovery` (off).
+
 ## 3. Lairs and monster tiers
 
 ### Clock
