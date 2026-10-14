@@ -5,7 +5,7 @@ import { DEFAULT_TUNING, type SimEvent, type Snapshot, type Vec2 } from '../sim/
 import { GAME_WIDTH } from '../config';
 import { HintEngine, hintLines, hintsFromEvent, type ShownHint } from './hints';
 import { loadSeen, saveSeen } from './hintStore';
-import { hintTargetPos, monsterSeenBy, upgradeAffordable } from './hintTarget';
+import { hintTargetPos, idleGold, monsterSeenBy, upgradeAffordable } from './hintTarget';
 import { getSettings } from './settings';
 import { NudgeWatch } from './nudgeWatch';
 import { makePanel } from './panel';
@@ -86,6 +86,7 @@ export class HintDirector {
       if (m !== null) this.engine.fire('monsterSeen', m);
       const idleLair = this.nudge.update(snap.lairs, snap.timeMs, DEFAULT_TUNING.lair.maxTier);
       if (idleLair !== null) this.engine.fire('noFlagIdle', idleLair);
+      if (idleGold(snap)) this.engine.fire('idleGold');
       const up = upgradeAffordable(snap.buildings, gold);
       if (up !== null) this.engine.fire('upgrade', up);
     }
