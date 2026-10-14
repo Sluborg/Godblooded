@@ -651,6 +651,8 @@ export interface BuildingTuning {
   hallRestMult: number;
   hallMergeRange: number;
   hallBondMult: number;
+  // From tier 2 late recruits join parties below this level (tuning.party.joinBelowLevel otherwise).
+  hallJoinBelowLevel: number;
   hallHpBuff: number;
   // Cost of the next tier as a multiple of the building's cost (index = current tier - 1).
   upgradeCostMult: number[];
