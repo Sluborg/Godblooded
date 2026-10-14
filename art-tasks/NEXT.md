@@ -1,13 +1,13 @@
 # Next batches
 
 **One style (Stefan, playtest run 2, 2026-10-14):** every batch follows the new `STYLE.md`
-(the painted buildings are the anchor). The big-head cartoon batches are Void. **Only U1B is
-Ready.** Every other batch stays Draft until Stefan says go for it. Then take the first **Ready** batch of **your track** that is not in the upload
+(the painted buildings are the anchor). The big-head cartoon batches are Void. **Ready (Stefan's
+go 2026-10-14): U1B, G1, B13.** Every other batch stays Draft until Stefan says go for it. Then take the first **Ready** batch of **your track** that is not in the upload
 log; never a **Draft** (Art is still waiting on Stefan). Art sets a batch to Done when its images are shipped.
 
 | Batch | Track     | File     | What                                                                | Images | Status |
 | ----- | --------- | -------- | ------------------------------------------------------------------- | ------ | ------ |
-| G1    | heroes    | `G1.md`  | Aesir Godbloods t1 in the one style (no cartoon, no princess)       | 4      | Draft  |
+| G1    | heroes    | `G1.md`  | Aesir Godbloods t1 in the one style (no cartoon, no princess)       | 4      | Ready  |
 | G2    | heroes    | `G2.md`  | Aesir paths t2 in the one style (after G1)                          | 8      | Draft  |
 | G3    | heroes    | `G3.md`  | Town folk: tax reeve with ledger and coin chest, gatherer, guard    | 3      | Draft  |
 | G4    | buildings | `G4.md`  | Ground patches under buildings and lairs                            | 2      | Draft  |
@@ -46,7 +46,7 @@ log; never a **Draft** (Art is still waiting on Stefan). Art sets a batch to Don
 | B15   | buildings | `B15.md` | Buildings tier 1 in the new look: eight (town hall: B18)            | 8      | Void   |
 | B18   | buildings | `B18.md` | Town hall t1 as the great hall: clearly the main building           | 1      | Draft  |
 | B17   | buildings | `B17.md` | Lairs tier 1 in the new look (redraw)                               | 6      | Void   |
-| B13   | buildings | `B13.md` | Map markers: build plot and bounty flag (M2)                        | 2      | Draft  |
+| B13   | buildings | `B13.md` | Map markers: build plot and bounty flag (M2)                        | 2      | Ready  |
 | B16   | buildings | `B16.md` | Buildings tier 2 in the new look: all nine (after B15)              | 9      | Void   |
 | B14   | buildings | `B14.md` | Buildings tier 3: all nine, per Design table                        | 9      | Draft  |
 | B12   | buildings | `B12.md` | Merchant caravan, ruin, scaffold, 3 grave markers                   | 6      | Draft  |
