@@ -131,8 +131,8 @@ Measured on main 44bfefe (`pacing-review.md` 6): a 50 gold flag on a monster 350
 nearest hero draws almost nobody and is claimed only by chance after about 7 minutes; at 100
 gold a hero turns after a median 115 s and half are never claimed. Three causes in
 `src/sim/heroes.ts`: the claim needs no monster within `dangerRadius` (250), so a flag near a
-lair never pays; every monster near the flag costs `costPerDanger` (15) against `exploreValue`
-(20), so the monsters a flag is placed on make it worthless; and a new flag waits for the
+lair never pays; every monster near the flag needs `costPerDanger` (15) gold more for the flag to be worth it,
+against plain exploring at `exploreValue` (20), so the monsters a flag is placed on make it worthless; and a new flag waits for the
 once-a-second re-score and a 6 s commit.
 
 ### 1. Hunt bounties (ship first)
