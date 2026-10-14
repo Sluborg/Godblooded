@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { RENDER_SCALE } from '../config';
 import { emberDot } from './groundDecal';
+import { emberPose } from './emberPose';
 
 // Embers rising from a lair: a few baked dots per lair moved by a clock, no particle system. Cheap on
 // a phone (about 7 images a lair, one texture), still when "reduced motion" is on.
@@ -11,29 +12,6 @@ interface Ember {
   phase: number;
   dx: number;
   speed: number;
-}
-
-export interface EmberPose {
-  x: number;
-  y: number;
-  alpha: number;
-}
-
-// Where an ember is `timeMs` in: it rises from the lair's ground, sways and fades out at the top.
-// `reach` is how high it climbs (world units).
-export function emberPose(
-  phase: number,
-  speed: number,
-  dx: number,
-  timeMs: number,
-  reach: number,
-): EmberPose {
-  const t = ((((timeMs / 1000) * speed + phase) % 1) + 1) % 1;
-  return {
-    x: dx + Math.sin(t * 6.2 + phase * 9) * 6,
-    y: -t * reach,
-    alpha: Math.min(1, t * 5) * (1 - t),
-  };
 }
 
 export class LairFx {

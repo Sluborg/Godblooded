@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { emberPose } from './lairFx';
+import { emberPose } from './emberPose';
 
 describe('emberPose', () => {
   it('rises from the ground and fades at both ends', () => {
