@@ -917,6 +917,15 @@ export interface BountyTuning {
   costPerDanger: number;
   // A hero standing this close to a cleared flag claims it.
   claimRadius: number;
+  // A flag with no monster within this of it is clear (a hunt flag is claimed by the kill).
+  claimClearRadius: number;
+  // A flag placed within this of a living monster (and not on a lair) is a hunt flag bound to it.
+  huntSnap: number;
+  // A flag this young (placed or raised) may break a party's commitment.
+  freshFlagMs: number;
+  // A flag scoring this share of a party's current goal, without winning, is "considered" (event
+  // `considering`).
+  considerShare: number;
   greedyGoldMult: number;
   curiousGoldMult: number;
   braveFearMult: number;
@@ -1168,6 +1177,11 @@ export interface BountyState {
   id: number;
   pos: Vec2;
   gold: number;
+  // A hunt flag: bound to the monster it was placed on (pos follows it), paid to the hero that
+  // lands the kill. Missing: a flag on open ground, claimed by standing on it once it is clear.
+  target?: number;
+  // When it was placed (a new flag may break a party's commitment for a while). Missing: old.
+  placedMs?: number;
 }
 
 export type SimEvent =
@@ -1307,7 +1321,7 @@ export type SimEvent =
   | { kind: 'lairTierUp'; lair: number; tier: number; pressure?: boolean }
   | { kind: 'lairDestroyed'; lair: number; type: string; by: number; bounty: number }
   | { kind: 'buildingDestroyed'; building: number; type: string }
-  | { kind: 'bountyClaimed'; bounty: number; unit: number; gold: number }
+  | { kind: 'bountyClaimed'; bounty: number; unit: number; gold: number; hunt?: true }
   | { kind: 'won' }
   | { kind: 'lost' }
   | { kind: 'arrived'; unit: number; type: string; god: string | null }
@@ -1337,7 +1351,10 @@ export type SimEvent =
   | { kind: 'miracle'; id: string; pantheon: string; pos: Vec2; tellMs: number }
   // A party leader got a charm from a lair that fell.
   | { kind: 'relic'; unit: number; item: string; lair: number }
-  | { kind: 'bountyPlaced'; bounty: number; gold: number }
+  | { kind: 'bountyPlaced'; bounty: number; gold: number; target?: number }
+  // A party's score for a flag is at least consideringShare of its current goal's: Scene can
+  // show it weighing the flag (it did not switch yet).
+  | { kind: 'considering'; party: number; bounty: number }
   // `gold`: what the flag held; `refund`: what the town got back.
   | { kind: 'bountyCancelled'; bounty: number; gold: number; refund: number }
   | { kind: 'bountyRaised'; bounty: number; gold: number; total: number };
