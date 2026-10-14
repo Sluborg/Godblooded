@@ -1122,6 +1122,8 @@ export interface LairState {
   pos: Vec2;
   hp: number;
   maxHp: number;
+  // Grew on a node late in the run (corrupt.ts): it does not count toward lair-count rules.
+  sprouted?: true;
   // Snapshot only. The growth ring: ms until the next tier-up and the length of the current wait
   // (fill = 1 - nextTierMs / tierSpanMs); null at the top tier or with no tier clock.
   nextTierMs?: number | null;
@@ -1237,10 +1239,18 @@ export interface NodeState {
   // The lair it lay under.
   lair: number;
   pos: Vec2;
-  state: 'locked' | 'freed';
+  state: 'locked' | 'freed' | 'defiled';
   // Ambrosia in the pool (0 while locked) and the most it holds.
   pool: number;
   max: number;
+  // Raiders have been at it since this time (corrupt.ts); the countdown to a defile.
+  threatSinceMs?: number;
+  // The raiders that stayed to hold it while defiled.
+  defilers?: number[];
+  // Time a hero or guard has stood on a defiled node with no foe near (the cleanse).
+  cleanseMs?: number;
+  // A lair will sprout here at this time (warned ahead).
+  sproutAtMs?: number;
 }
 
 // Celestial nodes and Ambrosia (nodes.ts). Off: no nodes, nothing changes.
@@ -1278,6 +1288,22 @@ export interface NodesTuning {
   templeCost: readonly number[];
   offeringCost: number;
   recallCost: number;
+  // Losing a node (corrupt.ts): raiders within defileRange stop, and after defileCountdownMs the
+  // node is defiled with `defilers` of them left behind. Cleansing: a hero or guard within
+  // cleanseRange for cleanseMs with no foe within cleanseFoeRange. From sproutFromMs a lair may
+  // sprout on a free node (warned sproutWarnMs ahead), at most sproutMax a run and one per
+  // sproutEveryMs; a sprouted lair's node reopens with its pool x sproutPoolMult.
+  defileRange: number;
+  defileCountdownMs: number;
+  defilers: number;
+  cleanseRange: number;
+  cleanseMs: number;
+  cleanseFoeRange: number;
+  sproutFromMs: number;
+  sproutWarnMs: number;
+  sproutEveryMs: number;
+  sproutMax: number;
+  sproutPoolMult: number;
   escortGold: readonly number[];
   guardCost: number;
   guardPerTower: readonly number[];
@@ -1486,6 +1512,10 @@ export type SimEvent =
   | { kind: 'jarStolen'; thief: number; victim: number; amount: number }
   | { kind: 'jarTaken'; jar: number; unit: number; amount: number }
   | { kind: 'workerFell'; unit: number; pos: Vec2; carried: number }
+  | { kind: 'nodeThreat'; node: number; inMs: number }
+  | { kind: 'nodeDefiled'; node: number; defilers: number[] }
+  | { kind: 'lairSprouting'; node: number; inMs: number }
+  | { kind: 'lairSprouted'; node: number; lair: number }
   | { kind: 'nodeFreed'; node: number; lair: number; pos: Vec2; pool: number }
   | { kind: 'lairDestroyed'; lair: number; type: string; by: number; bounty: number }
   | { kind: 'buildingDestroyed'; building: number; type: string }

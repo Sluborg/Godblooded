@@ -126,10 +126,12 @@ export function attackLair(
     const tm = world.tuning.monster;
     world.lairs = world.lairs.filter((l) => l.id !== lair.id);
     world.lairRuntime.delete(lair.id);
-    world.stats.lairsDestroyed++;
+    if (!lair.sprouted) world.stats.lairsDestroyed++;
     earn(world, unit, tm.lairBounty, true);
     tally(world, unit.id, 'lairKills');
-    world.lairLog.push({ lair: lair.id, type: lair.type, timeMs: world.timeMs, by: unit.id });
+    if (!lair.sprouted) {
+      world.lairLog.push({ lair: lair.id, type: lair.type, timeMs: world.timeMs, by: unit.id });
+    }
     world.events.push({
       kind: 'lairDestroyed',
       lair: lair.id,
@@ -145,7 +147,7 @@ export function attackLair(
     const won =
       world.bossLair !== null
         ? lair.id === world.bossLair
-        : (world.data.lairSites?.length ?? 0) > 0 && world.lairs.length === 0;
+        : (world.data.lairSites?.length ?? 0) > 0 && world.lairs.every((l) => l.sprouted);
     if (won) {
       world.status = 'won';
       world.events.push({ kind: 'won' });
