@@ -71,11 +71,11 @@ Review (PR open), Done. A worker takes its top Open row.
 | 380   | Raids: warning event, raid after lair tier-up, raid shapes by role, town cheer gold (`docs/systems/events.md`)                                                     | Done   |
 | 390   | Omens: clock and deck, OmenDef rows, effects as tuning overrides, spawns, free bounty                                                                              | Review |
 | 400   | Gods act on their own: favour bars per pantheon, automatic miracle in the most-hurt fight, `miracle` event (`events.md`)                                           | Done   |
-| 410   | Build and upgrade time (5 s) and repair (`docs/systems/buildings.md`); ruins, town hall gating and Hearth Hall wait on Stefan                                      | Open   |
-| 420   | Shrine tier values and tower warning by tier                                                                                                                       | Open   |
-| 430   | Monster skills through the skill engine (`owner: monster`), after 240                                                                                              | Open   |
+| 410   | Build and upgrade time (5 s) and repair (`docs/systems/buildings.md`); ruins, town hall gating and Hearth Hall wait on Stefan                                      | Review |
+| 420   | Shrine tier values and tower warning by tier                                                                                                                       | Review |
+| 430   | Monster skills through the skill engine (`owner: monster`), after 240                                                                                              | Review |
 | 440   | Boss moves (breath, heads, swallow), boss by lean pantheon (waits on Stefan, boss picks)                                                                           | Done   |
-| 450   | Run stats: gear levels, items bought, tax by shop; curve beats (first party, first tier 2, first lair fall, first tier 3)                                          | Open   |
+| 450   | Run stats: gear levels, items bought, tax by shop; curve beats (first party, first tier 2, first lair fall, first tier 3)                                          | Review |
 | 460   | Bosses by pantheon: `bossesByPantheon` (2 each), seeded pick, no repeat via meta `lastBoss`; moves for the 5 new bosses                                            | Review |
 | 470   | Late recruits: parties below level 3 take new heroes; `hallJoinBelowLevel` with the Hearth Hall                                                                    | Review |
 | 480   | Meta: Essence per run and the Altar upgrades (`meta.md`), meta save                                                                                                | Review |
