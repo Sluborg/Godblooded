@@ -22,6 +22,7 @@ describe('skin variants', () => {
 describe('unit picture ids', () => {
   it('always names the front picture, for heroes and monsters, whatever the tier', () => {
     expect(unitArtId('hero', 'warrior', 1)).toBe('hero_warrior_t1_front');
+    expect(unitArtId('collector', 'collector', 1)).toBe('npc_collector_t1_front');
     expect(unitArtId('monster', 'draugr', 3)).toBe('mon_draugr_t3_front');
     expect(unitArtId('monster', 'jackal-man', 2)).toBe('mon_jackal-man_t2_front');
     expect(unitArtId('summon', 'falcon', 1)).toBe('sum_falcon_t1_front');
