@@ -2,12 +2,12 @@
 
 **One style (Stefan, playtest run 2, 2026-10-14):** every batch follows the new `STYLE.md`
 (the painted buildings are the anchor). The big-head cartoon batches are Void. **Ready (Stefan's
-go 2026-10-14): U1B, B13.** G1 is Draft (reworked into a parts kit test). Every other batch stays Draft until Stefan says go for it. Then take the first **Ready** batch of **your track** that is not in the upload
+go 2026-10-14): U1B, B13, G1 (the parts kit test only).** Every other batch stays Draft until Stefan says go for it. Then take the first **Ready** batch of **your track** that is not in the upload
 log; never a **Draft** (Art is still waiting on Stefan). Art sets a batch to Done when its images are shipped.
 
 | Batch | Track     | File     | What                                                                | Images | Status |
 | ----- | --------- | -------- | ------------------------------------------------------------------- | ------ | ------ |
-| G1    | heroes    | `G1.md`  | Hero parts kit test: Grim's segments sheet, axe icon, portrait      | 4      | Draft  |
+| G1    | heroes    | `G1.md`  | Hero parts kit test: Grim's segments sheet, axe icon, portrait      | 4      | Ready  |
 | G2    | heroes    | `G2.md`  | Aesir paths t2 in the one style (after G1)                          | 8      | Draft  |
 | G3    | heroes    | `G3.md`  | Town folk: tax reeve with ledger and coin chest, gatherer, guard    | 3      | Draft  |
 | G4    | buildings | `G4.md`  | Ground patches under buildings and lairs                            | 2      | Draft  |

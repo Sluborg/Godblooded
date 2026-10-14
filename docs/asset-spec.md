@@ -112,8 +112,9 @@ serves the near and far side (code darkens the far one about 20%; an optional `_
 replace it).
 
 **Segments:** torso (with hips), head (a beard is part of the head), headgear (hood, helmet or
-hair over the head; optional), cloak (behind; code sways it), upperarm, forearm (with the hand
-and sleeve), thigh, shin (with the boot), weapon (main hand), offhand (shield or a second weapon).
+hair over the head; optional), cloak (behind; code sways it), upperarm, forearm, hand, thigh,
+shin, boot, weapon (main hand), offhand (shield or a second weapon). Hands and boots are their
+own parts, so the same art serves both rigs (bending limbs, or floating hands and feet).
 
 **Pivots** are `[fx, fy]` fractions of the part's rectangle (x right, y down), on the segment's
 centre line. Bone lengths come from the pictures (joint to next joint).
@@ -125,9 +126,11 @@ centre line. Bone lengths come from the pictures (joint to next joint).
 | headgear | `brow`                                                               |
 | cloak    | `clasp` (top; the hem is free)                                       |
 | upperarm | `shoulder` (top), `elbow` (bottom)                                   |
-| forearm  | `elbow` (top), `wrist` (bottom; the grip point inside the hand)      |
+| forearm  | `elbow` (top), `wrist` (bottom)                                      |
+| hand     | `wrist`, `grip` (inside the fist)                                    |
 | thigh    | `hip` (top), `knee` (bottom)                                         |
-| shin     | `knee` (top), `ground` (the sole under the ankle)                    |
+| shin     | `knee` (top), `ankle` (bottom)                                       |
+| boot     | `ankle`, `ground` (the sole under the ankle)                         |
 | weapon   | `grip`; drawn pointing straight up, tip at the top                   |
 | offhand  | `strap` (shield) or `grip` (second weapon)                           |
 
@@ -137,7 +140,7 @@ separate art: per-segment scale factors and socket offsets in Scene's data, appl
 layer of that segment.
 
 **Worn items:** an item's worn part is a **layer** with the same cell size and the same pivots as
-the base segment it covers (chest = torso, bracer or glove = forearm, boots = shin, trousers =
+the base segment it covers (chest = torso, bracer = forearm, glove = hand, boots = boot, trousers =
 thigh, helm = headgear, cloak = cloak, weapon = weapon), drawn over it with the same transform.
 Magenta stays the only key colour. Each item also gets an icon still `ui_item_<item>`.
 
