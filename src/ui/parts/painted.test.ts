@@ -4,6 +4,7 @@ import {
   HIP,
   bodyPoint,
   kitComplete,
+  kitScale,
   layout,
   solveTwoBone,
   type Kit,
@@ -131,5 +132,12 @@ describe('kitFor', () => {
     expect(kitFor('odin-seer_t2')).toBe(kitFor('odin_t1'));
     expect(kitFor('odin-seer_t3')).toBe(kitFor('odin_t1'));
     expect(kitFor('thor_t1')).toBeUndefined();
+  });
+});
+
+describe('kitScale', () => {
+  it('maps the 44 unit painted figure to the code figure height (32 units at usc)', () => {
+    expect(kitScale(0.86) * 44).toBeCloseTo(32 * 0.86, 6);
+    expect(kitScale(0.86 * 1.3) * 44).toBeCloseTo(32 * 0.86 * 1.3, 6);
   });
 });

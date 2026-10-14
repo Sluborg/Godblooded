@@ -70,6 +70,9 @@ export const kitComplete = (parts: PartMap): boolean => KIT_REQUIRED.every((s) =
 export const HIP = { x: 0, y: -21 } as const;
 // The prototype's joints are for a 32 unit hero; the painted figure is 44 units.
 export const PROTO_K = 44 / 32;
+// A painted hero is 44 drawing units tall, the prototype's code hero 32 (before its own scale
+// `codeScale`, usc in proto.gen.ts): the factor that gives both the same on-screen size.
+export const kitScale = (codeScale: number): number => (codeScale * 32) / 44;
 
 // A point in a part's picture as a point in drawing units, given where its anchor pivot sits.
 function offsetIn(

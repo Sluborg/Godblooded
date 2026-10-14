@@ -4,8 +4,8 @@
 // scale, one canvas per look (not one per frame), and looks nobody uses any more are released.
 import Phaser from 'phaser';
 import type { PartsDef } from '../../data/heroParts';
-import { drawHuman, pose as rigPose, setState } from './proto.gen';
-import { drawKit, layout } from './painted';
+import { drawHuman, pose as rigPose, setState, usc } from './proto.gen';
+import { drawKit, kitScale, layout } from './painted';
 import { kitOf } from './paintedLoad';
 import { gradePixels } from './partsStyle';
 import {
@@ -95,7 +95,12 @@ export function ensureHeroSet(scene: Phaser.Scene, id: string, def: PartsDef, ti
       };
       if (kit) {
         const p = rigPose(u);
+        // The same on-screen size as the code look: the painted figure is 44 units tall, the
+        // prototype's is 32, drawn at usc(u) (its scale and the 0.86 unit scale).
+        c.save();
+        c.scale(kitScale(usc(u)), kitScale(usc(u)));
         drawKit(c, layout(kit, p, p.armF > 2.0 && u.atkT >= 0), p);
+        c.restore();
       } else drawHuman(u);
       setState({ ctx: null });
       c.restore();
