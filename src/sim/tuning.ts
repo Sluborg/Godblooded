@@ -193,6 +193,12 @@ export const DEFAULT_TUNING: Tuning = {
     dangerHp: 0.5,
     tellMs: 1500,
   },
+  trait: {
+    braveChargeMs: 3_000,
+    braveChargeSpeed: 0.2,
+    cowardHangBack: 60,
+    loyalGuardRange: 50,
+  },
   collector: {
     enabled: false,
     perHallTier: 1,
@@ -284,7 +290,8 @@ export const DEFAULT_TUNING: Tuning = {
     freshFlagMs: 10_000,
     considerShare: 0.7,
     greedyGoldMult: 1.5,
-    curiousGoldMult: 1.2,
+    // Curious loses its gold bonus for a love of the unknown (hero-ai.md section 4, Stefan).
+    curiousGoldMult: 1,
     braveFearMult: 0.5,
     cowardFearMult: 2,
     proudMinGold: 40,
@@ -310,6 +317,7 @@ export function resolveTuning(data: GameData): Tuning {
     role: { ...DEFAULT_TUNING.role, ...t?.role },
     favour: { ...DEFAULT_TUNING.favour, ...t?.favour },
     town: { ...DEFAULT_TUNING.town, ...t?.town },
+    trait: { ...DEFAULT_TUNING.trait, ...t?.trait },
     collector: { ...DEFAULT_TUNING.collector, ...t?.collector },
     nodes: { ...DEFAULT_TUNING.nodes, ...t?.nodes },
     bounty: { ...DEFAULT_TUNING.bounty, ...t?.bounty },

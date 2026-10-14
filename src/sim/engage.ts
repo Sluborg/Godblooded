@@ -23,6 +23,10 @@ export function noteFight(
   // A fresh fight resets what passives count per fight.
   if (starting) rt.fight = { kills: 0, missUsed: false, strikes: 0 };
   if (foeRt && foeFresh) foeRt.fight = { kills: 0, missUsed: false, strikes: 0 };
+  // A brave hero charges into a fight it was not in (hero-ai.md section 4).
+  if (starting && unit.trait === 'brave') {
+    rt.chargeUntilMs = world.timeMs + world.tuning.trait.braveChargeMs;
+  }
   rt.fightUntilMs = world.timeMs + t.fightGapMs;
   if (foeRt) foeRt.fightUntilMs = Math.max(foeRt.fightUntilMs ?? 0, world.timeMs + t.fightGapMs);
   // Only when both sides are meeting for the first time: a unit joining a running fight keeps its
