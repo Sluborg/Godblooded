@@ -1,3 +1,4 @@
+import { noteHeroArrived } from './facts';
 import { payIntoTill, payTithe } from './collector';
 import { escortHeldBy, escortOpenTo } from './escort';
 import { lairSealed, nearSealedLair } from './boss';
@@ -74,6 +75,12 @@ export function spawnHero(world: World, godId: string, pos: Vec2, temple = 0): n
   const hero = world.units[world.units.length - 1];
   hero.party = newParty(world, id);
   world.stats.heroesArrived++;
+  // The Altar's Seasoned Blood: the first party of the run starts with some XP.
+  if (world.stats.heroesArrived === 1) {
+    const party = world.parties.get(hero.party);
+    if (party) party.xp += world.tuning.party.firstPartyXp;
+  }
+  noteHeroArrived(world, god?.pantheon);
   world.events.push({ kind: 'arrived', unit: id, type: cls.id, god: god?.id ?? null });
   return id;
 }
@@ -90,7 +97,10 @@ export function runTemples(world: World): void {
     const bt = world.tuning.building;
     world.templeNextMs.set(
       b.id,
-      world.timeMs + tune(world).recruitMs * tierValue(bt.templeRecruitMult, b.tier, 1),
+      world.timeMs +
+        tune(world).recruitMs *
+          tierValue(bt.templeRecruitMult, b.tier, 1) *
+          (tune(world).pantheonRecruitMult[pantheonOf(world, b.type) ?? ''] ?? 1),
     );
     let alive = 0;
     for (const rt of world.heroRuntime.values()) if (rt.temple === b.id) alive++;
