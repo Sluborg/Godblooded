@@ -51,6 +51,7 @@ import {
 } from './boss';
 import { buildReport, sampleGold, tally, type HeroRecord } from './runstats';
 import { collectorFell, runCollector } from './collector';
+import { offering, recallFallen, upgradeWithAmbrosia } from './ambrosia';
 import { placeEscort, runEscorts } from './escort';
 import { guardFell, guardStats, runGuard, sendGuard } from './guards';
 import { dropStolenJar } from './workers';
@@ -1084,6 +1085,12 @@ export function command(world: World, cmd: Command): CommandResult {
     }
     case 'hireGatherer':
       return hireGatherer(world);
+    case 'upgradeWithAmbrosia':
+      return upgradeWithAmbrosia(world, cmd.building);
+    case 'offering':
+      return offering(world, cmd.building);
+    case 'recallFallen':
+      return recallFallen(world, cmd.building, cmd.grave);
     case 'placeEscort':
       return placeEscort(world, cmd.unit, cmd.gold);
     case 'sendGuard':
