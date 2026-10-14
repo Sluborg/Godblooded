@@ -1,5 +1,5 @@
 import { resolveTuning } from './tuning';
-import type { GameData, RunReport } from './types';
+import type { GameData, PlayInputs, RunReport } from './types';
 
 // The meta layer between runs (docs/systems/meta.md): Essence earned from a RunReport, the Altar's
 // permanent upgrades, goal unlocks, the Saga and Trials. Pure functions over a MetaState (the
@@ -584,7 +584,22 @@ export function playData(
   if (out.mapRules && meta.lean && pantheonsOf(data, meta).includes(meta.lean)) {
     out = { ...out, mapRules: { ...out.mapRules, forceLean: meta.lean } };
   }
-  return out;
+  return {
+    ...out,
+    play: {
+      unlocks: [...meta.unlocks],
+      altar: { ...meta.altar },
+      lean: meta.lean,
+      trials: [...trials],
+      ...(opts.devUnlockAll ? { devUnlockAll: true } : {}),
+    },
+  };
+}
+
+// The data a saved run was played on, rebuilt from the base data and the inputs it kept.
+export function replayPlay(data: GameData, play: PlayInputs): GameData {
+  const meta = { ...emptyMeta(), unlocks: play.unlocks, altar: play.altar, lean: play.lean };
+  return playData(data, meta, play.trials, { devUnlockAll: play.devUnlockAll });
 }
 
 // ---- After a run --------------------------------------------------------------------------
