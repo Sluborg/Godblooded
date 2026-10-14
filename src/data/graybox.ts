@@ -80,6 +80,7 @@ export const GODS: readonly GodDef[] = [
     pantheon: 'aesir',
     name: 'Odin',
     template: 'wizard',
+    builds: ['tall', 'lean'],
     damageType: 'death',
     passive: {
       id: 'allfather-eye',
@@ -92,6 +93,7 @@ export const GODS: readonly GodDef[] = [
     pantheon: 'aesir',
     name: 'Thor',
     template: 'warrior',
+    builds: ['broad', 'short'],
     passive: {
       id: 'giant-bane',
       name: 'Giant-Bane',
@@ -103,6 +105,7 @@ export const GODS: readonly GodDef[] = [
     pantheon: 'aesir',
     name: 'Loki',
     template: 'rogue',
+    builds: ['lean', 'short'],
     passive: {
       id: 'slippery',
       name: 'Slippery',
@@ -114,6 +117,7 @@ export const GODS: readonly GodDef[] = [
     pantheon: 'aesir',
     name: 'Freyja',
     template: 'healer',
+    builds: ['lean', 'broad'],
     damageType: 'holy',
     passive: {
       id: 'chooser',
@@ -860,6 +864,89 @@ export const ITEMS: readonly ItemDef[] = [
         robe: { armour: 2, wp: 7 },
       },
     },
+  },
+  // Headgear and off-hand (hero-kit.md section 2): headgear about a third of the armour row by
+  // kit, an off-hand a shield's armour for the heavy kit plus a focus's power and a second blade's
+  // crit for everyone (one row per level until rows can name a kit or a family); about half the
+  // armour price. Bot (human, seeds 1 and 1001, 40 runs): wins 60% and 60% (50% and 63% without);
+  // the cheap level 1 pieces come first, so weapon and armour at 8:00 drop to 0.5 and 0.3.
+  {
+    id: 'headgear-1',
+    slot: 'headgear',
+    level: 1,
+    name: 'Plain',
+    price: 10,
+    shop: 'smithy',
+    shopTier: 1,
+    effects: {
+      kits: {
+        heavy: { armour: 1, wp: 0 },
+        light: { armour: 1, wp: 0 },
+        robe: { armour: 0, wp: 1 },
+      },
+    },
+  },
+  {
+    id: 'headgear-2',
+    slot: 'headgear',
+    level: 2,
+    name: 'Fine',
+    price: 65,
+    shop: 'smithy',
+    shopTier: 2,
+    effects: {
+      kits: {
+        heavy: { armour: 3, wp: 0 },
+        light: { armour: 1, wp: 1 },
+        robe: { armour: 0, wp: 1 },
+      },
+    },
+  },
+  {
+    id: 'headgear-3',
+    slot: 'headgear',
+    level: 3,
+    name: 'Godwrought',
+    price: 140,
+    shop: 'smithy',
+    shopTier: 3,
+    effects: {
+      kits: {
+        heavy: { armour: 4, wp: 1 },
+        light: { armour: 2, wp: 1 },
+        robe: { armour: 1, wp: 2 },
+      },
+    },
+  },
+  {
+    id: 'offhand-1',
+    slot: 'offhand',
+    level: 1,
+    name: 'Plain',
+    price: 10,
+    shop: 'smithy',
+    shopTier: 1,
+    effects: { kits: { heavy: { armour: 1, wp: 0 } }, power: 1, crit: 0.03 },
+  },
+  {
+    id: 'offhand-2',
+    slot: 'offhand',
+    level: 2,
+    name: 'Fine',
+    price: 65,
+    shop: 'smithy',
+    shopTier: 2,
+    effects: { kits: { heavy: { armour: 3, wp: 0 } }, power: 2, crit: 0.05 },
+  },
+  {
+    id: 'offhand-3',
+    slot: 'offhand',
+    level: 3,
+    name: 'Godwrought',
+    price: 140,
+    shop: 'smithy',
+    shopTier: 3,
+    effects: { kits: { heavy: { armour: 4, wp: 0 } }, power: 3, crit: 0.08 },
   },
   {
     id: 'healing',
