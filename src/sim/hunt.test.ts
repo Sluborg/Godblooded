@@ -373,6 +373,8 @@ describe('tithe', () => {
     expect(h.gold).toBe(9);
     expect(w.gold).toBe(3);
     expect(w.stats.taxCollected).toBe(3);
+    // the hero's record counts the 9 that reached the purse
+    expect(w.heroRecords.get(h.id)?.goldEarned).toBe(9);
     expect(ev.filter((e) => e.kind === 'tithe')).toEqual([{ kind: 'tithe', unit: h.id, gold: 3 }]);
   });
 
