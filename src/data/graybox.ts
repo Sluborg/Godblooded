@@ -566,15 +566,16 @@ export const MONSTERS: readonly MonsterDef[] = [
 // Lairs from docs/systems/monsters-and-bosses.md section 4; the wyrm nest is the boss lair (the
 // run is won when it falls) and spawns draugr guards. Balance passes (Lead 80, 90 and the human-bot
 // pass): big lairs 4800 hp, small 2400-2800, the nest 8000 (spec 9000 and 16000). Playtest trim for
-// collision and the live verbs: non-boss lairs at 70% (big 4200, small 2100-2450).
+// collision and the live verbs: non-boss lairs at 70% (big 4200, small 2100-2450). With the omen
+// deck and elites: 60% (big 3600, small 1800-2100).
 export const LAIRS: readonly LairDef[] = [
-  { id: 'barrow', monster: 'draugr', spawnS: 10, maxAlive: 6, hp: 2450 },
-  { id: 'troll-den', monster: 'troll', spawnS: 25, maxAlive: 4, hp: 4200 },
-  { id: 'harpy-roost', monster: 'harpy', spawnS: 9, maxAlive: 6, hp: 2100 },
-  { id: 'jackal-camp', monster: 'jackal-man', spawnS: 10, maxAlive: 6, hp: 2450 },
-  { id: 'labyrinth', monster: 'minotaur', spawnS: 24, maxAlive: 4, hp: 4200 },
-  // The swarm role doubles maxAlive: 10 scarabs at tier 1; 70% hp like the other small lairs.
-  { id: 'scarab-pit', monster: 'scarab', spawnS: 6, maxAlive: 5, hp: 2100 },
+  { id: 'barrow', monster: 'draugr', spawnS: 10, maxAlive: 6, hp: 2100 },
+  { id: 'troll-den', monster: 'troll', spawnS: 25, maxAlive: 4, hp: 3600 },
+  { id: 'harpy-roost', monster: 'harpy', spawnS: 9, maxAlive: 6, hp: 1800 },
+  { id: 'jackal-camp', monster: 'jackal-man', spawnS: 10, maxAlive: 6, hp: 2100 },
+  { id: 'labyrinth', monster: 'minotaur', spawnS: 24, maxAlive: 4, hp: 3600 },
+  // The swarm role doubles maxAlive: 10 scarabs at tier 1; 60% hp like the other small lairs.
+  { id: 'scarab-pit', monster: 'scarab', spawnS: 6, maxAlive: 5, hp: 1800 },
   { id: 'wyrm-nest', monster: 'wyrm', spawnS: 30, maxAlive: 3, hp: 8000, escort: 'draugr' },
   // The other boss lairs at the nest's 8000 (spec 16000); guards per section 4 until their pass.
   {
@@ -1022,8 +1023,10 @@ export const ITEMS: readonly ItemDef[] = [
 
 // The omen deck (docs/systems/events.md section 2): announced 20 s ahead, one at a time, first at
 // 3:00 then every 100-140 s; the lean pantheon's omens weigh double.
-// Bot pass with elites (human bot, seeds 1 and 1001, 40 runs each): wins 57% and 68% (without
-// omens and elites 68% and 83%).
+// Bot pass on the full stack (late recruits, boss call, trim; human bot, seeds 1 and 1001, 40
+// runs, 35-min cap): with the deck and elites and non-boss lairs at 60%, wins 65% and 65%; at 70%
+// lairs 48% and 68% (57% and 73% without omens and elites). A later first omen, no elites or a
+// later first raid did not lift seed 1 above 53%.
 export const OMENS: readonly OmenDef[] = [
   {
     id: 'fallen-star',
