@@ -2,7 +2,8 @@
 
 **One style (Stefan, playtest run 2, 2026-10-14):** every batch follows the new `STYLE.md`
 (the painted buildings are the anchor). The big-head cartoon batches are Void. **Ready (Stefan's
-go 2026-10-14): B13, G1 (the parts kit test only), G3 (the reeve), B19-B24, V2.** Every other batch stays Draft until Stefan says go for it. Then take the first **Ready** batch of **your track** that is not in the upload
+go 2026-10-14, "go with all"): every batch marked Ready below.** G2 waits for the G1
+kit test. Every other batch stays Draft until Stefan says go for it. Then take the first **Ready** batch of **your track** that is not in the upload
 log; never a **Draft** (Art is still waiting on Stefan). Art sets a batch to Done when its images are shipped.
 
 | Batch | Track     | File     | What                                                                | Images | Status |
@@ -17,9 +18,9 @@ log; never a **Draft** (Art is still waiting on Stefan). Art sets a batch to Don
 | V2    | monsters  | `V2.md`  | Redo minotaur t1: a real two-handed grip                            | 1      | Ready  |
 | G1    | heroes    | `G1.md`  | Hero parts kit test: Grim's segments sheet, axe icon, portrait      | 4      | Ready  |
 | G2    | heroes    | `G2.md`  | Aesir paths t2 in the one style (after G1)                          | 8      | Draft  |
-| G3    | heroes    | `G3.md`  | Tax reeve as a parts kit, with portrait (gatherer, guard later)     | 3      | Ready  |
-| G4    | buildings | `G4.md`  | Ground patches under buildings and lairs                            | 2      | Draft  |
-| G5    | ui        | `G5.md`  | Title key art in the one style, crisp (after G1)                    | 1      | Draft  |
+| G3    | heroes    | `G3.md`  | Tax reeve as a parts kit, with portrait (gatherer, guard: G6)      | 3      | Ready  |
+| G6    | heroes    | `G6.md`  | Town folk kits: gatherer and guard, with portraits (after G3)       | 4      | Ready  |
+| G4    | buildings | `G4.md`  | Ground patches under buildings and lairs                            | 2      | Ready  |
 | S5    | heroes    | `S5.md`  | Style test: cartoon units from parts, temple, barrow (first)        | 8      | Void   |
 | V1    | monsters  | `V1.md`  | Monster variants: draugr, harpy, jackal-man, minotaur -v2, -v3      | 8      | Done   |
 | A1    | heroes    | `A1.md`  | Aesir gods t1 (Odin, Thor, Loki, Freyja) and their 8 paths t2       | 12     | Done   |
@@ -28,14 +29,15 @@ log; never a **Draft** (Art is still waiting on Stefan). Art sets a batch to Don
 | A2    | heroes    | `A2.md`  | Aesir paths tier 3 as parts sheets (after H2)                       | 8      | Void   |
 | U1    | ui        | `U1.md`  | Logo and app icon: three options                                    | 6      | Done   |
 | U1B   | ui        | `U1B.md` | Logo option B revised: fixed khopesh, Greek spear, calmer sun, drop | 4      | Void   |
-| U1C   | ui        | `U1C.md` | Logo and app icon, simple: carved disc, gold drop, wordmark         | 2      | Draft  |
-| U8    | ui        | `U8.md`  | UI kit in carved oak and parchment: panel, 3 buttons, 9 icons       | 13     | Draft  |
+| U1C   | ui        | `U1C.md` | Logo and app icon, simple: carved disc, gold drop, wordmark         | 2      | Ready  |
+| U8    | ui        | `U8.md`  | UI kit in carved oak and parchment: panel, 3 buttons, 9 icons       | 13     | Ready  |
+| G5    | ui        | `G5.md`  | Title key art in the one style, crisp                               | 1      | Ready  |
 | U2    | ui        | `U2.md`  | UI kit: 9-slice panel, buttons (3 states), 9 icons, after U1        | 13     | Done   |
 | U3    | ui        | `U3.md`  | Splash key art: Godbloods facing a monster horde at dusk            | 1      | Done   |
 | U4    | ui        | `U4.md`  | Item icons: sword, focus, armour, 2 potions, 6 charms (after U2)    | 11     | Done   |
-| U5    | ui        | `U5.md`  | Rider icons (5) and status signs (3), after U2                      | 8      | Draft  |
-| U6    | ui        | `U6.md`  | Card frames (iron, bronze, gold), 5 family icons, 3 sigils          | 11     | Draft  |
-| U7    | ui        | `U7.md`  | Omen icons (8), after U2                                            | 8      | Draft  |
+| U5    | ui        | `U5.md`  | Rider icons (5) and status signs (3), after U2                      | 8      | Ready  |
+| U6    | ui        | `U6.md`  | Card frames (iron, bronze, gold), 5 family icons, 3 sigils          | 11     | Ready  |
+| U7    | ui        | `U7.md`  | Omen icons (8), after U2                                            | 8      | Ready  |
 | S4    | heroes    | `S4.md`  | Chunky test: warrior, duelist, oracle, draugr, troll (priority)     | 5      | Done   |
 | S3    | heroes    | `S3.md`  | Storm Berserker t1 in concept style: idle, walk, attack, hurt       | 9      | Void   |
 | S2    | heroes    | `S2.md`  | Animation test: warrior walk, attack, hurt frames (priority)        | 8      | Done   |
