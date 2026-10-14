@@ -64,7 +64,7 @@ export class HintDirector {
     for (const e of events) {
       const r = hintsFromEvent(e as unknown as { kind: string }, (id) => ITEM_SLOT.get(id));
       this.engine.skip(...r.skip);
-      for (const f of r.fire) this.engine.fire(f.trigger, f.unit);
+      for (const f of r.fire) this.engine.fire(f.trigger, f.unit, f.at ?? null);
     }
   }
 
@@ -144,7 +144,7 @@ export class HintDirector {
       );
       return;
     }
-    const p = hintTargetPos(s.def.target, snap, s.unit);
+    const p = hintTargetPos(s.def.target, snap, s.unit, s.at);
     if (!p) return;
     const c = this.toScreen(p);
     if (c.y < 72) return; // under the HUD bar

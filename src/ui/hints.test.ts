@@ -131,7 +131,14 @@ describe('hintsFromEvent', () => {
       { trigger: 'arrived', unit: 5 },
     ]);
     expect(hintsFromEvent({ kind: 'partyFormed', members: [7, 8] }).fire[0].unit).toBe(7);
-    expect(hintsFromEvent({ kind: 'raid' }).fire[0].trigger).toBe('raid');
+    expect(hintsFromEvent({ kind: 'slain', unit: 3, pos: { x: 4, y: 5 } }).fire).toEqual([
+      { trigger: 'slain', unit: 3, at: { x: 4, y: 5 } },
+    ]);
+    expect(hintsFromEvent({ kind: 'raidWarning', from: { x: 1, y: 2 } }).fire[0].at).toEqual({
+      x: 1,
+      y: 2,
+    });
+    expect(hintsFromEvent({ kind: 'raidWarning' }).fire[0].trigger).toBe('raidWarning');
     expect(hintsFromEvent({ kind: 'nothing' })).toEqual({ fire: [], skip: [] });
   });
   it('tier-up hints are for tier 2 only; gear hints only for a weapon or armour purchase', () => {

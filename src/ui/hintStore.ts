@@ -26,3 +26,16 @@ export function saveSeen(seen: ReadonlySet<string>): void {
 export function clearSeen(): void {
   saveSeen(new Set());
 }
+
+// Counts finished runs on this device; true for the first one (the end screen's first-run line).
+export const RUNS_KEY = 'godblooded.runsEnded.v1';
+
+export function markRunEnded(): boolean {
+  try {
+    const n = Number(localStorage.getItem(RUNS_KEY) ?? 0);
+    localStorage.setItem(RUNS_KEY, String(n + 1));
+    return !(n > 0);
+  } catch {
+    return false; // storage blocked: no first-run line
+  }
+}

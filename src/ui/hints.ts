@@ -1,3 +1,5 @@
+import type { Vec2 } from '../sim/api';
+
 // The hint engine (docs/systems/onboarding.md, hint-texts.md): teach by pointing, one hint at a
 // time. Pure rules, no Phaser, so they are unit-tested; HintView draws the bubble and the pulse.
 
@@ -13,6 +15,8 @@ export type HintTarget =
   | { kind: 'monster' }
   | { kind: 'lair' }
   | { kind: 'flag' }
+  // The spot the event named (a grave, where a raid comes from).
+  | { kind: 'spot' }
   | { kind: 'ui'; id: string };
 
 export interface HintDef {
@@ -42,12 +46,15 @@ export interface ShownHint {
   def: HintDef;
   // The unit the triggering event named, if any.
   unit: number | null;
+  // The world spot the event named, if any (`spot` target).
+  at: Vec2 | null;
   shownAt: number;
 }
 
 interface Pending {
   def: HintDef;
   unit: number | null;
+  at: Vec2 | null;
 }
 
 // Decides which hint shows when. `now` is real time in ms. One hint shows at a time; it ends when
@@ -78,11 +85,11 @@ export class HintEngine {
   }
 
   // Something happened: a Sim event kind or a Scene condition id. `unit` names its unit.
-  fire(trigger: string, unit: number | null = null): void {
+  fire(trigger: string, unit: number | null = null, at: Vec2 | null = null): void {
     for (const def of this.defs) {
       if (def.trigger !== trigger || def.milestone > MILESTONE) continue;
       if (def.after) continue; // fires by time, see update()
-      this.queue(def, unit);
+      this.queue(def, unit, at);
     }
   }
 
@@ -95,10 +102,10 @@ export class HintEngine {
     }
   }
 
-  private queue(def: HintDef, unit: number | null): void {
+  private queue(def: HintDef, unit: number | null, at: Vec2 | null): void {
     if (this.seen.has(def.id) || this.pending.has(def.id) || this.current?.def.id === def.id)
       return;
-    this.pending.set(def.id, { def, unit });
+    this.pending.set(def.id, { def, unit, at });
   }
 
   // Dismiss the shown hint (a tap anywhere). Returns true if one was showing.
@@ -123,7 +130,7 @@ export class HintEngine {
     for (const def of this.defs) {
       if (!def.after || def.milestone > MILESTONE) continue;
       const at = this.shownAt.get(def.after.hint);
-      if (at !== undefined && now - at >= def.after.ms) this.queue(def, null);
+      if (at !== undefined && now - at >= def.after.ms) this.queue(def, null, null);
     }
     if (this.current) return this.current;
     let next: Pending | null = null;
@@ -135,7 +142,7 @@ export class HintEngine {
     const gap = next.def.group === 'beat' ? GAP_BEAT_MS : GAP_FIRST_MS;
     if (now - this.lastEnd < gap) return null;
     this.pending.delete(next.def.id);
-    this.current = { def: next.def, unit: next.unit, shownAt: now };
+    this.current = { def: next.def, unit: next.unit, at: next.at, shownAt: now };
     this.shownAt.set(next.def.id, now);
     return this.current;
   }
@@ -154,7 +161,7 @@ export function hintLines(def: HintDef): string[] {
 // What a Sim event means to the hint engine: triggers to fire (with the unit to point at) and
 // hints the event makes unnecessary (the player already did it).
 export interface HintFromEvent {
-  fire: { trigger: string; unit: number | null }[];
+  fire: { trigger: string; unit: number | null; at?: Vec2 }[];
   skip: string[];
 }
 
@@ -166,6 +173,10 @@ export function hintsFromEvent(
   itemSlot: (item: string) => string | undefined = () => undefined,
 ): HintFromEvent {
   const n = (v: unknown): number | null => (typeof v === 'number' ? v : null);
+  const atOf = (v: unknown): { at?: Vec2 } => {
+    const p = v as { x?: unknown; y?: unknown } | null | undefined;
+    return typeof p?.x === 'number' && typeof p.y === 'number' ? { at: { x: p.x, y: p.y } } : {};
+  };
   const f = (trigger: string, unit: unknown = null): HintFromEvent => ({
     fire: [{ trigger, unit: n(unit) }],
     skip: [],
@@ -175,9 +186,12 @@ export function hintsFromEvent(
     case 'knockout':
     case 'drank':
     case 'fled':
-    case 'slain':
     case 'bossEmerged':
       return f(e.kind, e.unit);
+    case 'slain':
+      return { fire: [{ trigger: 'slain', unit: n(e.unit), ...atOf(e.pos) }], skip: [] };
+    case 'raidWarning':
+      return { fire: [{ trigger: 'raidWarning', unit: null, ...atOf(e.from) }], skip: [] };
     case 'partyFormed':
       return f('partyFormed', Array.isArray(e.members) ? e.members[0] : null);
     case 'upgradePicked':
@@ -210,7 +224,6 @@ export function hintsFromEvent(
               : [],
       };
     case 'bountyPlaced':
-    case 'raid':
     case 'buildingDestroyed':
     case 'omen':
       return f(e.kind);

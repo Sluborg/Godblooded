@@ -64,12 +64,12 @@ export class SettingsScene extends Phaser.Scene {
       this.refresh();
     });
 
-    this.hintsBtn = makeButton(this, 880, 305, 190, 80, '', () => {
+    this.hintsBtn = makeButton(this, 870, 305, 190, 80, '', () => {
       updateSettings({ hintsOn: !getSettings().hintsOn });
       this.refresh();
       (this.scene.get('Hud') as HudScene | undefined)?.refreshHints();
     });
-    makeButton(this, 1090, 305, 190, 80, 'Show again', () => {
+    makeButton(this, 1110, 305, 220, 80, 'Show hints again', () => {
       clearSeen();
       this.hintsAgain.setAlpha(1);
       this.tweens.add({ targets: this.hintsAgain, alpha: 0, delay: 1200, duration: 400 });
