@@ -15,6 +15,8 @@ export interface BuildingDef {
   // Gold for tier 2 and tier 3 (index = current tier - 1). Missing: the building's cost times
   // tuning.building.upgradeCostMult.
   upgradeCost?: readonly number[];
+  // The Hearth Hall: a place heroes rest and parties form (hearth.ts). The id `hearth_hall` counts too.
+  hall?: true;
   // One plain line for the build menu and tooltips (Design, buildings.md). Display only.
   text?: string;
 }
@@ -558,6 +560,13 @@ export interface LairTuning {
 // indexed by tier - 1 (the last entry holds for higher tiers).
 export interface BuildingTuning {
   maxTier: number;
+  // The Hearth Hall (hearth.ts, buildings.md): heroes rest x hallRestMult there, parties merge within
+  // hallMergeRange, from tier 2 bonds grow x hallBondMult, at tier 3 a resting party gets
+  // hallHpBuff more max hp until it next rests.
+  hallRestMult: number;
+  hallMergeRange: number;
+  hallBondMult: number;
+  hallHpBuff: number;
   // Cost of the next tier as a multiple of the building's cost (index = current tier - 1).
   upgradeCostMult: number[];
   // Multiplies the building's hp (an upgrade adds the difference to its current hp).
