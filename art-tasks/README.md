@@ -40,6 +40,33 @@ is out of date. Nothing Ready for your track: say so and stop.
 says "reference: <file>", fetch that shipped image from the repo and match it exactly (face,
 proportions, colours), changing only what the batch asks.
 
+## Orders and replies (Art runs the chats)
+
+Stefan is out of the loop: **Art gives the orders, the chats answer Art.** Stefan's only phrase
+is **"follow system"** (below); everything he used to type is now an order.
+
+- **Orders:** `art-wake/orders/<track>.md` on branch `art-wake` (fetch raw with `?t=`). Art
+  appends numbered orders, `O-<n>: <what to do>` (for example "upload your withheld finals of
+  ui_item_axe", "remake kit_grim_test per G1.md", "run all", "pause track", "stop"). A push of an
+  order also rings the bell.
+- **Replies:** `art-inbox/replies/<track>.md` on branch `art-inbox` (create it if missing;
+  append only, same 409 rule as the upload log). After each order write one line:
+  `O-<n> | <date time> | done | <ids uploaded>` or `O-<n> | <date time> | skipped | <why>` or
+  `O-<n> | <date time> | question | <question>`.
+- **Your last done order** is the highest `O-<n>` in your replies file. Do every newer order, in
+  order, then continue with the first Ready batch of your track (`NEXT.md`).
+- **Questions go to Art, never to Stefan.** If an order or a batch is unclear or blocked, write
+  the question in replies, skip that item and go on with the next one. Never wait for an answer;
+  Art answers with a new order.
+- **"pause track"**: do nothing more for your track until an order says "resume". **"stop"**:
+  stop the current run after the image in hand is uploaded.
+
+**"follow system"** (Stefan's one phrase): forget earlier state and batches; fetch fresh
+`README.md`, `STYLE.md`, `QA.md`, `NEXT.md` and your orders file; set up or confirm the wake-up
+watch (pull request #3, new commits only); write `follow system | <date time> | watching` in your
+replies file; then work on your own from orders and `NEXT.md` until an order or Stefan says
+"stop".
+
 ## Wake-ups
 
 The draft pull request **Godblooded art wake** (https://github.com/Sluborg/Godblooded/pull/3,
@@ -52,11 +79,13 @@ branch `art-wake`) is the bell. Art pushes a commit to it when there is new work
   or merges, and **never the whole repository** (the repo has many pull requests a day; each
   event would start a run). If your watch cannot be limited to pull request #3, do not create
   it: tell Stefan instead.
-- When it fires, read **only** `art-wake/TRACKS.md` first. If your track is not listed, stop at
-  once: no other reads, no report.
-- If your track is listed: read the upload log. If the next batch of your track has a `started`
-  line from the **last 90 minutes** and no `uploaded` line, a run is already working on it: stop.
-  Otherwise do "run all".
+- When it fires, read **only** your orders file `art-wake/orders/<track>.md` (branch `art-wake`)
+  and `art-wake/TRACKS.md`. If there is no order newer than your last reply and your track is not
+  listed, stop at once: no other reads, no report.
+- Otherwise: do the new orders (see "Orders and replies"), then, if your track is listed, read
+  the upload log. If the next batch of your track has a `started` line from the **last 90
+  minutes** and no `uploaded` line, a run is already working on it: stop. Otherwise do "run
+  all".
 
 **No double work:** there is exactly **one chat per track**. When you start a batch, append
 `<batch> | <date time> | <track> | started` to `art-inbox/STATUS.md`.
@@ -71,7 +100,7 @@ branch `art-wake`) is the bell. Art pushes a commit to it when there is new work
   line is already there, and append it once if not. Never stop because of a conflict.
 - A direct command from Stefan always runs, even inside the 90 minutes; make each image once.
 
-## Commands from Stefan
+## Commands from Stefan (still work; prefer "follow system")
 
 - **"<track> start"** (e.g. "heroes start"): forget earlier batches and looks; remember the track;
   fetch fresh `STYLE.md`, `QA.md`, `NEXT.md`, `REDO.md`, `docs/asset-spec.md` and the batch file of
