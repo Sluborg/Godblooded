@@ -288,11 +288,11 @@ export const GREEK_SKILLS: readonly SkillDef[] = [
 
 ### Pantheon cards (need a Greek hero in the party)
 
-| Id      | Name    | Rarity | Effect                                                                                    |
-| ------- | ------- | ------ | ----------------------------------------------------------------------------------------- |
-| phalanx | Phalanx | common | +3 armour while 3 members stand within 100                                                |
-| kleos   | Kleos   | rare   | +50% gold from flags and lairs; a kill shout per kill, within the bark tempo (`barks.md`) |
-| metis   | Metis   | epic   | +10% crit; crits stagger                                                                  |
+| Id      | Name    | Rarity | Effect                                                                                                    |
+| ------- | ------- | ------ | --------------------------------------------------------------------------------------------------------- |
+| phalanx | Phalanx | common | +3 Sta; +3 armour while 3 members stand within 100                                                        |
+| kleos   | Kleos   | rare   | +2 Str, +2 Dex; +50% gold from flags and lairs; a kill shout per kill, within the bark tempo (`barks.md`) |
+| metis   | Metis   | epic   | +2 Dex, +2 Per; +10% crit; crits stagger                                                                  |
 
 ### Favour cards (level 7, one per god in the party, epic)
 
