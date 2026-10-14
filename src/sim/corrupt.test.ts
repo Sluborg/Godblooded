@@ -28,7 +28,10 @@ const data = (nodes: object = {}, third = false): GameData => ({
       xp: 10,
     },
   ],
-  lairs: [{ id: 'barrow', monster: 'draugr', spawnS: 100000, maxAlive: 1, hp: 60 }],
+  lairs: [
+    { id: 'barrow', monster: 'draugr', spawnS: 100000, maxAlive: 1, hp: 60 },
+    { id: 'roost', monster: 'draugr', spawnS: 100000, maxAlive: 1, hp: 60 },
+  ],
   lairSites: [
     { lair: 'barrow', pos: { x: 1000, y: 500 } },
     { lair: 'barrow', pos: { x: 1800, y: 900 } },
@@ -224,6 +227,24 @@ describe('sprouting lairs', () => {
     run(w, 60_000);
     expect(w.lairs.filter((l) => l.sprouted).length).toBeLessThanOrEqual(2);
     expect(w.sprouts).toBeLessThanOrEqual(2);
+  });
+
+  it('grow a lair of the run lean', () => {
+    const w = createWorld(1, data(fast, true));
+    (w.data as { mapRules?: unknown }).mapRules = {
+      pool: [
+        { lair: 'barrow', pantheon: 'aesir', weight: 1 },
+        { lair: 'roost', pantheon: 'greek', weight: 1 },
+      ],
+    };
+    w.mapLean = ['greek'];
+    step(w, 100);
+    free(w, 0);
+    free(w, 0);
+    free(w, 0);
+    run(w, 8_000);
+    const lair = w.lairs.find((l) => l.sprouted);
+    expect(lair?.type).toBe('roost');
   });
 
   it('a sprouted lair does not count when destroyed, and its node reopens x1.25', () => {

@@ -129,12 +129,31 @@ function sprout(world: World): void {
 }
 
 function growLair(world: World, node: NodeState): void {
-  const defs = (world.data.lairs ?? []).filter((d) => {
+  const regular = (world.data.lairs ?? []).filter((d) => {
     const mon = world.data.monsters?.find((m) => m.id === d.monster);
     return !d.escort && !mon?.tags?.includes('boss');
   });
-  if (defs.length === 0) return;
-  const def = defs[Math.floor(world.rng() * defs.length)];
+  if (regular.length === 0) return;
+  // A lair of the run's lean (the map pool rows carry the pantheon), weighted as the map is; with
+  // no lean or no pool, any regular lair.
+  const leaning = (world.data.mapRules?.pool ?? []).filter(
+    (e) => world.mapLean.includes(e.pantheon) && regular.some((d) => d.id === e.lair),
+  );
+  const pool =
+    leaning.length > 0
+      ? leaning.map((e) => ({ id: e.lair, weight: e.weight ?? 1 }))
+      : regular.map((d) => ({ id: d.id, weight: 1 }));
+  let roll = world.rng() * pool.reduce((a, e) => a + e.weight, 0);
+  let pick = pool[pool.length - 1];
+  for (const e of pool) {
+    roll -= e.weight;
+    if (roll < 0) {
+      pick = e;
+      break;
+    }
+  }
+  const def = regular.find((d) => d.id === pick.id);
+  if (!def) return;
   const lt = world.tuning.lair;
   const hp = Math.round(def.hp * tierValue(lt.hpMult, 1, 1));
   const id = world.nextId++;
