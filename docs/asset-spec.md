@@ -155,6 +155,8 @@ hyphens). An inventory item has one icon; the piece it shows when worn depends o
 | off-hand             | `ui_item_offhand_N`       | `offhand_shield_N`, `offhand_blade_N`, `offhand_focus_N` (whole parts)                                   |
 | weapon               | `ui_item_weapon_<kind>_N` | `weapon_<kind>_N`, kind `staff`, `spear`, `hammer`, `daggers`, `wand`; N = 0-3                           |
 
+Kit cells that are not items: faces `head_<god>_a`, `head_<god>_b`; cloaks `cloak_<god>` and
+`cloak_<god>_<path>` (`cloak_odin_seer`); clasp emblems `layer_cloak_emblem_<raven|hammer|serpent|feather>`.
 Armour fills torso and legs: one item, three layers. Levels 2-3 may reuse the level-1 leg layers
 until their own art ships.
 Level 0 is the starting gear a hero has before any item. Kit-face cells stay `head_<face>`
