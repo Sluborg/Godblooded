@@ -53,6 +53,15 @@ import { buildReport, sampleGold, tally, type HeroRecord } from './runstats';
 import { collectorFell, runCollector } from './collector';
 import { runNodes } from './nodes';
 import {
+  hireGatherer,
+  recallGatherers,
+  runWorkers,
+  sendGatherer,
+  workerFell,
+  workerInfos,
+  gathererCap,
+} from './workers';
+import {
   attackBuilding,
   attackLair,
   pickLair,
@@ -164,6 +173,17 @@ export interface UnitRuntime {
   cooldownMs: number;
   target: Vec2 | null;
   idleMs: number;
+  // A gatherer's trip (workers.ts): the node it is sent to, where it is in the loop, when its
+  // gathering ends, the Ambrosia it carries, hp last seen (a drop means it was hit) and whether
+  // it is running home.
+  worker?: {
+    node: number | null;
+    phase: 'idle' | 'out' | 'gather' | 'back';
+    untilMs: number;
+    carry: number;
+    hpSeen: number;
+    fleeing: boolean;
+  };
   // The tax collector's route (collector.ts): hp last seen (a drop means it was hit), running home,
   // the stop it walks to and the time its stop at it ends.
   collector?: {
@@ -425,6 +445,7 @@ function runTick(world: World): void {
   runBounties(world);
   runCollector(world);
   runNodes(world);
+  runWorkers(world);
   runQuirks(world);
   runFavour(world);
   runParties(world);
@@ -517,8 +538,8 @@ export function statsOf(world: World, unit: UnitState): Stats | undefined {
 
 function unitStats(world: World, unit: UnitState): Stats | undefined {
   if (unit.kind === 'summon') return summonStats(world, unit);
-  // The tax collector does not fight (collector.ts moves it).
-  if (unit.kind === 'collector') {
+  // The tax collector and the gatherers do not fight (collector.ts and workers.ts move them).
+  if (unit.kind === 'collector' || unit.kind === 'worker') {
     const none = { str: 0, dex: 0, sta: 0, cha: 0, per: 0, int: 0, wp: 0 };
     return { attrs: none, weapon: { baseAttackS: 99, range: 0 } };
   }
@@ -620,7 +641,7 @@ function runUnits(world: World): void {
       cancelDrink(rt);
       continue;
     }
-    if (unit.kind === 'collector') continue;
+    if (unit.kind === 'collector' || unit.kind === 'worker') continue;
     rt.cooldownMs = Math.max(0, rt.cooldownMs - TICK_MS);
     tickSkill(rt);
     if (unit.kind === 'summon') {
@@ -890,6 +911,8 @@ function settleDeaths(world: World): void {
       removeSummon(world, unit, 'died');
     } else if (unit.kind === 'collector') {
       collectorFell(world, unit);
+    } else if (unit.kind === 'worker') {
+      workerFell(world, unit);
     } else if (unit.kind === 'hero') {
       unit.target = null;
       world.stats.knockouts++;
@@ -1039,6 +1062,12 @@ export function command(world: World, cmd: Command): CommandResult {
       world.events.push({ kind: 'built', building: id, type: def.id });
       return { ok: true, id };
     }
+    case 'hireGatherer':
+      return hireGatherer(world);
+    case 'sendGatherer':
+      return sendGatherer(world, cmd.node);
+    case 'recallGatherers':
+      return recallGatherers(world, cmd.node);
     case 'upgrade':
       return upgradeBuilding(world, cmd.building);
     case 'pickUpgrade':
@@ -1177,6 +1206,8 @@ export function snapshot(world: World): Snapshot {
     piles: world.piles.map((d) => ({ ...d, pos: { ...d.pos } })),
     nodes: world.nodes.map((n) => ({ ...n, pos: { ...n.pos } })),
     ambrosia: world.ambrosia,
+    workers: workerInfos(world),
+    gathererCap: gathererCap(world),
     favour: (world.data.miracles ?? []).map((m) => ({
       pantheon: m.pantheon,
       value: world.favour[m.pantheon] ?? 0,
