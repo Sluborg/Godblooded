@@ -97,6 +97,7 @@ export class MapScene extends Phaser.Scene {
   private world!: World;
   private snap!: Snapshot;
   private plotViews = new Map<number, Phaser.GameObjects.Rectangle>();
+  private plotLocks = new Map<number, Phaser.GameObjects.Container>();
   private unitViews!: UnitViews;
   // Lines from the selected hero's party to the flags it is heading for.
   private links!: Phaser.GameObjects.Graphics;
@@ -1076,6 +1077,33 @@ export class MapScene extends Phaser.Scene {
         this.plotViews.set(p.id, view);
       }
       view.setVisible(!p.occupied);
+      // A plot closed until the town hall reaches a tier: faint, with a padlock and the tier.
+      view
+        .setFillStyle(0xffffff, p.locked ? 0.02 : 0.08)
+        .setStrokeStyle(3, 0xffffff, p.locked ? 0.15 : 0.35);
+      let lock = this.plotLocks.get(p.id);
+      if (!lock && p.locked) {
+        lock = this.add.container(p.pos.x, p.pos.y, [
+          this.add
+            .graphics()
+            .fillStyle(0xd9c9a8, 0.75)
+            .fillRoundedRect(-14, -4, 28, 22, 4)
+            .lineStyle(5, 0xd9c9a8, 0.75)
+            .strokeCircle(0, -8, 9),
+          this.add
+            .text(0, 30, `Hall tier ${p.unlockTier}`, {
+              fontFamily: 'Georgia, serif',
+              fontSize: '20px',
+              color: '#d9c9a8',
+              stroke: '#000000',
+              strokeThickness: 4,
+            })
+            .setOrigin(0.5),
+        ]);
+        lock.setDepth(p.pos.y);
+        this.plotLocks.set(p.id, lock);
+      }
+      lock?.setVisible(p.locked && !p.occupied);
     }
   }
 
