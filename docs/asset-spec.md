@@ -144,6 +144,24 @@ the base segment it covers (chest = torso, bracer = forearm, glove = hand, boots
 thigh, helm = headgear, cloak = cloak, weapon = weapon), drawn over it with the same transform.
 Magenta stays the only key colour. Each item also gets an icon still `ui_item_<item>`.
 
+**Item ids** (Art owns them; data rows use them as is; underscores only, `ui_` ids allow no
+hyphens). An inventory item has one icon; the piece it shows when worn depends on the hero's kit
+(heavy, light or robe):
+
+| Item (level N = 1-3) | Icon                      | Worn piece per kit (cell id in a `kit_` sheet)                                                           |
+| -------------------- | ------------------------- | -------------------------------------------------------------------------------------------------------- |
+| armour               | `ui_item_armour_N`        | per kit (`heavy`, `light`, `robe`): `layer_torso_<kit>_N` + `layer_thigh_<kit>_N` + `layer_boot_<kit>_N` |
+| headgear             | `ui_item_headgear_N`      | `layer_headgear_helm_N`, `layer_headgear_hood_N`, `layer_headgear_hat_N`                                 |
+| off-hand             | `ui_item_offhand_N`       | `offhand_shield_N`, `offhand_blade_N`, `offhand_focus_N` (whole parts)                                   |
+| weapon               | `ui_item_weapon_<kind>_N` | `weapon_<kind>_N`, kind `staff`, `spear`, `hammer`, `daggers`, `wand`; N = 0-3                           |
+
+Kit cells that are not items: faces `head_<god>_a`, `head_<god>_b`; cloaks `cloak_<god>` and
+`cloak_<god>_<path>` (`cloak_odin_seer`); clasp emblems `layer_cloak_emblem_<raven|hammer|serpent|feather>`.
+Armour fills torso and legs: one item, three layers. Levels 2-3 may reuse the level-1 leg layers
+until their own art ships.
+Level 0 is the starting gear a hero has before any item. Kit-face cells stay `head_<face>`
+with the portrait `por_<face>`.
+
 **Upload (ChatGPT):** a square sheet in a grid of equal cells (the batch gives the order), flat
 magenta between cells, every part inside its own cell, all at the same scale.
 
