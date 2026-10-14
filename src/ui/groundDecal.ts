@@ -40,6 +40,23 @@ export function lairDecal(scene: Phaser.Scene, boss: boolean): Phaser.GameObject
   return g;
 }
 
+// The light comes from the upper left: every shadow falls to the lower right.
+export const SHADOW_DIR = { x: 0.07, y: 0.03 };
+
+// A soft, warm-dark ground shadow for a building or lair `w` world units wide: stacked ellipses
+// fading outwards, slightly offset along the light direction. Centred on the footprint centre.
+export function groundShadow(scene: Phaser.Scene, w: number): Phaser.GameObjects.Graphics {
+  const g = scene.add.graphics();
+  const cx = w * SHADOW_DIR.x;
+  const cy = -6 + w * SHADOW_DIR.y;
+  const steps = 5;
+  for (let i = 0; i < steps; i++) {
+    const t = 1 - i / steps;
+    g.fillStyle(0x24140a, 0.1).fillEllipse(cx, cy, w * (0.55 + 0.4 * t), w * (0.22 + 0.2 * t));
+  }
+  return g;
+}
+
 export function townPatch(scene: Phaser.Scene): Phaser.GameObjects.Graphics {
   const g = scene.add.graphics();
   g.fillStyle(0xc9a45c, 0.2).fillEllipse(0, -6, 250, 104);
@@ -71,6 +88,6 @@ export function lairPlate(scene: Phaser.Scene, type: string): Phaser.GameObjects
     .fillCircle(sx + 3.5, -3, 2.6);
   skull.fillRect(sx - 1, 3, 2, 5);
   text.x = 0;
-  const plate = scene.add.container(0, 30, [text, skull]);
+  const plate = scene.add.container(0, 46, [text, skull]);
   return plate;
 }

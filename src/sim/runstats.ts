@@ -35,7 +35,8 @@ export function tally(world: World, id: number, field: keyof HeroRecord, n = 1):
 export function earn(world: World, hero: UnitState, gold: number, tithe = false): void {
   const cut = tithe ? Math.floor(gold * world.tuning.hero.tithe) : 0;
   hero.gold += gold - cut;
-  tally(world, hero.id, 'goldEarned', gold);
+  // The end screen counts what reached the purse, not the gross bounty.
+  tally(world, hero.id, 'goldEarned', gold - cut);
   if (cut > 0) {
     world.gold += cut;
     world.stats.taxCollected += cut;
