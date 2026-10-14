@@ -15,6 +15,10 @@
 // and spent, nodes freed, defiled and sprouted, and the gatherers and guards lost.
 // --hall-tiers turns the town hall tiers on (tuning.town.hallTiers): the bot upgrades the hall too.
 // --ruins turns ruins on (a destroyed building leaves a ruin); the bot rebuilds them when it can.
+// --first-run plays the gentler first run (data.firstRun overrides apply, the clock waits for the
+// first temple), to tune data.firstRun.
+// --replay-check replays every run from its replay code and reports how many replays equal the
+// original run report (the determinism check; also tries the code through `npm run replay`).
 // --data takes a JSON file that overrides GRAYBOX fields (top level; `tuning` groups are
 // merged one by one), so data passes can be tried without editing src/data.
 import { readFileSync } from 'node:fs';
@@ -48,6 +52,8 @@ const BUILD_ARG = buildIdx >= 0 ? args[buildIdx + 1].split(',') : undefined;
 const UPGRADE = !args.includes('--no-upgrade') && !HUMAN;
 const HALL_TIERS = args.includes('--hall-tiers');
 const RUINS = args.includes('--ruins');
+const FIRST_RUN = args.includes('--first-run');
+const REPLAY_CHECK = args.includes('--replay-check');
 const HUNT = args.includes('--hunt');
 const FLAGS = args.includes('--flags') || HUNT;
 const FLAG_GOLD = opt('flag-gold', HUNT ? 50 : 40);
@@ -96,7 +102,7 @@ try {
       probes: new Map(),
       seen: { arrivedMs: null, hurtMs: null, raidMs: null },
     };
-    const w = sim.createWorld(seed0 + r, GRAYBOX);
+    const w = sim.createWorld(seed0 + r, GRAYBOX, { firstRun: FIRST_RUN });
     let snap = sim.snapshot(w);
     let timeout = false;
     // Minutes of the first boss emerge and the first blow to or from a boss (null: never).
@@ -210,13 +216,21 @@ try {
         gear8 = {
           weapon: avg('weapon'),
           armour: avg('armour'),
+          headgear: avg('headgear'),
+          offhand: avg('offhand'),
           heroes: heroes.length,
           carried: heroes.reduce((a, u) => a + (u.gold ?? 0), 0),
           geared:
             heroes.length === 0
               ? 0
-              : heroes.filter((u) => (u.items?.weapon ?? 0) + (u.items?.armour ?? 0) > 0).length /
-                heroes.length,
+              : heroes.filter(
+                  (u) =>
+                    (u.items?.weapon ?? 0) +
+                      (u.items?.armour ?? 0) +
+                      (u.items?.headgear ?? 0) +
+                      (u.items?.offhand ?? 0) >
+                    0,
+                ).length / heroes.length,
         };
       }
       // A human thinks 5-15 s over a card (one in ten is never tapped: the auto-pick decides).
@@ -248,7 +262,24 @@ try {
     }
     snap = sim.snapshot(w);
     watch(snap);
+    let replayOk = null;
+    let replayCode = null;
+    if (REPLAY_CHECK) {
+      const original = sim.runReport(w);
+      replayCode = original.replay;
+      const again = sim.runReport(sim.runReplay(original.replay, GRAYBOX).world);
+      replayOk = JSON.stringify(original) === JSON.stringify(again);
+      if (!replayOk) {
+        const keys = Object.keys(original).filter(
+          (k) => JSON.stringify(original[k]) !== JSON.stringify(again[k]),
+        );
+        console.error(`replay differs (seed ${seed0 + r}): ${keys.join(', ')}; ticks ${w.tick}`);
+      }
+    }
+    const fun = sim.runReport(w).fun;
     results.push({
+      replayOk,
+      ...(replayCode ? { replayCode } : {}),
       seed: seed0 + r,
       outcome: timeout ? 'timeout' : snap.status,
       minutes: snap.timeMs / 60_000,
@@ -263,10 +294,19 @@ try {
       huntClaimed: flagRun.huntClaimed,
       probes: [...flagRun.probes.values()],
       ...(M3 ? { ...m3, ambrosiaLeft: Math.round(snap.ambrosia) } : {}),
+      castShare: fun.castShareAfter6,
+      typesShare: fun.typesShareTier2,
+      decisionsPerMin: fun.decisionsPerMin,
+      decisionMinuteShare: fun.decisionMinuteShare,
+      quietS: fun.longestQuietMs / 1000,
+      quietAtS: fun.longestQuietAtMs / 1000,
+      fights: fun.fights,
       gold3: goldAt[180_000],
       gold5: goldAt[300_000],
       weapon8: gear8?.weapon ?? null,
       armour8: gear8?.armour ?? null,
+      headgear8: gear8?.headgear ?? null,
+      offhand8: gear8?.offhand ?? null,
       geared8: gear8?.geared ?? null,
       carried8: gear8?.carried ?? null,
       ...snap.stats,
@@ -520,6 +560,8 @@ function summarize(results) {
       gold5: meanOf(results, 'gold5'),
       weapon8: meanOf(results, 'weapon8'),
       armour8: meanOf(results, 'armour8'),
+      headgear8: meanOf(results, 'headgear8'),
+      offhand8: meanOf(results, 'offhand8'),
       geared8: meanOf(results, 'geared8'),
       carried8: meanOf(results, 'carried8'),
     },
@@ -544,6 +586,26 @@ function summarize(results) {
           ].map((k) => [k, mean(results, k)]),
         )
       : null,
+    replayCheck: REPLAY_CHECK
+      ? { identical: results.filter((r) => r.replayOk).length, of: results.length }
+      : null,
+    fun: {
+      fights: mean(results, 'fights'),
+      castShare: meanOf(results, 'castShare'),
+      typesShare: meanOf(results, 'typesShare'),
+      decisionsPerMin: mean(results, 'decisionsPerMin'),
+      decisionMinuteShare: meanOf(results, 'decisionMinuteShare'),
+      quiet: (() => {
+        const v = results.map((r) => r.quietS).sort((a, b) => a - b);
+        const at = results.map((r) => r.quietAtS).sort((a, b) => a - b);
+        return {
+          p50: pct(v, 0.5),
+          p90: pct(v, 0.9),
+          max: v[v.length - 1] ?? 0,
+          atP50: pct(at, 0.5),
+        };
+      })(),
+    },
     probes: results.flatMap((r) => r.probes ?? []),
     flags: {
       placed: meanOf(results, 'flagsPlaced'),
@@ -595,7 +657,7 @@ function print(rep) {
   }
   const n = (x) => (x === null ? '-' : f(x));
   console.log(
-    `  town gold: 3:00 ${n(rep.pacing.gold3)}  5:00 ${n(rep.pacing.gold5)}   hero gear level at 8:00: weapon ${n(rep.pacing.weapon8)}  armour ${n(rep.pacing.armour8)}  with any gear ${rep.pacing.geared8 === null ? '-' : `${(rep.pacing.geared8 * 100).toFixed(0)}%`}  gold carried by heroes at 8:00 ${n(rep.pacing.carried8)}`,
+    `  town gold: 3:00 ${n(rep.pacing.gold3)}  5:00 ${n(rep.pacing.gold5)}   hero gear level at 8:00: weapon ${n(rep.pacing.weapon8)}  armour ${n(rep.pacing.armour8)}  headgear ${n(rep.pacing.headgear8)}  off-hand ${n(rep.pacing.offhand8)}  with any gear ${rep.pacing.geared8 === null ? '-' : `${(rep.pacing.geared8 * 100).toFixed(0)}%`}  gold carried by heroes at 8:00 ${n(rep.pacing.carried8)}`,
   );
   if (rep.m3) {
     const m = rep.m3;
@@ -604,6 +666,18 @@ function print(rep) {
     );
     console.log(
       `    nodes freed ${f(m.nodesFreed)}, defiled ${f(m.nodesDefiled)}, cleansed ${f(m.nodesCleansed)}, lairs sprouted ${f(m.lairsSprouted)}; gatherers hired ${f(m.gatherersHired)} lost ${f(m.gatherersLost)}; guards sent ${f(m.guardsSent)} lost ${f(m.guardsLost)}; escorts paid ${f(m.escortsPaid)}`,
+    );
+  }
+  if (rep.replayCheck) {
+    console.log(
+      `  replay check: ${rep.replayCheck.identical} of ${rep.replayCheck.of} replays equal the original run report`,
+    );
+  }
+  {
+    const u = rep.fun;
+    const p = (x) => (x === null ? '-' : `${(x * 100).toFixed(0)}%`);
+    console.log(
+      `  fun checks: skill cast in ${p(u.castShare)} of fights after 6:00 (target 60%), 2+ damage types in ${p(u.typesShare)} of tier 2 fights; ${f(u.fights)} fights a run; decisions ${f(u.decisionsPerMin)} per min, one in ${p(u.decisionMinuteShare)} of minutes; longest quiet gap p50 ${f(u.quiet.p50)} s, p90 ${f(u.quiet.p90)} s, max ${f(u.quiet.max)} s (target under 60); the longest ends at about ${f(u.quiet.atP50 / 60)} min (median)`,
     );
   }
   if (FLAGS) {

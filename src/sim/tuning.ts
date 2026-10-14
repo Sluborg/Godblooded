@@ -60,6 +60,7 @@ export const DEFAULT_TUNING: Tuning = {
   },
   party: {
     maxParty: 4,
+    joinBelowLevel: 3,
     mergeRange: 250,
     mergeEveryTicks: 20,
     // Party level n needs xpPerLevel * n xp.
@@ -102,6 +103,10 @@ export const DEFAULT_TUNING: Tuning = {
     pressureKos: 0,
     maxTier: 3,
     spawnMult: [1, 0.85, 0.7],
+    eliteShare: [0, 0, 0],
+    eliteHpMult: 1.5,
+    eliteStrMult: 1.2,
+    eliteRewardMult: 2,
     maxAliveAdd: [0, 1, 1],
     statMult: [1, 1.15, 1.3],
     hpMult: [1, 1.25, 1.5],
@@ -109,6 +114,11 @@ export const DEFAULT_TUNING: Tuning = {
   },
   building: {
     maxTier: 3,
+    hallRestMult: 1.5,
+    hallMergeRange: 400,
+    hallBondMult: 1.5,
+    hallJoinBelowLevel: 5,
+    hallHpBuff: 0.1,
     upgradeCostMult: [1.5, 2.5],
     hpMult: [1, 1.5, 2],
     templeRecruitMult: [1, 0.8, 0.6],
@@ -218,6 +228,13 @@ export const DEFAULT_TUNING: Tuning = {
     maxPush: 6,
     cell: 64,
   },
+  events: {
+    omenFirstMs: 180_000,
+    omenEveryMs: [100_000, 140_000],
+    omenNoRepeat: 3,
+    leanWeight: 2,
+    omenLeadMs: 20_000,
+  },
   collector: {
     enabled: false,
     perHallTier: 1,
@@ -326,8 +343,10 @@ export const DEFAULT_TUNING: Tuning = {
   },
 };
 
-export function resolveTuning(data: GameData): Tuning {
-  const t = data.tuning;
+// The tuning of a run: DEFAULT_TUNING, then data.tuning, then (first run only) data.firstRun, each
+// group merged key by key.
+export function resolveTuning(data: GameData, firstRun = false): Tuning {
+  const t = firstRun && data.firstRun ? mergeGroups(data.tuning, data.firstRun) : data.tuning;
   return {
     combat: { ...DEFAULT_TUNING.combat, ...t?.combat },
     hero: { ...DEFAULT_TUNING.hero, ...t?.hero },
@@ -346,8 +365,20 @@ export function resolveTuning(data: GameData): Tuning {
     town: { ...DEFAULT_TUNING.town, ...t?.town },
     trait: { ...DEFAULT_TUNING.trait, ...t?.trait },
     collision: { ...DEFAULT_TUNING.collision, ...t?.collision },
+    events: { ...DEFAULT_TUNING.events, ...t?.events },
     collector: { ...DEFAULT_TUNING.collector, ...t?.collector },
     nodes: { ...DEFAULT_TUNING.nodes, ...t?.nodes },
     bounty: { ...DEFAULT_TUNING.bounty, ...t?.bounty },
   };
+}
+
+function mergeGroups(
+  base: GameData['tuning'],
+  over: NonNullable<GameData['tuning']>,
+): NonNullable<GameData['tuning']> {
+  const out: Record<string, unknown> = { ...base };
+  for (const [k, v] of Object.entries(over)) {
+    out[k] = { ...(out[k] as object | undefined), ...(v as object) };
+  }
+  return out as NonNullable<GameData['tuning']>;
 }

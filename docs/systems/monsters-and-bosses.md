@@ -86,13 +86,15 @@ signature move.
 | Boss        | Pantheon | Hp   | Str | Armour | Strike s / range | Type     | Weak      | Resist               | Bounty | XP  |
 | ----------- | -------- | ---- | --- | ------ | ---------------- | -------- | --------- | -------------------- | ------ | --- |
 | Fafnir      | aesir    | 1200 | 14  | 7      | 2.0 / 70         | physical | frost     | fire, physical x0.75 | 400    | 300 |
-| Hydra       | greek    | 2200 | 14  | 8      | 1.6 / 80         | physical | fire      | frost                | 400    | 300 |
-| Apep        | egyptian | 2600 | 18  | 10     | 2.2 / 70         | death    | holy      | death                | 400    | 300 |
-| Jormungandr | aesir    | 2600 | 20  | 10     | 2.2 / 90         | death    | lightning | frost, death         | 400    | 300 |
-| Cerberus    | greek    | 2300 | 16  | 9      | 1.4 / 70         | fire     | holy      | fire                 | 400    | 300 |
-| Sphinx      | egyptian | 2400 | 17  | 12     | 2.0 / 70         | physical | frost     | holy, physical x0.8  | 400    | 300 |
+| Hydra       | greek    | 900  | 14  | 7      | 1.6 / 80         | physical | fire      | frost                | 400    | 300 |
+| Apep        | egyptian | 1300 | 18  | 8      | 2.2 / 70         | death    | holy      | death                | 400    | 300 |
+| Jormungandr | aesir    | 1300 | 20  | 8      | 2.2 / 90         | death    | lightning | frost, death         | 400    | 300 |
+| Cerberus    | greek    | 950  | 16  | 7      | 1.4 / 70         | fire     | holy      | fire                 | 400    | 300 |
+| Sphinx      | egyptian | 1200 | 17  | 9      | 2.0 / 70         | physical | frost     | holy, physical x0.8  | 400    | 300 |
 
-Boss hp is a data value, not Sta x 8 + Str x 4 (`combat.md`). Fafnir follows the data after Balance's bot pass (hp 1200, Str 14, armour 7, 2026-10-14); a party of four tier 3 heroes does about 30-40 damage per second, so the fight lasts 30-40 s. The other five bosses keep this first draft until their M3 bot pass, which scales them like Fafnir.
+Boss hp is a data value, not Sta x 8 + Str x 4 (`combat.md`). Fafnir follows the data after Balance's bot pass (hp 1200, Str 14, armour 7, 2026-10-14); a party of four tier 3 heroes does about 30-40 damage per second, so the fight lasts 30-40 s. The other five follow Balance's boss pass (`balance/bosses`, 2026-10-14): hp 900-1300 and armour 7-9 (Hydra 900 and Cerberus 950 after the second pass, `balance/bosses` fae8f6f), Str, strike times and moves as specced; with the boss forced, the bot wins 17-19 of 30 runs against each of the six. Cerberus carries the `demon` tag, so holy's sear applies.
+
+- **Strike type:** Apep and Jormungandr (death) and Cerberus (fire) need a non-physical monster strike; today monsters strike physical only. Sim row 80 adds a `strikeType` field on MonsterDef (default physical).
 
 ### Signature moves
 
@@ -121,34 +123,41 @@ Boss hp is a data value, not Sta x 8 + Str x 4 (`combat.md`). Fafnir follows the
 
 ## 4. Lairs
 
-| Lair          | Monster      | Pantheon | Size  | Hp    | Spawn s | Max alive | Art                        |
-| ------------- | ------------ | -------- | ----- | ----- | ------- | --------- | -------------------------- |
-| barrow        | draugr       | aesir    | small | 2800  | 10      | 6         | `bld_lair_barrow_t1` (B10) |
-| troll-den     | troll        | aesir    | big   | 4800  | 25      | 4         | `bld_lair_troll-den_t1`    |
-| harpy-roost   | harpy        | greek    | small | 2400  | 9       | 6         | `bld_lair_harpy-roost_t1`  |
-| labyrinth     | minotaur     | greek    | big   | 4800  | 24      | 4         | `bld_lair_labyrinth_t1`    |
-| jackal-camp   | jackal-man   | egyptian | small | 2800  | 10      | 6         | `bld_lair_jackal-camp_t1`  |
-| scarab-pit    | scarab swarm | egyptian | small | 2400  | 6       | 10        | new                        |
-| wyrm-nest     | Fafnir       | aesir    | boss  | 8000  | 30      | 3 guards  | `bld_lair_wyrm-nest_t1`    |
-| hydra-marsh   | Hydra        | greek    | boss  | 16000 | 30      | 3 guards  | new                        |
-| apep-tomb     | Apep         | egyptian | boss  | 16000 | 30      | 3 guards  | new                        |
-| serpent-shore | Jormungandr  | aesir    | boss  | 16000 | 30      | 3 guards  | new                        |
-| gate-of-hades | Cerberus     | greek    | boss  | 16000 | 30      | 3 guards  | new                        |
-| sphinx-plinth | Sphinx       | egyptian | boss  | 16000 | 30      | 3 guards  | new                        |
+| Lair          | Monster      | Pantheon | Size  | Hp   | Spawn s | Max alive | Art                        |
+| ------------- | ------------ | -------- | ----- | ---- | ------- | --------- | -------------------------- |
+| barrow        | draugr       | aesir    | small | 2100 | 10      | 6         | `bld_lair_barrow_t1` (B10) |
+| troll-den     | troll        | aesir    | big   | 3600 | 25      | 4         | `bld_lair_troll-den_t1`    |
+| harpy-roost   | harpy        | greek    | small | 1800 | 9       | 6         | `bld_lair_harpy-roost_t1`  |
+| labyrinth     | minotaur     | greek    | big   | 3600 | 24      | 4         | `bld_lair_labyrinth_t1`    |
+| jackal-camp   | jackal-man   | egyptian | small | 2100 | 10      | 6         | `bld_lair_jackal-camp_t1`  |
+| scarab-pit    | scarab swarm | egyptian | small | 1800 | 6       | 10        | new                        |
+| wyrm-nest     | Fafnir       | aesir    | boss  | 8000 | 30      | 3 guards  | `bld_lair_wyrm-nest_t1`    |
+| hydra-marsh   | Hydra        | greek    | boss  | 8000 | 30      | 3 guards  | new                        |
+| apep-tomb     | Apep         | egyptian | boss  | 8000 | 30      | 3 guards  | new                        |
+| serpent-shore | Jormungandr  | aesir    | boss  | 8000 | 30      | 3 guards  | new                        |
+| gate-of-hades | Cerberus     | greek    | boss  | 8000 | 30      | 3 guards  | new                        |
+| sphinx-plinth | Sphinx       | egyptian | boss  | 8000 | 30      | 3 guards  | new                        |
 
 - **Troll den changes:** today it is the final lair (24000 hp). With the boss lair as the win
-  goal (Sim 150) it becomes a big normal lair, 4 alive. The wyrm nest is 8000 hp; the other boss
-  lairs keep 16000 until their M3 bot pass.
+  goal (Sim 150) it becomes a big normal lair, 4 alive. All six boss lairs are 8000 hp (Balance's boss pass, 2026-10-14).
 - **Lair hp after playtest 1** (Balance, human-bot pass, `balance/spacing-collector`): non-boss
   lairs at 60% of the earlier hp. The human-like bot then won 63-64% and killed its first lair
   at about 6.2 min.
 - **Then 80%** (Balance, `balance/lairs-80`): once the human build also gets a smithy (hint
   `h-smithy`), it wins about 15 points more, so non-boss lairs went back up to 80% of the old hp
-  (big 4800, small 2400-2800; the scarab pit follows at 2400 before its own pass). The nest
+  (big 4800, small 2400-2800; the scarab pit 2400, data `maxAlive` 5, which the swarm role doubles to the table's 10; scarab armour 1). The nest
   stays 8000.
+- **Then 70%** (Balance, `balance/playtest-trim`, with the first raid at 7:00 and a 1-raider
+  Vanguard): big 4200, small 2100-2450, the scarab pit 2100; the nest 8000. The human bot on the
+  playtest build wins 63-70% with a 35-min run cap (57-63% at the default 30, where longer runs
+  count as timeouts).
+- **Then 60% with omens and elites** (Balance, `balance/omens` 11721e0): big 3600, small
+  1800-2100, the scarab pit 1800; boss lairs 8000. Full stack: the human bot wins 65% (measured with `sim/late-recruits` merged; Balance says 10-15 points lower without it), the full
+  bot 73-78%.
 - **Boss lair guards:** a boss lair spawns guards until the boss emerges: the wyrm nest spawns
   draugr (Balance, 2026-10-14: trolls at the nest made the boss fight a wall in the bot); Greek
-  and Egyptian boss lairs spawn the minotaur and jackal-men until their bot pass.
+  boss lairs (hydra-marsh, gate-of-hades) spawn harpies (Balance, `balance/bosses` fae8f6f:
+  minotaurs plus Cerberus's howl calls made the same wall); Egyptian boss lairs spawn jackal-men.
 - **Raids** come from every lair as today; harriers and swarms raid faster (1.5x walk speed).
 
 ### How lairs look per tier
@@ -290,6 +299,7 @@ still scales their hp with the lair tier (visual only). The
 | 50    | Boss pick: lean pantheon, seeded one of two, no repeat; boss lair guards                          |
 | 60    | Lair snapshot: `nextTierMs` and `tierSpanMs` (done, `sim/lair-timer` 0ad1a1b) for the growth ring |
 | 70    | Lair snapshot: `alive`, `maxAlive`, `nextSpawnMs` for the guard pips (done, 0ad1a1b)              |
+| 80    | MonsterDef `strikeType` (default physical): Apep and Jormungandr strike death, Cerberus fire      |
 
 ### Lead (data)
 

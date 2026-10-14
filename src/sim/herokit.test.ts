@@ -132,4 +132,41 @@ describe('headgear and off-hand', () => {
     expect(ids).toContain('armour-1');
     expect(ids.filter((i) => i === 'shield-1' || i === 'focus-1')).toHaveLength(1);
   });
+
+  it('one off-hand row can give a shield, a blade or a focus by kit', () => {
+    const rows: GameData = {
+      ...data(),
+      items: [
+        row('off-1', 'offhand', 1, 40, {
+          kits: {
+            heavy: { armour: 3, wp: 0 },
+            light: { armour: 0, wp: 0, crit: 0.06 },
+            robe: { armour: 0, wp: 0, power: 4 },
+          },
+        }),
+      ],
+      classes: ['heavy', 'light', 'robe'].map((kit) => ({
+        id: kit,
+        kit: kit as 'heavy' | 'light' | 'robe',
+        attrs: { ...none, str: 10, sta: 60 },
+        weapon: { baseAttackS: 1, range: 40 },
+        startGold: 0,
+      })),
+    };
+    const w = createWorld(1, rows);
+    const gear = { weapon: 0, armour: 0, offhand: 1, potions: 0, charm: null };
+    const at = (kit: string) => {
+      const id = spawnHero(w, kit, { x: 600, y: 600 });
+      const u = w.units.find((x) => x.id === id) as UnitState;
+      u.items = { ...gear };
+      return u;
+    };
+    const [h, l, r] = [at('heavy'), at('light'), at('robe')];
+    expect(armourBonus(w, h).armour).toBe(3);
+    expect(armourBonus(w, l).armour).toBe(0);
+    expect(wornBuff(w, l, 'crit')).toBeCloseTo(0.06);
+    expect(wornBuff(w, h, 'crit')).toBe(0);
+    expect(weaponPower(w, r)).toBe(4);
+    expect(weaponPower(w, h)).toBe(0);
+  });
 });

@@ -1,3 +1,4 @@
+import { hearthOf } from './hearth';
 import { curePoison } from './effects';
 import { armourBonus } from './items';
 import { autoPickCard, leaderOf, offerCards } from './cards';
@@ -119,7 +120,13 @@ export function fleeThreshold(world: World, unit: UnitState): number {
 const bondKey = (a: number, b: number) => (a < b ? `${a}:${b}` : `${b}:${a}`);
 export const bond = (world: World, a: number, b: number) => world.bonds.get(bondKey(a, b)) ?? 0;
 
-export function addBond(world: World, a: number, b: number, delta: number): void {
+export function addBond(world: World, a: number, b: number, rawDelta: number): void {
+  // A tier 2 Hearth Hall makes bonds grow faster.
+  const hearth = hearthOf(world);
+  const delta =
+    rawDelta > 0 && hearth && hearth.tier >= 2
+      ? rawDelta * world.tuning.building.hallBondMult
+      : rawDelta;
   const v = Math.max(-3, Math.min(tune(world).bondCap, bond(world, a, b) + delta));
   world.bonds.set(bondKey(a, b), v);
 }
@@ -232,10 +239,11 @@ function retier(world: World, party: Party): void {
   }
 }
 
-function refreshMaxHp(world: World, u: UnitState): void {
+export function refreshMaxHp(world: World, u: UnitState): void {
   const cls = world.data.classes?.find((c) => c.id === u.type);
   if (!cls) return;
-  const newMax = maxHp(effectiveAttrs(world, u, cls.attrs));
+  const newMax =
+    maxHp(effectiveAttrs(world, u, cls.attrs)) + (world.heroRuntime.get(u.id)?.hearthHp ?? 0);
   // A lower max (a path template with fewer hp) must not take a living hero to 0 hp, which
   // would leave it alive but untargetable: it keeps at least 1 hp.
   if (!u.ko) u.hp = Math.min(newMax, Math.max(1, u.hp + newMax - u.maxHp));
@@ -364,6 +372,23 @@ export function fledParty(world: World, unit: UnitState): void {
   for (const other of party.members) if (other !== unit.id) addBond(world, unit.id, other, -1);
 }
 
+// A bonus card for a party outside a level-up (an omen's prize): offered, or picked by the party
+// as at a level-up. Nothing while a pick is pending.
+export function bonusCard(world: World, party: Party): boolean {
+  if (party.offer || party.pathOffer) return false;
+  const ids = offerCards(world, party);
+  if (ids.length === 0) return false;
+  if (!tune(world).autoPick) {
+    party.offer = ids;
+    return true;
+  }
+  const leader = leaderOf(world, party);
+  const pick = autoPickCard(world, party, ids);
+  const god = world.data.upgrades?.find((u) => u.id === pick)?.god ?? leader?.god ?? undefined;
+  applyUpgrade(world, party, pick, { auto: true, hero: leader?.id, god });
+  return true;
+}
+
 // Level 1 parties that meet while exploring may join up, more likely with a bond or a loyal
 // member. Runs once a second.
 export function runParties(world: World): void {
@@ -391,7 +416,7 @@ export function runParties(world: World): void {
     const leaderA = world.units.find((u) => u.id === a.members[0]);
     if (!leaderA) continue;
     let best: Party | null = null;
-    let bestD = tune(world).mergeRange;
+    let bestD = hearthOf(world) ? world.tuning.building.hallMergeRange : tune(world).mergeRange;
     for (const bId of ids) {
       const b = world.parties.get(bId);
       if (!b || b.id <= a.id || !mergeable(world, b)) continue;
@@ -405,6 +430,59 @@ export function runParties(world: World): void {
       }
     }
     if (best && world.rng() < mergeChance(world, a, best)) merge(world, a, best);
+  }
+  lateJoins(world);
+}
+
+// The level below which a party still takes new heroes.
+export function joinBelowLevel(world: World): number {
+  const base = tune(world).joinBelowLevel;
+  const hearth = hearthOf(world);
+  // A tier 2 Hearth Hall lets late recruits join older parties.
+  return base > 1 && hearth && hearth.tier >= 2
+    ? Math.max(base, world.tuning.building.hallJoinBelowLevel)
+    : base;
+}
+
+// Late recruits: a new hero (a level 1 party with no cards, exploring) that meets a party of level
+// 2 or more but below joinBelowLevel, with a free slot, may join it and takes its cards at once.
+function lateJoins(world: World): void {
+  const limit = joinBelowLevel(world);
+  if (limit <= 2) return;
+  const ids = [...world.parties.keys()].sort((a, b) => a - b);
+  for (const nId of ids) {
+    const n = world.parties.get(nId);
+    if (!n || !mergeable(world, n)) continue;
+    const leaderN = world.units.find((u) => u.id === n.members[0]);
+    if (!leaderN) continue;
+    let best: Party | null = null;
+    let bestD = tune(world).mergeRange;
+    for (const pId of ids) {
+      const p = world.parties.get(pId);
+      if (!p || p.id === n.id || p.level < 2 || p.level >= limit) continue;
+      if (p.offer || p.pathOffer || p.members.length + n.members.length > tune(world).maxParty) {
+        continue;
+      }
+      if (partiesHaveRivals(world, n, p)) continue;
+      const leaderP = world.units.find((u) => u.id === p.members[0]);
+      const open = p.members.some((id) => {
+        const m = world.units.find((u) => u.id === id);
+        return !!m && !m.ko && m.hp > 0;
+      });
+      if (!leaderP || !open) continue;
+      const d = dist(leaderN.pos, leaderP.pos);
+      if (d <= bestD) {
+        best = p;
+        bestD = d;
+      }
+    }
+    if (!best || world.rng() >= mergeChance(world, n, best)) continue;
+    merge(world, best, n);
+    // The party's cards count for the newcomers at once: max hp follows the stat cards.
+    for (const id of best.members) {
+      const u = world.units.find((x) => x.id === id);
+      if (u) refreshMaxHp(world, u);
+    }
   }
 }
 

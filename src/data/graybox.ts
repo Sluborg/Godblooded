@@ -7,6 +7,7 @@ import type {
   ItemDef,
   LairDef,
   MonsterDef,
+  OmenDef,
   PathDef,
   SkillDef,
   SummonDef,
@@ -80,6 +81,7 @@ export const GODS: readonly GodDef[] = [
     pantheon: 'aesir',
     name: 'Odin',
     template: 'wizard',
+    builds: ['tall', 'lean'],
     damageType: 'death',
     passive: {
       id: 'allfather-eye',
@@ -92,6 +94,7 @@ export const GODS: readonly GodDef[] = [
     pantheon: 'aesir',
     name: 'Thor',
     template: 'warrior',
+    builds: ['broad', 'short'],
     passive: {
       id: 'giant-bane',
       name: 'Giant-Bane',
@@ -103,6 +106,7 @@ export const GODS: readonly GodDef[] = [
     pantheon: 'aesir',
     name: 'Loki',
     template: 'rogue',
+    builds: ['lean', 'short'],
     passive: {
       id: 'slippery',
       name: 'Slippery',
@@ -114,6 +118,7 @@ export const GODS: readonly GodDef[] = [
     pantheon: 'aesir',
     name: 'Freyja',
     template: 'healer',
+    builds: ['lean', 'broad'],
     damageType: 'holy',
     passive: {
       id: 'chooser',
@@ -451,19 +456,163 @@ export const MONSTERS: readonly MonsterDef[] = [
     hp: 1200,
     types: { frost: 1.5, fire: 0.5, physical: 0.75 },
   },
+  // Scarab swarm (monsters-and-bosses.md section 1): the swarm role keeps twice the lair's maxAlive
+  // and splits once into two halves at 0 hp.
+  {
+    id: 'scarab',
+    role: 'swarm',
+    attrs: { str: 3, dex: 4, sta: 3, cha: 1, per: 2, int: 1, wp: 2 },
+    weapon: { baseAttackS: 0.9, range: 30 },
+    bounty: 6,
+    xp: 5,
+    armour: 1,
+    tags: ['beast'],
+    types: { fire: 1.5, physical: 0.75 },
+  },
+  // The other five bosses (monsters-and-bosses.md section 3), scaled like Fafnir: about half the
+  // draft hp and a little less armour. Bot pass (each boss forced, human bot, seeds 1-30): every
+  // boss is beaten in 9 of 10 runs that reach it (wins 60-63%, Fafnir 60%), first hit to the end
+  // of the run 2.8-3.5 min (Fafnir 3.9). Their moves replace the cleave. Apep and Jormungandr strike
+  // with death, Cerberus with fire (strikeType).
+  {
+    id: 'hydra',
+    move: {
+      heads: { count: 3, cutAt: [0.66, 0.33], regrowS: 8, enragedRegrowS: 5, stopType: 'fire' },
+    },
+    attrs: { str: 14, dex: 3, sta: 12, cha: 1, per: 4, int: 2, wp: 8 },
+    weapon: { baseAttackS: 1.6, range: 80 },
+    bounty: 400,
+    xp: 300,
+    armour: 7,
+    tags: ['boss'],
+    boss: {},
+    hp: 900,
+    types: { fire: 1.5, frost: 0.5 },
+  },
+  {
+    id: 'apep',
+    strikeType: 'death',
+    move: {
+      swallow: { everyS: 15, enragedEveryS: 10, windupMs: 1000, s: 4, dotPct: 0.08, freePct: 0.25 },
+    },
+    attrs: { str: 18, dex: 3, sta: 12, cha: 1, per: 4, int: 2, wp: 8 },
+    weapon: { baseAttackS: 2.2, range: 70 },
+    bounty: 400,
+    xp: 300,
+    armour: 8,
+    tags: ['boss'],
+    boss: {},
+    hp: 1300,
+    types: { holy: 1.5, death: 0.5 },
+  },
+  {
+    id: 'jormungandr',
+    strikeType: 'death',
+    move: {
+      venom: { everyS: 12, enragedEveryS: 8, windupMs: 1000, radius: 60, dotPct: 0.03, s: 8 },
+    },
+    attrs: { str: 20, dex: 3, sta: 12, cha: 1, per: 4, int: 2, wp: 8 },
+    weapon: { baseAttackS: 2.2, range: 90 },
+    bounty: 400,
+    xp: 300,
+    armour: 8,
+    tags: ['boss'],
+    boss: {},
+    hp: 1300,
+    types: { lightning: 1.5, frost: 0.5, death: 0.5 },
+  },
+  {
+    id: 'cerberus',
+    strikeType: 'fire',
+    move: {
+      howl: {
+        everyS: 15,
+        enragedEveryS: 10,
+        windupMs: 800,
+        radius: 200,
+        belowHp: 0.5,
+        fleeS: 3,
+        calls: 1,
+      },
+    },
+    attrs: { str: 16, dex: 3, sta: 12, cha: 1, per: 4, int: 2, wp: 8 },
+    weapon: { baseAttackS: 1.4, range: 70 },
+    bounty: 400,
+    xp: 300,
+    armour: 7,
+    tags: ['boss', 'demon'],
+    boss: {},
+    hp: 950,
+    types: { holy: 1.5, fire: 0.5 },
+  },
+  {
+    id: 'sphinx',
+    move: {
+      riddle: {
+        everyS: 18,
+        enragedEveryS: 12,
+        windupMs: 1200,
+        intAtLeast: 8,
+        buff: 0.3,
+        buffS: 6,
+        stoneS: 3,
+      },
+    },
+    attrs: { str: 17, dex: 3, sta: 12, cha: 1, per: 4, int: 2, wp: 8 },
+    weapon: { baseAttackS: 2.0, range: 70 },
+    bounty: 400,
+    xp: 300,
+    armour: 9,
+    tags: ['boss'],
+    boss: {},
+    hp: 1200,
+    types: { frost: 1.5, holy: 0.5, physical: 0.8 },
+  },
 ];
 
 // Lairs from docs/systems/monsters-and-bosses.md section 4; the wyrm nest is the boss lair (the
 // run is won when it falls) and spawns draugr guards. Balance passes (Lead 80, 90 and the human-bot
 // pass): big lairs 4800 hp, small 2400-2800, the nest 8000 (spec 9000 and 16000). Playtest trim for
-// collision and the live verbs: non-boss lairs at 70% (big 4200, small 2100-2450).
+// collision and the live verbs: non-boss lairs at 70% (big 4200, small 2100-2450). With the omen
+// deck and elites: 60% (big 3600, small 1800-2100).
 export const LAIRS: readonly LairDef[] = [
-  { id: 'barrow', monster: 'draugr', spawnS: 10, maxAlive: 6, hp: 2450 },
-  { id: 'troll-den', monster: 'troll', spawnS: 25, maxAlive: 4, hp: 4200 },
-  { id: 'harpy-roost', monster: 'harpy', spawnS: 9, maxAlive: 6, hp: 2100 },
-  { id: 'jackal-camp', monster: 'jackal-man', spawnS: 10, maxAlive: 6, hp: 2450 },
-  { id: 'labyrinth', monster: 'minotaur', spawnS: 24, maxAlive: 4, hp: 4200 },
+  { id: 'barrow', monster: 'draugr', spawnS: 10, maxAlive: 6, hp: 2100 },
+  { id: 'troll-den', monster: 'troll', spawnS: 25, maxAlive: 4, hp: 3600 },
+  { id: 'harpy-roost', monster: 'harpy', spawnS: 9, maxAlive: 6, hp: 1800 },
+  { id: 'jackal-camp', monster: 'jackal-man', spawnS: 10, maxAlive: 6, hp: 2100 },
+  { id: 'labyrinth', monster: 'minotaur', spawnS: 24, maxAlive: 4, hp: 3600 },
+  // The swarm role doubles maxAlive: 10 scarabs at tier 1; 60% hp like the other small lairs.
+  { id: 'scarab-pit', monster: 'scarab', spawnS: 6, maxAlive: 5, hp: 1800 },
   { id: 'wyrm-nest', monster: 'wyrm', spawnS: 30, maxAlive: 3, hp: 8000, escort: 'draugr' },
+  // The other boss lairs at the nest's 8000 (spec 16000). The Greek boss lairs are guarded by harpies
+  // (minotaur guards plus Cerberus's howl calls made them a wall: 11 of 30 wins forced, the others
+  // 18-19); with Hydra 900 hp and Cerberus 950 they win 18 and 17 of 30, as Fafnir does.
+  {
+    id: 'serpent-shore',
+    monster: 'jormungandr',
+    spawnS: 30,
+    maxAlive: 3,
+    hp: 8000,
+    escort: 'draugr',
+  },
+  { id: 'hydra-marsh', monster: 'hydra', spawnS: 30, maxAlive: 3, hp: 8000, escort: 'harpy' },
+  {
+    id: 'gate-of-hades',
+    monster: 'cerberus',
+    spawnS: 30,
+    maxAlive: 3,
+    hp: 8000,
+    escort: 'harpy',
+  },
+  { id: 'apep-tomb', monster: 'apep', spawnS: 30, maxAlive: 3, hp: 8000, escort: 'jackal-man' },
+  {
+    id: 'sphinx-plinth',
+    monster: 'sphinx',
+    spawnS: 30,
+    maxAlive: 3,
+    hp: 8000,
+    escort: 'jackal-man',
+  },
 ];
 
 // Level-up cards; a party is offered 3 and its leader auto-picks (level-ups.md): `god` offers
@@ -861,6 +1010,89 @@ export const ITEMS: readonly ItemDef[] = [
       },
     },
   },
+  // Headgear and off-hand (hero-kit.md section 2): headgear about a third of the armour row by
+  // kit, an off-hand a shield's armour for the heavy kit plus a focus's power and a second blade's
+  // crit for everyone (one row per level until rows can name a kit or a family); about half the
+  // armour price. Bot (human, seeds 1 and 1001, 40 runs): wins 60% and 60% (50% and 63% without);
+  // the cheap level 1 pieces come first, so weapon and armour at 8:00 drop to 0.5 and 0.3.
+  {
+    id: 'headgear-1',
+    slot: 'headgear',
+    level: 1,
+    name: 'Plain',
+    price: 10,
+    shop: 'smithy',
+    shopTier: 1,
+    effects: {
+      kits: {
+        heavy: { armour: 1, wp: 0 },
+        light: { armour: 1, wp: 0 },
+        robe: { armour: 0, wp: 1 },
+      },
+    },
+  },
+  {
+    id: 'headgear-2',
+    slot: 'headgear',
+    level: 2,
+    name: 'Fine',
+    price: 65,
+    shop: 'smithy',
+    shopTier: 2,
+    effects: {
+      kits: {
+        heavy: { armour: 3, wp: 0 },
+        light: { armour: 1, wp: 1 },
+        robe: { armour: 0, wp: 1 },
+      },
+    },
+  },
+  {
+    id: 'headgear-3',
+    slot: 'headgear',
+    level: 3,
+    name: 'Godwrought',
+    price: 140,
+    shop: 'smithy',
+    shopTier: 3,
+    effects: {
+      kits: {
+        heavy: { armour: 4, wp: 1 },
+        light: { armour: 2, wp: 1 },
+        robe: { armour: 1, wp: 2 },
+      },
+    },
+  },
+  {
+    id: 'offhand-1',
+    slot: 'offhand',
+    level: 1,
+    name: 'Plain',
+    price: 10,
+    shop: 'smithy',
+    shopTier: 1,
+    effects: { kits: { heavy: { armour: 1, wp: 0 } }, power: 1, crit: 0.03 },
+  },
+  {
+    id: 'offhand-2',
+    slot: 'offhand',
+    level: 2,
+    name: 'Fine',
+    price: 65,
+    shop: 'smithy',
+    shopTier: 2,
+    effects: { kits: { heavy: { armour: 3, wp: 0 } }, power: 2, crit: 0.05 },
+  },
+  {
+    id: 'offhand-3',
+    slot: 'offhand',
+    level: 3,
+    name: 'Godwrought',
+    price: 140,
+    shop: 'smithy',
+    shopTier: 3,
+    effects: { kits: { heavy: { armour: 4, wp: 0 } }, power: 3, crit: 0.08 },
+  },
   {
     id: 'healing',
     slot: 'potion',
@@ -881,6 +1113,85 @@ export const ITEMS: readonly ItemDef[] = [
   },
 ];
 
+// The omen deck (docs/systems/events.md section 2): announced 20 s ahead, one at a time, first at
+// 3:00 then every 100-140 s; the lean pantheon's omens weigh double.
+// Bot pass on the full stack (late recruits, boss call, trim; human bot, seeds 1 and 1001, 40
+// runs, 35-min cap): with the deck and elites and non-boss lairs at 60%, wins 65% and 65%; at 70%
+// lairs 48% and 68% (57% and 73% without omens and elites). A later first omen, no elites or a
+// later first raid did not lift seed 1 above 53%.
+export const OMENS: readonly OmenDef[] = [
+  {
+    id: 'fallen-star',
+    name: 'Fallen Star',
+    text: 'A star falls beyond the fog.',
+    weight: 1,
+    durationMs: 60_000,
+    star: { xp: 60 },
+  },
+  {
+    id: 'wandering-champion',
+    name: 'Wandering Champion',
+    text: 'A champion walks near the town.',
+    weight: 1,
+    // Until it falls; 4 minutes at most.
+    durationMs: 240_000,
+    untilKilled: true,
+    spawn: { monster: 'strongest', count: 1, at: 'town', elite: true, bounty: 150 },
+  },
+  {
+    id: 'merchant-caravan',
+    name: 'Merchant Caravan',
+    text: 'Potions and charms sell cheap.',
+    weight: 1,
+    durationMs: 60_000,
+    mods: { shopDiscount: 0.3 },
+  },
+  {
+    id: 'red-sky',
+    name: 'Red Sky',
+    text: 'Monsters hit harder; bounties pay x2.',
+    weight: 1,
+    durationMs: 60_000,
+    mods: { monsterDamage: 1.2, bountyMult: 2 },
+  },
+  {
+    id: 'fimbul-frost',
+    name: 'Fimbul Frost',
+    text: 'The winter of the gods slows every step.',
+    pantheon: 'aesir',
+    weight: 1,
+    durationMs: 60_000,
+    mods: { moveSpeed: 0.85, typeDamage: { frost: 1.25 } },
+  },
+  {
+    id: 'games-of-olympia',
+    name: 'Games of Olympia',
+    text: 'Most kills win the favour of Zeus.',
+    pantheon: 'greek',
+    weight: 1,
+    durationMs: 45_000,
+    contest: true,
+  },
+  {
+    id: 'plague-of-scarabs',
+    name: 'Plague of Scarabs',
+    text: 'Scarabs burst from the ground near town.',
+    pantheon: 'egyptian',
+    weight: 1,
+    durationMs: 45_000,
+    spawn: { monster: 'scarab', count: 6, at: 'plot', raid: true },
+  },
+  {
+    id: 'eclipse-of-ra',
+    name: 'Eclipse of Ra',
+    text: 'The dead grow strong; holy light burns.',
+    pantheon: 'egyptian',
+    weight: 1,
+    durationMs: 45_000,
+    mods: { undeadDamage: 1.25, typeDamage: { holy: 1.5 } },
+  },
+];
+
 export const GRAYBOX: GameData = {
   startGold: 480,
   map: { width: 3000, height: 2000 },
@@ -891,6 +1202,14 @@ export const GRAYBOX: GameData = {
   // 67-74%, gears 88-90% of its heroes by 8:00 and kills its first lair at about 5.8 min; the full
   // bot 62%. Town income is the collector's tithe plus shop tax (55%): start gold 480. Unset keys
   // use DEFAULT_TUNING.
+  // A player's first run (docs/systems/onboarding.md section 4): the first raid at 8:00 instead of
+  // 6:00, every lair's first tier-up 2 minutes later (the stagger is unchanged), the first omen at
+  // 6:00 instead of 3:00.
+  firstRun: {
+    town: { raidFirstMs: 480_000 },
+    lair: { firstTierUpMs: 480_000 },
+    events: { omenFirstMs: 360_000 },
+  },
   tuning: {
     hero: { maxPerTemple: 7, recruitMs: 22_000, taxRate: 0.55, shopTripGold: 0, tithe: 0.3 },
     // Town income besides shop tax (docs/systems/tax-collector.md): the collector walks the tills.
@@ -923,7 +1242,13 @@ export const GRAYBOX: GameData = {
     bounty: { costPerDanger: 8, flagBonus: 15, flagDistanceCost: 0.02 },
     // Pacing (docs/systems/pacing-review.md): slower levels and a staggered lair clock.
     party: { xpPerLevel: 45 },
-    lair: { firstTierUpMs: 360_000, tierUpStaggerMs: 120_000, tierUpEveryMs: 420_000 },
+    // Elites (progression.md): a quarter of tier 2 spawns, 35% at tier 3.
+    lair: {
+      firstTierUpMs: 360_000,
+      tierUpStaggerMs: 120_000,
+      tierUpEveryMs: 420_000,
+      eliteShare: [0, 0.25, 0.35],
+    },
   },
   classes: CLASSES,
   gods: GODS,
@@ -933,6 +1258,7 @@ export const GRAYBOX: GameData = {
   lairs: LAIRS,
   items: ITEMS,
   skills: SKILLS,
+  omens: OMENS,
   summons: SUMMONS,
   // Each run draws its own map (Sim 150): 4-6 lairs from the pool, leaning on one pantheon, and
   // the wyrm nest as the boss lair; the run is won when the boss falls.
@@ -945,8 +1271,16 @@ export const GRAYBOX: GameData = {
       { lair: 'harpy-roost', pantheon: 'greek', weight: 2 },
       { lair: 'labyrinth', pantheon: 'greek' },
       { lair: 'jackal-camp', pantheon: 'egyptian', weight: 2 },
+      { lair: 'scarab-pit', pantheon: 'egyptian' },
     ],
     boss: 'wyrm-nest',
+    // The boss follows the lean: one of its pantheon's two, seeded, never last run's. The pick
+    // draws from the map stream, so every seed's map differs from runs before this row.
+    bossesByPantheon: {
+      aesir: ['wyrm-nest', 'serpent-shore'],
+      greek: ['hydra-marsh', 'gate-of-hades'],
+      egyptian: ['apep-tomb', 'sphinx-plinth'],
+    },
     leanCount: 1,
     leanWeight: 3,
     margin: 150,

@@ -62,7 +62,7 @@ The first run (no run finished in the meta save) uses gentler numbers, all tunin
 
 | Key                | Normal                            | First run   |
 | ------------------ | --------------------------------- | ----------- |
-| town.raidFirstMs   | 6 min                             | 8 min       |
+| town.raidFirstMs   | 7 min                             | 8 min       |
 | lair first tier-up | 6 / 8 / 10 min (`progression.md`) | +2 min each |
 | events omenFirstMs | 3 min                             | 6 min       |
 

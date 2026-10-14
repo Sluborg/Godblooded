@@ -1,4 +1,5 @@
 import { dist } from './units';
+import { omenBounty } from './omens';
 import { earn } from './runstats';
 import type { World } from './world';
 import type { BountyState, CommandResult, UnitState } from './types';
@@ -69,7 +70,7 @@ export function payEscort(world: World, gathererId: number): void {
     world.gold += Math.floor(flag.gold * world.tuning.bounty.cancelRefund);
     return;
   }
-  earn(world, hero, flag.gold);
+  earn(world, hero, omenBounty(world, flag.gold));
   world.events.push({
     kind: 'bountyClaimed',
     bounty: flag.id,
