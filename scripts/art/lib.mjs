@@ -54,6 +54,13 @@ export const KINDS = {
     nominal: { axis: 'height', share: 0.75, px: 256 },
     anchor: 'feet',
   },
+  // Town folk (the tax collector, gatherers, guards): one front still, drawn like a unit.
+  npc: {
+    re: /^npc_[a-z]+(-[a-z]+)*_t[1-3]_front$/,
+    dir: 'units',
+    nominal: { axis: 'height', share: 0.75, px: 256 },
+    anchor: 'feet',
+  },
   bld: {
     // Tier optional: untiered pieces such as bld_ruin, bld_scaffold, bld_caravan.
     re: /^bld_[a-z]+(-[a-z]+)*(_[a-z]+(-[a-z]+)*)?(_t[1-3])?$/,

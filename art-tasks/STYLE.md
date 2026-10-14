@@ -1,39 +1,42 @@
 # Godblooded house style (every image, every chat)
 
-Apply to every image on top of the batch text, so all chats make art that fits together.
-The look below is **Stefan's taste test (`docs/decisions.md` 2026-10-14)**; it replaces every
-earlier look. Older shipped pictures (pixel art) get redrawn over time.
+**One style** (Stefan, `docs/decisions.md` "Playtest run 2", 2026-10-14). The painted buildings
+are the anchor; every new picture must look like it came from the same hand. This replaces the
+big-head cartoon taste test; never draw cartoon again. Every batch quotes this page.
 
-- **Look:** **big-head cartoon** with **painterly shading**. About **2.5 heads tall**: a big head
-  with a readable face, a small body, a chunky weapon. Simple rounded shapes, crisp clean edges,
-  no blur, no pixel dithering.
-- **Outline: thin and colour-matched**, never thick black ink: each shape is edged by a
-  slightly darker shade of its own colour (skin by a darker skin tone, a red cape by a dark red),
-  about 1% of the canvas width.
-- **Painterly shading** inside the shapes: soft shading, a gentle rim light, brush texture on
-  wood, fur, stone and fabric, soft highlights on metal. Light from the top left.
-- **Palette: warm, only slightly muted** (Stefan 2026-10-14): keep most of the saturation, lean
-  warm: ochre, umber, moss and leaf greens, rust, warm reds, stone greys, cream. Not washed out,
-  no neon, no pure black, no pure white. Each Godblood keeps one signature accent from its divine
-  parent (Thor: storm blue, Loki: green, ...), a little brighter than the rest.
-- **Monsters are grim and scary**, never cute: hunched, sharp silhouettes, glowing eyes, darker
-  and colder colours than the heroes.
-- **Small units:** a hero is small next to a building (the town hall is about **5 heroes
-  wide**). Units must read at about 30 px tall: strong colour blocks, no fine detail that
-  vanishes when small.
-- **Effects grow with progression** (Stefan 2026-10-14): **subtle at tier 1**, **stronger at
-  tier 2**, **clearly effectful at tier 3**, for bosses and late game. Unit effects (sparks,
-  flames, glow, trails) are drawn by the game, never into unit parts; buildings carry their
-  tier's effect in the picture (none at tier 1, a hint at tier 2, a clear glow inside the
-  outline at tier 3).
-- **Camera:** top-down 3/4, seen from the lower right.
-- **Look reference:** `docs/reference/style-test-1.png` and `style-test-2.png` (fetch raw) show the
-  proportions, the unit size and the camera; follow this text, not their thick black outlines.
-- **Pose (every unit): faces RIGHT**, a three-quarter view toward the lower right; the game mirrors
-  it for left. One front picture per unit, no back view: the game does all motion in code.
-  Heroes and monsters are delivered as parts sheets (`docs/asset-spec.md` "Parts sheets") and
-  assembled by the game. A monster changes visibly per tier (one new piece per tier,
-  `docs/systems/monsters-and-bosses.md` "How monsters look").
+**Anchor pictures (fetch raw, match them):**
+
+- `public/assets/buildings/bld_townhall_t1.png` (the longhouse) and
+  `public/assets/buildings/bld_tower_t1.png` (the watch tower): the style itself.
+- `public/assets/buildings/bld_temple_aesir_t1.png`: the carving and trim.
+- `public/assets/units/mon_draugr_t1_front.png`: how a figure looks in this style (proportions,
+  outline, detail at unit size).
+
+## The rules
+
+- **Look:** detailed **painted pixel art**: crisp pixel clusters, no blur, no soft airbrush, no
+  noise or grain. Hand-made, worn, heavy: weathered wood, rough stone, dented iron, leather, fur.
+- **Mood: grim and mythic**, Norse first. Carved knotwork, runes, dragon heads, iron bands. Gods'
+  children look like the heroes of a saga, not like a fairy tale.
+- **Outline:** a thin dark warm-brown outline around the whole object (as on the anchors), darker
+  brown lines between parts. Never thick black ink.
+- **Palette:** earthy and muted like the anchors: umber, ochre, moss, slate, iron grey, bone,
+  dark red. Colour comes from materials (paint on wood, dyed cloth, brass). One accent colour per
+  hero from its divine parent (Thor: storm blue, Loki: green, Freyja: gold, Odin: grey-blue), used
+  on cloth or trim, never neon.
+- **Figures:** grounded heroic proportions like the draugr, **about 5 to 6 heads tall**, broad
+  and solid. **Adult faces, stern or fierce**, small eyes, no big anime eyes, no blush, no cute
+  smile, no chibi, no princess dresses, no clean shiny costumes. Women are warriors and
+  sorceresses in practical gear (mail, leather, fur, braids), never pretty-princess.
+- **Monsters** are grim and scary: hunched, sharp silhouettes, darker and colder than heroes.
+- **Small on the map:** units show about 30-40 px tall; the silhouette, the weapon and the accent
+  colour must carry the read. Chunky gear, no hair-thin detail.
+- **Effects grow with tier:** none at tier 1, a hint at tier 2, clear at tier 3 and bosses. Unit
+  effects (sparks, flames, glow) are drawn by the game, not into the unit. Buildings carry their
+  tier's effect inside the outline.
+- **Camera:** top-down 3/4 seen from the lower right, as the anchors.
+- **Pose (every unit): faces RIGHT**, three-quarter toward the lower right; the game mirrors it.
+  One front picture per unit; the game does the motion.
 - **Weapon position = the unit's strike** (the batch names it). The strike starts where the weapon
   is drawn:
 
@@ -52,11 +55,8 @@ earlier look. Older shipped pictures (pixel art) get redrawn over time.
   Grip like a real fighter (axe and hammer at the lower end of the handle). The whole weapon is
   inside the picture, never cut off.
 
-- **Shading:** see Look; light from the top left. No cast shadow, no shadow ellipse under the
-  feet, no glow outside the object unless the batch asks for a tier-3 aura.
-- **Phone readability:** units show about 30-40 px tall; the silhouette, the weapon and the accent
-  colour carry the read.
-- **Background:** flat magenta #FF00FF unless the batch says green (the palette has little
-  magenta).
+- **Light** from the top left. No cast shadow, no shadow ellipse, no glow outside the object
+  unless the batch asks for a tier-3 aura.
+- **Background:** flat magenta #FF00FF unless the batch says green.
 - No text, no logos, no watermark, no frame, no ground, no scenery: only the object on the flat
   key colour.
