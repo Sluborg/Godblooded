@@ -810,6 +810,85 @@ export const UPGRADES: readonly UpgradeDef[] = [
 
 // Aesir path skills (docs/systems/aesir-content.md section 4), one per path, mapped onto the
 // SkillDef shapes Sim shipped. Multipliers are on power (Str, or Int x spellMult).
+// Elite monster skills (monsters-and-bosses.md, Elite skills): cast by elites of the monster through
+// the skill engine.
+const ms = (s: Omit<SkillDef, 'path' | 'owner'>): SkillDef => ({
+  ...s,
+  path: '',
+  owner: 'monster',
+});
+export const MONSTER_SKILLS: readonly SkillDef[] = [
+  ms({
+    id: 'grave-breath',
+    monster: 'draugr',
+    name: 'Grave Breath',
+    trigger: { kind: 'crowd', n: 2, radius: 100, angle: 90 },
+    cooldownS: 12,
+    target: 'foe',
+    shape: { kind: 'cone', radius: 100, angle: 90 },
+    effects: [{ kind: 'damage', mult: 1, type: 'frost', rider: 'chill' }],
+    visual: ['cone'],
+  }),
+  ms({
+    id: 'boulder',
+    monster: 'troll',
+    name: 'Boulder',
+    trigger: { kind: 'engage', min: 120, max: 300 },
+    cooldownS: 14,
+    target: 'foe',
+    shape: { kind: 'single' },
+    effects: [{ kind: 'damage', mult: 1.8, type: 'physical' }, { kind: 'stagger' }],
+    visual: ['bolt'],
+  }),
+  ms({
+    id: 'shriek',
+    monster: 'harpy',
+    name: 'Shriek',
+    trigger: { kind: 'crowd', n: 2, radius: 100 },
+    cooldownS: 15,
+    target: 'self',
+    shape: { kind: 'circle', radius: 100 },
+    effects: [{ kind: 'stagger', to: 'foes' }],
+    visual: ['burst'],
+  }),
+  ms({
+    id: 'gore',
+    monster: 'minotaur',
+    name: 'Gore',
+    trigger: { kind: 'ready' },
+    cooldownS: 10,
+    target: 'foe',
+    shape: { kind: 'line', length: 80 },
+    effects: [
+      { kind: 'damage', mult: 2.2, type: 'physical' },
+      { kind: 'knockback', dist: 80 },
+    ],
+    visual: ['line'],
+  }),
+  ms({
+    id: 'pack-howl',
+    monster: 'jackal-man',
+    name: 'Howl',
+    trigger: { kind: 'ready' },
+    cooldownS: 18,
+    target: 'self',
+    shape: { kind: 'circle', radius: 150 },
+    effects: [{ kind: 'buff', stat: 'attackSpeed', amount: 0.25, s: 6, to: 'allies' }],
+    visual: ['aura'],
+  }),
+  ms({
+    id: 'devour',
+    monster: 'scarab',
+    name: 'Devour',
+    trigger: { kind: 'ready' },
+    cooldownS: 8,
+    target: 'foe',
+    shape: { kind: 'single' },
+    effects: [{ kind: 'damage', mult: 0.8, type: 'death', rider: 'wither' }],
+    visual: ['burst'],
+  }),
+];
+
 export const SKILLS: readonly SkillDef[] = [
   // Approximation: the spec marks the foe with the most hp and caps tier 3 at 3 targets;
   // SkillDef marks the hero's own foe and every foe in the circle.
@@ -961,6 +1040,8 @@ export const SKILLS: readonly SkillDef[] = [
       ],
     },
   },
+  // Elite monster skills (below), run by the same engine.
+  ...MONSTER_SKILLS,
 ];
 
 // Units the skills call.
