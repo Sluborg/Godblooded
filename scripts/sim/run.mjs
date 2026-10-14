@@ -353,7 +353,7 @@ function print(rep) {
     const paid = all.filter((p) => p.paid).length;
     const pct = (a, b) => (b > 0 ? `${((a / b) * 100).toFixed(0)}%` : '-');
     console.log(
-      `  hunt probe (${FLAG_GOLD} gold on a monster 350-900 from the nearest hero): ${all.length} flags; a party headed for it in ${pct(headed.length, all.length)}, median ${headed.length ? f(headed[Math.floor(headed.length / 2)]) : '-'} s, within 5 s ${pct(headed.filter((s) => s <= 5).length, all.length)}; paid as a hunt ${pct(paid, all.length)}`,
+      `  hunt probe (${FLAG_GOLD} gold on a monster 350-900 from the nearest hero): ${all.length} flags; a party headed for it in ${pct(headed.length, all.length)}, median ${headed.length ? f(headed[Math.floor(headed.length / 2)]) : '-'} s, within 5 s ${pct(headed.filter((s) => s <= 5).length, all.length)}; paid as a hunt ${pct(paid, all.length)} (a flag a tower kill turned into a ground flag, claimed later, counts as not paid as a hunt)`,
     );
   }
   console.log('  per run (mean):');
