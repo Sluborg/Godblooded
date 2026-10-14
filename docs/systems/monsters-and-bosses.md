@@ -291,7 +291,7 @@ still scales their hp with the lair tier (visual only). The
 | 50    | Boss pick: lean pantheon, seeded one of two, no repeat; boss lair guards                          |
 | 60    | Lair snapshot: `nextTierMs` and `tierSpanMs` (done, `sim/lair-timer` 0ad1a1b) for the growth ring |
 | 70    | Lair snapshot: `alive`, `maxAlive`, `nextSpawnMs` for the guard pips (done, 0ad1a1b)              |
-| 80    | MonsterDef `strikeType` (default physical): Apep strikes death, Cerberus fire                     |
+| 80    | MonsterDef `strikeType` (default physical): Apep and Jormungandr strike death, Cerberus fire      |
 
 ### Lead (data)
 
