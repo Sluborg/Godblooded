@@ -168,7 +168,11 @@ function relocateTown(world: World, data: GameData): void {
   for (const p of world.piles) move(p.pos);
   for (const b of world.bounties) move(b.pos);
   for (const g of world.graves) move(g.pos);
-  for (const rt of world.unitRuntime.values()) move(rt.target);
+  for (const rt of world.unitRuntime.values()) {
+    move(rt.target);
+    move(rt.collector?.stop?.pos);
+  }
+  for (const hr of world.heroRuntime.values()) move(hr.dest);
   for (const k of world.recentKills) move(k.pos);
   for (const m of world.miracleSteps) move(m.pos);
   // What stood at a plot building (the shift already applied) follows it to its new spot.
