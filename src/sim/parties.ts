@@ -354,6 +354,23 @@ export function fledParty(world: World, unit: UnitState): void {
   for (const other of party.members) if (other !== unit.id) addBond(world, unit.id, other, -1);
 }
 
+// A bonus card for a party outside a level-up (an omen's prize): offered, or picked by the party
+// as at a level-up. Nothing while a pick is pending.
+export function bonusCard(world: World, party: Party): boolean {
+  if (party.offer || party.pathOffer) return false;
+  const ids = offerCards(world, party);
+  if (ids.length === 0) return false;
+  if (!tune(world).autoPick) {
+    party.offer = ids;
+    return true;
+  }
+  const leader = leaderOf(world, party);
+  const pick = autoPickCard(world, party, ids);
+  const god = world.data.upgrades?.find((u) => u.id === pick)?.god ?? leader?.god ?? undefined;
+  applyUpgrade(world, party, pick, { auto: true, hero: leader?.id, god });
+  return true;
+}
+
 // Level 1 parties that meet while exploring may join up, more likely with a bond or a loyal
 // member. Runs once a second.
 export function runParties(world: World): void {

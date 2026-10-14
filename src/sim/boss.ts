@@ -37,15 +37,26 @@ export const bossNumbers = (world: World, mon: MonsterDef): BossTuning => ({
 });
 
 // Spawns a monster at its lair. A boss uses its own hp row instead of Sta * 8 + Str * 4.
-export function spawnMonster(world: World, lair: LairState, mon: MonsterDef): UnitState {
-  const mult = tierValue(world.tuning.lair.statMult, lair.tier, 1);
-  const hp = mon.hp ? Math.round(mon.hp * mult) : maxHp(scaleAttrs(mon.attrs, mult));
+export function spawnMonster(
+  world: World,
+  lair: LairState,
+  mon: MonsterDef,
+  forceElite = false,
+): UnitState {
+  const lt = world.tuning.lair;
+  const mult = tierValue(lt.statMult, lair.tier, 1);
+  // An elite share of a lair's spawns, from tier 2 (the draw happens only when the share is set).
+  const share = tierValue(lt.eliteShare, lair.tier, 0);
+  const elite = !isBoss(mon) && (forceElite || (share > 0 && world.rng() < share));
+  const base = mon.hp ? Math.round(mon.hp * mult) : maxHp(scaleAttrs(mon.attrs, mult));
+  const hp = elite ? Math.round(base * lt.eliteHpMult) : base;
   const id = world.nextId++;
   const unit: UnitState = {
     id,
     kind: 'monster',
     type: mon.id,
     tier: lair.tier,
+    ...(elite ? { elite: true as const } : {}),
     god: null,
     path: null,
     pos: { ...lair.pos },
@@ -62,7 +73,13 @@ export function spawnMonster(world: World, lair: LairState, mon: MonsterDef): Un
   };
   world.units.push(unit);
   world.unitRuntime.set(id, { lair: lair.id, cooldownMs: 0, target: null, idleMs: 0 });
-  world.events.push({ kind: 'spawned', unit: id, type: mon.id, lair: lair.id });
+  world.events.push({
+    kind: 'spawned',
+    unit: id,
+    type: mon.id,
+    lair: lair.id,
+    ...(elite ? { elite: true as const } : {}),
+  });
   return unit;
 }
 
