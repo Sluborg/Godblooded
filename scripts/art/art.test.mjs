@@ -81,6 +81,8 @@ describe('ids', () => {
     expect(kindOf('hero_warrior-v2_t1_front')).toBeNull();
     expect(kindOf('bld_ruin')?.kind).toBe('bld');
     expect(kindOf('npc_collector_t1_front')?.kind).toBe('npc');
+    expect(kindOf('por_grim')?.kind).toBe('por');
+    expect(kindOf('por_grim_t1')).toBeNull();
     expect(parseId('npc_collector_t1_front')).toEqual({ tier: 1, view: 'front', part: null });
     expect(kindOf('npc_collector_front')).toBeNull();
     expect(parseId('bld_scaffold').tier).toBeNull();

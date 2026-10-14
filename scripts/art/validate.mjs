@@ -32,6 +32,7 @@ const MAX = {
   buildings: [640, 720],
   terrain: [512, 512],
   ui: [512, 512],
+  portraits: [256, 256],
   art: [1280, 1280],
 };
 
