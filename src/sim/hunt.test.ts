@@ -143,17 +143,17 @@ describe('hunt flags', () => {
     expect(ev.some((e) => e.kind === 'bountyCancelled' || e.kind === 'bountyClaimed')).toBe(false);
   });
 
-  it('a miracle kill does not pay the hunt either', () => {
+  it('a miracle kill pays the hero it is credited to', () => {
     const w = createWorld(1, base);
     const h = hero(w, 3000, 3000);
     const m = monster(w, 2000, 2000);
     const id = flag(w, 2000, 2000, 50);
     m.hp = 0;
-    w.pendingDeaths.push({ victim: m.id, by: h.id, via: 'miracle' });
+    // favour.ts credits the hero that called the miracle
+    w.pendingDeaths.push({ victim: m.id, by: h.id });
     run(w, 100);
-    expect(flagOf(w, id)?.target).toBeUndefined();
-    // only the monster's own bounty (12), not the 50 of the flag
-    expect(h.gold).toBe(12);
+    expect(flagOf(w, id)).toBeUndefined();
+    expect(h.gold).toBe(62);
   });
 
   it("a summon's kill pays its owner", () => {
