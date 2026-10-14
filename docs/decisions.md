@@ -248,3 +248,12 @@ piece (weapon or armour). Heroes buy their first gear piece before their first p
   cases, a 50-gold flag draws one more slowly. Replaces the old target (50-gold flag heads
   within 5 s). Rich flags may lure heroes into danger; that is the player's risk.
 - The "Bounties steer" fun gate is judged by Stefan's feel in playtest run 2, then tuned.
+
+## 2026-10-14 Town income: a tax collector (Majesty style), in M2
+
+Stefan's first run earned no tax (no market built). Stefan picked a Majesty-style tax collector:
+gold builds up in buildings (shop sales tax, plus a tithe heroes pay at their home temple or
+guild when they rest), and a tax collector walks from the town hall to each building with gold,
+collects it and carries it home. The collector can be attacked; gold it carries drops if it
+falls. The town hall shows the gold arriving. Lands in M2 because income is core; Design writes
+the short spec, Sim builds it, Scene draws the collector and coin pops, Balance sets the numbers.
