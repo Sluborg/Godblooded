@@ -13,6 +13,7 @@
 // them a tower guard, posts a 25 gold escort bounty with --m3-escort, and spends Ambrosia on a
 // Recall of the fallen, then a temple tier, then an Offering. The report adds Ambrosia gathered
 // and spent, nodes freed, defiled and sprouted, and the gatherers and guards lost.
+// --hall-tiers turns the town hall tiers on (tuning.town.hallTiers): the bot upgrades the hall too.
 // --data takes a JSON file that overrides GRAYBOX fields (top level; `tuning` groups are
 // merged one by one), so data passes can be tried without editing src/data.
 import { readFileSync } from 'node:fs';
@@ -44,6 +45,7 @@ const buildIdx = args.indexOf('--build');
 const BUILD_ARG = buildIdx >= 0 ? args[buildIdx + 1].split(',') : undefined;
 // The bot buys building tiers unless --no-upgrade is given.
 const UPGRADE = !args.includes('--no-upgrade') && !HUMAN;
+const HALL_TIERS = args.includes('--hall-tiers');
 const HUNT = args.includes('--hunt');
 const FLAGS = args.includes('--flags') || HUNT;
 const FLAG_GOLD = opt('flag-gold', HUNT ? 50 : 40);
@@ -64,7 +66,10 @@ try {
   const sim = await server.ssrLoadModule('/src/sim/api.ts');
   const { GRAYBOX: base } = await server.ssrLoadModule('/src/data/graybox.ts');
   const data0 = dataFile ? withOverride(base, JSON.parse(readFileSync(dataFile, 'utf8'))) : base;
-  const GRAYBOX = M3 ? withOverride(data0, { tuning: { nodes: { enabled: true } } }) : data0;
+  const data1 = M3 ? withOverride(data0, { tuning: { nodes: { enabled: true } } }) : data0;
+  const GRAYBOX = HALL_TIERS
+    ? withOverride(data1, { tuning: { town: { hallTiers: true } } })
+    : data1;
   // The smithy joins the order once the data has one (heroes then buy weapons and armour).
   const BUILD_ORDER = ['temple_aesir', 'market', 'shrine', 'tower'];
   if (GRAYBOX.buildings.some((b) => b.id === 'smithy')) BUILD_ORDER.splice(2, 0, 'smithy');
@@ -332,7 +337,7 @@ try {
     // With gold to spare, buy the next tier of a temple, tower or market (cheapest first).
     if (UPGRADE) {
       const ups = snap.buildings
-        .filter((b) => b.upgradeCost !== null && b.upgradeCost + 150 <= snap.gold)
+        .filter((b) => b.upgradeCost !== null && !b.upgradeGate && b.upgradeCost + 150 <= snap.gold)
         .sort((a, b) => a.upgradeCost - b.upgradeCost);
       if (ups.length > 0) sim.command(w, { kind: 'upgrade', building: ups[0].id });
     }

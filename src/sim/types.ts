@@ -895,6 +895,13 @@ export interface CollectorTuning {
 
 export interface TownTuning {
   townHallHp: number;
+  // The town hall has tiers (docs/systems/buildings.md): off, it stays tier 1 and nothing is gated.
+  // On: it is upgraded for hallUpgradeCost[tier - 1] gold, has hp hallHpByTier, opens
+  // plotsByHallTier plots, and no building may pass its tier.
+  hallTiers: boolean;
+  hallHpByTier: readonly number[];
+  hallUpgradeCost: readonly number[];
+  plotsByHallTier: readonly number[];
   buildingHp: number;
   // Raids: monsters from every lair march on the town.
   raidFirstMs: number;
@@ -1096,14 +1103,16 @@ export interface BuildingState {
   plot: number | null;
   hp: number;
   maxHp: number;
-  // Gold the `upgrade` command costs now; null at the top tier and for the town hall.
+  // Gold the `upgrade` command costs now; null at the top tier (and for the town hall unless it has tiers).
   upgradeCost: number | null;
+  // The town hall tier the next upgrade waits for; null when nothing blocks it.
+  upgradeGate: number | null;
   // Gold waiting in the building for the tax collector (shop tax, tithe). Missing: none.
   till?: number;
 }
 
 // A building as the sim keeps it; the snapshot adds the upgrade cost.
-export type BuildingCore = Omit<BuildingState, 'upgradeCost'>;
+export type BuildingCore = Omit<BuildingState, 'upgradeCost' | 'upgradeGate'>;
 
 export interface PlotState {
   // Index into GameData.plots.
@@ -1111,6 +1120,9 @@ export interface PlotState {
   pos: Vec2;
   occupied: boolean;
   building: number | null;
+  // Closed until the town hall reaches `unlockTier` (always open without hall tiers).
+  locked: boolean;
+  unlockTier: number;
 }
 
 export interface LairState {

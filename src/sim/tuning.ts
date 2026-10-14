@@ -255,6 +255,10 @@ export const DEFAULT_TUNING: Tuning = {
   },
   town: {
     townHallHp: 500,
+    hallTiers: false,
+    hallHpByTier: [500, 750, 1000],
+    hallUpgradeCost: [400, 900],
+    plotsByHallTier: [8, 10, 12],
     buildingHp: 200,
     raidFirstMs: 240_000,
     raidEveryMs: 120_000,

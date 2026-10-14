@@ -74,7 +74,11 @@ import {
   runRaids,
   runTowers,
   upgradeBuilding,
+  hallHp,
+  plotLocked,
+  plotUnlockTier,
   upgradeCost,
+  upgradeGate,
 } from './town';
 import { resolveTuning } from './tuning';
 import { makeRng, type Rng } from './rng';
@@ -371,8 +375,8 @@ export function createWorld(seed: number, data: GameData): World {
     tier: 1,
     pos: { ...data.townHall },
     plot: null,
-    hp: world.tuning.town.townHallHp,
-    maxHp: world.tuning.town.townHallHp,
+    hp: hallHp(world, 1),
+    maxHp: hallHp(world, 1),
   });
   world.nextRaidMs = world.tuning.town.raidFirstMs;
   let sites: readonly LairSite[] = data.lairSites ?? [];
@@ -1087,6 +1091,9 @@ export function command(world: World, cmd: Command): CommandResult {
       if (world.buildings.some((b) => b.plot === cmd.plot)) {
         return { ok: false, reason: 'plot taken' };
       }
+      if (plotLocked(world, cmd.plot)) {
+        return { ok: false, reason: `needs town hall tier ${plotUnlockTier(world, cmd.plot)}` };
+      }
       if (world.gold < def.cost) return { ok: false, reason: 'not enough gold' };
       world.gold -= def.cost;
       const id = world.nextId++;
@@ -1225,12 +1232,20 @@ export function snapshot(world: World): Snapshot {
     stats: { ...world.stats },
     plots: (world.data.plots ?? []).map((pos, id) => {
       const b = world.buildings.find((x) => x.plot === id);
-      return { id, pos: { ...pos }, occupied: !!b, building: b ? b.id : null };
+      return {
+        id,
+        pos: { ...pos },
+        occupied: !!b,
+        building: b ? b.id : null,
+        locked: plotLocked(world, id),
+        unlockTier: plotUnlockTier(world, id),
+      };
     }),
     buildings: world.buildings.map((b) => ({
       ...b,
       pos: { ...b.pos },
       upgradeCost: upgradeCost(world, b),
+      upgradeGate: upgradeGate(world, b),
     })),
     parties: [...world.parties.values()].map((p) => ({
       id: p.id,
