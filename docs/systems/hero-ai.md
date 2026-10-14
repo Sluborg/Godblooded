@@ -232,8 +232,13 @@ switchMin` for a party whose members are all above `bossCallHp` (0.7): exploring
 - **Balance's tune** (with the playtest trim): `bossCallBonus` 80, `bossCallHp` 0.7 (0.5 made no
   difference). The median run drops to 15 min (was 19), the quiet p90 to 80-102 s (was 156), wins
   63-68%. The rest of the gap sits near 10 min, before the unseal: walks between normal lairs.
-  A mid-game floor on the nearest known lair would close it, but it also takes over the job the
-  flags have (`hero-ai.md` 5b part 4); Lead and Stefan decide.
+- **Decided (Lead, 2026-10-14):** accept a quiet p90 of about 90 s; Stefan's next run judges.
+  No always-on lair floor: pushing lairs stays the flags' job (5b part 4).
+- **Ready fallback, if Stefan feels a lull** (held, not to build yet): a party that has explored
+  for `lullMs` (60000) without a fight scores the nearest known normal lair at least
+  `exploreValue + switchMin` (the boss call's floor), while every member is above `bossCallHp`.
+  The clock resets on any fight or flag goal, so flags still win early and only long dead
+  stretches end.
 
 ## 6. Smaller fixes
 
