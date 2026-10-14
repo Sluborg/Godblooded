@@ -59,7 +59,7 @@ export const KINDS = {
     re: /^bld_[a-z]+(-[a-z]+)*(_[a-z]+(-[a-z]+)*)?(_t[1-3])?$/,
     dir: 'buildings',
     nominal: { axis: 'width', share: 0.85, px: 512 },
-    anchor: 'feet',
+    anchor: 'footprint',
   },
   ter: {
     re: /^ter_[a-z0-9]+(_[a-z0-9]+)*$/,
@@ -312,7 +312,18 @@ export function resample(img, rect, ow, oh) {
   return res;
 }
 
-// Anchor point on the source canvas. feet: horizontal centre of the lowest 6% of the object
+// Depth of a building's iso footprint centre above the picture's bottom edge, as a share of the
+// picture width. Same rule as Scene's footOrigin (src/ui/unitLook.ts): the lowest band of an iso
+// building is its front corner, not the centre of its plot.
+export const FOOT_DEPTH = 0.2;
+
+// Footprint origin of a shipped building picture (Phaser origin, 0..1).
+export function footprintOrigin(w, h) {
+  return { x: 0.5, y: round3(Math.max(0.6, Math.min(1, 1 - (FOOT_DEPTH * w) / h))) };
+}
+
+// Anchor point on the source canvas. footprint: measured like feet, replaced after the crop by
+// footprintOrigin. feet: horizontal centre of the lowest 6% of the object
 // (feet or the building's base), at its bottom edge. centre: middle of the bounding box.
 export function anchorPoint(img, mode) {
   const mask = visibleMask(img, 128);
@@ -382,6 +393,11 @@ export function processImage(raw, id, points = {}) {
   if (!anchor) throw new Error(`${id}: nothing left after key-out`);
   const rect = trimRect(anchor.box, r.scale);
   const out = crop(r, rect, anchor);
+  if (r.k.anchor === 'footprint') {
+    const o = footprintOrigin(out.image.width, out.image.height);
+    out.anchorX = o.x;
+    out.anchorY = o.y;
+  }
   for (const [name, [x, y]] of Object.entries(points)) {
     out[`${name}X`] = round3((x - rect.x) / rect.w);
     out[`${name}Y`] = round3((y - rect.y) / rect.h);

@@ -123,6 +123,16 @@ describe('processImage', () => {
     expect(r.anchorY).toBeCloseTo(1 - 2 / r.image.height, 2);
   });
 
+  it('anchors a building at its iso footprint centre, not its lowest corner', () => {
+    // Off-centre base: the lowest band sits right of the middle, as on an iso front corner.
+    const raw = canvas(1024, GREEN, { x: 100, y: 300, w: 800, h: 500 });
+    for (let y = 800; y < 840; y++)
+      for (let x = 700; x < 800; x++) raw.data.set([150, 60, 40, 255], (y * 1024 + x) * 4);
+    const r = processImage(raw, 'bld_townhall_t1');
+    expect(r.anchorX).toBe(0.5);
+    expect(r.anchorY).toBeCloseTo(1 - (0.2 * r.image.width) / r.image.height, 2);
+  });
+
   it('keeps a bigger tier-3 silhouette bigger', () => {
     const big = { x: 362, y: 80, w: 300, h: 821 };
     const r = processImage(canvas(1024, MAGENTA, big), 'mon_troll_t3_front');
