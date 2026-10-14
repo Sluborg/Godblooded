@@ -27,13 +27,13 @@ import { clearSave, isNewerSave, newSeed, readSave, writeSave } from '../ui/save
 import { getSettings, updateSettings } from '../ui/settings';
 import { FpsGuard } from '../ui/fpsGuard';
 import { heroLabel, partyColor } from '../ui/partyLook';
-import { artCandidates } from '../ui/unitLook';
 import { UnitViews } from '../ui/unitViews';
 import { iconScale } from '../ui/icons';
 import { releaseSets } from '../ui/parts/bake';
 import { effectiveSpeed } from '../ui/pathSpeed';
 import { STYLE } from '../ui/style';
 import { LAIR_UI_DEPTH, LairIndicators, groundScale, plateColor } from '../ui/lairRings';
+import { portraitIds } from '../ui/portraits';
 import {
   footprintRing,
   groundShadow,
@@ -366,7 +366,7 @@ export class MapScene extends Phaser.Scene {
       members: units.map((u) => ({
         id: u.id,
         label: heroLabel(u),
-        art: artCandidates('hero', u.type, u.tier, u.path, u.god),
+        art: portraitIds(this, u),
         picking: picking === u.id,
       })),
       focus: { x: cx, y: cy },
