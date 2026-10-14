@@ -100,7 +100,7 @@ export class SettingsScene extends Phaser.Scene {
       this.refresh();
       (this.scene.get('Hud') as HudScene | undefined)?.refreshHints();
     });
-    makeButton(this, 1110, 535, 230, 80, 'Show hints again', () => {
+    makeButton(this, 1108, 535, 210, 80, 'Show hints again', () => {
       clearSeen();
       // The running director keeps its own copy and would write it back over the cleared list.
       (this.scene.get('Hud') as HudScene | undefined)?.refreshHints();
