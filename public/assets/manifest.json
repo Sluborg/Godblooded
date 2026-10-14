@@ -827,6 +827,17 @@
       "sliceBottom": 23
     },
     {
+      "id": "ui_flag_bounty",
+      "kind": "ui",
+      "tier": null,
+      "view": null,
+      "file": "ui/ui_flag_bounty.png",
+      "anchorX": 0.5,
+      "anchorY": 0.5,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "B13"
+    },
+    {
       "id": "ui_icon_bounty",
       "kind": "ui",
       "tier": null,
@@ -935,6 +946,17 @@
       "anchorY": 0.5,
       "license": "own (ChatGPT, Stefan's account)",
       "source": "U4"
+    },
+    {
+      "id": "ui_item_axe",
+      "kind": "ui",
+      "tier": null,
+      "view": null,
+      "file": "ui/ui_item_axe.png",
+      "anchorX": 0.5,
+      "anchorY": 0.5,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "G1"
     },
     {
       "id": "ui_item_charm_bloodstone",
