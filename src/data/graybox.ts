@@ -393,7 +393,7 @@ export const MONSTERS: readonly MonsterDef[] = [
   {
     id: 'harpy',
     role: 'harrier',
-    quirk: { stealGold: 5 },
+    quirk: { stealGold: 2 },
     attrs: { str: 4, dex: 7, sta: 4, cha: 1, per: 5, int: 1, wp: 3 },
     weapon: { baseAttackS: 1.3, range: 40 },
     bounty: 14,
@@ -890,7 +890,7 @@ export const GRAYBOX: GameData = {
   // item tax only: start gold 420 builds a temple, market and smithy, and tax is 60% of an
   // item's price. Unset keys use DEFAULT_TUNING.
   tuning: {
-    hero: { maxPerTemple: 7, recruitMs: 22_000, taxRate: 0.6 },
+    hero: { maxPerTemple: 7, recruitMs: 22_000, taxRate: 0.6, shopTripGold: 0 },
     // Raids after a lair tier-up are on (Stefan): one raider, every second tier-up.
     town: {
       raidFirstMs: 360_000,
