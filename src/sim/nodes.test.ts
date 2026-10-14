@@ -86,8 +86,8 @@ describe('celestial nodes', () => {
   });
 
   it('hold more far from town and under a harder lair', () => {
-    // 1700 is 1100 from the hall: one full 400 beyond 600, so x1.25.
-    const far = createWorld(1, data({ enabled: true }, 1700));
+    // 2000 is 1400 from the hall: one full 400 beyond 800, so x1.25.
+    const far = createWorld(1, data({ enabled: true }, 2000));
     step(far, 1000);
     fell(far);
     expect(snapshot(far).nodes[0]).toMatchObject({ max: 100 });

@@ -72,7 +72,11 @@ const MIGRATIONS: Record<number, (save: SaveGame) => SaveGame> = {
   // buildings to where the game data puts them (relocateTown).
   4: (save) => ({ ...save, version: 5 }),
   // 5 to 6 (celestial nodes, M3): the world has nodes and an Ambrosia count. An old run has none.
-  5: (save) => ({ ...save, version: 6, world: { ...save.world, nodes: [], ambrosia: 0 } }),
+  5: (save) => ({
+    ...save,
+    version: 6,
+    world: { ...save.world, nodes: [], ambrosia: 0, jars: [], guardQueue: [] },
+  }),
 };
 
 export function saveWorld(world: World): SaveGame {
@@ -168,7 +172,11 @@ function relocateTown(world: World, data: GameData): void {
   for (const p of world.piles) move(p.pos);
   for (const b of world.bounties) move(b.pos);
   for (const g of world.graves) move(g.pos);
-  for (const rt of world.unitRuntime.values()) move(rt.target);
+  for (const rt of world.unitRuntime.values()) {
+    move(rt.target);
+    move(rt.collector?.stop?.pos);
+  }
+  for (const hr of world.heroRuntime.values()) move(hr.dest);
   for (const k of world.recentKills) move(k.pos);
   for (const m of world.miracleSteps) move(m.pos);
   // What stood at a plot building (the shift already applied) follows it to its new spot.
@@ -200,7 +208,7 @@ function check(world: World, data: GameData): void {
       if (!u.summon || !data.summons?.some((d) => d.id === u.summon?.def)) {
         bad('summon', u.summon?.def ?? u.type);
       }
-    } else if (u.kind !== 'collector' && u.kind !== 'worker') {
+    } else if (u.kind !== 'collector' && u.kind !== 'worker' && u.kind !== 'guard') {
       const known =
         u.kind === 'hero'
           ? data.classes?.some((c) => c.id === u.type)
