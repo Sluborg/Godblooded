@@ -208,6 +208,25 @@ export const DEFAULT_TUNING: Tuning = {
     chainRange: 400,
     distanceCost: 0.02,
   },
+  nodes: {
+    enabled: false,
+    start: 40,
+    max: 80,
+    regenPerMin: 8,
+    distFrom: 600,
+    distStep: 400,
+    distBonus: 0.25,
+    tierMult: [1, 1.25, 1.5],
+    gathererCost: 30,
+    gathererCap: [2, 3, 4],
+    gathererHp: 40,
+    speedMult: 0.8,
+    gatherMs: 5_000,
+    carry: 20,
+    fleeMult: 1.2,
+    healPerS: 0.02,
+    reach: 40,
+  },
   town: {
     townHallHp: 500,
     buildingHp: 200,
@@ -266,6 +285,7 @@ export function resolveTuning(data: GameData): Tuning {
     favour: { ...DEFAULT_TUNING.favour, ...t?.favour },
     town: { ...DEFAULT_TUNING.town, ...t?.town },
     collector: { ...DEFAULT_TUNING.collector, ...t?.collector },
+    nodes: { ...DEFAULT_TUNING.nodes, ...t?.nodes },
     bounty: { ...DEFAULT_TUNING.bounty, ...t?.bounty },
   };
 }

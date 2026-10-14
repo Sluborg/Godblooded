@@ -204,3 +204,7 @@ Shares are of the runs that placed a flag (one or two flags a run).
 - **Fixes in flight:** the tax collector (`tax-collector.md`), spacing option B, and the felt need
   for flags (`hero-ai.md` 5b part 4, ship first). Lair regen and near-town patrol are held
   candidates until Stefan's next run.
+- **Balance's human-bot pass** (`balance/spacing-collector`): spacing option B (map 3000 x 2000,
+  lairs at least 800 from town and 500 apart, plots on a 520 x 380 ring), the tax collector on
+  (tithe 0.3), and non-boss lairs at 60% hp. The human-like bot wins 63-64%, its first lair falls
+  at about 6.2 min, and town gold is about 165 at 3:00; the full bot wins 74%.

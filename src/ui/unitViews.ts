@@ -50,7 +50,14 @@ import { summonName } from './summonLook';
 import { fxScale, scaledCount } from './style';
 import { BARK_META, barkRoll, isSpeechEvent, pickLine, type SpeechKind } from './speechLines';
 import { buildHeal, buildStrike, FxLayer, type Vec } from './strikeFx';
-import { ART_NOMINAL_PX, PLACEHOLDER, UNIT_HEIGHT, artCandidates, baseType } from './unitLook';
+import {
+  ART_NOMINAL_PX,
+  PLACEHOLDER,
+  UNIT_HEIGHT,
+  artCandidates,
+  baseType,
+  townLabel,
+} from './unitLook';
 
 // Speech bubbles: how long one stays, the most on screen at once, and the quiet time per unit.
 // Heroes drawn from parts (src/ui/parts/) instead of a picture; `?noparts` in the URL turns it off.
@@ -256,7 +263,7 @@ export class UnitView {
       .text(
         0,
         -UNIT_HEIGHT * this.look.scale - 6,
-        u.kind === 'hero' ? heroLabel(u) : u.kind === 'collector' ? 'Tax collector' : summonName(u),
+        u.kind === 'hero' ? heroLabel(u) : (townLabel(u.kind) ?? summonName(u)),
         {
           fontFamily: 'Georgia, serif',
           fontSize: '16px',
@@ -1034,6 +1041,15 @@ export class UnitView {
       this.ring.fillStyle(0x24140a, 0.45).fillEllipse(0, -4, 78, 30);
       this.ring.lineStyle(4, 0xf2c14e, 0.95).strokeEllipse(0, -4, 78, 30);
       if (selected) this.ring.lineStyle(3, 0xffffff, 0.95).strokeEllipse(0, -4, 94, 38);
+      this.badge.setVisible(false);
+      this.label.setVisible(true);
+      return;
+    }
+    if (townLabel(u.kind)) {
+      // A gatherer or a guard (M3): a small neutral ring, its name, no party badge.
+      this.ring.fillStyle(0x24140a, 0.35).fillEllipse(0, -4, 60, 23);
+      this.ring.lineStyle(3, 0xd9c9a8, 0.95).strokeEllipse(0, -4, 60, 23);
+      if (selected) this.ring.lineStyle(3, 0xffffff, 0.95).strokeEllipse(0, -4, 74, 30);
       this.badge.setVisible(false);
       this.label.setVisible(true);
       return;

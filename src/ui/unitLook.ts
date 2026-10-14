@@ -10,12 +10,14 @@ export const ART_NOMINAL_PX = 256;
 // right and is mirrored by direction, so facing up or down never picks another picture.
 // Any unit kind: a summon (decoy, falcon, thrall) has `sum_<def>_t1_front`, and without that picture
 // it falls back to a placeholder shape like every other unit.
-export type ArtKind = 'hero' | 'monster' | 'summon' | 'collector';
+export type ArtKind = 'hero' | 'monster' | 'summon' | 'collector' | 'worker' | 'guard';
 const ART_PREFIX: Record<ArtKind, string> = {
   hero: 'hero',
   monster: 'mon',
   summon: 'sum',
   collector: 'npc',
+  worker: 'npc',
+  guard: 'npc',
 };
 
 export function unitArtId(kind: ArtKind, type: string, tier: number): string {
@@ -85,3 +87,15 @@ export function baseType(name: string): string {
 
 // Placeholder body (no art for the id): same motion, a simple capsule that faces right.
 export const PLACEHOLDER = { w: 56, h: 84, weaponX: 0.9, weaponY: 0.45 };
+
+// Town units (the tax collector, gatherers, guards; M2 and M3): not heroes, not monsters, no party.
+// Their kind arrives as a string so a kind the sim adds later needs no change here to compile.
+const TOWN_LABEL: Record<string, string> = {
+  collector: 'Tax collector',
+  worker: 'Gatherer',
+  guard: 'Guard',
+};
+
+export function townLabel(kind: string): string | undefined {
+  return TOWN_LABEL[kind];
+}

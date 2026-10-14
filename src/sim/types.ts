@@ -1031,6 +1031,7 @@ export interface Tuning {
   favour: FavourTuning;
   town: TownTuning;
   collector: CollectorTuning;
+  nodes: NodesTuning;
   bounty: BountyTuning;
 }
 
@@ -1072,6 +1073,7 @@ export interface GameData {
     favour?: Partial<FavourTuning>;
     town?: Partial<TownTuning>;
     collector?: Partial<CollectorTuning>;
+    nodes?: Partial<NodesTuning>;
     bounty?: Partial<BountyTuning>;
   };
   lairs?: readonly LairDef[];
@@ -1135,7 +1137,7 @@ export interface LairState {
 export interface UnitState {
   id: number;
   // 'summon': a unit a hero's skill called; it fights for the party and monsters can target it.
-  kind: 'hero' | 'monster' | 'summon' | 'collector';
+  kind: 'hero' | 'monster' | 'summon' | 'collector' | 'worker';
   // Monsters: the monster id. Heroes: the id of the template in use (ClassDef): the god's at
   // tier 1, the path's from tier 2. Look and strike fall back on it.
   type: string;
@@ -1223,6 +1225,55 @@ export interface GraveState {
   tier: number;
   pos: Vec2;
   timeMs: number;
+}
+
+// A celestial node (nodes.ts, docs/systems/nodes.md): under every non-boss lair. Locked while the
+// lair stands; freed when it falls, then a pool of Ambrosia that refills slowly.
+export interface NodeState {
+  id: number;
+  // The lair it lay under.
+  lair: number;
+  pos: Vec2;
+  state: 'locked' | 'freed';
+  // Ambrosia in the pool (0 while locked) and the most it holds.
+  pool: number;
+  max: number;
+}
+
+// Celestial nodes and Ambrosia (nodes.ts). Off: no nodes, nothing changes.
+export interface NodesTuning {
+  enabled: boolean;
+  // A freed node opens with `start` Ambrosia and holds up to `max`; it refills `regenPerMin`.
+  start: number;
+  max: number;
+  regenPerMin: number;
+  // Both scale by 1 + distBonus per full distStep beyond distFrom from the town hall.
+  distFrom: number;
+  distStep: number;
+  distBonus: number;
+  // By lair tier (1-based; the last holds above).
+  tierMult: readonly number[];
+  // Gatherers (workers.ts): gold to hire, how many per town hall tier, body, and the loop: gather
+  // for gatherMs, carry `carry` Ambrosia home. A hit sends one home at fleeMult x its speed; at
+  // the hall it heals healPerS of its max hp a second.
+  gathererCost: number;
+  gathererCap: readonly number[];
+  gathererHp: number;
+  speedMult: number;
+  gatherMs: number;
+  carry: number;
+  fleeMult: number;
+  healPerS: number;
+  reach: number;
+}
+
+// What a gatherer is doing: waiting at the hall, walking out, gathering, or carrying home.
+export interface WorkerInfo {
+  unit: number;
+  node: number | null;
+  phase: 'idle' | 'out' | 'gather' | 'back';
+  carry: number;
+  fleeing: boolean;
 }
 
 // A pile of gold on the ground (a fallen collector's load, a destroyed building's till): the
@@ -1381,6 +1432,11 @@ export type SimEvent =
   | { kind: 'autosave' }
   // `pressure`: the lair grew early because its monsters knocked out too many heroes.
   | { kind: 'lairTierUp'; lair: number; tier: number; pressure?: boolean }
+  | { kind: 'gathererHired'; unit: number }
+  | { kind: 'workerHit'; unit: number }
+  | { kind: 'jarHome'; unit: number; node: number | null; gold: number; total: number }
+  | { kind: 'workerFell'; unit: number; pos: Vec2; carried: number }
+  | { kind: 'nodeFreed'; node: number; lair: number; pos: Vec2; pool: number }
   | { kind: 'lairDestroyed'; lair: number; type: string; by: number; bounty: number }
   | { kind: 'buildingDestroyed'; building: number; type: string }
   // A hero paid its tithe into the till of `building` (its home temple; the town hall, banked at
@@ -1443,6 +1499,11 @@ export type SimEvent =
 
 export type Command =
   | { kind: 'build'; type: string; plot: number }
+  // Gatherers (M3): hire at the town hall; send an idle one to a freed node (again for a second);
+  // recall them from one node, or all.
+  | { kind: 'hireGatherer' }
+  | { kind: 'sendGatherer'; node: number }
+  | { kind: 'recallGatherers'; node?: number }
   | { kind: 'placeBounty'; pos: Vec2; gold: number }
   // Take a flag down and get cancelRefund (50%) of its gold back.
   | { kind: 'cancelBounty'; bounty: number }
@@ -1520,6 +1581,12 @@ export interface Snapshot {
   readonly bounties: readonly Readonly<BountyState>[];
   // Gold piles on the ground (a fallen tax collector's load).
   readonly piles: readonly Readonly<PileState>[];
+  // Celestial nodes (empty while tuning.nodes.enabled is off) and the Ambrosia in the town's hands.
+  readonly nodes: readonly Readonly<NodeState>[];
+  readonly ambrosia: number;
+  // Gatherers: what each is doing, and how many the town hall may keep.
+  readonly workers: readonly Readonly<WorkerInfo>[];
+  readonly gathererCap: number;
   // Favour bar of every pantheon with a miracle row (0 to max); a full bar waits for a fight.
   readonly favour: readonly Readonly<{ pantheon: string; value: number; max: number }>[];
   // Where heroes were slain; the markers stay for the run.
