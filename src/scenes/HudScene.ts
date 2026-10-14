@@ -733,8 +733,9 @@ export class HudScene extends Phaser.Scene {
     else this.showToast(res.reason);
   }
 
-  private showToast(text: string): void {
+  showToast(text: string, holdMs = 1200): void {
     this.toast.setText(text).setAlpha(1);
-    this.tweens.add({ targets: this.toast, alpha: 0, delay: 1200, duration: 400 });
+    this.tweens.killTweensOf(this.toast);
+    this.tweens.add({ targets: this.toast, alpha: 0, delay: holdMs, duration: 400 });
   }
 }

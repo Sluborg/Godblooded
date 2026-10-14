@@ -22,7 +22,8 @@ import {
   type World,
 } from '../sim/api';
 import { clearSave, isNewerSave, newSeed, readSave, writeSave } from '../ui/saveStore';
-import { getSettings } from '../ui/settings';
+import { getSettings, updateSettings } from '../ui/settings';
+import { FpsGuard } from '../ui/fpsGuard';
 import { heroLabel, partyColor } from '../ui/partyLook';
 import { artCandidates } from '../ui/unitLook';
 import { UnitViews } from '../ui/unitViews';
@@ -88,6 +89,7 @@ export class MapScene extends Phaser.Scene {
   private resumeWatch = false;
   // Camera mode: by hand, watching the best fight, or following one hero (until it is gone).
   private cam: 'off' | 'watch' | 'unit' = 'off';
+  private fpsGuard: FpsGuard | null = null;
   private followId = 0;
   private director = new WatchDirector();
   private readonly sfxFeed = new SfxFeed();
@@ -132,6 +134,7 @@ export class MapScene extends Phaser.Scene {
     // The title theme plays on Boot, Title and the hall only; there is no run music yet.
     getMusic(this).stop(800);
     this.sfxFeed.reset();
+    this.fpsGuard = new FpsGuard();
     this.world = this.startWorld();
     this.registry.set('speed', getSettings().speed);
     const cam = this.cameras.main;
@@ -169,7 +172,8 @@ export class MapScene extends Phaser.Scene {
     this.scene.launch('Hud');
   }
 
-  update(_time: number, deltaMs: number): void {
+  update(time: number, deltaMs: number): void {
+    this.watchFrameRate(time);
     const button = (this.registry.get('speed') as number) ?? 1;
     // A path offer open (as of the last snapshot) slows the run to 0.3x, absolute.
     const speed = effectiveSpeed(
@@ -432,6 +436,15 @@ export class MapScene extends Phaser.Scene {
 
   get snapshot(): Snapshot {
     return this.snap;
+  }
+
+  // Sharp rendering that runs too slow in the first minute is switched off for the next start.
+  private watchFrameRate(time: number): void {
+    if (RENDER_SCALE <= 1 || this.fpsGuard === null) return;
+    if (!this.fpsGuard.frame(time, !document.hidden)) return;
+    this.fpsGuard = null;
+    updateSettings({ sharp: false });
+    this.hud()?.showToast('Sharp mode off for speed; Settings to change', 4500);
   }
 
   private hud(): HudScene | null {
