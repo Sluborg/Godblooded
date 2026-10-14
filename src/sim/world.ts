@@ -51,6 +51,7 @@ import {
 } from './boss';
 import { buildReport, sampleGold, tally, type HeroRecord } from './runstats';
 import { notePositions, runCollision } from './collision';
+import { fogView, runDiscovery } from './discovery';
 import { collectorFell, runCollector } from './collector';
 import { clearRuin, rebuildRuin, runRepair } from './ruins';
 import { raiderHeld } from './corrupt';
@@ -296,6 +297,8 @@ export interface World {
   collectorQueue: number[];
   // Ruins of destroyed buildings (ruins.ts).
   ruins: RuinState[];
+  // Fog cells a hero has passed (discovery.ts): indices into the map's grid of cells.
+  exploredCells: number[];
   // Celestial nodes and the Ambrosia the town holds (nodes.ts).
   nodes: NodeState[];
   ambrosia: number;
@@ -366,6 +369,7 @@ export function createWorld(seed: number, data: GameData): World {
     piles: [],
     collectorQueue: [],
     ruins: [],
+    exploredCells: [],
     nodes: [],
     ambrosia: 0,
     jars: [],
@@ -412,6 +416,10 @@ export function createWorld(seed: number, data: GameData): World {
       pos: { ...site.pos },
       hp,
       maxHp: hp,
+      ...(world.tuning.ai.discovery &&
+      dist(site.pos, data.townHall) > world.tuning.ai.startDiscovered
+        ? { discovered: false }
+        : {}),
     });
     const every = lt.tierUpEveryMs;
     if (i === bossIndex) world.bossLair = id;
@@ -489,6 +497,7 @@ function runTick(world: World): void {
   runParties(world);
   runUnits(world);
   runCollision(world);
+  runDiscovery(world);
   syncIntent(world);
   // Combat, heroes and the economy hook in here (Sim backlog 30 and up).
 }
@@ -1300,6 +1309,7 @@ export function snapshot(world: World): Snapshot {
     })),
     paths: pathStates(world),
     lairs: world.lairs.map((l) => lairView(world, l)),
+    fog: fogView(world),
     units: world.units.map((u) => ({
       ...u,
       pos: { ...u.pos },

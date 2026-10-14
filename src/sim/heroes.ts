@@ -1,4 +1,5 @@
 import { visitPoint } from './collision';
+import { fogLeft, isDiscovered, nearestFog } from './discovery';
 import { payIntoTill, payTithe } from './collector';
 import { escortHeldBy, escortOpenTo } from './escort';
 import { lairSealed, nearSealedLair } from './boss';
@@ -370,7 +371,7 @@ export function heroMove(world: World, unit: UnitState): void {
       } else if (flag) {
         rt.dest = flag.pos;
       } else if (!rt.dest || dist(unit.pos, rt.dest) <= tune(world).arrive) {
-        rt.dest = exploreDest(world);
+        rt.dest = exploreDest(world, unit.pos);
       }
       step(rt.dest);
       break;
@@ -436,10 +437,17 @@ function leaderOf(world: World, unit: UnitState): UnitState | undefined {
   return undefined;
 }
 
+// What exploring is worth: the fog while a cell is unexplored (discovery on), else plain exploring.
+const exploreBase = (world: World): number =>
+  fogLeft(world) ? world.tuning.ai.fogValue : world.tuning.ai.exploreValue;
+
 // Mostly toward a lair (that is where the monsters are), sometimes anywhere.
-function exploreDest(world: World): Vec2 {
+function exploreDest(world: World, from: Vec2): Vec2 {
   const { width, height } = world.data.map;
-  const sites = world.lairs;
+  // With discovery on, the fog first: the nearest cell no hero has passed.
+  const fog = fogLeft(world) ? nearestFog(world, from) : undefined;
+  if (fog) return fog;
+  const sites = world.lairs.filter((l) => isDiscovered(world, l));
   let x: number;
   let y: number;
   if (sites.length > 0 && world.rng() < tune(world).lairSearchShare) {
@@ -645,7 +653,7 @@ function chooseGoals(world: World): void {
     } else if (cur?.kind === 'explore') {
       curScore = Math.max(
         1,
-        ai.exploreValue - (rt.dest ? dist(unit.pos, rt.dest) * ai.exploreDistanceCost : 0),
+        exploreBase(world) - (rt.dest ? dist(unit.pos, rt.dest) * ai.exploreDistanceCost : 0),
       );
     }
     // A lair goal stays while the party walks to that lair, and while it is at the lair (within
@@ -658,7 +666,7 @@ function chooseGoals(world: World): void {
     const atLair = !!goalLair && dist(unit.pos, goalLair.pos) <= world.tuning.monster.lairAggro;
     const walkingToLair = !!goalLair && rt.dest !== null && dist(rt.dest, goalLair.pos) <= 1;
     if (goalLair && ((atLair && midFight) || (walkingToLair && !atLair))) {
-      curScore = Math.max(curScore ?? 0, ai.exploreValue + ai.switchMin);
+      curScore = Math.max(curScore ?? 0, exploreBase(world) + ai.switchMin);
     }
     const isFresh = (b: BountyState): boolean =>
       b.placedMs !== undefined && world.timeMs - b.placedMs < world.tuning.bounty.freshFlagMs;
@@ -683,7 +691,7 @@ function chooseGoals(world: World): void {
     // The best option now; explore is always there (score at least 1).
     let best: NonNullable<HeroRuntime['goal']> = {
       kind: 'explore',
-      score: Math.max(1, ai.exploreValue),
+      score: Math.max(1, exploreBase(world)),
       sinceMs: world.timeMs,
     };
     for (const flag of world.bounties) {
@@ -697,7 +705,7 @@ function chooseGoals(world: World): void {
     }
     for (const lair of world.lairs) {
       // A sealed boss lair cannot be attacked yet.
-      if (lairSealed(world, lair.id)) continue;
+      if (lairSealed(world, lair.id) || !isDiscovered(world, lair)) continue;
       const score = lairScore(world, unit, lair);
       if (score !== null && score > best.score) {
         best = { kind: 'lair', id: lair.id, score, sinceMs: world.timeMs };
