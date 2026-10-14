@@ -99,6 +99,7 @@ export function runGuard(world: World, unit: UnitState, rt: UnitRuntime, stats: 
   const t = world.tuning.nodes;
   const g = rt.guard;
   if (!g) return;
+  rt.cooldownMs = Math.max(0, rt.cooldownMs - TICK_MS);
   const cls = world.data.classes?.[0];
   const step = ((cls ? speed(cls.attrs) : 80) * t.speedMult * TICK_MS) / 1000;
   const escort = world.units.find((u) => u.id === g.escort && u.kind === 'worker' && u.hp > 0);
