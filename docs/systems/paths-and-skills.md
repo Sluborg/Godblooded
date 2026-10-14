@@ -176,14 +176,16 @@ cooldown in seconds. Radius and range in world units (melee reach is about 40, a
 
 ### How each path looks (tier 1 child, tier 2, tier 3)
 
-**Style (Stefan's taste test, decision 2026-10-14):** big-head cartoon proportions, **thin
+**Style:** one painted style with the buildings (Stefan, `docs/decisions.md` 2026-10-14 "Playtest run 2"): grim, mythic,
+Norse-carved, **no cartoon faces**; Art's style rules lead and replace the earlier big-head
+cartoon proportions. From the taste test (2026-10-14) still: **thin
 outlines in a darker shade of the part's own colour** (no thick black ink), painterly shading,
 a **warm, earthy palette, only slightly muted** (most of the saturation stays), smooth and
 weighty motion. Units are small next to buildings (a hall is about 5 heroes wide). **Effects grow
 with progression** (Lead 2026-10-14): tier 1 subtle, tier 2 stronger, tier 3 clearly effectful;
 never screen shake. Each hero has its party ring and a name label.
 
-Rule (decision 2026-10-13, cartoon units from parts): a path is a natural evolution of the
+Rule (decision 2026-10-13, units from parts): a path is a natural evolution of the
 god's tier 1 child. The **face, hair, skin and the god's signature pieces** (the "keeps"
 column below) **never change**; tier 2 adds gear and one effect (armour or a robe may replace
 the tunic colour), tier 3 is more of the same (finer material, a bigger effect, one extra

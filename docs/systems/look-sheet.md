@@ -9,12 +9,18 @@ buildings in `buildings.md`); this sheet is the common frame.
 
 ## Bottom line
 
-- **One look:** big-head cartoon, thin outlines in a darker shade of each part's own colour,
-  painterly shading, a warm earthy palette only slightly muted, weighty motion. Small units: a
-  hall is about 5 heroes wide.
+- **One painted style** (Stefan, `docs/decisions.md` 2026-10-14 "Playtest run 2"): the painted buildings (longhouse, watch
+  tower) are the anchor. Heroes, monsters, flags, the tax collector, the title and the UI are
+  repainted to match: grim, mythic, Norse-carved, no cartoon faces. Art writes the style rules
+  and the batches; each batch needs Stefan's go. This replaces the earlier big-head cartoon
+  look. Small units: a hall is about 5 heroes wide.
+- **No round plate under buildings:** a ground patch shaped to the footprint plus a soft cast
+  shadow; a thin ring only when a building is tapped or being placed.
+- **Collision:** units keep a minimum distance from each other and walk around building
+  footprints; draw order by ground y, so nobody hides under a roof.
 - **Who builds what:** everything that moves (heroes, monsters, summons, Fafnir) is **code parts**
   baked by Scene (the #193 pipeline); everything that stands (buildings, lairs) is an **Art
-  sheet** with Scene adding decals, plates, smoke and glow; flags, rings, labels, numbers, FX and
+  sheet** with Scene adding ground patches, decals, smoke and glow; flags, rings, labels, numbers, FX and
   the ground are **Scene code**; UI frames are **Art** 9-slices.
 - **Lairs must never read as buildings** (Stefan could not tell them apart): four cues together,
   dark red cracked ground, a red skull name plate, a glowing doorway, and bones and a skull pike,
@@ -31,7 +37,9 @@ buildings in `buildings.md`); this sheet is the common frame.
 | Outline     | thin (about 1.5 px at 1x), a darker shade of the part's own colour; no black ink. Signs and labels keep their own coloured border |
 | Shading     | painterly: soft gradient per part, a light rim on the lit edge, a few brush strokes on cloth, fur and wood                        |
 | Palette     | warm and earthy, about 93% saturation and a slight warm grade (`PARTS_STYLE` in #228); one bright accent per unit at most         |
-| Light       | from the top left; a soft oval shadow under everything that stands                                                                |
+| Light       | from the top left; a soft cast shadow under everything that stands                                                                |
+| Footprint   | a building stands on a ground patch shaped to its footprint, no round plate; a thin ring only when tapped or being placed         |
+| Collision   | units keep a minimum distance from each other and walk around footprints; draw order by ground y                                  |
 | Scale       | hero 1.0; hall about 5 heroes wide; temple about 4; lair about 4 to 5; troll 1.7; Fafnir about 2.5 heroes tall                    |
 | Camera      | top-down 3/4 from the lower right; units face left or right (mirrored), buildings never mirror                                    |
 | Motion      | smooth and weighty: eased wind-ups, a heavy strike, a small settle; idle breathing on everything alive                            |
@@ -49,7 +57,7 @@ buildings in `buildings.md`); this sheet is the common frame.
 ## 3. Monsters (the M2 five and Fafnir)
 
 All monsters are **grim and scary** (gaunt, sunken glowing eyes, scars, rot, rags; menace from
-shape, not gore), drawn from code parts like heroes. Tier: one visible added piece per tier
+shape, not gore), in the painted style of the buildings (Art's style rules). Tier: one visible added piece per tier
 (`monsters-and-bosses.md` "How monsters look"), size 1.0 / 1.1 / 1.2, tier colour (green,
 yellow, red) on the **eyes and the ground ring**, never on the whole body. Elites: a thin gold
 outline edge.
@@ -104,12 +112,12 @@ building carries **none** of them:
 
 ## 6. Map signs and effects
 
-| Item           | Reads as                                  | Spec                                                                                                                                                                                                | Owner        |
-| -------------- | ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
-| Bounty flag    | "gold here", readable from across the map | pole about 1.5 heroes tall; a red-and-gold pennant; a parchment tag with the gold amount in 18 px bold; drops in with a bounce (0.7 s); a soft gold ring on the ground; at least 64 px tall at 0.7x | Scene        |
-| Level-up       | the party grew                            | a pillar of light in the party colour (1.4 s), a ring spreading, a parchment banner "Level 4" over the party for 2 s                                                                                | Scene        |
-| Damage numbers | who hit whom, how hard, with what         | big (20 px, crits 26 px with "!"), in the damage type's colour with a darker outline of the same colour; rise and fade 0.8 s; at most 6 on screen                                                   | Scene        |
-| Ground         | open land                                 | plain grass with tufts and a few flowers; warm earth under the town; corrupted ground under lairs                                                                                                   | Scene (#231) |
+| Item           | Reads as                                  | Spec                                                                                                                                                                                                                                                                                             | Owner                              |
+| -------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------- |
+| Bounty flag    | "gold here", readable from across the map | repainted in the painted style (Art, run 2): a carved wooden pole about 1.5 heroes tall with a weathered red-and-gold cloth banner, no bright cartoon pennant; a parchment tag with the gold amount in 18 px bold; drops in (0.7 s); a soft gold glow on the ground; at least 64 px tall at 0.7x | Art (picture), Scene (tag, motion) |
+| Level-up       | the party grew                            | a pillar of light in the party colour (1.4 s), a ring spreading, a parchment banner "Level 4" over the party for 2 s                                                                                                                                                                             | Scene                              |
+| Damage numbers | who hit whom, how hard, with what         | big (20 px, crits 26 px with "!"), in the damage type's colour with a darker outline of the same colour; rise and fade 0.8 s; at most 6 on screen                                                                                                                                                | Scene                              |
+| Ground         | open land                                 | plain grass with tufts and a few flowers; warm earth under the town; corrupted ground under lairs                                                                                                                                                                                                | Scene (#231)                       |
 
 ### Effects by tier (no screen shake, ever)
 

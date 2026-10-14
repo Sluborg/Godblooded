@@ -9,7 +9,7 @@ column as PRs land.
 
 - **M2 = one pantheon, done well:** the 4 Aesir gods and 8 paths with their skills, fights you
   can read (damage colours, crits, bosses), heroes who buy gear and level up on their own, raids
-  with a warning, the first 3 minutes of hints, sound effects, all in the new cartoon look.
+  with a warning, the first 3 minutes of hints, sound effects, all in one painted style (playtest run 2).
 - **Where we are (refreshed):** the game rules are built (combat, skills, summons, passives,
   gear, potions, cards, auto-pick, level-up show, barks, boss, sealed boss lair, permadeath).
   Items are on main (#169). In PR: raid warnings, shapes and monster behaviours (#212, #214,
