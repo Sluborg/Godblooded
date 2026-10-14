@@ -328,3 +328,14 @@ Stefan doubts bending limbs ("unsure it can be made to look good, prove it; floa
 legs worked fine"). G1 is Ready as one test sheet of Grim (art/g1-parts): hands and boots are
 separate parts, so Scene renders the same art both ways (floating hands and feet, and bent IK
 limbs) for Stefan to pick. The full kit stays Draft until he picks.
+
+## 2026-10-14 Art quality gate; U1B logos void (Stefan)
+
+Stefan rejected both U1B logos: "AI slop, not consistent and logical. Handles in front and behind
+at the same time. I expect higher quality. This shouldn't even be brought before me." From now
+on every image passes Art's QA checklist at full size before it reaches Lead or Stefan: each
+object is in front or behind, never both; one light direction; believable grips and anatomy; no
+melted or duplicated parts; matches STYLE.md; reads at target size. A failed image is redone
+(up to three tries) or reported as a failure, never shown. Review spot-checks images on art
+branches. U1B is Void; Art writes U1C, a simpler logo with an explicit stacking order, shown to
+Stefan only after it passes QA. Lead also checks images before showing them.
