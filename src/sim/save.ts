@@ -128,7 +128,7 @@ export function loadWorld(raw: unknown, data: GameData): World {
       target[key] = saved;
     }
     world.rng.restore(save.rng);
-    world.tuning = resolveTuning(data);
+    world.tuning = resolveTuning(data, world.firstRun);
     world.events = [];
     if (fromVersion < 5) relocateTown(world, data);
     check(world, data);

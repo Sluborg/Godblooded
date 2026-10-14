@@ -8,6 +8,8 @@
 // --hunt (implies --flags, 50 gold unless --flag-gold): the probe flag goes on a living monster
 // 350 to 900 from the nearest hero instead (skipped while there is none, no other probe flag
 // open), and the report adds how soon a party headed for it and how many were paid. --no-lair-flag turns the bot's own 50 gold lair flag off.
+// --first-run plays the gentler first run (data.firstRun overrides apply, the clock waits for the
+// first temple), to tune data.firstRun.
 // --data takes a JSON file that overrides GRAYBOX fields (top level; `tuning` groups are
 // merged one by one), so data passes can be tried without editing src/data.
 import { readFileSync } from 'node:fs';
@@ -39,6 +41,7 @@ const buildIdx = args.indexOf('--build');
 const BUILD_ARG = buildIdx >= 0 ? args[buildIdx + 1].split(',') : undefined;
 // The bot buys building tiers unless --no-upgrade is given.
 const UPGRADE = !args.includes('--no-upgrade') && !HUMAN;
+const FIRST_RUN = args.includes('--first-run');
 const HUNT = args.includes('--hunt');
 const FLAGS = args.includes('--flags') || HUNT;
 const FLAG_GOLD = opt('flag-gold', HUNT ? 50 : 40);
@@ -82,7 +85,7 @@ try {
       probes: new Map(),
       seen: { arrivedMs: null, hurtMs: null, raidMs: null },
     };
-    const w = sim.createWorld(seed0 + r, GRAYBOX);
+    const w = sim.createWorld(seed0 + r, GRAYBOX, { firstRun: FIRST_RUN });
     let snap = sim.snapshot(w);
     let timeout = false;
     // Minutes of the first boss emerge and the first blow to or from a boss (null: never).

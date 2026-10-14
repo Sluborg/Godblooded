@@ -283,6 +283,9 @@ export interface World {
   // (collector.ts).
   piles: PileState[];
   collectorQueue: number[];
+  // A first run (data.firstRun overrides in force); the clock waits for a temple until `started`.
+  firstRun: boolean;
+  started: boolean;
   // Celestial nodes and the Ambrosia the town holds (nodes.ts).
   nodes: NodeState[];
   ambrosia: number;
@@ -303,7 +306,12 @@ export interface World {
   events: SimEvent[];
 }
 
-export function createWorld(seed: number, data: GameData): World {
+export interface WorldOptions {
+  // The player's first run: data.firstRun overrides apply and the clock waits for the first temple.
+  firstRun?: boolean;
+}
+
+export function createWorld(seed: number, data: GameData, opts: WorldOptions = {}): World {
   const world: World = {
     data,
     seed,
@@ -324,7 +332,7 @@ export function createWorld(seed: number, data: GameData): World {
     towerNextMs: new Map(),
     argueNextMs: new Map(),
     nextAutosaveMs: 0,
-    tuning: resolveTuning(data),
+    tuning: resolveTuning(data, !!opts.firstRun),
     parties: new Map(),
     bonds: new Map(),
     pendingDeaths: [],
@@ -351,6 +359,8 @@ export function createWorld(seed: number, data: GameData): World {
     bounties: [],
     piles: [],
     collectorQueue: [],
+    firstRun: !!opts.firstRun,
+    started: !opts.firstRun,
     nodes: [],
     ambrosia: 0,
     jars: [],
@@ -415,6 +425,14 @@ export function createWorld(seed: number, data: GameData): World {
 
 export function step(world: World, dtMs: number): void {
   if (world.status !== 'running' || dtMs <= 0) return;
+  // A first run waits for its first temple: no time passes until one stands (then never again).
+  if (!world.started) {
+    if (!world.buildings.some((b) => b.type.startsWith('temple'))) {
+      world.accumulatorMs = 0;
+      return;
+    }
+    world.started = true;
+  }
   world.accumulatorMs += dtMs;
   let ticks = 0;
   // The run slows to `offerSlowdown` of its speed while a party has a pick pending (0: it
@@ -1218,6 +1236,7 @@ export function snapshot(world: World): Snapshot {
   const events = world.events;
   world.events = [];
   return {
+    waiting: !world.started,
     timeMs: world.timeMs,
     tick: world.tick,
     gold: world.gold,

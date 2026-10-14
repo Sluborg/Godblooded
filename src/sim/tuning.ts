@@ -292,8 +292,10 @@ export const DEFAULT_TUNING: Tuning = {
   },
 };
 
-export function resolveTuning(data: GameData): Tuning {
-  const t = data.tuning;
+// The tuning of a run: DEFAULT_TUNING, then data.tuning, then (first run only) data.firstRun, each
+// group merged key by key.
+export function resolveTuning(data: GameData, firstRun = false): Tuning {
+  const t = firstRun && data.firstRun ? mergeGroups(data.tuning, data.firstRun) : data.tuning;
   return {
     combat: { ...DEFAULT_TUNING.combat, ...t?.combat },
     hero: { ...DEFAULT_TUNING.hero, ...t?.hero },
@@ -314,4 +316,15 @@ export function resolveTuning(data: GameData): Tuning {
     nodes: { ...DEFAULT_TUNING.nodes, ...t?.nodes },
     bounty: { ...DEFAULT_TUNING.bounty, ...t?.bounty },
   };
+}
+
+function mergeGroups(
+  base: GameData['tuning'],
+  over: NonNullable<GameData['tuning']>,
+): NonNullable<GameData['tuning']> {
+  const out: Record<string, unknown> = { ...base };
+  for (const [k, v] of Object.entries(over)) {
+    out[k] = { ...(out[k] as object | undefined), ...(v as object) };
+  }
+  return out as NonNullable<GameData['tuning']>;
 }
