@@ -455,7 +455,7 @@ export const MONSTERS: readonly MonsterDef[] = [
 ];
 
 // Lairs from docs/systems/monsters-and-bosses.md section 4; the wyrm nest is the boss lair (the
-// run is won when it falls) and spawns draugr guards. Balance pass (Lead 80): big lairs 6000 hp
+// run is won when it falls) and spawns draugr guards. Balance passes (Lead 80, 90): big lairs 6000 hp
 // and the nest 8000 hp (spec 9000 and 16000) keep the median run at 15-18 min.
 export const LAIRS: readonly LairDef[] = [
   { id: 'barrow', monster: 'draugr', spawnS: 10, maxAlive: 6, hp: 3500 },
@@ -952,7 +952,7 @@ export const GRAYBOX: GameData = {
     {
       id: 'smithy',
       cost: 120,
-      text: 'Sells weapons and armour to heroes; the town takes a tax.',
+      text: 'Sells weapons and armour; the town takes a tax on every sale.',
     },
   ],
 };
