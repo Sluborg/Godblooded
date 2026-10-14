@@ -31,6 +31,7 @@ const KEYS: Record<string, PassiveKeys> = {
   apollo: { regen: 0.01 },
   stand: { lastStand: 3000 },
   bond: { healSplash: 0.5 },
+  oathstay: { loyalStays: true },
 };
 const data: GameData = {
   buildings: [],
@@ -189,5 +190,26 @@ describe('card keys', () => {
     const splash = run(['bond']);
     expect(base.aGain).toBeGreaterThan(0);
     expect(splash.bGain).toBeGreaterThan(base.bGain);
+  });
+});
+
+describe('Oath-Brothers: loyal stays', () => {
+  const stays = (trait: 'loyal' | 'brave', cards: string[], mates: number) => {
+    const s = squad(cards, 1 + mates);
+    const [u] = s.units;
+    u.trait = trait;
+    u.mode = 'explore';
+    u.hp = u.maxHp * 0.05;
+    for (const m of s.units.slice(1)) m.mode = 'explore';
+    step(s.w, TICK_MS);
+    return u.mode;
+  };
+  it('does not flee alone with a mate standing, a plain loyal hero does', () => {
+    expect(stays('loyal', ['oathstay'], 1)).toBe('explore');
+    expect(stays('loyal', [], 1)).toBe('return');
+    expect(stays('brave', ['oathstay'], 1)).toBe('return');
+  });
+  it('flees when it is the last one standing', () => {
+    expect(stays('loyal', ['oathstay'], 0)).toBe('return');
   });
 });

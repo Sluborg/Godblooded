@@ -214,6 +214,8 @@ export const passiveBondMult = (world: World, unit: UnitState) =>
   product(world, unit, (k) => k.bondMult);
 export const passiveFlagMult = (world: World, unit: UnitState) =>
   product(world, unit, (k) => k.flagMult);
+export const hasLoyalStays = (world: World, unit: UnitState): boolean =>
+  passivesFor(world, unit).some((p) => p.keys.loyalStays);
 export const hasCritStagger = (world: World, unit: UnitState): boolean =>
   passivesFor(world, unit).some((p) => p.keys.critStagger);
 export const hasSkillsReady = (world: World, unit: UnitState): boolean =>
