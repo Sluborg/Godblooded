@@ -5,9 +5,10 @@ import {
   applyStone,
   applySwallow,
   isSwallowed,
+  takeDamage,
 } from './effects';
 import { spawnMonster } from './boss';
-import { effectiveAttrs } from './parties';
+import { baseFleeOf, effectiveAttrs } from './parties';
 import { dist } from './units';
 import { statsOf, type World } from './world';
 import type { BossMove, MonsterDef, TimedMove, UnitState } from './types';
@@ -57,7 +58,8 @@ function timed(
   const every = (brt.enraged ? def.enragedEveryS : def.everyS) * 1000;
   brt.nextMoveMs ??= world.timeMs + every;
   if (brt.pending) {
-    if (world.timeMs < brt.pending.atMs) return;
+    // One move at a time: the others wait while this one is announced.
+    if (brt.pending.kind !== kind || world.timeMs < brt.pending.atMs) return;
     const target = world.units.find((u) => u.id === brt.pending?.target);
     brt.pending = undefined;
     brt.nextMoveMs = world.timeMs + every;
@@ -117,7 +119,7 @@ function howl(world: World, boss: UnitState, h: NonNullable<BossMove['howl']>) {
   for (const hero of livingHeroes(world)) {
     if (dist(boss.pos, hero.pos) > h.radius || hero.hp >= hero.maxHp * h.belowHp) continue;
     // The bold are not shaken.
-    if (hero.trait === 'brave' || hero.trait === 'proud') continue;
+    if (hero.trait === 'brave' || hero.trait === 'proud' || baseFleeOf(world, hero) <= 0) continue;
     applyFear(world, hero, boss.pos, h.fleeS);
   }
   const brt = bossRuntime(world, boss.id);
@@ -125,7 +127,12 @@ function howl(world: World, boss: UnitState, h: NonNullable<BossMove['howl']>) {
   const def = lair && world.data.lairs?.find((l) => l.id === lair.type);
   const guard = world.data.monsters?.find((m) => m.id === def?.escort);
   if (lair && guard && !guard.boss) {
-    for (let i = 0; i < h.calls; i++) spawnMonster(world, lair, guard);
+    // The call tops the lair's guard up to maxAlive plus the call, it does not pile up.
+    const alive = world.units.filter(
+      (u) => u.hp > 0 && world.unitRuntime.get(u.id)?.lair === lair.id && u.type === guard.id,
+    ).length;
+    const cap = (def?.maxAlive ?? 0) + h.calls;
+    for (let i = 0; i < Math.min(h.calls, cap - alive); i++) spawnMonster(world, lair, guard);
   }
 }
 
@@ -161,7 +168,8 @@ function statusTicks(world: World): void {
     const fx = world.unitRuntime.get(hero.id)?.fx;
     if (!fx) continue;
     const pay = (pctS: number, by: number) => {
-      hero.hp -= Math.max(1, Math.round(pctS * hero.maxHp));
+      // Stone halves it and a shield soaks it, like any other damage.
+      hero.hp -= takeDamage(world, hero, Math.max(1, Math.round(pctS * hero.maxHp))).hp;
       if (hero.hp <= 0) {
         hero.hp = 0;
         world.pendingDeaths.push({ victim: hero.id, by });
@@ -201,12 +209,16 @@ function hydra(
   if (line !== undefined && boss.hp <= boss.maxHp * line) {
     brt.cuts++;
     brt.heads = Math.max(1, brt.heads - 1);
-    brt.regrowAtMs = world.timeMs + (brt.enraged ? h.enragedRegrowS : h.regrowS) * 1000;
+    // A second cut while one head is growing back queues behind it, none is forgotten.
+    brt.regrowing = (brt.regrowing ?? 0) + 1;
+    brt.regrowAtMs ??= world.timeMs + (brt.enraged ? h.enragedRegrowS : h.regrowS) * 1000;
     world.events.push({ kind: 'bossHeads', unit: boss.id, heads: brt.heads });
   }
   if (brt.regrowAtMs != null && world.timeMs >= brt.regrowAtMs) {
-    brt.regrowAtMs = null;
     brt.heads = Math.min(h.count, (brt.heads ?? 0) + 1);
+    brt.regrowing = Math.max(0, (brt.regrowing ?? 1) - 1);
+    brt.regrowAtMs =
+      brt.regrowing > 0 ? world.timeMs + (brt.enraged ? h.enragedRegrowS : h.regrowS) * 1000 : null;
     world.events.push({ kind: 'bossHeads', unit: boss.id, heads: brt.heads });
   }
 }
@@ -218,6 +230,7 @@ export function hydraHit(world: World, boss: UnitState, type: string): void {
   const heads = mon?.move?.heads;
   if (!heads || !brt || brt.regrowAtMs == null || type !== heads.stopType) return;
   brt.regrowAtMs = null;
+  brt.regrowing = 0;
 }
 
 // How many heroes a Hydra's strike reaches now (1 for any other monster).

@@ -749,7 +749,7 @@ function fight(world: World, unit: UnitState, rt: UnitRuntime, stats: Stats, foe
   const boss = mon && rt.boss ? { n: bossNumbers(world, mon), rt: rt.boss } : undefined;
   // Every cleaveEvery-th strike of a boss is a cleave: long windup, a marked ground area.
   const breath = mon?.move?.breath;
-  const cleave = boss && !breath && (boss.rt.strikes + 1) % boss.n.cleaveEvery === 0;
+  const cleave = boss && !mon?.move && (boss.rt.strikes + 1) % boss.n.cleaveEvery === 0;
   // A boss with a Fire Breath breathes every everyN-th strike (enragedEveryN once enraged).
   const breathing =
     boss &&

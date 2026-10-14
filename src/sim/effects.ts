@@ -217,6 +217,14 @@ export function curePoison(world: World, id: number): void {
   if (fx?.poison) fx.poison = undefined;
 }
 
+// A knockout ends poison and swallowing (they must not pay out again on revive).
+export function clearBossStatuses(world: World, id: number): void {
+  const fx = fxOf(world, id);
+  if (!fx) return;
+  fx.poison = undefined;
+  fx.swallow = undefined;
+}
+
 export function applyFear(
   world: World,
   unit: UnitState,

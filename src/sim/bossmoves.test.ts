@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createWorld, snapshot, step, TICK_MS, type GameData, type SimEvent } from './api';
-import { buffOf, curePoison, isStoned, isSwallowed } from './effects';
+import { applyPoison, applySwallow, buffOf, curePoison, isStoned, isSwallowed } from './effects';
 import { landStrike } from './strike';
 import { spawnHero } from './world';
 import type { BossMove, UnitState } from './types';
@@ -257,6 +257,9 @@ describe('Swallow', () => {
 
   it('a hero knocked out while swallowed is a boss knockout (credited to the boss)', () => {
     const { w, a, boss } = arena('swallow');
+    // a knockout, not the 20% boss death roll
+    w.tuning.combat.bossDeathChance = 0;
+    w.tuning.combat.deathFloor = 0;
     a.hp = 2e6;
     a.maxHp = 2e6;
     run(w, 16_200);
@@ -311,5 +314,83 @@ describe('Three Heads', () => {
     run(w, 200);
     const ev = run(w, 5_300);
     expect(ev.some((e) => e.kind === 'bossHeads' && e.heads === 3)).toBe(true);
+  });
+});
+
+describe('review follow-ups', () => {
+  it('a boss with a signature move never cleaves', () => {
+    for (const key of Object.keys(MOVES)) {
+      const { w, boss } = arena(key);
+      const ev = run(w, 20_000);
+      const cleaves = ev.filter((e) => e.kind === 'windup' && e.attacker === boss.id && e.area);
+      expect(cleaves, key).toHaveLength(0);
+    }
+  });
+
+  it('a swallowed hero takes no area damage from the cleave of a plain boss', () => {
+    const lost = (swallowed: boolean) => {
+      const d = mk({});
+      d.monsters = d.monsters!.map((m) =>
+        m.id === 'wyrm' ? { ...m, move: undefined, attrs: { ...m.attrs, str: 50 } } : m,
+      );
+      const w = createWorld(1, d);
+      hero(w, 540, 500);
+      const b = hero(w, 545, 505);
+      run(w, 100);
+      const boss = w.units.find((u) => u.type === 'wyrm')!;
+      if (swallowed) applySwallow(w, b, 600, boss.id, 0, -1);
+      const ev = run(w, 20_000);
+      expect(ev.some((e) => e.kind === 'windup' && e.attacker === boss.id && e.area)).toBe(true);
+      return b.maxHp - b.hp;
+    };
+    // a swallowed hero only pays the 1 hp a second of the swallow itself
+    expect(lost(true)).toBeLessThanOrEqual(21);
+    expect(lost(false)).toBeGreaterThanOrEqual(30);
+  });
+
+  it('a knockout ends poison and swallowing', () => {
+    const { w, a, boss } = arena('venom');
+    w.tuning.combat.bossDeathChance = 0;
+    w.tuning.combat.deathFloor = 0;
+    applyPoison(w, a, 0.01, 60, boss.id);
+    applySwallow(w, a, 60, boss.id, 0.01, -1);
+    a.hp = 0;
+    w.pendingDeaths.push({ victim: a.id, by: boss.id });
+    run(w, 200);
+    expect(a.ko).toBe(true);
+    expect(w.unitRuntime.get(a.id)?.fx?.poison).toBeUndefined();
+    expect(w.unitRuntime.get(a.id)?.fx?.swallow).toBeUndefined();
+  });
+
+  it('resting ends poison', () => {
+    const { w, a, boss } = arena('venom');
+    applyPoison(w, a, 0.0001, 60, boss.id);
+    a.mode = 'rest';
+    a.hp = a.maxHp - 10;
+    run(w, 200);
+    expect(w.unitRuntime.get(a.id)?.fx?.poison).toBeUndefined();
+  });
+
+  it('two cuts within the regrow time both grow back, one after the other', () => {
+    const { w, boss } = arena('hydra');
+    boss.hp = boss.maxHp * 0.65;
+    run(w, 200);
+    boss.hp = boss.maxHp * 0.32;
+    run(w, 200);
+    expect(w.unitRuntime.get(boss.id)?.boss?.heads).toBe(1);
+    run(w, 8_500);
+    expect(w.unitRuntime.get(boss.id)?.boss?.heads).toBe(2);
+    run(w, 8_500);
+    expect(w.unitRuntime.get(boss.id)?.boss?.heads).toBe(3);
+  });
+
+  it('howl guards are topped up to maxAlive plus the call, not piled up', () => {
+    const { w, a, boss } = arena('howl');
+    a.hp = a.maxHp * 0.3;
+    run(w, 60_000);
+    const imps = w.units.filter((u) => u.type === 'imp' && u.hp > 0);
+    // maxAlive 0 and calls 1: at most one guard stands at any time
+    expect(imps.length).toBeLessThanOrEqual(1);
+    void boss;
   });
 });

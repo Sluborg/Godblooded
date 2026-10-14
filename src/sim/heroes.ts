@@ -5,7 +5,7 @@ import { slowOf } from './riders';
 import { revengeTarget } from './rivalry';
 import { emptyItems } from './items';
 import { buyItem, hasItemRows, nearestShop, planShopping, type ShopStop } from './shopping';
-import { isBound } from './effects';
+import { clearBossStatuses, curePoison, isBound } from './effects';
 import { passiveKoMult, passiveRestMult } from './passives';
 import { koTimeMult } from './quirks';
 import { dist, maxHp, speed, stepToward, tierValue, TICK_MS } from './units';
@@ -256,6 +256,7 @@ export function heroKnockedOut(world: World, unit: UnitState, by?: number): void
   const rt = world.heroRuntime.get(unit.id);
   if (!rt) return;
   unit.mode = 'ko';
+  clearBossStatuses(world, unit.id);
   rt.koMs =
     tune(world).koMs * passiveKoMult(world, unit) * (by === undefined ? 1 : koTimeMult(world, by));
   rt.dest = null;
@@ -317,6 +318,7 @@ export function heroMove(world: World, unit: UnitState): void {
         tune(world).restPerS *
         (spot.shrine ? tune(world).shrineMult : 1) *
         passiveRestMult(world, unit);
+      curePoison(world, unit.id);
       unit.hp = Math.min(unit.maxHp, unit.hp + (unit.maxHp * rate * TICK_MS) / 1000);
       if (unit.hp >= unit.maxHp) {
         unit.mode = wantsToShop(world, unit, rt) ? 'shop' : 'explore';

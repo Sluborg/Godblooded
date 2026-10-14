@@ -1,5 +1,6 @@
 import { landStrike, attackStrike } from './strike';
 import { dist, maxHp, scaleAttrs, tierValue, type Stats } from './units';
+import { isSwallowed } from './effects';
 import { targetOf } from './world';
 import type { Area } from './swing';
 import type { World } from './world';
@@ -24,6 +25,8 @@ export interface BossRuntime {
   heads?: number;
   cuts?: number;
   regrowAtMs?: number | null;
+  // Heads cut and still to grow back (a fire hit on a regrowing head empties it).
+  regrowing?: number;
 }
 
 export const isBoss = (mon: MonsterDef | undefined): boolean => !!mon?.boss;
@@ -156,7 +159,8 @@ export function cleaveStrike(
   const n = mon ? bossNumbers(world, mon) : world.tuning.boss;
   landStrike(world, boss, foe, { ...attackStrike(stats, targetOf(world, foe)), canDodge: false });
   for (const u of world.units) {
-    if (u.kind !== 'hero' || u.ko || u.hp <= 0 || u.id === foe.id) continue;
+    if (u.kind !== 'hero' || u.ko || u.hp <= 0 || u.id === foe.id || isSwallowed(world, u.id))
+      continue;
     if (dist(u.pos, area) > area.r) continue;
     landStrike(world, boss, u, {
       ...attackStrike(stats, targetOf(world, u)),
@@ -178,7 +182,8 @@ export function breathStrike(
   const half = ((move.angleDeg / 2) * Math.PI) / 180;
   for (const u of world.units) {
     // Heroes and their summons burn alike; the dead and knocked out are skipped.
-    if ((u.kind !== 'hero' && u.kind !== 'summon') || u.ko || u.hp <= 0) continue;
+    if ((u.kind !== 'hero' && u.kind !== 'summon') || u.ko || u.hp <= 0 || isSwallowed(world, u.id))
+      continue;
     const d = dist(cone.from, u.pos);
     if (d > cone.range) continue;
     // Straight at the boss counts as inside; otherwise the angle to the axis must fit.
