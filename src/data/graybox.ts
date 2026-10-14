@@ -898,6 +898,11 @@ export const GRAYBOX: GameData = {
     // Vanguard (events.md section 1): the unsealed boss lair raids the town with 1 of its escort
     // every 90 s until the boss is out.
     boss: { vanguardSize: 1 },
+    // The boss call (hero-ai.md 5c): from the unseal the boss lair scores 80 more for parties, so
+    // they head for it instead of exploring an empty map. Human bot with the trim, 40 runs, seeds 1
+    // and 1001: wins 63% and 68%, median run 14.9 and 14.7 min, longest quiet stretch p90 102 and
+    // 80 s (156 s without the call; Sim's default 40 gave 55% and 95 s).
+    ai: { bossCallBonus: 80 },
     // Raids after a lair tier-up are on (Stefan): one raider on every tier-up.
     // Playtest trim (main + collision + live verbs + vanguard, human bot, seeds 1 and 1001, 40 runs
     // each): the first raid at 7:00 and one every 3.5 min instead of 6:00 and 3 min, with the 70%
