@@ -966,6 +966,9 @@ export interface TownTuning {
   rebuildCostMult: number;
   repairPerS: number;
   repairSafeRange: number;
+  // Building and upgrading take this long (a scaffold; an upgrading building works at its old tier).
+  // 0: instant, as before.
+  buildMs: number;
   buildingHp: number;
   // Raids: monsters from every lair march on the town.
   raidFirstMs: number;
@@ -1191,6 +1194,10 @@ export interface BuildingState {
   upgradeGate: number | null;
   // Gold waiting in the building for the tax collector (shop tax, tithe). Missing: none.
   till?: number;
+  // Under construction (tuning.town.buildMs): it does not work until this time. Missing: standing.
+  buildUntilMs?: number;
+  // Being upgraded: it works at its old tier until `upgradeUntilMs`, then goes up a tier.
+  upgradeUntilMs?: number;
 }
 
 // A building as the sim keeps it; the snapshot adds the upgrade cost.
@@ -1460,6 +1467,8 @@ export interface BountyState {
 export type SimEvent =
   | { kind: 'built'; building: number; type: string }
   | { kind: 'upgraded'; building: number; type: string; tier: number }
+  // A new building's construction finished (tuning.town.buildMs).
+  | { kind: 'finished'; building: number; type: string }
   | { kind: 'spawned'; unit: number; type: string; lair: number }
   | {
       kind: 'windup';

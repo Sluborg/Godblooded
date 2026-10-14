@@ -74,6 +74,7 @@ import {
   pickLair,
   planTierRaid,
   runRaids,
+  runConstruction,
   runTowers,
   upgradeBuilding,
   hallHp,
@@ -489,6 +490,7 @@ function runTick(world: World): void {
   runParties(world);
   runUnits(world);
   runCollision(world);
+  runConstruction(world);
   syncIntent(world);
   // Combat, heroes and the economy hook in here (Sim backlog 30 and up).
 }
@@ -1141,6 +1143,9 @@ export function command(world: World, cmd: Command): CommandResult {
         plot: cmd.plot,
         hp: world.tuning.town.buildingHp,
         maxHp: world.tuning.town.buildingHp,
+        ...(world.tuning.town.buildMs > 0
+          ? { buildUntilMs: world.timeMs + world.tuning.town.buildMs }
+          : {}),
       });
       world.events.push({ kind: 'built', building: id, type: def.id });
       return { ok: true, id };
@@ -1285,7 +1290,10 @@ export function snapshot(world: World): Snapshot {
     buildings: world.buildings.map((b) => ({
       ...b,
       pos: { ...b.pos },
-      upgradeCost: upgradeCost(world, b),
+      upgradeCost:
+        b.buildUntilMs !== undefined || b.upgradeUntilMs !== undefined
+          ? null
+          : upgradeCost(world, b),
       upgradeGate: upgradeGate(world, b),
     })),
     parties: [...world.parties.values()].map((p) => ({

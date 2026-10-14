@@ -287,6 +287,7 @@ export const DEFAULT_TUNING: Tuning = {
     ruins: true,
     rebuildCostMult: 0.5,
     repairPerS: 0.01,
+    buildMs: 0,
     repairSafeRange: 300,
     buildingHp: 200,
     raidFirstMs: 240_000,

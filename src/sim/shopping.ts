@@ -1,3 +1,4 @@
+import { isWorking } from './town';
 import { emptyItems, itemsOf } from './items';
 import { passivePotionSlots } from './passives';
 import { dist, tierValue } from './units';
@@ -24,7 +25,8 @@ export function nearestShop(
 ): BuildingCore | undefined {
   let best: BuildingCore | undefined;
   for (const b of world.buildings) {
-    if (b.type === kind && (!best || dist(from, b.pos) < dist(from, best.pos))) best = b;
+    if (b.type === kind && isWorking(b) && (!best || dist(from, b.pos) < dist(from, best.pos)))
+      best = b;
   }
   return best;
 }
