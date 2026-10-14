@@ -812,11 +812,17 @@ export class HudScene extends Phaser.Scene {
         label: `Send guard\n${nodeTuning.guardCost} gold`,
         cost: nodeTuning.guardCost,
         pick: () => {
-          const w = snap.workers.find(
+          // The first gatherer out that the sim accepts: one already guarded is skipped.
+          const out = snap.workers.filter(
             (x) => (x.phase === 'out' || x.phase === 'gather') && !x.fleeing,
           );
-          if (!w) return this.showToast('No gatherer is out to guard');
-          said(map.trySendGuard(w.unit), 'A guard goes with the gatherer');
+          if (out.length === 0) return this.showToast('No gatherer is out to guard');
+          let last: CommandResult | null = null;
+          for (const g of out) {
+            last = map.trySendGuard(g.unit);
+            if (last.ok) return this.showToast('A guard goes with the gatherer');
+          }
+          if (last && !last.ok) this.showToast(last.reason);
         },
       });
     specs.push({ label: 'Close', cost: 0, pick: () => this.closeMenu() });
