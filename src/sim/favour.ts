@@ -1,4 +1,4 @@
-import { applyBuff, applyShield, takeDamage } from './effects';
+import { applyBuff, applyShield, curePoison, takeDamage } from './effects';
 import { godPantheon, pantheonOf } from './parties';
 import { applyRider, healMult } from './riders';
 import { hitEvent, resolveStrike } from './strike';
@@ -206,6 +206,7 @@ function applyEffect(
         const amount = Math.min(gain, unit.maxHp - unit.hp);
         if (amount <= 0) break;
         unit.hp += amount;
+        curePoison(world, unit.id);
         world.events.push({ kind: 'heal', healer: 0, target: unit.id, amount, source: 'miracle' });
         break;
       }

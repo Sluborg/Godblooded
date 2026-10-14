@@ -23,21 +23,21 @@ events.
 
 ## 1. Raids
 
-| Rule    | Today                                | Proposed                                                                      |
-| ------- | ------------------------------------ | ----------------------------------------------------------------------------- |
-| Timing  | first at `raidFirstMs`, every 2 min  | unchanged; also one raid right after a lair tiers up (from that lair)         |
-| Warning | none                                 | event `raidWarning` 15 s ahead: lair, direction, size                         |
-| Who     | 2 per lair, +1 per `raidGrowEveryMs` | unchanged count; the lair's monster row decides the shape (below)             |
-| Target  | nearest building                     | by shape (below)                                                              |
-| Reward  | bounty and XP per raider             | unchanged, plus 20 gold to the town per raid fully beaten ("the town cheers") |
+| Rule    | Today                                                           | Proposed                                                                                                       |
+| ------- | --------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Timing  | first at `raidFirstMs` (6:00), every 3:00 (`raidEveryMs` 180 s) | also a small raid after every lair tier-up: 1 raider (`tierRaidSize` 1, `tierRaidEvery` 1, Balance 2026-10-14) |
+| Warning | none                                                            | event `raidWarning` 15 s ahead: lair, direction, size                                                          |
+| Who     | 2 per lair, +1 per `raidGrowEveryMs` (400 s)                    | unchanged count; the lair's monster row decides the shape (below)                                              |
+| Target  | nearest building                                                | by shape (below)                                                                                               |
+| Reward  | bounty and XP per raider                                        | unchanged, plus 20 gold to the town per raid fully beaten ("the town cheers")                                  |
 
-| Shape (from role) | Raid behaviour                                                   |
-| ----------------- | ---------------------------------------------------------------- |
-| brute             | walk to the nearest building (today)                             |
-| harrier           | 1.5x speed, go for heroes resting in town first, then the market |
-| charger           | charge the first building in line, x2 damage to buildings        |
-| pack              | travel as one group, go for the weakest building                 |
-| swarm             | twice as many, half hp, spread over the two nearest buildings    |
+| Shape (from role) | Raid behaviour                                                            |
+| ----------------- | ------------------------------------------------------------------------- |
+| brute             | walk to the nearest building (today)                                      |
+| harrier           | 1.5x speed, go for heroes resting in town first, then the market          |
+| charger           | charge the first building in line, x2 damage to buildings                 |
+| pack              | travel as one group, go for the weakest building                          |
+| swarm             | 1.5x speed, twice as many, half hp, spread over the two nearest buildings |
 
 Guard towers already shoot raiders (Sim 130). A tower tier 2 or 3 gets the warning 5 s earlier
 (shown as a longer arrow), the only change to towers here.

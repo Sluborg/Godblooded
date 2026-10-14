@@ -93,6 +93,26 @@ describe('shopping plans', () => {
     ]);
   });
 
+  it('a hero with no gear buys its first piece before its first potion', () => {
+    const w = town({ smithy: 1, market: 1 });
+    // budget 60% of 100 = 60: armour 50 first, 10 left is no potion (before: potion 20, no armour)
+    expect(planShopping(w, hero(w, 100))).toEqual([{ shop: 'smithy', items: ['armour-1'] }]);
+  });
+
+  it('and falls back to the potion when it cannot pay for any gear', () => {
+    const w = town({ smithy: 1, market: 1 });
+    // budget 36: armour 50 does not fit, so the potion as before
+    expect(planShopping(w, hero(w, 60))).toEqual([{ shop: 'market', items: ['healing'] }]);
+  });
+
+  it('a hero that already has a piece of gear keeps the potion first', () => {
+    const w = town({ smithy: 1, market: 1 });
+    const h = hero(w, 100);
+    h.items = { weapon: 1, armour: 0, potions: 0, charm: null };
+    // budget 60: potion 20, armour 50 does not fit in the 40 left, so a second potion
+    expect(planShopping(w, h)).toEqual([{ shop: 'market', items: ['healing', 'healing'] }]);
+  });
+
   it('proud wants the weapon first and spends more; coward the armour', () => {
     const w = town({ smithy: 1, market: 1 });
     const proud = hero(w, 200, 'proud');
@@ -169,5 +189,100 @@ describe('shopping trips', () => {
     run(w, 20_000);
     expect(h.items?.armour).toBe(1);
     expect(h.mode).toBe('explore');
+  });
+});
+
+describe('shopping trips for exploring heroes', () => {
+  const explorer = (w: W, gold: number): UnitState => {
+    const h = hero(w, gold);
+    h.mode = 'explore';
+    h.pos = { x: 700, y: 700 };
+    return h;
+  };
+  const withTrip = (shopTripGold: number): W => {
+    const w = town({ smithy: 1, market: 1 });
+    w.tuning.hero.shopTripGold = shopTripGold;
+    return w;
+  };
+
+  it('is off by default: an exploring hero with gold keeps exploring', () => {
+    const w = town({ smithy: 1, market: 1 });
+    const h = explorer(w, 200);
+    run(w, 2_000);
+    expect(h.mode).toBe('explore');
+  });
+
+  it('0: a hero whose plan buys gear walks to the shops, buys, and goes back to exploring', () => {
+    const w = withTrip(0);
+    const h = explorer(w, 200);
+    run(w, 1_500);
+    expect(h.mode).toBe('shop');
+    run(w, 20_000);
+    expect(h.mode).toBe('explore');
+    expect(h.items?.armour).toBe(1);
+  });
+
+  it('0: a hero that can only afford potions does not make a trip', () => {
+    const w = withTrip(0);
+    const h = explorer(w, 30);
+    run(w, 3_000);
+    expect(h.mode).toBe('explore');
+  });
+
+  it('above 0: goes at that much gold, not before', () => {
+    const w = withTrip(100);
+    const poor = explorer(w, 90);
+    run(w, 2_000);
+    expect(poor.mode).toBe('explore');
+    poor.gold = 120;
+    run(w, 2_000);
+    expect(poor.mode).toBe('shop');
+  });
+
+  it('a follower does not shop alone; a hero heading for a flag or lair does not shop', () => {
+    const w = withTrip(0);
+    const a = explorer(w, 200);
+    const b = explorer(w, 200);
+    a.gold = 0;
+    b.gold = 0;
+    // b joins a's party
+    const pa = w.parties.get(a.party);
+    const pb = w.parties.get(b.party);
+    if (!pa || !pb) throw new Error('party');
+    pa.members.push(b.id);
+    w.parties.delete(b.party);
+    b.party = a.party;
+    run(w, 100);
+    // a leads (first exploring member); only b has gold
+    b.gold = 200;
+    run(w, 2_000);
+    expect(b.mode).toBe('explore');
+    // the leader with gold and a flag goal stays out; without it, goes
+    a.gold = 200;
+    const rt = w.heroRuntime.get(a.id);
+    if (!rt) throw new Error('rt');
+    rt.goal = { kind: 'flag', id: 1, score: 1, sinceMs: w.timeMs };
+    for (let t = 0; t < 2_000; t += TICK_MS) {
+      rt.goal = { kind: 'flag', id: 1, score: 1, sinceMs: w.timeMs };
+      step(w, TICK_MS);
+    }
+    expect(a.mode).toBe('explore');
+    rt.goal = undefined;
+    run(w, 1_500);
+    expect(a.mode).toBe('shop');
+  });
+
+  it('does not leave a fight', () => {
+    const w = withTrip(0);
+    const h = explorer(w, 200);
+    // in a fight the whole time, over more than one check
+    for (let t = 0; t < 2_000; t += TICK_MS) {
+      h.target = 999;
+      step(w, TICK_MS);
+    }
+    expect(h.mode).toBe('explore');
+    h.target = null;
+    run(w, 1_500);
+    expect(h.mode).toBe('shop');
   });
 });

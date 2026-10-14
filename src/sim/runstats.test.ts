@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createWorld, snapshot, step as stepOnce, type GameData } from './api';
+import { createWorld, runReport, snapshot, step as stepOnce, type GameData } from './api';
 import { spawnHero } from './world';
 
 const strong = { str: 9, dex: 3, sta: 9, cha: 1, per: 3, int: 1, wp: 3 };
@@ -52,6 +52,21 @@ describe('run report', () => {
     spawnHero(w, 'warrior', { x: 1700, y: 1000 });
     run(w, 2_000);
     expect(snapshot(w).status).toBe('running');
+    expect(snapshot(w).report).toBeNull();
+  });
+
+  it('runReport gives a running world a report marked abandoned, without touching the world', () => {
+    const w = createWorld(1, data);
+    const id = spawnHero(w, 'warrior', { x: 470, y: 470 });
+    run(w, 6_000);
+    expect(w.status).toBe('running');
+    const report = runReport(w);
+    expect(report.outcome).toBe('abandoned');
+    expect(report.timeMs).toBe(w.timeMs);
+    expect(report.heroes.map((h) => h.unit)).toContain(id);
+    expect(report.goldHistory.length).toBeGreaterThan(0);
+    // the world is unchanged and the snapshot still has no report
+    expect(w.status).toBe('running');
     expect(snapshot(w).report).toBeNull();
   });
 

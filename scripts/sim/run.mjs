@@ -41,6 +41,24 @@ try {
     const w = sim.createWorld(seed0 + r, GRAYBOX);
     let snap = sim.snapshot(w);
     let timeout = false;
+    // Minutes of the first boss emerge and the first blow to or from a boss (null: never).
+    let bossOutMin = null;
+    let bossFightMin = null;
+    const bossIds = new Set();
+    // Town gold at 3:00 and 5:00, and mean hero gear levels at 8:00 (all hero units, knocked out too;
+    // geared: the share with a weapon or armour level) (null: the run ended first).
+    const goldAt = { 180_000: null, 300_000: null };
+    let gear8 = null;
+    const watch = (sn) => {
+      for (const e of sn.events ?? []) {
+        if (e.kind === 'bossEmerged') {
+          bossIds.add(e.unit);
+          bossOutMin ??= sn.timeMs / 60_000;
+        } else if (e.kind === 'hit' && (bossIds.has(e.attacker) || bossIds.has(e.target))) {
+          bossFightMin ??= sn.timeMs / 60_000;
+        }
+      }
+    };
     for (let t = 0; snap.status === 'running'; t += DT) {
       if (t > maxMin * 60_000) {
         timeout = true;
@@ -48,6 +66,27 @@ try {
       }
       sim.step(w, DT);
       snap = sim.snapshot(w);
+      watch(snap);
+      for (const at of Object.keys(goldAt)) {
+        if (goldAt[at] === null && snap.timeMs >= Number(at)) goldAt[at] = snap.gold;
+      }
+      if (gear8 === null && snap.timeMs >= 480_000) {
+        const heroes = snap.units.filter((u) => u.kind === 'hero');
+        const avg = (key) =>
+          heroes.length === 0
+            ? 0
+            : heroes.reduce((a, u) => a + (u.items?.[key] ?? 0), 0) / heroes.length;
+        gear8 = {
+          weapon: avg('weapon'),
+          armour: avg('armour'),
+          heroes: heroes.length,
+          geared:
+            heroes.length === 0
+              ? 0
+              : heroes.filter((u) => (u.items?.weapon ?? 0) + (u.items?.armour ?? 0) > 0).length /
+                heroes.length,
+        };
+      }
       const pathCard = snap.parties.find((p) => p.pathOffer);
       if (pathCard) {
         sim.command(w, {
@@ -62,10 +101,18 @@ try {
       if (t % 5000 === 0) botTurn(w, snap);
     }
     snap = sim.snapshot(w);
+    watch(snap);
     results.push({
       seed: seed0 + r,
       outcome: timeout ? 'timeout' : snap.status,
       minutes: snap.timeMs / 60_000,
+      bossOutMin,
+      bossFightMin,
+      gold3: goldAt[180_000],
+      gold5: goldAt[300_000],
+      weapon8: gear8?.weapon ?? null,
+      armour8: gear8?.armour ?? null,
+      geared8: gear8?.geared ?? null,
       ...snap.stats,
       heroes: snap.units.filter((u) => u.kind === 'hero').length,
       maxPartyLevel: Math.max(1, ...snap.parties.map((p) => p.level)),
@@ -129,6 +176,26 @@ function mean(list, key) {
   return list.length === 0 ? 0 : list.reduce((a, r) => a + r[key], 0) / list.length;
 }
 
+// Mean over the runs that have the value (null when none do).
+function meanOf(results, key) {
+  const v = results.map((r) => r[key]).filter((x) => x !== null);
+  return v.length === 0 ? null : v.reduce((a, x) => a + x, 0) / v.length;
+}
+
+// Share of runs that reached the moment, and its p10, median and p90 in minutes.
+function bossTimes(results, key) {
+  const t = results
+    .map((r) => r[key])
+    .filter((x) => x !== null)
+    .sort((a, b) => a - b);
+  return {
+    reached: results.length === 0 ? 0 : t.length / results.length,
+    p10: pct(t, 0.1),
+    median: pct(t, 0.5),
+    p90: pct(t, 0.9),
+  };
+}
+
 function summarize(results) {
   const count = (o) => results.filter((r) => r.outcome === o).length;
   const ended = results.filter((r) => r.outcome !== 'timeout');
@@ -144,6 +211,15 @@ function summarize(results) {
       p10: pct(minutes, 0.1),
       median: pct(minutes, 0.5),
       p90: pct(minutes, 0.9),
+    },
+    bossOut: bossTimes(results, 'bossOutMin'),
+    bossFight: bossTimes(results, 'bossFightMin'),
+    pacing: {
+      gold3: meanOf(results, 'gold3'),
+      gold5: meanOf(results, 'gold5'),
+      weapon8: meanOf(results, 'weapon8'),
+      armour8: meanOf(results, 'armour8'),
+      geared8: meanOf(results, 'geared8'),
     },
     perRun: Object.fromEntries(
       [
@@ -169,6 +245,18 @@ function print(rep) {
   );
   console.log(
     `  run length (min, ended runs): mean ${f(rep.minutes.mean)}  p10 ${f(rep.minutes.p10)}  median ${f(rep.minutes.median)}  p90 ${f(rep.minutes.p90)}`,
+  );
+  for (const [name, b] of [
+    ['boss out', rep.bossOut],
+    ['boss fight', rep.bossFight],
+  ]) {
+    console.log(
+      `  ${name} (min): reached ${(b.reached * 100).toFixed(0)}%  p10 ${f(b.p10)}  median ${f(b.median)}  p90 ${f(b.p90)}`,
+    );
+  }
+  const n = (x) => (x === null ? '-' : f(x));
+  console.log(
+    `  town gold: 3:00 ${n(rep.pacing.gold3)}  5:00 ${n(rep.pacing.gold5)}   hero gear level at 8:00: weapon ${n(rep.pacing.weapon8)}  armour ${n(rep.pacing.armour8)}  with any gear ${rep.pacing.geared8 === null ? '-' : `${(rep.pacing.geared8 * 100).toFixed(0)}%`}`,
   );
   console.log('  per run (mean):');
   for (const [k, v] of Object.entries(rep.perRun)) console.log(`    ${k.padEnd(16)} ${f(v)}`);
