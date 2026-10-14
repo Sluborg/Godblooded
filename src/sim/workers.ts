@@ -1,3 +1,4 @@
+import { payEscort } from './escort';
 import { dist, speed, stepToward, TICK_MS } from './units';
 import type { World } from './world';
 import type { BuildingCore, CommandResult, UnitState, WorkerInfo } from './types';
@@ -199,6 +200,7 @@ export function runWorkers(world: World): void {
           amount: w.carry,
           total: world.ambrosia,
         });
+        payEscort(world, u.id);
         w.carry = 0;
       }
       w.fleeing = false;
