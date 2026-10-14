@@ -791,7 +791,7 @@ export const ITEMS: readonly ItemDef[] = [
     slot: 'weapon',
     level: 1,
     name: 'Tempered',
-    price: 60,
+    price: 35,
     shop: 'smithy',
     shopTier: 1,
     effects: { power: 2 },
@@ -820,7 +820,7 @@ export const ITEMS: readonly ItemDef[] = [
     id: 'armour-1',
     slot: 'armour',
     level: 1,
-    price: 50,
+    price: 30,
     shop: 'smithy',
     shopTier: 1,
     effects: {
@@ -882,7 +882,7 @@ export const ITEMS: readonly ItemDef[] = [
 ];
 
 export const GRAYBOX: GameData = {
-  startGold: 420,
+  startGold: 480,
   map: { width: 2400, height: 1600 },
   townHall: { x: 1200, y: 800 },
   // Balance pass (Aesir skills and passives, items, potions, card auto-pick, level cap 8,
@@ -893,7 +893,7 @@ export const GRAYBOX: GameData = {
     hero: { maxPerTemple: 7, recruitMs: 22_000, taxRate: 0.6 },
     town: { raidFirstMs: 360_000, raidEveryMs: 180_000, raidGrowEveryMs: 300_000, raidSize: 1 },
     // Pacing (docs/systems/pacing-review.md): slower levels and a staggered lair clock.
-    party: { xpPerLevel: 40 },
+    party: { xpPerLevel: 45 },
     lair: { firstTierUpMs: 360_000, tierUpStaggerMs: 120_000, tierUpEveryMs: 420_000 },
   },
   classes: CLASSES,
