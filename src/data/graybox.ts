@@ -468,8 +468,8 @@ export const MONSTERS: readonly MonsterDef[] = [
   // The other five bosses (monsters-and-bosses.md section 3), scaled like Fafnir: about half the
   // draft hp and a little less armour. Bot pass (each boss forced, human bot, seeds 1-30): every
   // boss is beaten in 9 of 10 runs that reach it (wins 60-63%, Fafnir 60%), first hit to the end
-  // of the run 2.8-3.5 min (Fafnir 3.9). Their moves replace the cleave; strike damage types other
-  // than physical wait for a MonsterDef field.
+  // of the run 2.8-3.5 min (Fafnir 3.9). Their moves replace the cleave. Apep and Jormungandr strike
+  // with death, Cerberus with fire (strikeType).
   {
     id: 'hydra',
     move: {
@@ -487,6 +487,7 @@ export const MONSTERS: readonly MonsterDef[] = [
   },
   {
     id: 'apep',
+    strikeType: 'death',
     move: {
       swallow: { everyS: 15, enragedEveryS: 10, windupMs: 1000, s: 4, dotPct: 0.08, freePct: 0.25 },
     },
@@ -502,6 +503,7 @@ export const MONSTERS: readonly MonsterDef[] = [
   },
   {
     id: 'jormungandr',
+    strikeType: 'death',
     move: {
       venom: { everyS: 12, enragedEveryS: 8, windupMs: 1000, radius: 60, dotPct: 0.03, s: 8 },
     },
@@ -517,6 +519,7 @@ export const MONSTERS: readonly MonsterDef[] = [
   },
   {
     id: 'cerberus',
+    strikeType: 'fire',
     move: {
       howl: {
         everyS: 15,
