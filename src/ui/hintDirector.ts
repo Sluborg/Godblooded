@@ -1,12 +1,13 @@
 import Phaser from 'phaser';
 import { HINTS } from '../data/hints';
 import { GRAYBOX } from '../data/graybox';
-import type { SimEvent, Snapshot, Vec2 } from '../sim/api';
+import { DEFAULT_TUNING, type SimEvent, type Snapshot, type Vec2 } from '../sim/api';
 import { GAME_WIDTH } from '../config';
 import { HintEngine, hintLines, hintsFromEvent, type ShownHint } from './hints';
 import { loadSeen, saveSeen } from './hintStore';
 import { hintTargetPos, monsterSeenBy, upgradeAffordable } from './hintTarget';
 import { getSettings } from './settings';
+import { NudgeWatch } from './nudgeWatch';
 import { makePanel } from './panel';
 
 const ITEM_SLOT = new Map((GRAYBOX.items ?? []).map((i) => [i.id, i.slot]));
@@ -22,6 +23,9 @@ export class HintDirector {
   private readonly pulse: Phaser.GameObjects.Graphics;
   private nextCheck = 0;
   private started = false;
+  private readonly nudge = new NudgeWatch();
+  // Run time of the latest snapshot, for the events that carry none.
+  private timeMs = 0;
   private savedSize = this.seen.size;
 
   constructor(
@@ -65,11 +69,13 @@ export class HintDirector {
       const r = hintsFromEvent(e as unknown as { kind: string }, (id) => ITEM_SLOT.get(id));
       this.engine.skip(...r.skip);
       for (const f of r.fire) this.engine.fire(f.trigger, f.unit, f.at ?? null);
+      if (e.kind === 'bountyPlaced') this.nudge.flagPlaced(this.timeMs);
     }
   }
 
   update(snap: Snapshot, gold: number): void {
     const now = this.scene.time.now;
+    this.timeMs = snap.timeMs;
     if (!this.started) {
       this.started = true;
       this.engine.fire('start');
@@ -78,6 +84,8 @@ export class HintDirector {
       this.nextCheck = now + CHECK_MS;
       const m = monsterSeenBy(snap.units);
       if (m !== null) this.engine.fire('monsterSeen', m);
+      const idleLair = this.nudge.update(snap.lairs, snap.timeMs, DEFAULT_TUNING.lair.maxTier);
+      if (idleLair !== null) this.engine.fire('noFlagIdle', idleLair);
       const up = upgradeAffordable(snap.buildings, gold);
       if (up !== null) this.engine.fire('upgrade', up);
     }
