@@ -102,6 +102,17 @@ export const HINTS: readonly HintDef[] = [
     line2: 'and chose its own upgrade.',
   },
   // First-time hints.
+  // Scene condition `noFlagIdle`: 2 minutes in, no bounty flag placed yet and a lair untouched.
+  {
+    id: 'h-nudge',
+    order: 5,
+    group: 'first',
+    trigger: 'noFlagIdle',
+    milestone: 2,
+    target: none,
+    line1: 'Heroes stay near town.',
+    line2: 'A bounty on a lair sends them out.',
+  },
   {
     id: 'h-raid',
     order: 10,
