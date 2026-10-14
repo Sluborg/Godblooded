@@ -30,7 +30,7 @@ import { iconScale } from '../ui/icons';
 import { releaseSets } from '../ui/parts/bake';
 import { effectiveSpeed } from '../ui/pathSpeed';
 import { STYLE } from '../ui/style';
-import { LairIndicators, groundScale, plateColor } from '../ui/lairRings';
+import { LAIR_UI_DEPTH, LairIndicators, groundScale, plateColor } from '../ui/lairRings';
 import { groundShadow, lairDecal, lairPlate, townPatch } from '../ui/groundDecal';
 import { HALL_STYLE, drawBanners, isTownHall, plazaDecal } from '../ui/townHallLook';
 import {
@@ -773,8 +773,10 @@ export class MapScene extends Phaser.Scene {
     const decal = lairDecal(this, l.boss);
     this.groundUnder(c, decal, l.pos);
     c.setData('decal', decal);
+    // The plate is UI: it sits above the guards that stand around the lair, not in its picture.
     const plate = lairPlate(this, l.type).setVisible(false);
-    c.add(plate);
+    plate.setPosition(l.pos.x, l.pos.y + 46).setDepth(LAIR_UI_DEPTH);
+    c.once(Phaser.GameObjects.Events.DESTROY, () => plate.destroy());
     c.setData('plate', plate);
     this.refreshLair(c, l.type, l.tier, l.boss);
     return c;

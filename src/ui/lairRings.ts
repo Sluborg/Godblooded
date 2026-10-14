@@ -13,6 +13,9 @@ import {
 
 export { groundScale, plateColor };
 
+// Above the units and buildings (MapScene draws the lair plates here too).
+export const LAIR_UI_DEPTH = 800_000;
+
 interface Memory {
   tier: number;
   alive: number;
@@ -35,7 +38,7 @@ export class LairIndicators {
   private readonly mem = new Map<number, Memory>();
 
   constructor(private readonly scene: Phaser.Scene) {
-    this.g = scene.add.graphics().setDepth(0.7);
+    this.g = scene.add.graphics().setDepth(LAIR_UI_DEPTH - 1);
   }
 
   destroy(): void {
@@ -113,8 +116,9 @@ export class LairIndicators {
     const stage = ringStage(next);
     const t = this.scene.time.now / 1000;
     const beat = stage === 'pulse' ? 0.5 + 0.5 * Math.sin(t * Math.PI * 2) : 0;
-    const color = stage === 'dim' ? 0x9a9a9a : 0xf2a62e;
-    g.lineStyle(3, 0x9a9a9a, 0.18).strokeEllipse(cx, cy, rx * 2, ry * 2);
+    const color = stage === 'dim' ? 0xe6e1d2 : 0xffb43a;
+    // A dark track so the empty part reads on the grass.
+    g.lineStyle(7, 0x1a1410, 0.55).strokeEllipse(cx, cy, rx * 2, ry * 2);
     g.lineStyle(
       stage === 'dim' ? 3 : 4 + beat * 3,
       color,
@@ -163,9 +167,9 @@ export class LairIndicators {
     const g = this.g;
     const share = nextSpawn !== null && m.spawnSpan > 0 ? 1 - nextSpawn / m.spawnSpan : 0;
     const row = pipRow(alive, max, share);
-    const gap = 17;
+    const gap = 27;
     const x0 = l.pos.x - ((row.length - 1) * gap) / 2;
-    const y = l.pos.y + 76;
+    const y = l.pos.y + 90;
     if (m.openGlowMs > 0)
       g.fillStyle(0xfff0b0, 0.35 * (m.openGlowMs / 900)).fillEllipse(
         l.pos.x,
@@ -175,14 +179,15 @@ export class LairIndicators {
       );
     row.forEach((p, i) => {
       const x = x0 + i * gap;
-      g.fillStyle(0x1a1410, 0.85).fillCircle(x, y, 8);
-      if (p.kind === 'alive') g.fillStyle(0xf4ead5, 1).fillCircle(x, y, 6);
+      g.fillStyle(0x1a1410, 0.92).fillCircle(x, y, 12);
+      if (p.kind === 'alive') g.fillStyle(0xf4ead5, 1).fillCircle(x, y, 9);
       else if (p.kind === 'filling' && p.fill > 0)
-        g.fillStyle(0xf4ead5, 0.55).fillCircle(x, y, 6 * p.fill);
-      g.lineStyle(2, 0xd9c9a8, 0.9).strokeCircle(x, y, 8);
+        g.fillStyle(0xf4ead5, 0.6).fillCircle(x, y, 9 * p.fill);
+      g.lineStyle(3, 0x000000, 0.95).strokeCircle(x, y, 12.5);
+      g.lineStyle(2, 0xd9c9a8, 0.9).strokeCircle(x, y, 11);
       // The newest empty slot flashes red when a guard dies.
       if (p.kind !== 'alive' && i === alive && m.killFlashMs > 0)
-        g.fillStyle(0xff3b30, m.killFlashMs / 600).fillCircle(x, y, 8);
+        g.fillStyle(0xff3b30, m.killFlashMs / 600).fillCircle(x, y, 12);
     });
   }
 
@@ -198,7 +203,7 @@ export class LairIndicators {
           padding: { x: 8, y: 2 },
         })
         .setOrigin(0, 0.5)
-        .setDepth(900_000);
+        .setDepth(LAIR_UI_DEPTH + 1);
       this.texts.set(id, t);
     }
     return t;
