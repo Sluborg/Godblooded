@@ -43,9 +43,9 @@ function indexOf(world: World): Index {
   return ix;
 }
 
-const NONE: PassiveEffect[] = [];
+const NONE: readonly PassiveEffect[] = [];
 
-export function passivesFor(world: World, unit: UnitState): PassiveEffect[] {
+export function passivesFor(world: World, unit: UnitState): readonly PassiveEffect[] {
   if (unit.kind !== 'hero') return NONE;
   const cards = cardEffects(world, unit);
   if (!indexOf(world).anyPassive && cards.length === 0) return NONE;
@@ -71,7 +71,7 @@ export function passivesFor(world: World, unit: UnitState): PassiveEffect[] {
 }
 
 // The cards the hero's party has taken that carry keys: each copy counts, for the whole party.
-function cardEffects(world: World, unit: UnitState): PassiveEffect[] {
+function cardEffects(world: World, unit: UnitState): readonly PassiveEffect[] {
   const upgrades = world.parties.get(unit.party)?.upgrades;
   if (!upgrades || upgrades.length === 0) return NONE;
   const ix = indexOf(world);

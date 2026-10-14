@@ -28,7 +28,8 @@ const HUMAN = args.includes('--human');
 // --profile: steps one 50 ms tick at a time and times step() and snapshot(); the report adds ms per
 // tick (p50/p95/p99/max) for the whole run and for minutes 14-18 (late-game load).
 const PROFILE = args.includes('--profile');
-const WINDOW = (args[args.indexOf('--window') + 1] ?? '14,18').split(',').map(Number);
+const windowAt = args.indexOf('--window');
+const WINDOW = (windowAt >= 0 ? args[windowAt + 1] : '14,18').split(',').map(Number);
 // --hints (with --human): builds in the order the hints give: the temple at once, a market about 20 s
 // after the first hero arrives, a shrine after the first hero flees or falls, a tower once a
 // raid is announced or at 6:00. Cards and paths are picked after a 5-15 s think (one in ten is
