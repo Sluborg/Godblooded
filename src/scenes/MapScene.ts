@@ -196,7 +196,16 @@ export class MapScene extends Phaser.Scene {
     this.registry.set('camMode', 'off');
     this.registry.set('modal', false);
     // A finished or restarted run gives its baked looks back.
+    // The app can be reloaded for an update when it comes back to the foreground: save the run
+    // the moment it goes to the background (and when the page is closed), not only on the autosave.
+    const onHide = () => {
+      if (document.visibilityState === 'hidden') this.saveNow();
+    };
+    document.addEventListener('visibilitychange', onHide);
+    window.addEventListener('pagehide', onHide);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      document.removeEventListener('visibilitychange', onHide);
+      window.removeEventListener('pagehide', onHide);
       releaseSets(this);
       releaseGround(this);
     });
