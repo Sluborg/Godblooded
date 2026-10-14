@@ -46,7 +46,8 @@ export function kitOf(scene: Phaser.Scene, lookId: string): Kit | null {
   // `?kitmode=floating|bent` overrides the combo's mode, for comparing the two on one sheet.
   const asked =
     typeof location === 'undefined' ? null : new URLSearchParams(location.search).get('kitmode');
-  const mode: KitMode = asked === 'floating' || asked === 'bent' ? asked : (combo.mode ?? 'bent');
+  const mode: KitMode =
+    asked === 'floating' || asked === 'bent' ? asked : (combo.mode ?? 'floating');
   if (!kitComplete(parts, mode)) return null;
   return { parts, layers: pick(combo.layers, all), build: BUILDS[combo.build ?? 'standard'], mode };
 }

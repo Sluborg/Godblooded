@@ -52,7 +52,7 @@ export type BuildName = keyof typeof BUILDS;
 
 export interface KitCombo {
   build?: BuildName;
-  // `bent` (default) or `floating`.
+  // `floating` (default: the compact rig, small floating hands and feet) or `bent` (two-bone limbs).
   mode?: KitMode;
   // Part id per slot, from the kit sheets (`head_hooded`, `weapon_staff`, ...).
   parts: Partial<Record<KitSlot, string>>;
