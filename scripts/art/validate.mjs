@@ -3,7 +3,15 @@
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { alphaReport, isOpaque, kindOf, parseId, readPng, transparentPixels } from './lib.mjs';
+import {
+  alphaReport,
+  footprintOrigin,
+  isOpaque,
+  kindOf,
+  parseId,
+  readPng,
+  transparentPixels,
+} from './lib.mjs';
 
 const FIELDS = ['id', 'kind', 'file', 'license', 'source'];
 // Strike types (docs/asset-spec.md, pose standard).
@@ -132,6 +140,13 @@ export function validateAssets(root = '.', budget = ART_BUDGET) {
     const [maxW, maxH] = MAX[k.dir];
     if (img.width > maxW || img.height > maxH)
       err(id, `${img.width}x${img.height} is larger than ${maxW}x${maxH}`);
+    // Buildings and lairs stand on their iso footprint centre (asset-spec Anchor, Scene's
+    // footOrigin): the manifest must carry the same point.
+    if (k.anchor === 'footprint') {
+      const o = footprintOrigin(img.width, img.height);
+      if (Math.abs(row.anchorX - o.x) > 0.002 || Math.abs(row.anchorY - o.y) > 0.002)
+        err(id, `anchor must be the footprint origin ${o.x},${o.y}`);
+    }
     if (isOpaque(id)) {
       // Key art and ground tiles: whole picture, no transparency anywhere.
       const clear = transparentPixels(img);

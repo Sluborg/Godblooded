@@ -84,7 +84,9 @@ Each variant is a full manifest row with its own measured weapon point.
   - buildings and lairs (bld): at the iso footprint centre, `x = 0.5`,
     `y = 1 - 0.2 * width / height` (clamped 0.6..1). The lowest band of an iso building is its
     front corner, which sits off the plot centre. Same rule as Scene's `footOrigin`
-    (`src/ui/unitLook.ts`), so the art must keep the building centred left to right and its base a
+    (`src/ui/unitLook.ts`, Lead's ruling 2026-10-14): Scene computes it from the picture size and
+    does not read the manifest anchor of bld rows; the manifest carries the same values so data
+    and game agree. The art must keep the building centred left to right and its base a
     full iso footprint; a building that breaks this needs a note to Scene with its depth share.
   - terrain, ui and art: at the centre.
 

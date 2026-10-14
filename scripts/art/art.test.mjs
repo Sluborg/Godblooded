@@ -314,6 +314,38 @@ describe('strike fields', () => {
   });
 });
 
+describe('building anchor', () => {
+  // A temp repo with one shipped building row at the given anchor.
+  function errorsFor(anchor) {
+    const root = mkdtempSync(join(tmpdir(), 'art-'));
+    mkdirSync(join(root, 'public/assets/buildings'), { recursive: true });
+    const r = processImage(
+      canvas(1024, MAGENTA, { x: 100, y: 300, w: 800, h: 500 }),
+      'bld_smithy_t1',
+    );
+    writePng(join(root, 'public/assets/buildings/bld_smithy_t1.png'), r.image);
+    const row = {
+      id: 'bld_smithy_t1',
+      kind: 'bld',
+      tier: 1,
+      view: null,
+      file: 'buildings/bld_smithy_t1.png',
+      anchorX: r.anchorX,
+      anchorY: r.anchorY,
+      license: 'own',
+      source: 'T1',
+      ...anchor,
+    };
+    writeFileSync(join(root, 'public/assets/manifest.json'), JSON.stringify({ assets: [row] }));
+    return validateAssets(root).errors;
+  }
+
+  it('accepts the footprint origin and rejects a base-band anchor', () => {
+    expect(errorsFor({})).toEqual([]);
+    expect(errorsFor({ anchorX: 0.62, anchorY: 0.996 }).join()).toMatch(/footprint origin/);
+  });
+});
+
 describe('9-slice fields', () => {
   // A temp repo with one shipped ui panel and the given extra manifest fields.
   function errorsFor(extra) {
