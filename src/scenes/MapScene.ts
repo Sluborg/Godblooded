@@ -1,3 +1,4 @@
+import { SfxFeed, getSfx } from '../ui/sfxPlayer';
 import { makeGround, releaseGround } from '../ui/ground';
 import { flagAt } from '../ui/flagCard';
 import { getMusic } from '../ui/musicPlayer';
@@ -36,6 +37,10 @@ import { OFFER_KEY, type LevelUpOffer } from './LevelUpScene';
 import { attachCameraControls } from '../ui/cameraControls';
 import { easeToward, WatchDirector } from '../ui/watchCam';
 import type { HudScene } from './HudScene';
+
+// The first picture of a skill's row; its sound follows it (sfx_skill_<picture>).
+const skillVisual = (id: string): string | undefined =>
+  GRAYBOX.skills?.find((s) => s.id === id)?.visual[0];
 
 const BUILDING_COLORS: Record<string, number> = {
   townhall: 0xc9a227,
@@ -82,6 +87,7 @@ export class MapScene extends Phaser.Scene {
   private cam: 'off' | 'watch' | 'unit' = 'off';
   private followId = 0;
   private director = new WatchDirector();
+  private readonly sfxFeed = new SfxFeed();
   private views = new Map<string, Phaser.GameObjects.GameObject>();
 
   constructor() {
@@ -122,6 +128,7 @@ export class MapScene extends Phaser.Scene {
     const { width, height } = GRAYBOX.map;
     // The title theme plays on Boot, Title and the hall only; there is no run music yet.
     getMusic(this).stop(800);
+    this.sfxFeed.reset();
     this.world = this.startWorld();
     this.registry.set('speed', getSettings().speed);
     const cam = this.cameras.main;
@@ -173,10 +180,23 @@ export class MapScene extends Phaser.Scene {
     this.registry.set('timeMs', this.snap.timeMs);
     this.registry.set('status', this.snap.status);
     this.events.emit('simEvents', this.snap.events);
+    this.playSounds(speed);
     this.syncOffer();
     // Motion runs at the game speed, but not past 2x: a 4x swing would be a blur.
     this.sync(deltaMs * Math.min(speed, 2));
     this.updateCamera(deltaMs);
+  }
+
+  // Sound effects for this tick's events: positional ones by the camera view, hits thinned at 4x.
+  private playSounds(speed: number): void {
+    const sfx = getSfx(this);
+    const v = this.cameras.main.worldView;
+    sfx.view = { x: v.x, y: v.y, w: v.width, h: v.height };
+    sfx.speed = speed;
+    sfx.handle(
+      this.snap.events,
+      this.sfxFeed.ctx(this.snap.units, this.snap.buildings, this.snap.lairs, skillVisual),
+    );
   }
 
   // Watch on: the camera drifts to the most interesting fight. Off: back to by hand.
