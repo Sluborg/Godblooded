@@ -1096,7 +1096,14 @@ export function snapshot(world: World): Snapshot {
       intent: p.intent ? { ...p.intent } : { kind: 'explore' },
     })),
     paths: pathStates(world),
-    lairs: world.lairs.map((l) => ({ ...l, pos: { ...l.pos } })),
+    lairs: world.lairs.map((l) => {
+      const at = world.lairRuntime.get(l.id)?.nextTierMs;
+      const left =
+        at === undefined || !Number.isFinite(at) || l.tier >= world.tuning.lair.maxTier
+          ? null
+          : Math.max(0, at - world.timeMs);
+      return { ...l, pos: { ...l.pos }, nextTierMs: left };
+    }),
     units: world.units.map((u) => ({
       ...u,
       pos: { ...u.pos },

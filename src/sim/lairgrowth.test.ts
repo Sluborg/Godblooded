@@ -152,3 +152,21 @@ describe('lair growth', () => {
     expect(run()).toBe(run());
   });
 });
+
+describe('lair snapshot: nextTierMs', () => {
+  it('counts down to the next tier-up and is null at the top tier', () => {
+    const w = createWorld(1, {
+      ...base,
+      tuning: {
+        ...base.tuning,
+        lair: { tierUpEveryMs: 20_000, firstTierUpMs: 20_000, maxTier: 2, tierUpStaggerMs: 0 },
+      },
+    });
+    expect(lair(w).nextTierMs).toBe(20_000);
+    step(w, 5_000);
+    expect(lair(w).nextTierMs).toBe(15_000);
+    step(w, 16_000);
+    expect(lair(w).tier).toBe(2);
+    expect(lair(w).nextTierMs).toBeNull();
+  });
+});

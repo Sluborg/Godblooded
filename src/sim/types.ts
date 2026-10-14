@@ -1088,6 +1088,9 @@ export interface LairState {
   pos: Vec2;
   hp: number;
   maxHp: number;
+  // Snapshot only: ms until the next tier-up (the lair growth ring); null at the top tier or with
+  // no tier clock.
+  nextTierMs?: number | null;
 }
 
 export interface UnitState {
