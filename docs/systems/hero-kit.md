@@ -2,62 +2,73 @@
 
 Design owns this spec. It follows Stefan's decisions of 2026-10-14 (`docs/decisions.md`: "Heroes
 stay animated parts, with painted pieces", "Hero look approved; heroes are built from a painted
-parts kit", "Items have an icon and a worn part; bodies come in builds"). Art writes the kit
-batches (part list, grid, pivots, agreed with Scene); Scene combines and animates; Balance and
-Lead write the item rows. Builds on `items-and-shops.md` (slots, levels, kits),
-`paths-and-skills.md` section 6 (what each god and path looks like) and `look-sheet.md`.
+parts kit", "Items have an icon and a worn part; bodies come in builds", "Headgear, weapons and
+hand gear are their own items"). Art writes the kit batches (part list, grid, pivots, agreed
+with Scene); Scene combines and animates; Balance and Lead write the item rows. Builds on
+`items-and-shops.md` (slots, levels, kits), `paths-and-skills.md` section 6 and `look-sheet.md`.
 
 ## Bottom line
 
-- **Six sockets show on the body:** head, torso, legs, cloak, weapon, off-hand. The rig moves
-  them; each holds one painted piece.
-- **Who fills a socket:** the **god** fills head and cloak (the signature pieces that never
-  change), the **path** adds its tier 2 pieces there, and **items** fill torso, legs, weapon and
-  off-hand. Potions and charms do not show on the body.
-- **Every item has two pictures:** a still **icon** (inventory, shop, loot) and a **worn part**
-  for its socket. A missing worn part falls back to the base kit part, a missing icon to a plain
-  slot icon: the game never breaks for lack of art.
-- **Four builds** (lean, broad, tall, short). Each god allows two; the hero's build is picked by
-  seed when it arrives and never changes. A build is not separate art: Scene scales each segment
-  and moves its sockets (Art's parts kit rule), so every worn part fits every build.
-- **M2 needs about 46 painted layers, 10 icons and 8 portraits** for the four Aesir gods (section 5).
+- **Seven sockets on the body:** head, headgear, cloak, torso, legs, weapon, off-hand. The rig
+  moves them; each holds one painted piece.
+- **Items fill five of them:** headgear, torso, legs, weapon and off-hand are items, each with
+  its own painted worn piece and its own icon (Stefan: "Headgear should be its own thing", "all
+  weapons and hand gear would be own things"). Potions and charms do not show on the body.
+- **The god shows through face, cloak, colours and emblem:** the face and hair (2 per god), the
+  god's cloak, the god's two colours on the cloak and trim, and a small god emblem on the cloak
+  clasp. The path changes the cloak at tier 2.
+- **Four builds** (lean, broad, tall, short) are scale rows in Scene's data, not art. Each god
+  allows two; a hero gets one by seed when it arrives and keeps it.
+- **M2 (Aesir) needs 82 worn pieces, 48 icons and 8 portraits**, in two batches: a **first batch
+  of 46 pieces, 20 icons and 8 portraits** that makes a full M2 run look right (levels 0 and 1),
+  then **36 pieces and 28 icons** for levels 2 and 3 and the path cloaks (section 5).
 
 ## 1. Sockets
 
-| Socket   | Filled by                                                          | Changes when                         | Shown at level 0           |
-| -------- | ------------------------------------------------------------------ | ------------------------------------ | -------------------------- |
-| head     | the god's face and hair (2 faces per god), then the god's headgear | the path's tier 2 headgear           | face, hair, god's headgear |
-| cloak    | the god's cloak or cape                                            | the path's tier 2 cloak              | the god's cloak            |
-| torso    | the armour item, by kit (heavy, light, robe)                       | level 1 plain, level 2 fine          | the build's base tunic     |
-| legs     | the armour item, by kit                                            | buying any armour (level 1)          | the build's base legs      |
-| weapon   | the weapon item, family from the god or path (section 2)           | weapon level: glow (`look-sheet.md`) | the family's plain piece   |
-| off-hand | the shield (heavy kit with a shield path) or the second dagger     | armour level 2 (plain to fine)       | empty hand or plain piece  |
+| Socket   | Filled by                                                     | Level 0 (a hero's start)  |
+| -------- | ------------------------------------------------------------- | ------------------------- |
+| head     | the face with hair (2 faces per god); never an item           | the face                  |
+| headgear | a headgear item (helm, hood, hat)                             | none: the hair shows      |
+| cloak    | the god's cloak; the path's cloak from tier 2                 | the god's cloak           |
+| torso    | a body armour item, by kit (chest layer)                      | the base tunic            |
+| legs     | the same armour item, by kit (trousers and boots layers)      | the base legs and boots   |
+| weapon   | a weapon item; each weapon is its own piece                   | the god's starting weapon |
+| off-hand | an off-hand item (shield, second blade, focus); its own piece | empty hand                |
 
-- **The keeps rule holds** (`paths-and-skills.md` section 6): face, hair and the god's signature
-  pieces never change. Armour never replaces a signature head or cloak piece; it shows on torso,
-  legs and shield.
-- **Tier 3** adds no new pieces in M2: it is the tier 2 pieces plus code effects (trim glow,
-  motes, the accent colour). The tier 3 mantles in the path table (raven feathers, wolf pelt,
-  white fur) come with the M3 kit.
-- **Arms, hands and feet** are base segments, so a worn layer always sits on the same transform.
-- **Sockets and Art's segments** (`asset-spec.md`, "Parts kit"): head = head (+ headgear layer),
-  cloak = cloak, torso = torso (chest layer), legs = thigh + shin (trousers and boots layers),
-  weapon = weapon, off-hand = offhand. Upperarm and forearm stay base segments in M2 (bracers
-  and gloves can come later as forearm layers).
+- **Sockets and Art's segments** (`asset-spec.md`, "Parts kit"): head = head, headgear =
+  headgear, cloak = cloak, torso = torso (chest layer), legs = thigh (trousers) and shin (boots),
+  weapon = weapon, off-hand = offhand. Upperarm and forearm stay base segments in M2.
+- **The keeps rule, revised:** face, hair and the god's cloak, colours and emblem never change
+  for a god's child; what the hero wears on head, body and hands is its gear.
+- **The god's read** without fixed headgear: the cloak's shape and the god's two colours (Odin
+  grey and blue, Thor red and cream, Loki green and gold, Freyja rose and cream; from
+  `paths-and-skills.md` section 6), and the **emblem** on the clasp: Odin a raven, Thor a hammer,
+  Loki a serpent, Freyja a falcon feather. Scene can show the emblem bigger on the Party panel.
+- **The path's read:** its tier 2 cloak, its accent colour on trim and effects; tier 3 adds code
+  effects (glow, motes). The hats and helms in the path table become headgear items a hero can
+  buy, not path pieces.
 
-## 2. Item families per slot
+## 2. Item slots and families
 
-| Item slot | Families (M2 in bold)                                                              | Worn socket           | Family comes from                |
-| --------- | ---------------------------------------------------------------------------------- | --------------------- | -------------------------------- |
-| weapon    | **staff, spear, hammer, daggers, wand**; later sword, axe, bow, khopesh, claws     | weapon, off-hand      | the god at tier 1, the path at 2 |
-| armour    | **heavy, light, robe** (the template's kit), each **plain** (1) and **fine** (2-3) | torso, legs, off-hand | the template's kit               |
-| potion    | **healing potion**                                                                 | none (flask pip)      | none                             |
-| charm     | the four charms (M3)                                                               | none (icon pip)       | none                             |
+| Slot     | Families (M2 Aesir in bold)                                                      | Levels | Buys at | Worn socket |
+| -------- | -------------------------------------------------------------------------------- | ------ | ------- | ----------- |
+| weapon   | **staff, spear, hammer, daggers, wand**; later sword, axe, bow, khopesh, claws   | 0-3    | smithy  | weapon      |
+| armour   | **heavy, light, robe** (the template's kit)                                      | 0-3    | smithy  | torso, legs |
+| headgear | **heavy helm, light hood, robe hat** (by kit)                                    | 0-3    | smithy  | headgear    |
+| off-hand | **shield** (heavy kit), **second blade** (rogue), **focus** (casters: rune tome) | 0-3    | smithy  | off-hand    |
+| potion   | **healing potion**                                                               | count  | market  | none        |
+| charm    | the four charms (M3)                                                             | one    | market  | none        |
 
-- **Weapon level** shows as the glow already specced (none, faint, steady, bright); the piece
-  itself does not change in M2. A fine variant per family can follow in M3.
-- **Flame in both hands** (Loki Flamebinder) and **ravens** are code effects, not weapon pieces.
-- **The lair relic** (M3) is a charm: icon only.
+- **Each weapon level is its own item and piece:** for example staff 0 "Ash staff", 1
+  "Tempered staff", 2 "Runed staff", 3 "Star staff"; Balance and Lead name the rows. The family
+  comes from the hero's god at tier 1 and its path from tier 2 (Odin staff, Thor hammer, Loki
+  daggers, Freyja wand; Wanderer and Valkyrie spear, Stormcaller and Seidkona staff).
+- **Armour** stays one item (one level) that fills torso and legs; plain at level 1, finer at 2
+  and 3, each level its own chest piece.
+- **Headgear and off-hand are new item slots** (Sim and Balance; section 4). Start effects for
+  Balance: headgear gives about a third of the armour row's armour or Wp by kit; a shield gives
+  armour, a second blade crit, a focus spell power; prices about half of the armour row.
+- **Flame in both hands** (Loki Flamebinder) and **ravens** stay code effects.
 
 ## 3. Builds
 
@@ -71,59 +82,63 @@ Builds are rows of per-segment scale factors and socket offsets in Scene's data 
 | short | stocky and low                  | Thor, Loki               |
 
 - **Rule:** each god lists two builds (Odin tall or lean, Thor broad or short, Loki lean or short,
-  Freyja lean or broad); a new hero gets one of the two, 50/50, from the run's seed (`sim/rng.ts`),
-  and keeps it for life. Two sons of Thor can differ, a son of Odin never looks squat.
-- **Not by class:** the template sets the armour kit, not the body; a broad healer is fine.
-- **Sim:** the hero carries `build` in the snapshot (set at arrival). Save shape changes, so the
-  save version bumps with a migration (old heroes get their god's first build).
+  Freyja lean or broad); a new hero gets one of the two, 50/50, from the run's seed, and keeps it.
+- **Not by class:** the template sets the armour kit, not the body.
 
 ## 4. Data rows
 
-| Row       | Field                                                                                                                        |
-| --------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| GodDef    | `builds: [string, string]`, `faces: [string, string]`, `headgear`, `cloak` (part ids)                                        |
-| PathDef   | `headgear?`, `cloak?`, `weapon` (family) for tier 2                                                                          |
-| ItemDef   | `icon` (manifest id) and `worn` (part id per kit for armour, per family for weapons); both optional                          |
-| UnitState | `build`, plus today's `items`                                                                                                |
-| Manifest  | Art proposes the ids (`asset-spec.md` is Art's); Design suggests `part_<socket>_<name>` for pieces and `item_<id>` for icons |
+| Row       | Field                                                                                                                                          |
+| --------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| GodDef    | `builds: [string, string]`, `faces: [string, string]`, `cloak`, `colours: [string, string]`, `emblem`                                          |
+| PathDef   | `cloak` and `weapon` (family) for tier 2                                                                                                       |
+| ItemDef   | `slot` gains `headgear` and `offhand`; weapon rows get a `family`; every row gets `icon` and `worn` (part ids per kit for armour and headgear) |
+| UnitState | `build`; `items` gains `headgear` and `offhand` levels                                                                                         |
+| Manifest  | Art proposes the ids (`asset-spec.md` is Art's); Design suggests `part_<socket>_<name>` and `item_<id>`                                        |
 
-- **Magenta:** it stays the chroma key for uploads, so replaceable areas cannot also be
-  magenta; Art and Scene pick the technical form (separate layers on sockets, or a second key
-  colour), as the decision says.
+- **Fallbacks:** a missing worn piece shows the base part (or nothing for headgear and
+  off-hand), a missing icon a plain slot icon.
+- **Saves:** new slots and `build` change the hero's shape: bump the save version with a
+  migration (old heroes: level 0 headgear and off-hand, the god's first build).
+- **Magenta** stays the upload chroma key; Art and Scene pick the technical form for
+  replaceable areas, as the decision says.
 
-## 5. M2 minimum (the four Aesir gods)
+## 5. M2 count (the four Aesir gods), by batch
 
-| Group           | Pieces | What                                                                                                                            |
-| --------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------- |
-| Base body       | 5      | torso, upperarm, forearm (with hand), thigh, shin (with boot); builds scale it                                                  |
-| Faces           | 8      | 2 per god, with hair (beard, braids, hood edge)                                                                                 |
-| God headgear    | 2      | Odin's wide hat, Loki's hood (Thor and Freyja show their hair)                                                                  |
-| God cloaks      | 4      | one per god                                                                                                                     |
-| Path tier 2     | 8      | headgear for 6 paths (tall hat, iron helm, horned hood, dark hood, winged helm, frost hood), capes for Wanderer and Stormcaller |
-| Torso armour    | 6      | heavy, light, robe x plain, fine                                                                                                |
-| Legs            | 6      | heavy, light, robe x trousers (thigh) and boots (shin)                                                                          |
-| Weapons         | 5      | staff, spear, hammer, daggers, wand                                                                                             |
-| Off-hands       | 2      | round shield plain and fine (the second dagger reuses the dagger piece)                                                         |
-| **Layer total** | **46** |                                                                                                                                 |
-| Icons           | 10     | weapon level 1-3 for weapon kits and casters (6), armour level 1-3 (3), potion (1)                                              |
-| Portraits       | 8      | one painted portrait per kit face (`por_<face>`, Stefan via Lead 2026-10-14): Party panel, level-up card                        |
+| Group           | First batch | Later  | What                                                                              |
+| --------------- | ----------- | ------ | --------------------------------------------------------------------------------- |
+| Base body       | 5           |        | torso, upperarm, forearm (with hand), thigh, shin (with boot)                     |
+| Faces           | 8           |        | 2 per god, with hair                                                              |
+| God cloaks      | 4           |        | one per god, in its colours                                                       |
+| Emblems         | 4           |        | raven, hammer, serpent, falcon feather (clasp size)                               |
+| Path cloaks     |             | 8      | one per path, for tier 2                                                          |
+| Chest (armour)  | 3           | 6      | heavy, light, robe: level 1 first; levels 2 and 3 later                           |
+| Legs (armour)   | 6           |        | heavy, light, robe x trousers and boots (one look for levels 1-3)                 |
+| Headgear        | 3           | 6      | heavy helm, light hood, robe hat: level 1 first; levels 2 and 3 later             |
+| Weapons         | 10          | 10     | 5 families x levels 0 and 1 first; levels 2 and 3 later                           |
+| Off-hands       | 3           | 6      | shield, second blade, focus: level 1 first; levels 2 and 3 later                  |
+| **Worn pieces** | **46**      | **36** | **82 in all**                                                                     |
+| Icons           | 20          | 28     | one per item row: armour 3+6, headgear 3+6, weapons 10+10, off-hand 3+6, potion 1 |
+| Portraits       | 8           |        | one per face (`por_<face>`, Stefan via Lead)                                      |
 
-- Greek and Egyptian gods add faces, headgear, cloaks, path pieces and their weapon families
-  (sword, bow, khopesh, claws) in M3; the build bodies, torso, legs and shield pieces are shared.
+- **Why this split:** a typical run reaches level 1 gear by 8:00 and level 2 late; until the
+  later batch lands, a level 2 or 3 item shows its level 1 piece and icon (fallback by family).
+- Greek and Egyptian gods add faces, cloaks, emblems, path cloaks and their weapon families in
+  M3; base body, armour, headgear and off-hand pieces are shared.
 
 ## 6. Backlog rows (proposed)
 
-| Role  | Order | Row                                                                                                        |
-| ----- | ----- | ---------------------------------------------------------------------------------------------------------- |
-| Art   | 10    | Kit batch for the Aesir: the 46 layers of section 5 on the agreed grid and pivots                          |
-| Art   | 20    | Item icons (10) and face portraits (8) of section 5                                                        |
-| Scene | 10    | Combine a hero from build (scale rows), face, headgear, cloak, path pieces and items; fall back per socket |
-| Scene | 20    | Inventory and shop show item icons; a hero tap shows its worn items                                        |
-| Sim   | 10    | `build` on the hero (seeded pick from the god's two), in the snapshot; save bump                           |
-| Lead  | 10    | GodDef and PathDef look fields; ItemDef `icon` and `worn`                                                  |
+| Role    | Order | Row                                                                                             |
+| ------- | ----- | ----------------------------------------------------------------------------------------------- |
+| Art     | 10    | First kit batch: 46 pieces, 20 icons, 8 portraits (section 5)                                   |
+| Art     | 20    | Later kit batch: 36 pieces, 28 icons                                                            |
+| Scene   | 10    | Combine a hero from build (scale rows), face, cloak, emblem and items; fall back per socket     |
+| Scene   | 20    | Inventory, shop and hero tap show item icons                                                    |
+| Sim     | 10    | `build` on the hero (seeded pick from the god's two); headgear and off-hand slots; save bump    |
+| Balance | 10    | Item rows: weapon rows per family and level, headgear and off-hand rows with effects and prices |
+| Lead    | 10    | GodDef look fields (faces, cloak, colours, emblem, builds), PathDef cloak and weapon family     |
 
-## OPEN
+## Decided (Stefan, 2026-10-14)
 
-1. **Armour on the head:** Design's start keeps the head for the god and path only (keeps
-   rule). Should a heavy-armour hero at level 3 get a helm over the god's headgear?
-2. **A fine weapon piece per family** at level 3, or glow only (Design's start: glow in M2)?
+1. **Headgear is its own item slot**, not the god's fixed piece and not tied to armour level.
+2. **Every weapon and off-hand item is its own painted piece and icon**, not one piece per
+   family with a level glow.

@@ -17,9 +17,9 @@ Design owns this spec. Lead turns the proposed rows into backlog rows and data. 
   heroes now spend on something that shows.
 - **Two shops:** the **smithy** (weapons, armour) and the **market** (potions, charms). The
   alchemist from the first design draft folds into the market.
-- **Gear reads on the map:** armour shows as worn torso, legs and shield pieces (plain at level 1,
-  fine from level 2), weapon level as a glow on the weapon, a flask pip for potions. A tap on a
-  hero shows the four slots with their icons.
+- **Gear reads on the map:** every weapon, armour, headgear and off-hand item is its own worn
+  piece on the hero (`hero-kit.md`; headgear and off-hand are new slots, Stefan 2026-10-14), a
+  flask pip for potions. A tap on a hero shows its slots with their icons.
 
 ## 1. Slots
 
@@ -128,10 +128,10 @@ stat: average weapon and armour level at run end).
 
 ## 5. What the player sees
 
-- **On the map:** weapon level 2 a steel shimmer on the weapon point, level 3 a glow in the
-  hero's damage type colour; armour as worn pieces by kit (`hero-kit.md`: plain at level 1, fine
-  from level 2, the outline colour iron grey, bronze, gold on top until the pieces exist); one
-  small flask pip per potion over the health bar.
+- **On the map:** each item shows as its own worn piece (`hero-kit.md`); until a piece exists,
+  the level 1 piece stands in and the old cues help (level 2 a steel shimmer on the weapon point,
+  level 3 a glow in the damage type colour; armour outline iron grey, bronze, gold); one small
+  flask pip per potion over the health bar.
 - **Shopping:** the hero walks in, a coin pops over the shop with the tax (`+12`), and a small
   item icon rises over the hero as it walks out.
 - **Drinking:** the flask pip empties, a green swirl, a heal number.
@@ -181,12 +181,12 @@ If a run is ever saved mid-run, the hero shape changes: bump the save version an
 
 ### Scene
 
-| Order | Row                                                                                       |
-| ----- | ----------------------------------------------------------------------------------------- |
-| 10    | Gear on the map: weapon shimmer and glow, worn armour pieces (`hero-kit.md`), potion pips |
-| 20    | Shopping feedback: tax coin over the shop, item icon over the hero, drinking swirl        |
-| 30    | Hero card on tap (god, path, tier, trait, four slots, gold), read only                    |
-| 40    | Shop card on tap: tier, what it sells, what the next tier unlocks                         |
+| Order | Row                                                                                |
+| ----- | ---------------------------------------------------------------------------------- |
+| 10    | Gear on the map: worn item pieces per slot (`hero-kit.md`), potion pips            |
+| 20    | Shopping feedback: tax coin over the shop, item icon over the hero, drinking swirl |
+| 30    | Hero card on tap (god, path, tier, trait, four slots, gold), read only             |
+| 40    | Shop card on tap: tier, what it sells, what the next tier unlocks                  |
 
 ### Art
 

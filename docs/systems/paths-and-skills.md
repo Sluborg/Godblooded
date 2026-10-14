@@ -187,7 +187,9 @@ never screen shake. Each hero has its party ring and a name label.
 
 Rule (decision 2026-10-13, units from parts): a path is a natural evolution of the
 god's tier 1 child. The **face, hair, skin and the god's signature pieces** (the "keeps"
-column below) **never change**; tier 2 adds gear and one effect (armour or a robe may replace
+column below) **never change**. Since 2026-10-14 (`hero-kit.md`), headgear, weapons and
+off-hands are items the hero buys, so the hats, helms and weapons named below are the look of
+those items and the god's read moves to face, cloak, colours and emblem; tier 2 adds gear and one effect (armour or a robe may replace
 the tunic colour), tier 3 is more of the same (finer material, a bigger effect, one extra
 piece). Art paints these as kit pieces and Scene combines them on the rig (`hero-kit.md`; the Aesir rows match `docs/reference/style-test.html`);
 Art's pictures follow the same table. The **accent** is the colour of the path's trim, glow and
