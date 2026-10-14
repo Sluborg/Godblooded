@@ -51,8 +51,10 @@ import {
 } from './boss';
 import { buildReport, sampleGold, tally, type HeroRecord } from './runstats';
 import { notePositions, runCollision } from './collision';
+import { omenMods, omenSnapshot, runOmens } from './omens';
 import { collectorFell, runCollector } from './collector';
 import { clearRuin, rebuildRuin, runRepair } from './ruins';
+import { trackFightStats } from './funstats';
 import { raiderHeld } from './corrupt';
 import { offering, recallFallen, upgradeWithAmbrosia } from './ambrosia';
 import { placeEscort, runEscorts } from './escort';
@@ -121,9 +123,11 @@ import {
   type Stats,
 } from './units';
 import type {
+  Attributes,
   BountyState,
   JarState,
   NodeState,
+  FightRecord,
   PileState,
   RuinState,
   ConeArea,
@@ -167,6 +171,8 @@ export interface UnitRuntime {
   lair: number | null;
   // Raiders march on the town instead of wandering near their lair.
   raid?: boolean;
+  // A monster an omen put on the map roams around this point.
+  roam?: Vec2;
   // A raider left behind to hold a defiled node (corrupt.ts): the node's id.
   defiler?: number;
   // Monster roles: a harrier on its way back to its lair to heal, a charger mid-charge (the way it
@@ -296,6 +302,34 @@ export interface World {
   collectorQueue: number[];
   // Ruins of destroyed buildings (ruins.ts).
   ruins: RuinState[];
+  // The omen clock (omens.ts): when the next is drawn, the one in the sky, the deck's recent draws.
+  omen: {
+    nextMs: number;
+    current: {
+      id: string;
+      startMs: number;
+      endMs: number;
+      started: boolean;
+      // What it spawned, the fallen star's place, and each hero's kills when a contest began.
+      spawned?: number[];
+      star?: { pos: Vec2; xp: number; range: number };
+      kills0?: Record<number, number>;
+    } | null;
+    recent: string[];
+  };
+  // A first run (data.firstRun overrides in force); the clock waits for a temple until `started`.
+  firstRun: boolean;
+  started: boolean;
+  // Every command that took effect, with the tick it came in at (replay.ts), and whether the log
+  // covers the whole run (false for a run loaded from a save that had none).
+  commandLog: { tick: number; cmd: Command }[];
+  replayable: boolean;
+  // The options the world was made with (replay.ts plays them back).
+  options: WorldOptions;
+  // The fun checks (funstats.ts): fights, the times of player decisions, the quiet gap.
+  fights: FightRecord[];
+  decisionsAt: number[];
+  quiet: { lastMs: number; longestMs: number; atMs: number };
   // Celestial nodes and the Ambrosia the town holds (nodes.ts).
   nodes: NodeState[];
   ambrosia: number;
@@ -316,7 +350,14 @@ export interface World {
   events: SimEvent[];
 }
 
-export function createWorld(seed: number, data: GameData): World {
+export interface WorldOptions {
+  // The player's first run: data.firstRun overrides apply and the clock waits for the first temple.
+  firstRun?: boolean;
+  // The boss lair of the player's previous run: this run's boss is not that one (when the lean has a pair).
+  avoidBoss?: string;
+}
+
+export function createWorld(seed: number, data: GameData, opts: WorldOptions = {}): World {
   const world: World = {
     data,
     seed,
@@ -337,7 +378,7 @@ export function createWorld(seed: number, data: GameData): World {
     towerNextMs: new Map(),
     argueNextMs: new Map(),
     nextAutosaveMs: 0,
-    tuning: resolveTuning(data),
+    tuning: resolveTuning(data, !!opts.firstRun),
     parties: new Map(),
     bonds: new Map(),
     pendingDeaths: [],
@@ -366,6 +407,15 @@ export function createWorld(seed: number, data: GameData): World {
     piles: [],
     collectorQueue: [],
     ruins: [],
+    omen: { nextMs: -1, current: null, recent: [] },
+    firstRun: !!opts.firstRun,
+    started: !opts.firstRun,
+    commandLog: [],
+    replayable: true,
+    options: { ...opts },
+    fights: [],
+    decisionsAt: [],
+    quiet: { lastMs: -1, longestMs: 0, atMs: 0 },
     nodes: [],
     ambrosia: 0,
     jars: [],
@@ -393,7 +443,7 @@ export function createWorld(seed: number, data: GameData): World {
   let sites: readonly LairSite[] = data.lairSites ?? [];
   let bossIndex = -1;
   if (sites.length === 0 && data.mapRules) {
-    const map = generateMap(seed, data);
+    const map = generateMap(seed, data, opts.avoidBoss);
     sites = map.sites;
     bossIndex = map.bossIndex;
     world.mapLean = map.lean;
@@ -428,8 +478,22 @@ export function createWorld(seed: number, data: GameData): World {
   return world;
 }
 
+// A first run's clock starts with its first temple (and a normal run's always runs). False while
+// it waits. step() and the replay both start the clock here.
+export function startClock(world: World): boolean {
+  if (!world.started && world.buildings.some((b) => b.type.startsWith('temple'))) {
+    world.started = true;
+  }
+  return world.started;
+}
+
 export function step(world: World, dtMs: number): void {
   if (world.status !== 'running' || dtMs <= 0) return;
+  // A first run waits for its first temple: no time passes until one stands (then never again).
+  if (!startClock(world)) {
+    world.accumulatorMs = 0;
+    return;
+  }
   world.accumulatorMs += dtMs;
   let ticks = 0;
   // The run slows to `offerSlowdown` of its speed while a party has a pick pending (0: it
@@ -459,6 +523,7 @@ function runTick(world: World): void {
   runTemples(world);
   runTowers(world);
   runRepair(world);
+  runOmens(world);
   // Tower victims leave now, before the lairs count their monsters or the units act.
   settleDeaths(world);
   runStatuses(world);
@@ -490,6 +555,7 @@ function runTick(world: World): void {
   runUnits(world);
   runCollision(world);
   syncIntent(world);
+  trackFightStats(world);
   // Combat, heroes and the economy hook in here (Sim backlog 30 and up).
 }
 
@@ -567,12 +633,23 @@ function runLairs(world: World): void {
 }
 
 export function statsOf(world: World, unit: UnitState): Stats | undefined {
-  const base = unitStats(world, unit);
+  let base = unitStats(world, unit);
+  // An omen can slow everyone (Fimbul Frost).
+  const move = omenMods(world).moveSpeed;
+  if (base && move !== undefined && move !== 1) {
+    base = { ...base, speedMult: (base.speedMult ?? 1) * move };
+  }
   // Bound: cannot move, attacks take twice as long.
   if (base && isBound(world, unit.id)) {
     return { ...base, rooted: true, attackMult: (base.attackMult ?? 1) * 2 };
   }
   return base;
+}
+
+// An elite hits harder: Str x eliteStrMult.
+function eliteAttrs(world: World, unit: UnitState, attrs: Attributes): Attributes {
+  if (!unit.elite) return attrs;
+  return { ...attrs, str: Math.round(attrs.str * world.tuning.lair.eliteStrMult) };
 }
 
 function unitStats(world: World, unit: UnitState): Stats | undefined {
@@ -611,7 +688,11 @@ function unitStats(world: World, unit: UnitState): Stats | undefined {
   return (
     mon && {
       weapon: mon.weapon,
-      attrs: mrt ? halfAttrs(world, mrt, scaleAttrs(mon.attrs, mult)) : scaleAttrs(mon.attrs, mult),
+      attrs: eliteAttrs(
+        world,
+        unit,
+        mrt ? halfAttrs(world, mrt, scaleAttrs(mon.attrs, mult)) : scaleAttrs(mon.attrs, mult),
+      ),
       ...(raidSpeed ? { speedMult: raidSpeed } : {}),
       armour: Math.round((mon.armour ?? 0) * mult),
       tags: isBoss(mon) ? [...(mon.tags ?? []), 'boss'] : mon.tags,
@@ -761,6 +842,8 @@ function runUnits(world: World): void {
         noteSeen(world, unit, 'lair', lair.type, lair.pos);
         attackLair(world, unit, rt, stats, lair);
       } else heroMove(world, unit);
+    } else if (rt.roam) {
+      wander(world, unit, rt, stats, rt.roam);
     } else if (rt.defiler !== undefined) {
       const node = world.nodes.find((n) => n.id === rt.defiler);
       if (node) wander(world, unit, rt, stats, node.pos);
@@ -1026,7 +1109,9 @@ function settleDeaths(world: World): void {
       const mon = world.data.monsters?.find((m) => m.id === unit.type);
       const mrt = world.unitRuntime.get(unit.id);
       const reward =
-        tierValue(world.tuning.lair.rewardMult, unit.tier, 1) * rewardShare(world, mrt);
+        tierValue(world.tuning.lair.rewardMult, unit.tier, 1) *
+        rewardShare(world, mrt) *
+        (unit.elite ? world.tuning.lair.eliteRewardMult : 1);
       const bounty = Math.round((mon?.bounty ?? 0) * reward);
       const xp = Math.round((mon?.xp ?? 0) * reward);
       dropStolenJar(world, unit);
@@ -1115,6 +1200,20 @@ function wanderPoint(world: World, center: Vec2): Vec2 {
 export { spawnHero } from './heroes';
 
 export function command(world: World, cmd: Command): CommandResult {
+  const result = runCommand(world, cmd);
+  if (result.ok) {
+    world.commandLog.push({ tick: world.tick, cmd: structuredClone(cmd) });
+    world.decisionsAt.push(world.timeMs);
+  }
+  return result;
+}
+
+// One tick of the run, whatever the frame rate (replay.ts drives the world with it).
+export function advanceTick(world: World): void {
+  runTick(world);
+}
+
+function runCommand(world: World, cmd: Command): CommandResult {
   if (world.status !== 'running') return { ok: false, reason: 'run over' };
   switch (cmd.kind) {
     case 'build': {
@@ -1265,6 +1364,7 @@ export function snapshot(world: World): Snapshot {
   const events = world.events;
   world.events = [];
   return {
+    waiting: !world.started,
     timeMs: world.timeMs,
     tick: world.tick,
     gold: world.gold,
@@ -1310,6 +1410,7 @@ export function snapshot(world: World): Snapshot {
     })),
     bounties: world.bounties.map((b) => ({ ...b, pos: { ...b.pos } })),
     ruins: world.ruins.map((r) => ({ ...r, pos: { ...r.pos } })),
+    omen: omenSnapshot(world),
     piles: world.piles.map((d) => ({ ...d, pos: { ...d.pos } })),
     nodes: world.nodes.map((n) => ({ ...n, pos: { ...n.pos } })),
     ambrosia: world.ambrosia,

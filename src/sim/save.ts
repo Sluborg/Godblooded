@@ -143,8 +143,10 @@ export function loadWorld(raw: unknown, data: GameData): World {
       target[key] = saved;
     }
     world.rng.restore(save.rng);
-    world.tuning = resolveTuning(data);
+    world.tuning = resolveTuning(data, world.firstRun);
     world.events = [];
+    // A save from before the command log cannot be replayed from the start.
+    if (!('commandLog' in save.world)) world.replayable = false;
     if (fromVersion < 5) relocateTown(world, data);
     // A hero from before builds stands in its god's first build.
     for (const u of world.units) {

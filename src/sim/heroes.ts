@@ -1,4 +1,5 @@
 import { visitPoint } from './collision';
+import { omenBounty, omenMods } from './omens';
 import { payIntoTill, payTithe } from './collector';
 import { hearthBuff, hearthOf, partyHurt } from './hearth';
 import { escortHeldBy, escortOpenTo } from './escort';
@@ -330,6 +331,7 @@ export function heroMove(world: World, unit: UnitState): void {
       (speed(cls.attrs) *
         (1 - slowOf(world, unit.id)) *
         (isBound(world, unit.id) ? 0 : 1) *
+        (omenMods(world).moveSpeed ?? 1) *
         TICK_MS) /
         1000,
     );
@@ -607,7 +609,7 @@ export function runBounties(world: World): void {
     );
     if (!hero || monsterNear(world, flag.pos, t.claimClearRadius) || lairNear(world, flag.pos))
       continue;
-    earn(world, hero, flag.gold);
+    earn(world, hero, omenBounty(world, flag.gold));
     world.bounties = world.bounties.filter((b) => b.id !== flag.id);
     world.events.push({ kind: 'bountyClaimed', bounty: flag.id, unit: hero.id, gold: flag.gold });
   }
@@ -639,7 +641,7 @@ export function claimHunt(world: World, victim: number, by: number): void {
       releaseFlag(flag);
       continue;
     }
-    earn(world, hero, flag.gold);
+    earn(world, hero, omenBounty(world, flag.gold));
     world.bounties = world.bounties.filter((b) => b.id !== flag.id);
     world.events.push({
       kind: 'bountyClaimed',

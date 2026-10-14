@@ -1,4 +1,6 @@
+import { encodeReplay } from './replay';
 import { uncollected } from './collector';
+import { funStats } from './funstats';
 import type { World } from './world';
 import type { HeroReport, RunReport, UnitState } from './types';
 
@@ -117,6 +119,8 @@ export function runReport(world: World): RunReport {
     heroes,
     lairsCleared: world.lairLog.map((l) => ({ ...l })),
     goldHistory: goldHistory(world),
+    replay: world.replayable ? encodeReplay(world) : null,
+    fun: funStats(world),
   };
 }
 

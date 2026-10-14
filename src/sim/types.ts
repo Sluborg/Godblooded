@@ -431,6 +431,10 @@ export interface MapRules {
   pool: readonly { lair: string; pantheon: string; weight?: number }[];
   // LairDef id of the boss lair: always placed, and the run is won when it falls.
   boss: string;
+  // The boss follows the run's lean: its first leaning pantheon with a row here picks one of the
+  // listed boss lairs (seeded), never the one the previous run had (createWorld's `avoidBoss`).
+  // Without a row for the lean, `boss` is used.
+  bossesByPantheon?: Readonly<Record<string, readonly string[]>>;
   // Each run leans on this many pantheons; pool lairs of those pantheons weigh leanWeight times more.
   leanCount: number;
   leanWeight: number;
@@ -481,6 +485,17 @@ export interface CollisionTuning {
   maxPush: number;
   // Cell size of the neighbour grid.
   cell: number;
+}
+
+// Omens (omens.ts): the first at omenFirstMs, then one every omenEveryMs (a seeded draw between the
+// two); the same omen does not come again until omenNoRepeat others have; the lean pantheon's omens
+// weigh leanWeight times more.
+export interface EventsTuning {
+  omenFirstMs: number;
+  omenEveryMs: readonly [number, number];
+  omenNoRepeat: number;
+  leanWeight: number;
+  omenLeadMs: number;
 }
 
 export interface HeroTuning {
@@ -593,6 +608,12 @@ export interface LairTuning {
   spawnMult: number[];
   // Added to the lair's maxAlive.
   maxAliveAdd: number[];
+  // Elites (progression.md): the share of a lair's spawns that are elite by lair tier (0: none), and
+  // an elite's hp and Str multipliers and its bounty and xp multiplier.
+  eliteShare: number[];
+  eliteHpMult: number;
+  eliteStrMult: number;
+  eliteRewardMult: number;
   // Multiplies every attribute of the monsters the lair spawns (they keep the tier they spawned at).
   statMult: number[];
   // Multiplies the lair's own hp (a tier up adds the difference to its current hp).
@@ -1118,14 +1139,20 @@ export interface Tuning {
   trait: TraitTuning;
   collector: CollectorTuning;
   collision: CollisionTuning;
+  events: EventsTuning;
   nodes: NodesTuning;
   bounty: BountyTuning;
 }
 
 export interface GameData {
+  // Overrides for a player's first run (docs/systems/onboarding.md section 4): gentler numbers,
+  // merged group by group over `tuning` when createWorld gets { firstRun: true }.
+  firstRun?: NonNullable<GameData['tuning']>;
   buildings: readonly BuildingDef[];
   // Building plots; a plot id is its index. Optional until Lead's rows land.
   plots?: readonly Vec2[];
+  // The omen deck (events.md section 2). Empty or missing: no omens.
+  omens?: readonly OmenDef[];
   // Optional until src/data and Scene's stub carry rows; missing means no lairs.
   classes?: readonly ClassDef[];
   // Gods a temple calls children of. Classes are hidden templates the gods and paths point at.
@@ -1162,6 +1189,7 @@ export interface GameData {
     collector?: Partial<CollectorTuning>;
     collision?: Partial<CollisionTuning>;
     trait?: Partial<TraitTuning>;
+    events?: Partial<EventsTuning>;
     nodes?: Partial<NodesTuning>;
     bounty?: Partial<BountyTuning>;
   };
@@ -1249,6 +1277,8 @@ export interface UnitState {
   // tier 1, the path's from tier 2. Look and strike fall back on it.
   type: string;
   tier: number;
+  // A stronger monster of a lair at tier 2+ (or an omen's champion): more hp and Str, double reward.
+  elite?: true;
   // Heroes: the GodDef id (null only for heroes spawned straight from a template, dev and
   // tests); monsters null.
   god: string | null;
@@ -1469,7 +1499,7 @@ export interface BountyState {
 export type SimEvent =
   | { kind: 'built'; building: number; type: string }
   | { kind: 'upgraded'; building: number; type: string; tier: number }
-  | { kind: 'spawned'; unit: number; type: string; lair: number }
+  | { kind: 'spawned'; unit: number; type: string; lair: number; elite?: true }
   | {
       kind: 'windup';
       attacker: number;
@@ -1627,6 +1657,13 @@ export type SimEvent =
   | { kind: 'lairDestroyed'; lair: number; type: string; by: number; bounty: number }
   | { kind: 'ruinLeft'; ruin: number; type: string; plot: number; pos: Vec2 }
   | { kind: 'ruinCleared'; ruin: number }
+  | { kind: 'omen'; omen: string; inMs: number }
+  | { kind: 'omenStart'; omen: string; durationMs: number }
+  | { kind: 'omenEnd'; omen: string }
+  | { kind: 'omenSpawn'; omen: string; units: number[] }
+  | { kind: 'starFallen'; omen: string; pos: Vec2 }
+  | { kind: 'starFound'; omen: string; party: number; xp: number }
+  | { kind: 'bonusCard'; omen: string; party: number }
   | { kind: 'buildingDestroyed'; building: number; type: string }
   // A hero paid its tithe into the till of `building` (its home temple; the town hall, banked at
   // once, when none stands) as it started to rest.
@@ -1773,9 +1810,106 @@ export interface RunReport {
   lairsCleared: { lair: number; type: string; timeMs: number; by: number }[];
   // Town gold over the run, sampled every tuning.stats.goldSampleMs plus the final value.
   goldHistory: { timeMs: number; gold: number }[];
+  // The replay code of the run (seed + every command, base64): paste it to `npm run replay`.
+  // null when the run was loaded from a save that has no command log.
+  replay: string | null;
+  fun: FunStats;
+}
+
+// What an omen changes while it lasts (omens.ts, docs/systems/events.md section 2). Every field is
+// a multiplier or share and optional.
+export interface OmenMods {
+  // Monsters' damage x this (Red Sky 1.2).
+  monsterDamage?: number;
+  // Monsters tagged undead deal x this on top (Eclipse of Ra 1.25).
+  undeadDamage?: number;
+  // Every unit's movement x this (Fimbul Frost 0.85).
+  moveSpeed?: number;
+  // Damage of a type x this, whoever deals it (frost 1.25, holy 1.5).
+  typeDamage?: Readonly<Record<string, number>>;
+  // Bounty flags pay x this (Red Sky 2).
+  bountyMult?: number;
+  // Potions and charms cost heroes this share less at the shop; the tax is on the full price
+  // (Merchant Caravan 0.3).
+  shopDiscount?: number;
+}
+
+// A sign in the sky and what follows: announced leadMs ahead, then active for durationMs.
+export interface OmenDef {
+  id: string;
+  name: string;
+  text: string;
+  // Its pantheon: the run's lean doubles its weight (missing: any).
+  pantheon?: string;
+  weight: number;
+  leadMs?: number;
+  durationMs: number;
+  mods?: OmenMods;
+  // Monsters that appear when it starts: `monster` (a MonsterDef id, or 'strongest' for the one with
+  // the most hp), `count` of them, near the town hall ('town') or at a random plot ('plot'); elite or
+  // not; raiders march on the town, others roam where they stand. `bounty`: the gods put a free
+  // hunt flag of that many gold on each.
+  spawn?: {
+    monster: string;
+    count: number;
+    at: 'town' | 'plot';
+    elite?: boolean;
+    raid?: boolean;
+    bounty?: number;
+  };
+  // The omen lasts until everything it spawned is dead (durationMs is then only the cap).
+  untilKilled?: boolean;
+  // A star falls somewhere near town: the first party to reach it gets `xp`.
+  star?: { xp: number; range?: number };
+  // The party with the most kills while it lasts gets a bonus card.
+  contest?: true;
+}
+
+export interface OmenView {
+  id: string;
+  name: string;
+  text: string;
+  phase: 'announced' | 'active';
+  // Time until it starts (announced) or ends (active).
+  msLeft: number;
+  // Where a fallen star lies while no party has reached it.
+  star?: Vec2;
+}
+
+// One fight of a party, for the fun checks (funstats.ts): from the first blow to 5 s after the last
+// (combat.md section 1), with whether any member cast a skill and which damage types its heroes
+// and summons dealt.
+export interface FightRecord {
+  party: number;
+  startMs: number;
+  endMs: number;
+  open?: true;
+  cast: boolean;
+  types: string[];
+  // A member had reached tier 2 (a path) when the fight began.
+  tier2: boolean;
+}
+
+// The numbers behind M2's fun checks (docs/systems/content-roadmap.md section 2).
+export interface FunStats {
+  fights: number;
+  // Share of fights that began after 6:00 with a skill cast (null: none began).
+  castShareAfter6: number | null;
+  // Share of fights with a tier 2 hero in the party that dealt 2 or more damage types (null: none).
+  typesShareTier2: number | null;
+  // Player decisions (build, upgrade, bounty, card, ...): in all, per minute, and the share of the
+  // run's whole minutes with at least one.
+  decisions: number;
+  decisionsPerMin: number;
+  decisionMinuteShare: number | null;
+  // The longest stretch, from the first hero's arrival, with no fight, level-up or raid, and when it ended.
+  longestQuietMs: number;
+  longestQuietAtMs: number;
 }
 
 export interface Snapshot {
+  // A first run with no temple yet: the clock is stopped until one stands (docs/systems/onboarding.md).
+  readonly waiting: boolean;
   readonly timeMs: number;
   readonly tick: number;
   readonly gold: number;
@@ -1790,6 +1924,8 @@ export interface Snapshot {
   readonly bounties: readonly Readonly<BountyState>[];
   // Ruins of destroyed buildings (tuning.town.ruins).
   readonly ruins: readonly Readonly<RuinState>[];
+  // The omen in the sky now (announced or active); null between omens.
+  readonly omen: Readonly<OmenView> | null;
   // Gold piles on the ground (a fallen tax collector's load).
   readonly piles: readonly Readonly<PileState>[];
   // Celestial nodes (empty while tuning.nodes.enabled is off) and the Ambrosia in the town's hands.
