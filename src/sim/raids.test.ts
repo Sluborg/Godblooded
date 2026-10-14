@@ -35,6 +35,8 @@ const base: GameData = {
       raidFirstMs: 1_000,
       raidEveryMs: 5_000,
       raidSize: 1,
+      hallTiers: false,
+      ruins: false,
       raidGrowEveryMs: 10_000_000,
       townHallHp: 1_000_000_000,
     },

@@ -66,7 +66,7 @@ export const DEFAULT_TUNING: Tuning = {
     xpPerLevel: 30,
     offerSize: 3,
     maxLevel: 8,
-    autoPick: true,
+    autoPick: false,
     // 1: no slowdown in the sim. Scene owns the path-tray slowdown (0.3x absolute, Lead 2026-10-13).
     offerSlowdown: 1,
     traitPickWeight: 3,
@@ -261,11 +261,11 @@ export const DEFAULT_TUNING: Tuning = {
   },
   town: {
     townHallHp: 500,
-    hallTiers: false,
+    hallTiers: true,
     hallHpByTier: [500, 750, 1000],
     hallUpgradeCost: [400, 900],
     plotsByHallTier: [8, 10, 12],
-    ruins: false,
+    ruins: true,
     rebuildCostMult: 0.5,
     repairPerS: 0.01,
     repairSafeRange: 300,

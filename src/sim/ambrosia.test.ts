@@ -16,7 +16,11 @@ const data = {
       ],
     },
   ],
-  tuning: { ...GRAYBOX.tuning, nodes: { enabled: true } },
+  tuning: {
+    ...GRAYBOX.tuning,
+    nodes: { enabled: true },
+    town: { ...GRAYBOX.tuning?.town, hallTiers: false },
+  },
 } as typeof GRAYBOX;
 
 function town() {
