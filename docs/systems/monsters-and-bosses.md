@@ -86,13 +86,13 @@ signature move.
 | Boss        | Pantheon | Hp   | Str | Armour | Strike s / range | Type     | Weak      | Resist               | Bounty | XP  |
 | ----------- | -------- | ---- | --- | ------ | ---------------- | -------- | --------- | -------------------- | ------ | --- |
 | Fafnir      | aesir    | 1200 | 14  | 7      | 2.0 / 70         | physical | frost     | fire, physical x0.75 | 400    | 300 |
-| Hydra       | greek    | 1100 | 14  | 7      | 1.6 / 80         | physical | fire      | frost                | 400    | 300 |
+| Hydra       | greek    | 900  | 14  | 7      | 1.6 / 80         | physical | fire      | frost                | 400    | 300 |
 | Apep        | egyptian | 1300 | 18  | 8      | 2.2 / 70         | death    | holy      | death                | 400    | 300 |
 | Jormungandr | aesir    | 1300 | 20  | 8      | 2.2 / 90         | death    | lightning | frost, death         | 400    | 300 |
-| Cerberus    | greek    | 1150 | 16  | 7      | 1.4 / 70         | fire     | holy      | fire                 | 400    | 300 |
+| Cerberus    | greek    | 950  | 16  | 7      | 1.4 / 70         | fire     | holy      | fire                 | 400    | 300 |
 | Sphinx      | egyptian | 1200 | 17  | 9      | 2.0 / 70         | physical | frost     | holy, physical x0.8  | 400    | 300 |
 
-Boss hp is a data value, not Sta x 8 + Str x 4 (`combat.md`). Fafnir follows the data after Balance's bot pass (hp 1200, Str 14, armour 7, 2026-10-14); a party of four tier 3 heroes does about 30-40 damage per second, so the fight lasts 30-40 s. The other five follow Balance's boss pass (`balance/bosses`, 2026-10-14): hp 1100-1300 and armour 7-9, Str, strike times and moves as specced; the bot wins 60-63% against each of the six, fights 2.8-3.9 min. Cerberus carries the `demon` tag, so holy's sear applies.
+Boss hp is a data value, not Sta x 8 + Str x 4 (`combat.md`). Fafnir follows the data after Balance's bot pass (hp 1200, Str 14, armour 7, 2026-10-14); a party of four tier 3 heroes does about 30-40 damage per second, so the fight lasts 30-40 s. The other five follow Balance's boss pass (`balance/bosses`, 2026-10-14): hp 900-1300 and armour 7-9 (Hydra 900 and Cerberus 950 after the second pass, `balance/bosses` fae8f6f), Str, strike times and moves as specced; with the boss forced, the bot wins 17-19 of 30 runs against each of the six. Cerberus carries the `demon` tag, so holy's sear applies.
 
 - **Strike type:** Apep and Jormungandr (death) and Cerberus (fire) need a non-physical monster strike; today monsters strike physical only. Sim row 80 adds a `strikeType` field on MonsterDef (default physical).
 
@@ -152,11 +152,12 @@ Boss hp is a data value, not Sta x 8 + Str x 4 (`combat.md`). Fafnir follows the
   playtest build wins 63-70% with a 35-min run cap (57-63% at the default 30, where longer runs
   count as timeouts).
 - **Then 60% with omens and elites** (Balance, `balance/omens` 11721e0): big 3600, small
-  1800-2100, the scarab pit 1800; boss lairs 8000. Full stack: the human bot wins 65%, the full
+  1800-2100, the scarab pit 1800; boss lairs 8000. Full stack: the human bot wins 65% (measured with `sim/late-recruits` merged; Balance says 10-15 points lower without it), the full
   bot 73-78%.
 - **Boss lair guards:** a boss lair spawns guards until the boss emerges: the wyrm nest spawns
   draugr (Balance, 2026-10-14: trolls at the nest made the boss fight a wall in the bot); Greek
-  and Egyptian boss lairs spawn the minotaur and jackal-men until their bot pass.
+  boss lairs (hydra-marsh, gate-of-hades) spawn harpies (Balance, `balance/bosses` fae8f6f:
+  minotaurs plus Cerberus's howl calls made the same wall); Egyptian boss lairs spawn jackal-men.
 - **Raids** come from every lair as today; harriers and swarms raid faster (1.5x walk speed).
 
 ### How lairs look per tier
