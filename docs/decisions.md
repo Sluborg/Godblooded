@@ -387,3 +387,9 @@ interim collector with the hero rig at hero proportions until the kit lands.
 logo, U5-U7 icons and frames, the rest of G3). G2 (paths t2, rewritten as kit parts) and the
 Fafnir kit follow once the G1 Grim kit test passes QA and Stefan has seen it animated. Every
 image still passes Art's QA before it reaches the Art Verdicts page.
+
+## 2026-10-15 Fill the full phone width (Stefan)
+
+Wide phones (about 20:9) showed dark side bars with Scale.FIT 1280x720. Stefan chose to fill the
+screen: the design height stays 720, the width grows with the screen's aspect, the map shows
+more to the sides, and the HUD anchors to the screen edges and safe areas.
