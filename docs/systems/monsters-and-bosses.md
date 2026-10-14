@@ -189,15 +189,15 @@ lair is winning. Guard pips show it. This is a look only: no rule changes.
 
 1. **Pips:** a row of small dots under the lair plate, one per monster the lair may have alive
    (`maxAlive`, with its tier and swarm adds). A filled dot is a living monster from this lair,
-   wherever it is; an empty dot is a dead one not yet replaced.
+   wherever it is (raiders it sent out do not count); an empty dot is a dead one not yet replaced.
 2. **Respawn:** the next empty dot fills slowly over the lair's spawn time, so the player sees the
    refill coming.
 3. **A kill:** the dot empties with a small red flash. With every dot empty, the plate glows once:
    the lair is open, and heroes hitting it now go straight at its hp.
 4. **Shown** while a hero is within the lair's aggro range, and for 10 s after; hidden otherwise
-   so a full map stays calm. Never on a sealed boss lair.
+   so a full map stays calm. Never on a sealed boss lair, or when `maxAlive` is 0.
 
-- **Sim:** the lair snapshot carries `alive` (its living monsters), `maxAlive` (after tier and
+- **Sim:** the lair snapshot carries `alive` (its living monsters, raiders excluded), `maxAlive` (after tier and
   swarm adds) and `nextSpawnMs` (ms left until its next spawn; null when full).
 
 ## 5. What the player sees
@@ -274,15 +274,15 @@ still scales their hp with the lair tier (visual only). The
 
 ### Sim
 
-| Order | Row                                                                                                |
-| ----- | -------------------------------------------------------------------------------------------------- |
-| 10    | Monster roles: harrier, charger, pack, swarm (brute is today's)                                    |
-| 20    | Quirks: regen with fire stop, snatch gold, grave-cold, scavenger (heal on KO)                      |
-| 30    | Monster skills through the skill engine (`owner: 'monster'`), on elites                            |
-| 40    | Boss moves: breath, heads, swallow, venom, howl, riddle; enrage variants                           |
-| 50    | Boss pick: lean pantheon, seeded one of two, no repeat; boss lair guards                           |
-| 60    | Lair snapshot: `nextTierMs` (ms left; done, `sim/lair-timer`) and `tierSpanMs` for the growth ring |
-| 70    | Lair snapshot: `alive`, `maxAlive`, `nextSpawnMs` for the guard pips                               |
+| Order | Row                                                                                               |
+| ----- | ------------------------------------------------------------------------------------------------- |
+| 10    | Monster roles: harrier, charger, pack, swarm (brute is today's)                                   |
+| 20    | Quirks: regen with fire stop, snatch gold, grave-cold, scavenger (heal on KO)                     |
+| 30    | Monster skills through the skill engine (`owner: 'monster'`), on elites                           |
+| 40    | Boss moves: breath, heads, swallow, venom, howl, riddle; enrage variants                          |
+| 50    | Boss pick: lean pantheon, seeded one of two, no repeat; boss lair guards                          |
+| 60    | Lair snapshot: `nextTierMs` and `tierSpanMs` (done, `sim/lair-timer` 0ad1a1b) for the growth ring |
+| 70    | Lair snapshot: `alive`, `maxAlive`, `nextSpawnMs` for the guard pips (done, 0ad1a1b)              |
 
 ### Lead (data)
 
