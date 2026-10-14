@@ -213,7 +213,7 @@ export const DEFAULT_TUNING: Tuning = {
     start: 40,
     max: 80,
     regenPerMin: 8,
-    distFrom: 600,
+    distFrom: 800,
     distStep: 400,
     distBonus: 0.25,
     tierMult: [1, 1.25, 1.5],
