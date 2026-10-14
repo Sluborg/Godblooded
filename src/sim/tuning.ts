@@ -226,6 +226,7 @@ export const DEFAULT_TUNING: Tuning = {
     fleeMult: 1.2,
     healPerS: 0.02,
     returnAtHp: 0,
+    escortGold: [25, 50],
     guardCost: 15,
     guardPerTower: [1, 2, 3],
     guardHp: 80,

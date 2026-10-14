@@ -1176,7 +1176,7 @@ export interface UnitState {
 export type UnitMode = 'wander' | 'explore' | 'return' | 'rest' | 'shop' | 'ko';
 
 export type IntentKind =
-  'flag' | 'lair' | 'revenge' | 'explore' | 'retreat' | 'shop' | 'rest' | 'defend';
+  'flag' | 'escort' | 'lair' | 'revenge' | 'explore' | 'retreat' | 'shop' | 'rest' | 'defend';
 
 // What a party is heading for: a flag or lair by id, with the place when it has one.
 export interface PartyIntent {
@@ -1271,6 +1271,7 @@ export interface NodesTuning {
   // Guards a tower lends (guards.ts): gold per trip, how many at a time by tower tier, body, a
   // spear of guardDamage x a level 1 hero's strength, how far it strays from its gatherer, how
   // long before the tower lends a replacement, and how long a dropped jar lies.
+  escortGold: readonly number[];
   guardCost: number;
   guardPerTower: readonly number[];
   guardHp: number;
@@ -1319,6 +1320,10 @@ export interface BountyState {
   target?: number;
   // When it was placed (a new flag may break a party's commitment for a while). Missing: old.
   placedMs?: number;
+  // An escort bounty (escort.ts): follows this gatherer, taken by the first party to reach it
+  // (`escortBy`, a hero of that party), paid when the gatherer gets home with its jar.
+  escort?: number;
+  escortBy?: number;
 }
 
 export type SimEvent =
@@ -1459,6 +1464,7 @@ export type SimEvent =
   | { kind: 'gathererHired'; unit: number }
   | { kind: 'workerHit'; unit: number }
   | { kind: 'jarHome'; unit: number; node: number | null; amount: number; total: number }
+  | { kind: 'escortTaken'; bounty: number; unit: number; gatherer: number }
   | { kind: 'guardOut'; unit: number; escort: number; tower: number }
   | { kind: 'guardHome'; unit: number }
   | { kind: 'guardFell'; unit: number; pos: Vec2 }
@@ -1489,7 +1495,14 @@ export type SimEvent =
   | { kind: 'collectorHit'; unit: number }
   | { kind: 'collected'; unit: number; gold: number }
   | { kind: 'collectorFell'; unit: number; pos: Vec2; gold: number }
-  | { kind: 'bountyClaimed'; bounty: number; unit: number; gold: number; hunt?: true }
+  | {
+      kind: 'bountyClaimed';
+      bounty: number;
+      unit: number;
+      gold: number;
+      hunt?: true;
+      escort?: true;
+    }
   | { kind: 'won' }
   | { kind: 'lost' }
   | { kind: 'arrived'; unit: number; type: string; god: string | null }
@@ -1519,7 +1532,7 @@ export type SimEvent =
   | { kind: 'miracle'; id: string; pantheon: string; pos: Vec2; tellMs: number }
   // A party leader got a charm from a lair that fell.
   | { kind: 'relic'; unit: number; item: string; lair: number }
-  | { kind: 'bountyPlaced'; bounty: number; gold: number; target?: number }
+  | { kind: 'bountyPlaced'; bounty: number; gold: number; escort?: number; target?: number }
   // A party's score for a flag is at least consideringShare of its current goal's: Scene can
   // show it weighing the flag (it did not switch yet).
   | { kind: 'considering'; party: number; bounty: number }
@@ -1535,6 +1548,8 @@ export type Command =
   | { kind: 'sendGatherer'; node: number }
   // A tower lends a guard to walk beside this gatherer (15 gold).
   | { kind: 'sendGuard'; unit: number }
+  // Post an escort bounty on a gatherer: a moving flag heroes may take (25 or 50 gold).
+  | { kind: 'placeEscort'; unit: number; gold: number }
   | { kind: 'recallGatherers'; node?: number }
   | { kind: 'placeBounty'; pos: Vec2; gold: number }
   // Take a flag down and get cancelRefund (50%) of its gold back.

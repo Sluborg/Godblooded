@@ -1,4 +1,5 @@
 import { payIntoTill, payTithe } from './collector';
+import { escortHeldBy, escortOpenTo } from './escort';
 import { lairSealed, nearSealedLair } from './boss';
 import { earn, newRecord } from './runstats';
 import { baseFleeOf, fledParty, fleeThreshold, newParty, pantheonOf, TRAITS } from './parties';
@@ -488,6 +489,7 @@ const fearMult = (world: World, unit: UnitState) => {
 // Score of a flag for this hero (null: not worth it): gold against danger and distance.
 function flagScore(world: World, unit: UnitState, flag: BountyState): number | null {
   const t = world.tuning.bounty;
+  if (!escortOpenTo(world, unit, flag)) return null;
   if (unit.trait === 'proud' && flag.gold < t.proudMinGold) return null;
   const walk = t.flagDistanceCost >= 0 ? t.flagDistanceCost : world.tuning.ai.distanceCost;
   const score =
@@ -520,6 +522,8 @@ function lairScore(world: World, unit: UnitState, lair: LairState): number | nul
 export function runBounties(world: World): void {
   const t = world.tuning.bounty;
   for (const flag of [...world.bounties]) {
+    // An escort bounty follows its gatherer and is paid when the jar is home (escort.ts).
+    if (flag.escort !== undefined) continue;
     if (flag.target !== undefined) {
       const prey = world.units.find(
         (u) => u.id === flag.target && u.kind === 'monster' && u.hp > 0,
@@ -608,6 +612,8 @@ function chooseGoals(world: World): void {
     if (cur?.kind === 'flag') {
       const flag = world.bounties.find((b) => b.id === cur.id);
       curScore = flag ? flagScore(world, unit, flag) : null;
+      // A party that took an escort walks with the gatherer until it is home.
+      if (flag && escortHeldBy(world, unit, flag)) curScore = 1e6;
     } else if (cur?.kind === 'lair') {
       const lair = world.lairs.find((l) => l.id === cur.id);
       curScore = lair ? lairScore(world, unit, lair) : null;
@@ -747,7 +753,11 @@ export function syncIntent(world: World): void {
       else if (rt?.goal?.kind === 'flag') {
         const flag = world.bounties.find((b) => b.id === rt.goal?.id);
         intent = flag
-          ? { kind: 'flag', target: flag.id, pos: { ...flag.pos } }
+          ? {
+              kind: flag.escort !== undefined ? 'escort' : 'flag',
+              target: flag.id,
+              pos: { ...flag.pos },
+            }
           : { kind: 'explore' };
       } else if (rt?.goal?.kind === 'lair') {
         const l = world.lairs.find((x) => x.id === rt.goal?.id);
