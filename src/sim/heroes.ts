@@ -112,6 +112,13 @@ export function runHeroes(world: World): void {
   for (const unit of world.units) {
     const rt = world.heroRuntime.get(unit.id);
     if (unit.kind !== 'hero' || !rt) continue;
+    // A hero that is no longer out exploring has no goal: it must not flash an old lair or flag
+    // when it walks out again.
+    if (unit.mode !== 'explore' && rt.goal) {
+      rt.goal = undefined;
+      rt.bounty = undefined;
+      rt.considered = undefined;
+    }
     if (unit.ko) {
       rt.koMs -= TICK_MS;
       if (rt.koMs <= 0) revive(world, unit, rt);
