@@ -60,6 +60,19 @@ export type FxEffect =
   | { type: 'pillar'; x: number; y: number; color: number; age: number; life: number }
   // A boss cleave: the red ground marker that fills until the strike lands.
   | { type: 'cleave'; owner: number; x: number; y: number; r: number; age: number; life: number }
+  // A boss breath: the red cone on the ground that fills outward until the strike lands. `ang`
+  // is the direction in radians and `half` half the opening.
+  | {
+      type: 'cone';
+      owner: number;
+      x: number;
+      y: number;
+      ang: number;
+      half: number;
+      r: number;
+      age: number;
+      life: number;
+    }
   // A heal: a soft gold-green beam from the healer's weapon to the target's chest.
   | { type: 'heal'; x: number; y: number; tx: number; ty: number; age: number; life: number }
   | { type: 'arrow'; x: number; y: number; tx: number; ty: number; age: number; life: number };
@@ -297,7 +310,9 @@ export class FxLayer {
 
   // A boss that dies mid-windup takes its ground marker with it.
   dropCleaves(owner: number): void {
-    this.effects = this.effects.filter((e) => !(e.type === 'cleave' && e.owner === owner));
+    this.effects = this.effects.filter(
+      (e) => !((e.type === 'cleave' || e.type === 'cone') && e.owner === owner),
+    );
   }
 
   add(effects: readonly FxEffect[]): void {
@@ -486,6 +501,17 @@ export class FxLayer {
       g.lineStyle(4, 0xff4a3a, 0.5 + 0.5 * pulse);
       g.strokeCircle(e.x, e.y, e.r);
       g.lineStyle(2, 0xff9a8a, 0.8 * (1 - p)).strokeCircle(e.x, e.y, e.r * (1 - p));
+    } else if (e.type === 'cone') {
+      // The breath's ground cone: a faint red fan, a brighter fan filling outward as it nears.
+      const pulse = 0.65 + 0.35 * Math.sin(e.age * (8 + 14 * p));
+      const a0 = e.ang - e.half;
+      const a1 = e.ang + e.half;
+      g.fillStyle(0xd9302a, 0.1 + 0.12 * p);
+      g.slice(e.x, e.y, e.r, a0, a1, false).fillPath();
+      g.fillStyle(0xff5a2a, 0.12 + 0.3 * p);
+      g.slice(e.x, e.y, e.r * p, a0, a1, false).fillPath();
+      g.lineStyle(4, 0xff4a3a, 0.5 + 0.5 * pulse);
+      g.slice(e.x, e.y, e.r, a0, a1, false).strokePath();
     } else if (e.type === 'pillar') {
       // Rises fast, hangs, fades: layered widths make a soft glowing column and a bright core.
       const rise = Math.min(1, p * 4);
