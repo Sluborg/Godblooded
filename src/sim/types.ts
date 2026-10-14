@@ -105,6 +105,9 @@ export interface PassiveKeys {
   bondMult?: number;
   // Bounty flags look this many times richer to the party (Bounty Hunters 1.5).
   flagMult?: number;
+  // A loyal member does not flee alone while a party mate stands (Oath-Brothers); the party's
+  // retreat still takes it.
+  loyalStays?: boolean;
 }
 
 // One effect of a passive: a set of keys and who gets them. `scope` 'self' is the owner only,
