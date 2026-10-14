@@ -18,7 +18,7 @@ log; never a **Draft** (Art is still waiting on Stefan). Art sets a batch to Don
 | V2    | monsters  | `V2.md`  | Redo minotaur t1: a real two-handed grip                            | 1      | Ready  |
 | G1    | heroes    | `G1.md`  | Hero parts kit test: Grim's segments sheet, axe icon, portrait      | 4      | Ready  |
 | G2    | heroes    | `G2.md`  | Aesir paths t2 in the one style (after G1)                          | 8      | Draft  |
-| G3    | heroes    | `G3.md`  | Tax reeve as a parts kit, with portrait (gatherer, guard: G6)      | 3      | Ready  |
+| G3    | heroes    | `G3.md`  | Tax reeve as a parts kit, with portrait (gatherer, guard: G6)       | 3      | Ready  |
 | G6    | heroes    | `G6.md`  | Town folk kits: gatherer and guard, with portraits (after G3)       | 4      | Ready  |
 | G4    | buildings | `G4.md`  | Ground patches under buildings and lairs                            | 2      | Ready  |
 | S5    | heroes    | `S5.md`  | Style test: cartoon units from parts, temple, barrow (first)        | 8      | Void   |
