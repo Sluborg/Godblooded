@@ -1,3 +1,4 @@
+import { omenMods } from './omens';
 import { emptyItems, itemsOf } from './items';
 import { passivePotionSlots } from './passives';
 import { dist, tierValue } from './units';
@@ -166,7 +167,12 @@ export function planShopping(world: World, unit: UnitState): ShopStop[] {
 // (0 when skipped).
 export function buyItem(world: World, unit: UnitState, id: string, shopTier: number): number {
   const item = world.data.items?.find((i) => i.id === id);
-  if (!item || item.shopTier > shopTier || unit.gold < item.price) return 0;
+  if (!item) return 0;
+  // A caravan makes potions and charms cheaper for the hero; the tax stays on the full price.
+  const cut =
+    item.slot === 'potion' || item.slot === 'charm' ? (omenMods(world).shopDiscount ?? 0) : 0;
+  const pay = Math.round(item.price * (1 - cut));
+  if (item.shopTier > shopTier || unit.gold < pay) return 0;
   const items = (unit.items ??= emptyItems());
   switch (item.slot) {
     case 'weapon':
@@ -199,6 +205,6 @@ export function buyItem(world: World, unit: UnitState, id: string, shopTier: num
       break;
     }
   }
-  unit.gold -= item.price;
+  unit.gold -= pay;
   return item.price;
 }
