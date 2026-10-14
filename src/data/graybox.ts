@@ -456,14 +456,14 @@ export const MONSTERS: readonly MonsterDef[] = [
 
 // Lairs from docs/systems/monsters-and-bosses.md section 4; the wyrm nest is the boss lair (the
 // run is won when it falls) and spawns draugr guards. Balance passes (Lead 80, 90): big lairs 6000 hp
-// and the nest 8000 hp (spec 9000 and 16000) keep the median run at 15-18 min.
+// and the nest 6000 hp (spec 9000 and 16000) keep the median run at 15-18 min.
 export const LAIRS: readonly LairDef[] = [
   { id: 'barrow', monster: 'draugr', spawnS: 10, maxAlive: 6, hp: 3500 },
   { id: 'troll-den', monster: 'troll', spawnS: 25, maxAlive: 4, hp: 6000 },
   { id: 'harpy-roost', monster: 'harpy', spawnS: 9, maxAlive: 6, hp: 3000 },
   { id: 'jackal-camp', monster: 'jackal-man', spawnS: 10, maxAlive: 6, hp: 3500 },
   { id: 'labyrinth', monster: 'minotaur', spawnS: 24, maxAlive: 4, hp: 6000 },
-  { id: 'wyrm-nest', monster: 'wyrm', spawnS: 30, maxAlive: 3, hp: 8000, escort: 'draugr' },
+  { id: 'wyrm-nest', monster: 'wyrm', spawnS: 30, maxAlive: 3, hp: 6000, escort: 'draugr' },
 ];
 
 // Level-up cards; a party is offered 3 and its leader auto-picks (level-ups.md): `god` offers
@@ -891,7 +891,16 @@ export const GRAYBOX: GameData = {
   // item's price. Unset keys use DEFAULT_TUNING.
   tuning: {
     hero: { maxPerTemple: 7, recruitMs: 22_000, taxRate: 0.6 },
-    town: { raidFirstMs: 360_000, raidEveryMs: 180_000, raidGrowEveryMs: 300_000, raidSize: 1 },
+    // Raids after a lair tier-up are on (Stefan): one raider, every second tier-up.
+    town: {
+      raidFirstMs: 360_000,
+      raidEveryMs: 210_000,
+      raidGrowEveryMs: 400_000,
+      raidSize: 1,
+      raidOnTierUp: true,
+      tierRaidSize: 1,
+      tierRaidEvery: 2,
+    },
     // Pacing (docs/systems/pacing-review.md): slower levels and a staggered lair clock.
     party: { xpPerLevel: 45 },
     lair: { firstTierUpMs: 360_000, tierUpStaggerMs: 120_000, tierUpEveryMs: 420_000 },
