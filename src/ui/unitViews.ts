@@ -1018,7 +1018,7 @@ export class UnitView {
   // when selected).
   private drawParty(u: UnitState, role: PartyRole): void {
     const selected = this.scene.registry.get('selectedUnit') === u.id;
-    const key = `${role}:${u.party}:${selected}:${getSettings().palette}:${u.kind}:${u.tier}:${this.boss}:${this.showNames}`;
+    const key = `${role}:${u.party}:${selected}:${getSettings().palette}:${u.kind}:${u.tier}:${this.boss}:${u.elite === true}:${this.showNames}`;
     if (key === this.ringKey) return;
     this.ringKey = key;
     this.ring.clear();
@@ -1031,6 +1031,9 @@ export class UnitView {
       const rh = rw * 0.38;
       this.ring.fillStyle(0xc4281e, this.boss ? 0.3 : 0.2).fillEllipse(0, -4, rw, rh);
       this.ring.lineStyle(this.boss ? 6 : 4, 0xe04a3a, 0.95).strokeEllipse(0, -4, rw, rh);
+      // An elite (a stronger spawn, double reward) wears a gold edge round the red ring.
+      if (u.elite === true)
+        this.ring.lineStyle(3, 0xf2c14e, 1).strokeEllipse(0, -4, rw + 8, rh + 5);
       if (selected) this.ring.lineStyle(3, 0xffffff, 0.95).strokeEllipse(0, -4, rw + 14, rh + 8);
       this.label.setVisible(selected || this.boss);
       this.badge.setVisible(false);
@@ -1131,13 +1134,15 @@ export class UnitView {
         }
       return;
     }
-    if (u.hp >= u.maxHp) return;
+    if (u.hp >= u.maxHp && u.elite !== true) return;
     const w = 56;
     const y = -this.h - 22;
     this.bar.fillStyle(0x000000, 0.6).fillRect(-w / 2, y, w, 8);
     this.bar
       .fillStyle(u.kind !== 'monster' ? 0x6fcf6f : 0xcf4f4f, 1)
       .fillRect(-w / 2, y, (w * Math.max(0, u.hp)) / u.maxHp, 8);
+    if (u.elite === true)
+      this.bar.lineStyle(2, 0xf2c14e, 0.95).strokeRect(-w / 2 - 1, y - 1, w + 2, 10);
   }
 
   get hasBubble(): boolean {

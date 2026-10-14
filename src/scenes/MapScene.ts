@@ -46,6 +46,7 @@ import { attachCameraControls } from '../ui/cameraControls';
 import { easeToward, WatchDirector } from '../ui/watchCam';
 import type { HudScene } from './HudScene';
 import { trailDots } from '../ui/raidArrow';
+import type { OmenDef } from '../sim/types';
 
 // The first picture of a skill's row; its sound follows it (sfx_skill_<picture>).
 const skillVisual = (id: string): string | undefined =>
@@ -95,6 +96,8 @@ export class MapScene extends Phaser.Scene {
   private links!: Phaser.GameObjects.Graphics;
   // Lairs with a raid on the way: the run time the warning ends (a dotted trail to the town).
   private raidTrails = new Map<number, number>();
+  // The fallen star's marker (omens): one at a time, gone when found or when the omen ends.
+  private starMarker: Phaser.GameObjects.Container | null = null;
   // Party whose level-up cards are open (the sim is frozen until it is picked), or null.
   private offerKey: string | null = null;
   // The ring on the ground around the party that levelled, while its cards are up.
@@ -391,6 +394,29 @@ export class MapScene extends Phaser.Scene {
     return command(this.world, { kind: 'upgrade', building });
   }
 
+  // The row of an omen in this run's deck (for its look).
+  omenDef(id: string): OmenDef | undefined {
+    return this.world.data.omens?.find((o) => o.id === id);
+  }
+
+  private omenEvent(e: Readonly<SimEvent>): void {
+    if (e.kind === 'starFallen') {
+      this.starMarker?.destroy();
+      const c = this.add.container(e.pos.x, e.pos.y).setDepth(800000);
+      const glow = this.add.graphics();
+      glow.fillStyle(0x9fb7ff, 0.25).fillEllipse(0, 0, 120, 46);
+      glow.lineStyle(3, 0xf2c14e, 0.9).strokeEllipse(0, 0, 84, 32);
+      const star = this.add.star(0, -34, 5, 9, 20, 0xfff3b0).setStrokeStyle(2, 0xf2c14e, 1);
+      c.add([glow, star]);
+      this.tweens.add({ targets: star, y: -8, duration: 900, yoyo: true, repeat: -1 });
+      this.tweens.add({ targets: glow, alpha: 0.5, duration: 700, yoyo: true, repeat: -1 });
+      this.starMarker = c;
+    } else if (e.kind === 'starFound' || e.kind === 'omenEnd') {
+      this.starMarker?.destroy();
+      this.starMarker = null;
+    }
+  }
+
   // The seed of this run (createWorld(seed, GRAYBOX) replays its map).
   get seed(): number {
     return this.world.seed;
@@ -574,6 +600,7 @@ export class MapScene extends Phaser.Scene {
       if (e.kind === 'considering') this.flagGlint(e.bounty);
       if (e.kind === 'raidWarning') this.raidTrails.set(e.lair, this.snap.timeMs + e.inMs);
       this.taxEvent(e);
+      this.omenEvent(e);
       if (e.kind !== 'hit') continue;
       const view = this.views.get(`b${e.target}`) ?? this.views.get(`l${e.target}`);
       if (view && !e.dodged)
