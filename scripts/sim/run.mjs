@@ -210,13 +210,21 @@ try {
         gear8 = {
           weapon: avg('weapon'),
           armour: avg('armour'),
+          headgear: avg('headgear'),
+          offhand: avg('offhand'),
           heroes: heroes.length,
           carried: heroes.reduce((a, u) => a + (u.gold ?? 0), 0),
           geared:
             heroes.length === 0
               ? 0
-              : heroes.filter((u) => (u.items?.weapon ?? 0) + (u.items?.armour ?? 0) > 0).length /
-                heroes.length,
+              : heroes.filter(
+                  (u) =>
+                    (u.items?.weapon ?? 0) +
+                      (u.items?.armour ?? 0) +
+                      (u.items?.headgear ?? 0) +
+                      (u.items?.offhand ?? 0) >
+                    0,
+                ).length / heroes.length,
         };
       }
       // A human thinks 5-15 s over a card (one in ten is never tapped: the auto-pick decides).
@@ -267,6 +275,8 @@ try {
       gold5: goldAt[300_000],
       weapon8: gear8?.weapon ?? null,
       armour8: gear8?.armour ?? null,
+      headgear8: gear8?.headgear ?? null,
+      offhand8: gear8?.offhand ?? null,
       geared8: gear8?.geared ?? null,
       carried8: gear8?.carried ?? null,
       ...snap.stats,
@@ -520,6 +530,8 @@ function summarize(results) {
       gold5: meanOf(results, 'gold5'),
       weapon8: meanOf(results, 'weapon8'),
       armour8: meanOf(results, 'armour8'),
+      headgear8: meanOf(results, 'headgear8'),
+      offhand8: meanOf(results, 'offhand8'),
       geared8: meanOf(results, 'geared8'),
       carried8: meanOf(results, 'carried8'),
     },
@@ -595,7 +607,7 @@ function print(rep) {
   }
   const n = (x) => (x === null ? '-' : f(x));
   console.log(
-    `  town gold: 3:00 ${n(rep.pacing.gold3)}  5:00 ${n(rep.pacing.gold5)}   hero gear level at 8:00: weapon ${n(rep.pacing.weapon8)}  armour ${n(rep.pacing.armour8)}  with any gear ${rep.pacing.geared8 === null ? '-' : `${(rep.pacing.geared8 * 100).toFixed(0)}%`}  gold carried by heroes at 8:00 ${n(rep.pacing.carried8)}`,
+    `  town gold: 3:00 ${n(rep.pacing.gold3)}  5:00 ${n(rep.pacing.gold5)}   hero gear level at 8:00: weapon ${n(rep.pacing.weapon8)}  armour ${n(rep.pacing.armour8)}  headgear ${n(rep.pacing.headgear8)}  off-hand ${n(rep.pacing.offhand8)}  with any gear ${rep.pacing.geared8 === null ? '-' : `${(rep.pacing.geared8 * 100).toFixed(0)}%`}  gold carried by heroes at 8:00 ${n(rep.pacing.carried8)}`,
   );
   if (rep.m3) {
     const m = rep.m3;

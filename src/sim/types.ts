@@ -33,6 +33,13 @@ export interface GodDef {
   // The two bodies this god's children come in (hero-kit.md section 3): a new hero gets one of them
   // by a seeded draw and keeps it. Scene owns what a build looks like.
   builds?: readonly [string, string];
+  // Look rows for Scene (hero-kit.md section 4): part ids and colours, display only.
+  faces?: readonly [string, string];
+  cloak?: string;
+  colours?: readonly [string, string];
+  emblem?: string;
+  // The weapon family of the god's tier 1 children (staff, hammer, daggers, wand).
+  weapon?: string;
   // The type a caster child of this god strikes with at tier 1 (weapon templates are physical).
   damageType?: DamageType;
   // Always-on trait of the god's children from tier 1 (see PassiveDef).
@@ -109,6 +116,9 @@ export interface PathDef {
   // ClassDef id used from tier 2 on (stats, weapon, strike).
   template: string;
   name: string;
+  // Look rows for Scene: the path's cloak part and its weapon family (hero-kit.md section 4).
+  cloak?: string;
+  weapon?: string;
   // The type a caster on this path strikes with (tier 2 and 3).
   damageType?: DamageType;
   // Attribute bonus on top of the path template attributes: [tier 2, tier 3]. The tier 3 entry
@@ -334,7 +344,8 @@ export interface ItemEffects {
   // Int x spellMult for casters).
   power?: number;
   // Armour, headgear and a shield: armour and Willpower by kit.
-  kits?: Partial<Record<Kit, { armour: number; wp: number }>>;
+  // A row may add `power` and `crit` per kit too (a shield, a second blade or a focus on one row).
+  kits?: Partial<Record<Kit, { armour: number; wp: number; power?: number; crit?: number }>>;
   // Potion: share of max hp healed.
   healPct?: number;
   // Charm, headgear, off-hand (a second blade's crit): added to crit and dodge chance.
@@ -360,6 +371,11 @@ export interface ItemDef {
   // The shop tier that sells it.
   shopTier: number;
   name?: string;
+  // Look rows for Scene: the weapon or off-hand family, the icon id and the worn part (one id, or
+  // one per kit for armour and headgear). Display only.
+  family?: string;
+  icon?: string;
+  worn?: string | Partial<Record<Kit, string>>;
   effects: ItemEffects;
 }
 
