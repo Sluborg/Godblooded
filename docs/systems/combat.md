@@ -79,7 +79,7 @@ Lead tunes K as data; Sim reads it from `tuning.combat`.
 | paladin | 84  | 13 (15)       | 1.70 (1.58)      | 6    | 30       | 17       |
 | rogue   | 48  | 31 (40)       | 0.76 (0.61)      | 10   | 12       | 8        |
 | healer  | 40  | 18 (21)       | 1.36 (1.23)      | 8    | 4        | 15       |
-| draugr  | 60  | 17 (21)       | 1.44 (1.31)      | 6    | 15       | 15       |
+| draugr  | 60  | 17 (21)       | 1.44 (1.31)      | 6    | 8        | 15       |
 | troll   | 128 | 12 (15)       | 2.15 (2.00)      | 4    | 26       | 11       |
 
 Warrior vs one draugr: kills it in about 19 s (today 16 s) and takes about 44 of 72 hp (today
@@ -137,12 +137,12 @@ Tags drive holy's sear and later skills: `undead`, `beast`, `giant`, `demon`, `f
 
 | Monster    | Tags         | Armour | Weak (x1.5) | Resist (x0.5)          |
 | ---------- | ------------ | ------ | ----------- | ---------------------- |
-| draugr     | undead       | 4      | holy, fire  | death, frost           |
-| troll      | giant        | 8      | fire        | frost                  |
+| draugr     | undead       | 2      | holy, fire  | death, frost           |
+| troll      | giant        | 4      | fire        | frost                  |
 | harpy      | beast, flyer | 1      | lightning   | none                   |
-| minotaur   | beast, giant | 10     | frost       | physical (x0.75)       |
-| jackal-man | undead       | 3      | holy        | death                  |
-| wyrm       | boss         | 14     | frost       | fire, physical (x0.75) |
+| minotaur   | beast, giant | 5      | frost       | physical (x0.75)       |
+| jackal-man | undead       | 2      | holy        | death                  |
+| wyrm       | boss         | 7      | frost       | fire, physical (x0.75) |
 
 ## 4. Healing
 
@@ -230,7 +230,7 @@ Tags drive holy's sear and later skills: `undead`, `beast`, `giant`, `demon`, `f
 
 | Row        | New fields                                                                                                                                                |
 | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| ClassDef   | `armour`, `spellMult` (wizard 0.8, healer 0.5, weapons none = physical)                                                                                   |
+| ClassDef   | `armour`, `spellMult` (wizard 1, healer 0.6 after Balance's bot pass; weapons none = physical)                                                            |
 | GodDef     | `damageType` (tier 1 caster strike)                                                                                                                       |
 | PathDef    | `damageType`                                                                                                                                              |
 | MonsterDef | `armour`, `tags`, `types` (map type to multiplier), `boss`, `hp` (boss only)                                                                              |
