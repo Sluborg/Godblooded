@@ -1,6 +1,6 @@
 import { resolveTuning } from './tuning';
 import { createWorld, type World } from './world';
-import type { GameData } from './types';
+import type { GameData, Vec2 } from './types';
 
 // Save and load a run (Sim 160). A save is the run's state as plain JSON data: the seed, the
 // position of the random generator and every field of the world except the content rows
@@ -10,7 +10,7 @@ import type { GameData } from './types';
 // Changing the shape of the world (a new field is fine, it falls back to its fresh value; a
 // renamed, removed or reinterpreted one is not) bumps SAVE_VERSION and adds a migration.
 
-export const SAVE_VERSION = 4;
+export const SAVE_VERSION = 5;
 
 export interface SaveGame {
   version: number;
@@ -67,6 +67,10 @@ const MIGRATIONS: Record<number, (save: SaveGame) => SaveGame> = {
     }
     return { ...save, version: 4, world: { ...save.world, piles: [], collectorQueue: [] } };
   },
+  // 4 to 5 (spacing option B): the town hall and the plot ring moved. Nothing to change in the
+  // JSON itself: loadWorld sees a save from before version 5 and moves the hall and the plot
+  // buildings to where the game data puts them (relocateTown).
+  4: (save) => ({ ...save, version: 5 }),
 };
 
 export function saveWorld(world: World): SaveGame {
@@ -99,6 +103,7 @@ export function migrateSave(raw: unknown): SaveGame {
 // Rebuilds a run from a save and the game's data. Throws SaveError when the save is damaged,
 // from a newer game, or names content the data no longer has (the game should drop such a save).
 export function loadWorld(raw: unknown, data: GameData): World {
+  const fromVersion = isRecord(raw) && typeof raw.version === 'number' ? raw.version : 0;
   const save = migrateSave(raw);
   try {
     const world = createWorld(save.seed, data);
@@ -119,6 +124,7 @@ export function loadWorld(raw: unknown, data: GameData): World {
     world.rng.restore(save.rng);
     world.tuning = resolveTuning(data);
     world.events = [];
+    if (fromVersion < 5) relocateTown(world, data);
     check(world, data);
     return world;
   } catch (e) {
@@ -126,6 +132,29 @@ export function loadWorld(raw: unknown, data: GameData): World {
     if (e instanceof SaveError) throw e;
     throw new SaveError(`save is damaged: ${e instanceof Error ? e.message : String(e)}`);
   }
+}
+
+// Spacing option B moved the town hall and the plot ring: a run saved before that keeps its
+// buildings but stands them where the data puts the hall and each plot now. Heroes, collectors
+// and gold piles that were at a moved building (within `AT`) move with it.
+const AT = 80;
+function relocateTown(world: World, data: GameData): void {
+  const moves: { from: Vec2; to: Vec2 }[] = [];
+  for (const b of world.buildings) {
+    const to =
+      b.type === 'townhall' ? data.townHall : b.plot === null ? undefined : data.plots?.[b.plot];
+    if (!to || (to.x === b.pos.x && to.y === b.pos.y)) continue;
+    moves.push({ from: { ...b.pos }, to: { ...to } });
+    b.pos = { ...to };
+  }
+  const shift = (pos: Vec2) => {
+    const m = moves.find((v) => Math.hypot(pos.x - v.from.x, pos.y - v.from.y) <= AT);
+    if (!m) return;
+    pos.x += m.to.x - m.from.x;
+    pos.y += m.to.y - m.from.y;
+  };
+  for (const u of world.units) if (u.kind !== 'monster') shift(u.pos);
+  for (const p of world.piles) shift(p.pos);
 }
 
 const kindOf = (v: unknown): string =>

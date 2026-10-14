@@ -291,7 +291,7 @@ describe('save v3 to v4', () => {
     delete old.world.collectorQueue;
     for (const b of old.world.buildings as Record<string, unknown>[]) b.till = 99;
     const migrated = migrateSave(old);
-    expect(migrated.version).toBe(4);
+    expect(migrated.version).toBe(SAVE_VERSION);
     const back = loadWorld(old, GRAYBOX);
     expect(back.piles).toEqual([]);
     expect(back.collectorQueue).toEqual([]);
@@ -301,5 +301,44 @@ describe('save v3 to v4', () => {
     const again = loadWorld(old, on);
     for (let i = 0; i < 5; i++) step(again, 100);
     expect(again.units.filter((u) => u.kind === 'collector')).toHaveLength(1);
+  });
+});
+
+describe('save v4 to v5', () => {
+  // The town as it stood before spacing option B.
+  const OLD: GameData = {
+    ...GRAYBOX,
+    townHall: { x: 1200, y: 800 },
+    plots: GRAYBOX.plots?.map((_, i) => ({ x: 1200 + i * 50, y: 1100 })),
+  };
+
+  it('a version 4 save moves the hall, the plot buildings and the units beside them', () => {
+    const a = createWorld(3, OLD);
+    const built = command(a, { kind: 'build', type: 'temple_aesir', plot: 2 });
+    expect(built.ok).toBe(true);
+    const id = spawnHero(a, 'warrior', { x: 1210, y: 805 });
+    const old = JSON.parse(JSON.stringify(saveWorld(a)));
+    old.version = 4;
+    const far = spawnHero(a, 'warrior', { x: 100, y: 100 });
+    old.world.units = JSON.parse(JSON.stringify(saveWorld(a))).world.units;
+    const back = loadWorld(old, GRAYBOX);
+    const hall = back.buildings.find((b) => b.type === 'townhall');
+    expect(hall?.pos).toEqual(GRAYBOX.townHall);
+    const temple = back.buildings.find((b) => b.type === 'temple_aesir');
+    expect(temple?.pos).toEqual(GRAYBOX.plots?.[2]);
+    // a hero standing at the hall moved with it, one far away stayed
+    const beside = back.units.find((u) => u.id === id);
+    expect(beside?.pos.x).toBeCloseTo(1210 + (GRAYBOX.townHall.x - 1200));
+    expect(beside?.pos.y).toBeCloseTo(805 + (GRAYBOX.townHall.y - 800));
+    expect(back.units.find((u) => u.id === far)?.pos).toEqual({ x: 100, y: 100 });
+    // and it plays on
+    for (let i = 0; i < 20; i++) step(back, 100);
+  });
+
+  it('a version 5 save is left where it is', () => {
+    const a = createWorld(3, GRAYBOX);
+    command(a, { kind: 'build', type: 'temple_aesir', plot: 2 });
+    const back = loadWorld(JSON.parse(JSON.stringify(saveWorld(a))), GRAYBOX);
+    expect(back.buildings.map((b) => b.pos)).toEqual(a.buildings.map((b) => b.pos));
   });
 });
