@@ -160,6 +160,7 @@ export const DEFAULT_TUNING: Tuning = {
     switchMargin: 0.25,
     switchMin: 10,
     exploreValue: 20,
+    stickyFoeRange: 100,
     lairXpWeight: 0.5,
   },
   role: {

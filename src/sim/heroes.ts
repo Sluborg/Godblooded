@@ -597,31 +597,26 @@ function chooseGoals(world: World): void {
         ai.exploreValue - (rt.dest ? dist(unit.pos, rt.dest) * ai.exploreDistanceCost : 0),
       );
     }
-    // A lair goal stays while the party is at that lair (within lairAggro of it, or walking to
-    // it), whatever the guards now do to its score and whoever it is fighting at the moment; an
-    // explore goal holds nothing and any better option pre-empts it; every other goal holds for
-    // commitMs.
+    // A lair goal stays while the party walks to that lair, and while it is at the lair (within
+    // lairAggro of it) with a foe in reach (mid-fight), whatever the guards now do to its score;
+    // a party at its lair with no foe near re-scores like an explorer. An explore goal holds
+    // nothing and any better option pre-empts it; every other goal holds for commitMs.
     const exploring = cur?.kind === 'explore';
     const goalLair = cur?.kind === 'lair' ? world.lairs.find((l) => l.id === cur.id) : undefined;
-    if (
-      goalLair &&
-      (dist(unit.pos, goalLair.pos) <= world.tuning.monster.lairAggro ||
-        (rt.dest !== null && dist(rt.dest, goalLair.pos) <= 1))
-    ) {
+    const midFight = partyMidFight(world, unit, ai.stickyFoeRange);
+    const atLair = !!goalLair && dist(unit.pos, goalLair.pos) <= world.tuning.monster.lairAggro;
+    const walkingToLair = !!goalLair && rt.dest !== null && dist(rt.dest, goalLair.pos) <= 1;
+    if (goalLair && ((atLair && midFight) || (walkingToLair && !atLair))) {
       curScore = Math.max(curScore ?? 0, ai.exploreValue + ai.switchMin);
     }
-    // A flag placed in the last freshFlagMs (other than the goal) may break the commitment: the
-    // party scores everything and switches only if it beats the goal by the margin.
-    // A lair goal at its lair is sticky: a flag placed in the meantime does not pull the party
-    // out of the fight (the party finishes it first).
-    const stickyLair = !!goalLair && dist(unit.pos, goalLair.pos) <= world.tuning.monster.lairAggro;
     const isFresh = (b: BountyState): boolean =>
       b.placedMs !== undefined && world.timeMs - b.placedMs < world.tuning.bounty.freshFlagMs;
     // A flag placed or raised in the last freshFlagMs (other than the goal) may break the
     // commitment: the party scores everything and switches only if it beats the goal by the
     // margin.
+    // A party mid-fight is never pulled away for a flag (it finishes the fight first).
     const freshFlag =
-      !stickyLair &&
+      !midFight &&
       world.bounties.some((b) => isFresh(b) && !(cur?.kind === 'flag' && cur.id === b.id));
     if (
       cur &&
@@ -643,7 +638,7 @@ function chooseGoals(world: World): void {
     for (const flag of world.bounties) {
       // A flag next to a sealed boss lair waits: nobody can claim it yet.
       if (nearSealedLair(world, flag.pos, world.tuning.bounty.dangerRadius)) continue;
-      if (stickyLair && isFresh(flag)) continue;
+      if (midFight && isFresh(flag)) continue;
       const score = flagScore(world, unit, flag);
       if (score !== null && score > best.score) {
         best = { kind: 'flag', id: flag.id, score, sinceMs: world.timeMs };
@@ -680,6 +675,19 @@ function chooseGoals(world: World): void {
       rt.dest = null;
     }
   }
+}
+
+// Is any living member of the unit's party within range of a living monster?
+function partyMidFight(world: World, unit: UnitState, range: number): boolean {
+  const ids = world.parties.get(unit.party)?.members ?? [unit.id];
+  return ids.some((id) => {
+    const m = world.units.find((u) => u.id === id);
+    return (
+      !!m &&
+      !m.ko &&
+      world.units.some((f) => f.kind === 'monster' && f.hp > 0 && dist(f.pos, m.pos) <= range)
+    );
+  });
 }
 
 // The party keeps its goal but a flag scores at least considerShare of it: say so once per party
