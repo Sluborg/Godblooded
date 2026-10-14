@@ -45,7 +45,8 @@ try {
     let bossOutMin = null;
     let bossFightMin = null;
     const bossIds = new Set();
-    // Town gold at 3:00 and 5:00, and mean hero gear levels at 8:00 (null: the run ended first).
+    // Town gold at 3:00 and 5:00, and mean hero gear levels at 8:00 (all hero units, knocked out too;
+    // geared: the share with a weapon or armour level) (null: the run ended first).
     const goldAt = { 180_000: null, 300_000: null };
     let gear8 = null;
     const watch = (sn) => {
@@ -75,7 +76,16 @@ try {
           heroes.length === 0
             ? 0
             : heroes.reduce((a, u) => a + (u.items?.[key] ?? 0), 0) / heroes.length;
-        gear8 = { weapon: avg('weapon'), armour: avg('armour'), heroes: heroes.length };
+        gear8 = {
+          weapon: avg('weapon'),
+          armour: avg('armour'),
+          heroes: heroes.length,
+          geared:
+            heroes.length === 0
+              ? 0
+              : heroes.filter((u) => (u.items?.weapon ?? 0) + (u.items?.armour ?? 0) > 0).length /
+                heroes.length,
+        };
       }
       const pathCard = snap.parties.find((p) => p.pathOffer);
       if (pathCard) {
@@ -102,6 +112,7 @@ try {
       gold5: goldAt[300_000],
       weapon8: gear8?.weapon ?? null,
       armour8: gear8?.armour ?? null,
+      geared8: gear8?.geared ?? null,
       ...snap.stats,
       heroes: snap.units.filter((u) => u.kind === 'hero').length,
       maxPartyLevel: Math.max(1, ...snap.parties.map((p) => p.level)),
@@ -208,6 +219,7 @@ function summarize(results) {
       gold5: meanOf(results, 'gold5'),
       weapon8: meanOf(results, 'weapon8'),
       armour8: meanOf(results, 'armour8'),
+      geared8: meanOf(results, 'geared8'),
     },
     perRun: Object.fromEntries(
       [
@@ -244,7 +256,7 @@ function print(rep) {
   }
   const n = (x) => (x === null ? '-' : f(x));
   console.log(
-    `  town gold: 3:00 ${n(rep.pacing.gold3)}  5:00 ${n(rep.pacing.gold5)}   hero gear level at 8:00: weapon ${n(rep.pacing.weapon8)}  armour ${n(rep.pacing.armour8)}`,
+    `  town gold: 3:00 ${n(rep.pacing.gold3)}  5:00 ${n(rep.pacing.gold5)}   hero gear level at 8:00: weapon ${n(rep.pacing.weapon8)}  armour ${n(rep.pacing.armour8)}  with any gear ${rep.pacing.geared8 === null ? '-' : `${(rep.pacing.geared8 * 100).toFixed(0)}%`}`,
   );
   console.log('  per run (mean):');
   for (const [k, v] of Object.entries(rep.perRun)) console.log(`    ${k.padEnd(16)} ${f(v)}`);

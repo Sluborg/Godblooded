@@ -93,6 +93,26 @@ describe('shopping plans', () => {
     ]);
   });
 
+  it('a hero with no gear buys its first piece before its first potion', () => {
+    const w = town({ smithy: 1, market: 1 });
+    // budget 60% of 100 = 60: armour 50 first, 10 left is no potion (before: potion 20, no armour)
+    expect(planShopping(w, hero(w, 100))).toEqual([{ shop: 'smithy', items: ['armour-1'] }]);
+  });
+
+  it('and falls back to the potion when it cannot pay for any gear', () => {
+    const w = town({ smithy: 1, market: 1 });
+    // budget 36: armour 50 does not fit, so the potion as before
+    expect(planShopping(w, hero(w, 60))).toEqual([{ shop: 'market', items: ['healing'] }]);
+  });
+
+  it('a hero that already has a piece of gear keeps the potion first', () => {
+    const w = town({ smithy: 1, market: 1 });
+    const h = hero(w, 100);
+    h.items = { weapon: 1, armour: 0, potions: 0, charm: null };
+    // budget 60: potion 20, armour 50 does not fit in the 40 left, so a second potion
+    expect(planShopping(w, h)).toEqual([{ shop: 'market', items: ['healing', 'healing'] }]);
+  });
+
   it('proud wants the weapon first and spends more; coward the armour', () => {
     const w = town({ smithy: 1, market: 1 });
     const proud = hero(w, 200, 'proud');
