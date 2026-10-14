@@ -451,6 +451,115 @@ export const MONSTERS: readonly MonsterDef[] = [
     hp: 1200,
     types: { frost: 1.5, fire: 0.5, physical: 0.75 },
   },
+  // Scarab swarm (monsters-and-bosses.md section 1): the swarm role keeps twice the lair's maxAlive
+  // and splits once into two halves at 0 hp.
+  {
+    id: 'scarab',
+    role: 'swarm',
+    attrs: { str: 3, dex: 4, sta: 3, cha: 1, per: 2, int: 1, wp: 2 },
+    weapon: { baseAttackS: 0.9, range: 30 },
+    bounty: 6,
+    xp: 5,
+    armour: 1,
+    tags: ['beast'],
+    types: { fire: 1.5, physical: 0.75 },
+  },
+  // The other five bosses (monsters-and-bosses.md section 3), scaled like Fafnir: about half the
+  // draft hp and a little less armour. Bot pass (each boss forced, human bot, seeds 1-30): every
+  // boss is beaten in 9 of 10 runs that reach it (wins 60-63%, Fafnir 60%), first hit to the end
+  // of the run 2.8-3.5 min (Fafnir 3.9). Their moves replace the cleave; strike damage types other
+  // than physical wait for a MonsterDef field.
+  {
+    id: 'hydra',
+    move: {
+      heads: { count: 3, cutAt: [0.66, 0.33], regrowS: 8, enragedRegrowS: 5, stopType: 'fire' },
+    },
+    attrs: { str: 14, dex: 3, sta: 12, cha: 1, per: 4, int: 2, wp: 8 },
+    weapon: { baseAttackS: 1.6, range: 80 },
+    bounty: 400,
+    xp: 300,
+    armour: 7,
+    tags: ['boss'],
+    boss: {},
+    hp: 1100,
+    types: { fire: 1.5, frost: 0.5 },
+  },
+  {
+    id: 'apep',
+    move: {
+      swallow: { everyS: 15, enragedEveryS: 10, windupMs: 1000, s: 4, dotPct: 0.08, freePct: 0.25 },
+    },
+    attrs: { str: 18, dex: 3, sta: 12, cha: 1, per: 4, int: 2, wp: 8 },
+    weapon: { baseAttackS: 2.2, range: 70 },
+    bounty: 400,
+    xp: 300,
+    armour: 8,
+    tags: ['boss'],
+    boss: {},
+    hp: 1300,
+    types: { holy: 1.5, death: 0.5 },
+  },
+  {
+    id: 'jormungandr',
+    move: {
+      venom: { everyS: 12, enragedEveryS: 8, windupMs: 1000, radius: 60, dotPct: 0.03, s: 8 },
+    },
+    attrs: { str: 20, dex: 3, sta: 12, cha: 1, per: 4, int: 2, wp: 8 },
+    weapon: { baseAttackS: 2.2, range: 90 },
+    bounty: 400,
+    xp: 300,
+    armour: 8,
+    tags: ['boss'],
+    boss: {},
+    hp: 1300,
+    types: { lightning: 1.5, frost: 0.5, death: 0.5 },
+  },
+  {
+    id: 'cerberus',
+    move: {
+      howl: {
+        everyS: 15,
+        enragedEveryS: 10,
+        windupMs: 800,
+        radius: 200,
+        belowHp: 0.5,
+        fleeS: 3,
+        calls: 1,
+      },
+    },
+    attrs: { str: 16, dex: 3, sta: 12, cha: 1, per: 4, int: 2, wp: 8 },
+    weapon: { baseAttackS: 1.4, range: 70 },
+    bounty: 400,
+    xp: 300,
+    armour: 7,
+    tags: ['boss', 'demon'],
+    boss: {},
+    hp: 1150,
+    types: { holy: 1.5, fire: 0.5 },
+  },
+  {
+    id: 'sphinx',
+    move: {
+      riddle: {
+        everyS: 18,
+        enragedEveryS: 12,
+        windupMs: 1200,
+        intAtLeast: 8,
+        buff: 0.3,
+        buffS: 6,
+        stoneS: 3,
+      },
+    },
+    attrs: { str: 17, dex: 3, sta: 12, cha: 1, per: 4, int: 2, wp: 8 },
+    weapon: { baseAttackS: 2.0, range: 70 },
+    bounty: 400,
+    xp: 300,
+    armour: 9,
+    tags: ['boss'],
+    boss: {},
+    hp: 1200,
+    types: { frost: 1.5, holy: 0.5, physical: 0.8 },
+  },
 ];
 
 // Lairs from docs/systems/monsters-and-bosses.md section 4; the wyrm nest is the boss lair (the
@@ -463,7 +572,36 @@ export const LAIRS: readonly LairDef[] = [
   { id: 'harpy-roost', monster: 'harpy', spawnS: 9, maxAlive: 6, hp: 2100 },
   { id: 'jackal-camp', monster: 'jackal-man', spawnS: 10, maxAlive: 6, hp: 2450 },
   { id: 'labyrinth', monster: 'minotaur', spawnS: 24, maxAlive: 4, hp: 4200 },
+  // The swarm role doubles maxAlive: 10 scarabs at tier 1; 70% hp like the other small lairs.
+  { id: 'scarab-pit', monster: 'scarab', spawnS: 6, maxAlive: 5, hp: 2100 },
   { id: 'wyrm-nest', monster: 'wyrm', spawnS: 30, maxAlive: 3, hp: 8000, escort: 'draugr' },
+  // The other boss lairs at the nest's 8000 (spec 16000); guards per section 4 until their pass.
+  {
+    id: 'serpent-shore',
+    monster: 'jormungandr',
+    spawnS: 30,
+    maxAlive: 3,
+    hp: 8000,
+    escort: 'draugr',
+  },
+  { id: 'hydra-marsh', monster: 'hydra', spawnS: 30, maxAlive: 3, hp: 8000, escort: 'minotaur' },
+  {
+    id: 'gate-of-hades',
+    monster: 'cerberus',
+    spawnS: 30,
+    maxAlive: 3,
+    hp: 8000,
+    escort: 'minotaur',
+  },
+  { id: 'apep-tomb', monster: 'apep', spawnS: 30, maxAlive: 3, hp: 8000, escort: 'jackal-man' },
+  {
+    id: 'sphinx-plinth',
+    monster: 'sphinx',
+    spawnS: 30,
+    maxAlive: 3,
+    hp: 8000,
+    escort: 'jackal-man',
+  },
 ];
 
 // Level-up cards; a party is offered 3 and its leader auto-picks (level-ups.md): `god` offers
@@ -945,8 +1083,16 @@ export const GRAYBOX: GameData = {
       { lair: 'harpy-roost', pantheon: 'greek', weight: 2 },
       { lair: 'labyrinth', pantheon: 'greek' },
       { lair: 'jackal-camp', pantheon: 'egyptian', weight: 2 },
+      { lair: 'scarab-pit', pantheon: 'egyptian' },
     ],
     boss: 'wyrm-nest',
+    // The boss follows the lean: one of its pantheon's two, seeded, never last run's. The pick
+    // draws from the map stream, so every seed's map differs from runs before this row.
+    bossesByPantheon: {
+      aesir: ['wyrm-nest', 'serpent-shore'],
+      greek: ['hydra-marsh', 'gate-of-hades'],
+      egyptian: ['apep-tomb', 'sphinx-plinth'],
+    },
     leanCount: 1,
     leanWeight: 3,
     margin: 150,
