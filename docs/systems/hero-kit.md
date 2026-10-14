@@ -20,7 +20,7 @@ Lead write the item rows. Builds on `items-and-shops.md` (slots, levels, kits),
 - **Four builds** (lean, broad, tall, short). Each god allows two; the hero's build is picked by
   seed when it arrives and never changes. A build is not separate art: Scene scales each segment
   and moves its sockets (Art's parts kit rule), so every worn part fits every build.
-- **M2 needs about 46 painted layers and 10 icons** for the four Aesir gods (section 5).
+- **M2 needs about 46 painted layers, 10 icons and 8 portraits** for the four Aesir gods (section 5).
 
 ## 1. Sockets
 
@@ -106,6 +106,7 @@ Builds are rows of per-segment scale factors and socket offsets in Scene's data 
 | Off-hands       | 2      | round shield plain and fine (the second dagger reuses the dagger piece)                                                         |
 | **Layer total** | **46** |                                                                                                                                 |
 | Icons           | 10     | weapon level 1-3 for weapon kits and casters (6), armour level 1-3 (3), potion (1)                                              |
+| Portraits       | 8      | one painted portrait per kit face (`por_<face>`, Stefan via Lead 2026-10-14): Party panel, level-up card                        |
 
 - Greek and Egyptian gods add faces, headgear, cloaks, path pieces and their weapon families
   (sword, bow, khopesh, claws) in M3; the build bodies, torso, legs and shield pieces are shared.
