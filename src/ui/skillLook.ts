@@ -116,12 +116,24 @@ export function jagged(points: readonly Vec2[], seed: number, bends = 3, jitter 
 
 // ---------- statuses ----------
 
-export type StatusKind = 'shield' | 'mark' | 'buff' | 'taunt' | 'bind' | 'hot';
+export type StatusKind =
+  | 'shield'
+  | 'mark'
+  | 'buff'
+  | 'taunt'
+  | 'bind'
+  | 'hot'
+  // Boss moves (monsters-and-bosses.md section 3): poisoned (venom), afraid (howl), turned to
+  // stone (riddle), swallowed (Apep: out of sight until it ends).
+  | 'poison'
+  | 'fear'
+  | 'stone'
+  | 'swallowed';
 
 // A shield is a bubble over the unit, a mark, taunt or bind a sign over its head, and a buff or
 // heal over time a ring under its feet (at most one ring per unit: the newest).
 export interface StatusLook {
-  style: 'bubble' | 'sign' | 'ring';
+  style: 'bubble' | 'sign' | 'ring' | 'tint' | 'hide';
   color: number;
   glyph?: string;
 }
@@ -133,6 +145,10 @@ export const STATUS_LOOK: Record<StatusKind, StatusLook> = {
   bind: { style: 'sign', color: 0xc8c8d0, glyph: '#' },
   buff: { style: 'ring', color: 0xf2c14e },
   hot: { style: 'ring', color: 0x7fe08a },
+  poison: { style: 'sign', color: 0x8ae04a, glyph: 'drop' },
+  fear: { style: 'sign', color: 0xf4f0e0, glyph: '!' },
+  stone: { style: 'tint', color: 0x9a9a9a },
+  swallowed: { style: 'hide', color: 0x201020 },
 };
 
 export function isStatusKind(s: string): s is StatusKind {
