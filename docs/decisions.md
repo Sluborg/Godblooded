@@ -352,3 +352,24 @@ baked smoke), minotaur (hand positions). New QA rules: everything physically bel
 buildable, weapons usable and gripped like real hands, a building reads as its function, no
 baked-in effects (smoke, sparks, glow are code), clear silhouette over busy props. Redo
 batches are drafted by Art and need Stefan's go each.
+
+## 2026-10-14 Look picks: shadows, lairs, Fafnir, camera (Stefan)
+
+- **Shadows:** a long low-sun cast shadow to one side for buildings, lairs and units, one light
+  direction matching the painted art.
+- **Lairs:** dead dark ground around each lair, a skull pike, glowing embers and a faint red
+  light, so a lair never reads as a town building.
+- **Fafnir:** a painted parts kit from ChatGPT in the one style, animated in code like the
+  heroes, QA-checked first; the code Fafnir stays as fallback until then.
+- **Camera:** start closer so the art reads on a phone; drag to pan, pinch out to see the whole
+  map.
+- Gold feedback (coin pops) stays as built with the tax collector.
+
+## 2026-10-14 God cards beat stat cards; redo batches go (Stefan)
+
+- "God cards should be better than stat cards": each pantheon card is clearly stronger than the
+  best stat card of its rarity, so the god's card is the signature pick. Balance sets the band
+  around it.
+- Go for the redo batches B19, B20, B21, B22, B23 and V2, plus a grimmer barrow (dead grass,
+  spookier). B18 is Void: town hall t1 stays (rated 5, a reference). All pass Art's QA before
+  they reach the Art Verdicts page.
