@@ -166,6 +166,8 @@ export const DEFAULT_TUNING: Tuning = {
     exploreValue: 20,
     stickyFoeRange: 100,
     lairXpWeight: 0.5,
+    bossCallBonus: 40,
+    bossCallHp: 0.7,
   },
   role: {
     harrierFleeHp: 0.3,

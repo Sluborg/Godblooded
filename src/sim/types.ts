@@ -1001,6 +1001,11 @@ export interface AiTuning {
   stickyFoeRange: number;
   // A lair's xp counts this much next to its gold.
   lairXpWeight: number;
+  // The boss call: once the boss lair is unsealed its score gets bossCallBonus; with no normal lair
+  // standing, a party whose members are all above bossCallHp of their hp scores it at least
+  // exploreValue + switchMin. 0 turns it off.
+  bossCallBonus: number;
+  bossCallHp: number;
 }
 
 export interface BountyTuning {
