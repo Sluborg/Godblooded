@@ -469,10 +469,12 @@ const fearMult = (world: World, unit: UnitState) => {
 function flagScore(world: World, unit: UnitState, flag: BountyState): number | null {
   const t = world.tuning.bounty;
   if (unit.trait === 'proud' && flag.gold < t.proudMinGold) return null;
+  const walk = t.flagDistanceCost >= 0 ? t.flagDistanceCost : world.tuning.ai.distanceCost;
   const score =
-    flag.gold * goldMult(world, unit) -
+    flag.gold * goldMult(world, unit) +
+    t.flagBonus -
     flagDanger(world, flag.pos, flag.target) * t.costPerDanger * fearMult(world, unit) -
-    dist(unit.pos, flag.pos) * world.tuning.ai.distanceCost;
+    dist(unit.pos, flag.pos) * walk;
   return score > 0 ? score : null;
 }
 
