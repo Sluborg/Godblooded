@@ -263,6 +263,8 @@ describe('the collector', () => {
     );
     expect(w.piles).toHaveLength(0);
     expect(w.stats.taxCollected).toBe(40);
+    // the gold was dropped, then brought home: banked once, not also counted as lost
+    expect(w.stats.taxLost).toBe(0);
   });
 
   it('two collectors never go to the same till', () => {

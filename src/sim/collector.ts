@@ -61,6 +61,7 @@ export function payTithe(world: World, hero: UnitState, owed: number): void {
   const target = temple ?? hall(world);
   if (temple && world.tuning.collector.enabled) {
     temple.till = (temple.till ?? 0) + owed;
+    world.events.push({ kind: 'till', building: temple.id, gold: owed, total: temple.till });
   } else {
     world.gold += owed;
     world.stats.taxCollected += owed;
@@ -124,6 +125,7 @@ function spawnCollector(world: World): void {
 
 // How many collectors the town has: one per hall tier, and a second once enough buildings stand
 // besides the hall (until the hall has tiers).
+// TODO: when hall tiers ship, drop the secondAtBuildings extra: it would stack with the tier count.
 function wanted(world: World): number {
   const t = world.tuning.collector;
   const h = hall(world);
@@ -206,6 +208,8 @@ function runOne(world: World, c: UnitState, h: BuildingCore, all: UnitState[]): 
     } else {
       const p = world.piles.find((x) => x.id === stop.id);
       gold = p?.gold ?? 0;
+      // Gold a fallen collector dropped and a collector brought home is not lost after all.
+      if (p?.fell) world.stats.taxLost = Math.max(0, world.stats.taxLost - gold);
       world.piles = world.piles.filter((x) => x.id !== stop.id);
     }
     if (gold > 0) {
@@ -261,7 +265,7 @@ export function collectorFell(world: World, unit: UnitState): void {
   const gold = unit.gold;
   unit.gold = 0;
   if (gold > 0) {
-    world.piles.push({ id: world.nextId++, pos: { ...unit.pos }, gold });
+    world.piles.push({ id: world.nextId++, pos: { ...unit.pos }, gold, fell: true });
     world.stats.taxLost += gold;
   }
   world.events.push({ kind: 'collectorFell', unit: unit.id, pos: { ...unit.pos }, gold });

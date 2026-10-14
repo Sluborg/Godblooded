@@ -110,6 +110,7 @@ import type {
   CommandResult,
   GameData,
   LairDef,
+  MonsterDef,
   LairSite,
   LairState,
   RunStats,
@@ -130,6 +131,8 @@ interface LairRuntime {
   nextSpawnMs: number;
   // When the lair next goes up a tier (Infinity once at the top or with growth off).
   nextTierMs: number;
+  // When the wait for it began (the run start, the last timed tier-up, or an early one).
+  tierFromMs?: number;
   // The boss of a boss lair has come out (once).
   bossSpawned?: boolean;
   // Heroes its monsters have knocked out since its last tier-up (pressure growth).
@@ -437,6 +440,7 @@ function tierUpLair(
   lair.maxHp = maxHp;
   rt.kos = 0;
   // An early (pressure) tier-up restarts the clock from now; a timed one keeps its rhythm.
+  rt.tierFromMs = pressure ? world.timeMs : rt.nextTierMs;
   rt.nextTierMs =
     lair.tier >= t.maxTier
       ? Infinity
@@ -450,6 +454,19 @@ function tierUpLair(
     ...(pressure ? { pressure: true } : {}),
   });
   planTierRaid(world, lair, pressure);
+}
+
+// Living monsters of a lair (raiders it sent out do not count), and how many it keeps.
+function aliveAt(world: World, lairId: number): number {
+  return world.units.filter((u) => {
+    const r = world.unitRuntime.get(u.id);
+    return r?.lair === lairId && !r.raid && u.hp > 0;
+  }).length;
+}
+
+function capOf(world: World, lair: LairState, def: LairDef, mon: MonsterDef): number {
+  const lt = world.tuning.lair;
+  return (def.maxAlive + tierValue(lt.maxAliveAdd, lair.tier, 0)) * aliveMult(world, mon);
 }
 
 function runLairs(world: World): void {
@@ -469,14 +486,11 @@ function runLairs(world: World): void {
     }
     if (world.timeMs < rt.nextSpawnMs) continue;
     rt.nextSpawnMs = world.timeMs + def.spawnS * 1000 * tierValue(lt.spawnMult, lair.tier, 1);
-    const alive = world.units.filter((u) => {
-      const r = world.unitRuntime.get(u.id);
-      return r?.lair === lair.id && !r.raid;
-    }).length;
+    const alive = aliveAt(world, lair.id);
     // A lair whose monster is a boss spawns nothing regular unless it has an escort.
     const mon = world.data.monsters?.find((m) => m.id === (def.escort ?? def.monster));
     if (!mon || isBoss(mon)) continue;
-    const cap = (def.maxAlive + tierValue(lt.maxAliveAdd, lair.tier, 0)) * aliveMult(world, mon);
+    const cap = capOf(world, lair, def, mon);
     if (alive >= cap) continue;
     // The guards of a boss lair stand until the boss comes out; only the enrage call adds more.
     if (rt.bossSpawned) continue;
@@ -1091,6 +1105,27 @@ function inMap(world: World, p: { x: number; y: number }): boolean {
 }
 
 // Copies out the state; the returned object never aliases the live world. Drains events.
+// A lair as the snapshot shows it: the tier-up clock (ms left and the length of the current wait,
+// for the growth ring) and the guards (alive, kept, ms to the next spawn; null when full).
+function lairView(world: World, l: LairState): LairState {
+  const rt = world.lairRuntime.get(l.id);
+  const def = world.data.lairs?.find((d) => d.id === l.type);
+  const at = rt?.nextTierMs;
+  const timed = at !== undefined && Number.isFinite(at) && l.tier < world.tuning.lair.maxTier;
+  const mon = world.data.monsters?.find((m) => m.id === (def?.escort ?? def?.monster));
+  const alive = aliveAt(world, l.id);
+  const cap = def && mon && !isBoss(mon) ? capOf(world, l, def, mon) : 0;
+  return {
+    ...l,
+    pos: { ...l.pos },
+    nextTierMs: timed ? Math.max(0, at - world.timeMs) : null,
+    tierSpanMs: timed ? Math.max(1, at - (rt?.tierFromMs ?? 0)) : null,
+    alive,
+    maxAlive: cap,
+    nextSpawnMs: rt && alive < cap ? Math.max(0, rt.nextSpawnMs - world.timeMs) : null,
+  };
+}
+
 export function snapshot(world: World): Snapshot {
   syncFlagView(world);
   const events = world.events;
@@ -1122,7 +1157,7 @@ export function snapshot(world: World): Snapshot {
       intent: p.intent ? { ...p.intent } : { kind: 'explore' },
     })),
     paths: pathStates(world),
-    lairs: world.lairs.map((l) => ({ ...l, pos: { ...l.pos } })),
+    lairs: world.lairs.map((l) => lairView(world, l)),
     units: world.units.map((u) => ({
       ...u,
       pos: { ...u.pos },
