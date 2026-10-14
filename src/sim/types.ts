@@ -917,6 +917,10 @@ export interface BountyTuning {
   costPerDanger: number;
   // A hero standing this close to a cleared flag claims it.
   claimRadius: number;
+  // Flat score added to every flag (a small flag still pulls), and the score a flag loses per
+  // world unit of walk: -1 follows ai.distanceCost.
+  flagBonus: number;
+  flagDistanceCost: number;
   // A flag with no monster within this of it is clear (a hunt flag is claimed by the kill).
   claimClearRadius: number;
   // A flag placed within this of a living monster (and not on a lair) is a hunt flag bound to it.
