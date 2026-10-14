@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { initInstall } from './ui/install';
+import { keepFitted } from './ui/refit';
 import { registerSW } from 'virtual:pwa-register';
 import { COLORS, GAME_HEIGHT, GAME_WIDTH, RENDER_SCALE } from './config';
 import { BootScene } from './scenes/BootScene';
@@ -78,6 +79,8 @@ const game = new Phaser.Game({
     SkillGalleryScene,
   ],
 });
+
+keepFitted(game);
 
 // Test hook: with ?debug in the URL the game object is reachable from the console and from
 // the headless test runner. Never used by game code.
