@@ -195,11 +195,14 @@ try {
       else if (nearest.mode === 'return') p.why = 'retreating';
       else if (party?.intent.kind === 'lair') {
         const at = party.intent.pos;
-        const near = at && Math.hypot(nearest.pos.x - at.x, nearest.pos.y - at.y) <= 350;
+        const near =
+          at &&
+          Math.hypot(nearest.pos.x - at.x, nearest.pos.y - at.y) <= w.tuning.monster.lairAggro;
         const foe = snap.units.some(
           (u) =>
             u.kind === 'monster' &&
-            Math.hypot(u.pos.x - nearest.pos.x, u.pos.y - nearest.pos.y) <= 100,
+            Math.hypot(u.pos.x - nearest.pos.x, u.pos.y - nearest.pos.y) <=
+              w.tuning.ai.stickyFoeRange,
         );
         p.why = !near
           ? 'walking to a lair'
