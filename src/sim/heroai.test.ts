@@ -431,3 +431,51 @@ describe('goals end when a hero stops exploring', () => {
     expect(ev.filter((e) => e.kind === 'intent' && e.intent.kind === 'flag')).toHaveLength(0);
   });
 });
+
+describe('the boss call', () => {
+  const withBoss = (call: number): GameData => ({
+    ...base,
+    monsters: [
+      ...(base.monsters ?? []),
+      {
+        id: 'wyrm',
+        attrs: { ...attrs, str: 10, sta: 30 },
+        weapon: { baseAttackS: 2, range: 60 },
+        bounty: 5,
+        xp: 5,
+        boss: {},
+        hp: 5000,
+      },
+    ],
+    lairs: [{ id: 'nest', monster: 'wyrm', spawnS: 100_000, maxAlive: 3, hp: 5000 }],
+    lairSites: [{ lair: 'nest', pos: { x: 3600, y: 3600 } }],
+    tuning: {
+      ...base.tuning,
+      boss: { sealUntilMs: 5_000 },
+      ai: { bossCallBonus: call },
+    },
+  });
+  const goalOf = (w: W, u: UnitState) => w.heroRuntime.get(u.id)?.goal;
+
+  it('sends a healthy exploring party to the unsealed boss lair when no other lair stands', () => {
+    const w = createWorld(1, withBoss(40));
+    const u = hero(w);
+    run(w, 3_000);
+    expect(goalOf(w, u)?.kind).not.toBe('lair');
+    run(w, 6_000);
+    expect(goalOf(w, u)).toMatchObject({ kind: 'lair', id: w.lairs[0].id });
+  });
+
+  it('a hurt hero does not get the floor, and bossCallBonus 0 turns the call off', () => {
+    const hurt = createWorld(1, withBoss(40));
+    const h = hero(hurt);
+    h.hp = h.maxHp * 0.5;
+    h.mode = 'explore';
+    run(hurt, 6_000);
+    expect(goalOf(hurt, h)?.kind).not.toBe('lair');
+    const off = createWorld(1, withBoss(0));
+    const o = hero(off);
+    run(off, 9_000);
+    expect(goalOf(off, o)?.kind).not.toBe('lair');
+  });
+});
