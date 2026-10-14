@@ -3,9 +3,12 @@
 // 1280x720 (and a zoomed crop around the first lair) into smoke-out/<name>-*.png.
 import { spawn } from 'node:child_process';
 import { chromium } from 'playwright-core';
-const PORT = 5198;
+const PORT = 5200 + Math.floor(Math.random() * 500);
 const name = process.argv[2] ?? 'map';
-const server = spawn('npx', ['vite', '--port', String(PORT), '--strictPort'], { stdio: 'ignore' });
+const server = spawn('npx', ['vite', '--port', String(PORT), '--strictPort'], {
+  stdio: 'ignore',
+  detached: true,
+});
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 for (let i = 0; i < 60; i++) {
   try {
@@ -24,7 +27,7 @@ const page = await ctx.newPage();
 page.on('pageerror', (e) => console.log('pageerror', e.message));
 await page.goto(`http://localhost:${PORT}/?debug`);
 await page.waitForFunction(() => window.__game?.scene.isActive('Title'), null, { timeout: 20000 });
-await sleep(500);
+await sleep(2000);
 await page.screenshot({ path: `smoke-out/${name}-title.png` });
 await page.evaluate(() => window.__game.scene.getScene('Title').scene.start('Map'));
 await page.waitForFunction(() => window.__game.scene.isActive('Map'), null, { timeout: 10000 });
@@ -49,4 +52,4 @@ if (lair) {
   await page.screenshot({ path: `smoke-out/${name}-lair.png` });
 }
 await browser.close();
-server.kill();
+process.kill(-server.pid); // the whole group: npx leaves vite running otherwise
