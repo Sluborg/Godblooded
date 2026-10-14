@@ -30,6 +30,8 @@ tax collector", in M2). Sim builds it, Scene draws it, Balance sets the numbers.
    tithe (as in Sim's knob).
    - The hero pays `titheOwed` into the till of its **home temple** when it starts to rest (at the
      town hall or a shrine). There is no extra walk: the coin pops over the temple.
+   - No guilds exist in M2, so the decision's "temple or guild" means the temple for now; a
+     guild gets a till when one ships.
    - Home temple: the nearest built temple of the pantheon of the hero's god. If none stands, the
      tithe goes into the town hall, which counts as banked at once.
    - A knocked-out hero keeps `titheOwed`, and the knockout gold loss does not touch it. A slain
@@ -41,12 +43,13 @@ tax collector", in M2). Sim builds it, Scene draws it, Balance sets the numbers.
 5. **Count:** 1 per town hall tier (1, 2, 3; `buildings.md`). Until the hall tiers ship: 1, and
    a 2nd once 6 buildings stand besides the hall (`secondAtBuildings` 6; Lead 2026-10-14). Collectors appear at the hall at the run start, so the first one is walking by about 0:05.
 6. **Route:** a collector at the hall picks a target when a till holds at least `minTill` (10).
-   - It walks to the target with the highest `till - distance x 0.02`.
+   - It walks to the target with the highest `till - distance x 0.02`, distance measured from
+     the collector (at the hall, that is from the hall).
    - At a building it stops for `collectMs` (1000) and takes the whole till.
    - It then visits the next building within 400 of it that holds `minTill`, until it carries
      `carryCap` (150) or none is left. Then it walks home and banks the gold: `world.gold` goes
      up and a `collected` event fires.
-   - Two collectors never target the same building.
+   - Two collectors never target the same building or the same pile.
 7. **Towers cover it:** a tower shoots a monster that attacks a collector within the tower's
    range, as it does for the town (Lead 2026-10-14).
 8. **Body:** `hp` 40, no armour, speed 0.7 of a level-1 hero's walk. It does not fight and
@@ -83,7 +86,7 @@ tax collector", in M2). Sim builds it, Scene draws it, Balance sets the numbers.
 | 70    | Gold pile         | A coin pile with its number where the collector fell; it pulses once.                                                                               |
 | 80    | Tap the collector | Info strip: "Tax collector: carrying 45 gold".                                                                                                      |
 
-- **Art:** manifest id `npc_collector_t1_<view>`. This is a new `npc_` prefix, and Lead adds it
+- **Art:** manifest id `npc_collector_t1_<view>`. This is a new `npc_` prefix, and Art adds it
   to `asset-spec.md`. Until the art exists, the placeholder is a small tan circle with a darker
   sack dot.
 
