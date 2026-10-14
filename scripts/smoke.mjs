@@ -256,7 +256,7 @@ try {
     fail(`${problems.length} console/page errors`);
   }
 } catch (e) {
-  fail(e instanceof Error ? e.message : String(e));
+  fail(e instanceof Error ? (process.env.SMOKE_STACK ? e.stack : e.message) : String(e));
 } finally {
   await cleanup(browser);
 }
