@@ -313,3 +313,11 @@ heroes differ in shape, and every worn part fits every build through the rig's s
 suggested marking replaceable areas in magenta; magenta is the chroma key for every upload, so
 Art and Scene pick the technical form (separate layers on sockets, or a second key colour).
 Item rows in `src/data` name both ids; a missing worn part falls back to the base kit part.
+
+## 2026-10-14 Headgear, weapons and hand gear are their own items (Stefan)
+
+Answers to Design's hero-kit questions: headgear is its own item slot, not tied to the god or to
+armour level ("Headgear should be its own thing"). Every weapon and every piece of hand gear is
+its own item with its own painted worn piece and icon, not one piece per family with a level
+glow ("I thought all weapons and hand gear would be own things"). Design updates hero-kit.md;
+the M2 kit count grows accordingly, and Art batches it in priority order.
