@@ -881,8 +881,12 @@ export type SkillEffect =
 
 export interface SkillDef {
   id: string;
-  // PathDef id.
+  // PathDef id ('' for a monster skill).
   path: string;
+  // 'monster': an elite monster's skill, run by the same engine against the heroes (docs/systems/
+  // monsters-and-bosses.md). `monster` is the MonsterDef id that carries it.
+  owner?: 'monster';
+  monster?: string;
   name: string;
   trigger: SkillTrigger;
   cooldownS: number;
