@@ -181,7 +181,24 @@ flag on the lair becomes the obvious answer. This is a look only: no rule change
   length of the current wait, so the ring fills `1 - nextTierMs / tierSpanMs`. A pressure tier-up restarts
   it, so the ring jumps back to empty, which is correct.
 
-## 5. What the player sees
+### Guard pips (the push is working; Lead 2026-10-14)
+
+Sim's lair-kill check after playtest 1: a lair is slow to fall because it keeps refilling its
+monsters (a barrow spawns one every 10 s, up to 6). The player cannot see whether a fight at a
+lair is winning. Guard pips show it. This is a look only: no rule changes.
+
+1. **Pips:** a row of small dots under the lair plate, one per monster the lair may have alive
+   (`maxAlive`, with its tier and swarm adds). A filled dot is a living monster from this lair,
+   wherever it is; an empty dot is a dead one not yet replaced.
+2. **Respawn:** the next empty dot fills slowly over the lair's spawn time, so the player sees the
+   refill coming.
+3. **A kill:** the dot empties with a small red flash. With every dot empty, the plate glows once:
+   the lair is open, and heroes hitting it now go straight at its hp.
+4. **Shown** while a hero is within the lair's aggro range, and for 10 s after; hidden otherwise
+   so a full map stays calm. Never on a sealed boss lair.
+
+- **Sim:** the lair snapshot carries `alive` (its living monsters), `maxAlive` (after tier and
+  swarm adds) and `nextSpawnMs` (ms left until its next spawn; null when full).
 
 - **Roles read from motion:** harpies dart in and out, minotaurs paw the ground then charge
   (0.6 s windup with a dust puff), jackal packs move as a clump, scarabs spill out in numbers.
@@ -263,6 +280,7 @@ still scales their hp with the lair tier (visual only). The
 | 40    | Boss moves: breath, heads, swallow, venom, howl, riddle; enrage variants                           |
 | 50    | Boss pick: lean pantheon, seeded one of two, no repeat; boss lair guards                           |
 | 60    | Lair snapshot: `nextTierMs` (ms left; done, `sim/lair-timer`) and `tierSpanMs` for the growth ring |
+| 70    | Lair snapshot: `alive`, `maxAlive`, `nextSpawnMs` for the guard pips                               |
 
 ### Lead (data)
 
@@ -274,12 +292,13 @@ still scales their hp with the lair tier (visual only). The
 
 ### Scene
 
-| Order | Row                                                                           |
-| ----- | ----------------------------------------------------------------------------- |
-| 10    | Role motion: harpy dart, minotaur paw and charge, pack clumping, swarm spill  |
-| 20    | Quirk effects: snatched coin, regen sparkle, scarab split                     |
-| 30    | Boss telegraphs: breath, head pips, swallow ring, venom, howl ring, riddle    |
-| 40    | Lair growth ring: fill, amber 60 s countdown, 15 s pulse and drum, tier flash |
+| Order | Row                                                                                      |
+| ----- | ---------------------------------------------------------------------------------------- |
+| 10    | Role motion: harpy dart, minotaur paw and charge, pack clumping, swarm spill             |
+| 20    | Quirk effects: snatched coin, regen sparkle, scarab split                                |
+| 30    | Boss telegraphs: breath, head pips, swallow ring, venom, howl ring, riddle               |
+| 40    | Lair growth ring: fill, amber 60 s countdown, 15 s pulse and drum, tier flash            |
+| 50    | Guard pips under the lair plate: fill, slow refill, red flash on a kill, glow when empty |
 
 ### Art (requests)
 
