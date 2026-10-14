@@ -86,7 +86,9 @@ const PLOT_RADIUS = 110;
 
 // The camera's start zoom: 0.7 shows 1830 x 1030 world units on a 1280 x 720 screen, enough for the
 // plot ring (about 1040 x 760) with the buildings on it.
-const DEFAULT_ZOOM = 0.7;
+// The camera starts close so the art reads on a phone (Stefan, 2026-10-14); a pinch out reaches the
+// whole map (minZoom below).
+const DEFAULT_ZOOM = 1.0;
 
 export interface MapTap {
   // Sim plot id of a free plot, or null.
@@ -184,7 +186,7 @@ export class MapScene extends Phaser.Scene {
     this.world = this.startWorld();
     this.registry.set('speed', getSettings().speed);
     const cam = this.cameras.main;
-    const minZoom = Math.max(GAME_WIDTH / width, GAME_HEIGHT / height);
+    const minZoom = Math.min(GAME_WIDTH / width, GAME_HEIGHT / height);
     cam.setBounds(0, 0, width, height).setZoom(Math.max(minZoom, DEFAULT_ZOOM) * RENDER_SCALE);
     cam.centerOn(GRAYBOX.townHall.x, GRAYBOX.townHall.y);
     cam.setBackgroundColor(COLORS.background);
