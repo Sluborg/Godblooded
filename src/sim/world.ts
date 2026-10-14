@@ -53,6 +53,7 @@ import { buildReport, sampleGold, tally, type HeroRecord } from './runstats';
 import { omenMods, omenSnapshot, runOmens } from './omens';
 import { collectorFell, runCollector } from './collector';
 import { clearRuin, rebuildRuin, runRepair } from './ruins';
+import { trackFightStats } from './funstats';
 import { raiderHeld } from './corrupt';
 import { offering, recallFallen, upgradeWithAmbrosia } from './ambrosia';
 import { placeEscort, runEscorts } from './escort';
@@ -125,6 +126,7 @@ import type {
   BountyState,
   JarState,
   NodeState,
+  FightRecord,
   PileState,
   RuinState,
   ConeArea,
@@ -321,6 +323,10 @@ export interface World {
   replayable: boolean;
   // The options the world was made with (replay.ts plays them back).
   options: WorldOptions;
+  // The fun checks (funstats.ts): fights, the times of player decisions, the quiet gap.
+  fights: FightRecord[];
+  decisionsAt: number[];
+  quiet: { lastMs: number; longestMs: number; atMs: number };
   // Celestial nodes and the Ambrosia the town holds (nodes.ts).
   nodes: NodeState[];
   ambrosia: number;
@@ -403,6 +409,9 @@ export function createWorld(seed: number, data: GameData, opts: WorldOptions = {
     commandLog: [],
     replayable: true,
     options: { ...opts },
+    fights: [],
+    decisionsAt: [],
+    quiet: { lastMs: -1, longestMs: 0, atMs: 0 },
     nodes: [],
     ambrosia: 0,
     jars: [],
@@ -534,6 +543,7 @@ function runTick(world: World): void {
   runParties(world);
   runUnits(world);
   syncIntent(world);
+  trackFightStats(world);
   // Combat, heroes and the economy hook in here (Sim backlog 30 and up).
 }
 
@@ -1178,7 +1188,10 @@ export { spawnHero } from './heroes';
 
 export function command(world: World, cmd: Command): CommandResult {
   const result = runCommand(world, cmd);
-  if (result.ok) world.commandLog.push({ tick: world.tick, cmd: structuredClone(cmd) });
+  if (result.ok) {
+    world.commandLog.push({ tick: world.tick, cmd: structuredClone(cmd) });
+    world.decisionsAt.push(world.timeMs);
+  }
   return result;
 }
 
