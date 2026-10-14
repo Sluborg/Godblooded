@@ -10,7 +10,7 @@ import type { GameData, Vec2 } from './types';
 // Changing the shape of the world (a new field is fine, it falls back to its fresh value; a
 // renamed, removed or reinterpreted one is not) bumps SAVE_VERSION and adds a migration.
 
-export const SAVE_VERSION = 5;
+export const SAVE_VERSION = 6;
 
 export interface SaveGame {
   version: number;
@@ -71,6 +71,8 @@ const MIGRATIONS: Record<number, (save: SaveGame) => SaveGame> = {
   // JSON itself: loadWorld sees a save from before version 5 and moves the hall and the plot
   // buildings to where the game data puts them (relocateTown).
   4: (save) => ({ ...save, version: 5 }),
+  // 5 to 6 (celestial nodes, M3): the world has nodes and an Ambrosia count. An old run has none.
+  5: (save) => ({ ...save, version: 6, world: { ...save.world, nodes: [], ambrosia: 0 } }),
 };
 
 export function saveWorld(world: World): SaveGame {

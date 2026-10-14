@@ -51,6 +51,7 @@ import {
 } from './boss';
 import { buildReport, sampleGold, tally, type HeroRecord } from './runstats';
 import { collectorFell, runCollector } from './collector';
+import { runNodes } from './nodes';
 import {
   attackBuilding,
   attackLair,
@@ -101,6 +102,7 @@ import {
 } from './units';
 import type {
   BountyState,
+  NodeState,
   PileState,
   ConeArea,
   SkillEffect,
@@ -250,6 +252,9 @@ export interface World {
   // (collector.ts).
   piles: PileState[];
   collectorQueue: number[];
+  // Celestial nodes and the Ambrosia the town holds (nodes.ts).
+  nodes: NodeState[];
+  ambrosia: number;
   // Generated map: the boss lair that wins the run and the pantheons the map leans on.
   bossLair: number | null;
   // The seal on the boss lairs has broken (runBossSeal).
@@ -310,6 +315,8 @@ export function createWorld(seed: number, data: GameData): World {
     bounties: [],
     piles: [],
     collectorQueue: [],
+    nodes: [],
+    ambrosia: 0,
     bossLair: null,
     bossUnsealed: false,
     mapLean: [],
@@ -417,6 +424,7 @@ function runTick(world: World): void {
   runSummonUpkeep(world);
   runBounties(world);
   runCollector(world);
+  runNodes(world);
   runQuirks(world);
   runFavour(world);
   runParties(world);
@@ -1167,6 +1175,8 @@ export function snapshot(world: World): Snapshot {
     })),
     bounties: world.bounties.map((b) => ({ ...b, pos: { ...b.pos } })),
     piles: world.piles.map((d) => ({ ...d, pos: { ...d.pos } })),
+    nodes: world.nodes.map((n) => ({ ...n, pos: { ...n.pos } })),
+    ambrosia: world.ambrosia,
     favour: (world.data.miracles ?? []).map((m) => ({
       pantheon: m.pantheon,
       value: world.favour[m.pantheon] ?? 0,
