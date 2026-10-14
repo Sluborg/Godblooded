@@ -142,6 +142,7 @@ import type {
   RuinState,
   ShopTally,
   RunFacts,
+  PlayInputs,
   ConeArea,
   SkillEffect,
   GraveState,
@@ -310,6 +311,8 @@ export interface World {
   tierUps: number;
   stats: RunStats;
   facts: RunFacts;
+  // How the run's data was shaped by the meta layer (playData), kept in saves.
+  play: PlayInputs | null;
   bounties: BountyState[];
   // Gold piles on the ground, and when replacements for fallen tax collectors may appear
   // (collector.ts).
@@ -421,6 +424,7 @@ export function createWorld(seed: number, data: GameData, opts: WorldOptions = {
       taxCollected: 0,
       taxLost: 0,
     },
+    play: data.play ? structuredClone(data.play) : null,
     facts: { peakLevel: {}, heroPantheons: [], templePantheons: [], gear2: false, boss: null },
     bounties: [],
     piles: [],

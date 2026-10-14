@@ -1218,6 +1218,8 @@ export interface GameData {
   // Overrides for a player's first run (docs/systems/onboarding.md section 4): gentler numbers,
   // merged group by group over `tuning` when createWorld gets { firstRun: true }.
   firstRun?: NonNullable<GameData['tuning']>;
+  // Set by playData: how the data was shaped for this run (saved with the run).
+  play?: PlayInputs;
   buildings: readonly BuildingDef[];
   // Building plots; a plot id is its index. Optional until Lead's rows land.
   plots?: readonly Vec2[];
@@ -1841,6 +1843,16 @@ export type Command =
 export type CommandResult = { ok: true; id: number } | { ok: false; reason: string };
 
 // What a run did that the meta unlock conditions read (meta.ts).
+// What a run was played with (meta.ts playData): kept in the save so a continued run gets the
+// same Altar ranks, Trials, unlock filter and lean back.
+export interface PlayInputs {
+  unlocks: string[];
+  altar: Record<string, number>;
+  lean: string;
+  trials: string[];
+  devUnlockAll?: boolean;
+}
+
 export interface RunFacts {
   // The highest party level reached by a party with a hero of each pantheon.
   peakLevel: Record<string, number>;

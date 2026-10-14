@@ -6,6 +6,9 @@ import {
   buyRank,
   command,
   createWorld,
+  loadWorld,
+  saveWorld,
+  step,
   dataFor,
   emptyMeta,
   essenceFor,
@@ -320,5 +323,30 @@ describe('Altar hooks in the sim', () => {
     const meta = withMeta({ essence: 0, altar: { 'favoured-temple:aesir': 1 } });
     const w = createWorld(1, playData(GRAYBOX, meta));
     expect(w.tuning.hero.pantheonRecruitMult).toEqual({ aesir: 0.85 });
+  });
+});
+
+describe('a saved run keeps how it was played', () => {
+  it('Altar ranks and Trials come back when the run is continued with plain data', () => {
+    const meta = withMeta({
+      unlocks: metaRules(GRAYBOX).unlocks.map((u) => u.id),
+      altar: { 'war-chest': 2, 'bounty-ledger': 2 },
+    });
+    const data = playData(GRAYBOX, meta, ['blood-moon']);
+    const w = createWorld(7, data);
+    step(w, 5_000);
+    const loaded = loadWorld(JSON.parse(JSON.stringify(saveWorld(w))), GRAYBOX);
+    expect(w.tuning).not.toEqual(createWorld(7, GRAYBOX).tuning);
+    expect(loaded.tuning).toEqual(w.tuning);
+    expect(loaded.data.startGold).toBe(w.data.startGold);
+    expect(loaded.data.buildings).toEqual(w.data.buildings);
+    expect(loaded.play).toEqual(w.play);
+    // a plain run stays plain
+    const plain = loadWorld(
+      JSON.parse(JSON.stringify(saveWorld(createWorld(7, GRAYBOX)))),
+      GRAYBOX,
+    );
+    expect(plain.play).toBeNull();
+    expect(plain.tuning).toEqual(createWorld(7, GRAYBOX).tuning);
   });
 });
