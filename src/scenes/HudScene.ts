@@ -18,6 +18,7 @@ import { PartyPanel } from '../ui/partyPanel';
 import type { SimEvent, Vec2 } from '../sim/api';
 import { describeEvent, EventFeed, type FeedWorld } from '../ui/eventFeed';
 import type { MapScene, MapTap } from './MapScene';
+import { collectorInfo } from '../ui/taxLook';
 import { RaidArrowView } from '../ui/raidArrowView';
 import { fitDesignCamera } from '../ui/designCamera';
 
@@ -492,6 +493,13 @@ export class HudScene extends Phaser.Scene {
     if (tap.hero) {
       this.closeMenu();
       this.panel.show(tap.hero);
+      return;
+    }
+    if (tap.collector != null) {
+      this.closeMenu();
+      this.panel.hide();
+      const c = map.snapshot.units.find((u) => u.id === tap.collector);
+      if (c) this.showToast(collectorInfo(c.gold ?? 0), 2600);
       return;
     }
     if (tap.building != null) {

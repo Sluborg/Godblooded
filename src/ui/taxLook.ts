@@ -77,3 +77,10 @@ export function drawPile(g: Phaser.GameObjects.Graphics, gold: number): void {
   ];
   for (const [x, y] of spots.slice(0, n)) drawCoin(g, x, y, 9);
 }
+
+// The info strip when the collector is tapped (tax-collector.md section 2).
+export function collectorInfo(carried: number): string {
+  return carried > 0
+    ? `Tax collector: carrying ${Math.round(carried)} gold`
+    : 'Tax collector: on its rounds, nothing carried';
+}
