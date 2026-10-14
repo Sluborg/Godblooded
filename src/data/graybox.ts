@@ -363,9 +363,13 @@ export const PATHS: readonly PathDef[] = [
   },
 ];
 
+// Roles and quirks: docs/systems/monsters-and-bosses.md sections 1-2. Fafnir's Fire Breath
+// (section 3) replaces the generic cleave.
 export const MONSTERS: readonly MonsterDef[] = [
   {
     id: 'draugr',
+    role: 'brute',
+    quirk: { koMult: 1.5 },
     attrs: { str: 5, dex: 3, sta: 5, cha: 1, per: 3, int: 1, wp: 6 },
     weapon: { baseAttackS: 1.7, range: 40 },
     bounty: 12,
@@ -376,6 +380,8 @@ export const MONSTERS: readonly MonsterDef[] = [
   },
   {
     id: 'troll',
+    role: 'brute',
+    quirk: { regen: { pctS: 0.01, stopOnType: 'fire', stopS: 5 } },
     attrs: { str: 10, dex: 2, sta: 11, cha: 1, per: 2, int: 1, wp: 4 },
     weapon: { baseAttackS: 2.4, range: 50 },
     bounty: 40,
@@ -386,6 +392,8 @@ export const MONSTERS: readonly MonsterDef[] = [
   },
   {
     id: 'harpy',
+    role: 'harrier',
+    quirk: { stealGold: 2 },
     attrs: { str: 4, dex: 7, sta: 4, cha: 1, per: 5, int: 1, wp: 3 },
     weapon: { baseAttackS: 1.3, range: 40 },
     bounty: 14,
@@ -396,6 +404,8 @@ export const MONSTERS: readonly MonsterDef[] = [
   },
   {
     id: 'jackal-man',
+    role: 'pack',
+    quirk: { healOnKo: 0.1 },
     attrs: { str: 6, dex: 5, sta: 6, cha: 1, per: 4, int: 2, wp: 5 },
     weapon: { baseAttackS: 1.6, range: 45 },
     bounty: 18,
@@ -406,6 +416,8 @@ export const MONSTERS: readonly MonsterDef[] = [
   },
   {
     id: 'minotaur',
+    role: 'charger',
+    quirk: { chargeSure: true },
     attrs: { str: 9, dex: 3, sta: 10, cha: 1, per: 3, int: 1, wp: 5 },
     weapon: { baseAttackS: 2.1, range: 50 },
     bounty: 34,
@@ -418,6 +430,18 @@ export const MONSTERS: readonly MonsterDef[] = [
   // for the graybox parties, which are weaker than the spec's four tier 3 heroes.
   {
     id: 'wyrm',
+    move: {
+      breath: {
+        everyN: 3,
+        enragedEveryN: 2,
+        range: 160,
+        angleDeg: 70,
+        mult: 1.2,
+        type: 'fire',
+        rider: 'burn',
+        windupMs: 1200,
+      },
+    },
     attrs: { str: 14, dex: 3, sta: 12, cha: 1, per: 4, int: 2, wp: 8 },
     weapon: { baseAttackS: 2.0, range: 70 },
     bounty: 400,
@@ -431,15 +455,15 @@ export const MONSTERS: readonly MonsterDef[] = [
 ];
 
 // Lairs from docs/systems/monsters-and-bosses.md section 4; the wyrm nest is the boss lair (the
-// run is won when it falls) and spawns draugr guards. Balance pass (Lead 80): big lairs 6000 hp
-// and the nest 8000 hp (spec 9000 and 16000) keep the median run at 15-18 min.
+// run is won when it falls) and spawns draugr guards. Balance passes (Lead 80, 90): big lairs 6000 hp
+// and the nest 6000 hp (spec 9000 and 16000) keep the median run at 15-18 min.
 export const LAIRS: readonly LairDef[] = [
   { id: 'barrow', monster: 'draugr', spawnS: 10, maxAlive: 6, hp: 3500 },
   { id: 'troll-den', monster: 'troll', spawnS: 25, maxAlive: 4, hp: 6000 },
   { id: 'harpy-roost', monster: 'harpy', spawnS: 9, maxAlive: 6, hp: 3000 },
   { id: 'jackal-camp', monster: 'jackal-man', spawnS: 10, maxAlive: 6, hp: 3500 },
   { id: 'labyrinth', monster: 'minotaur', spawnS: 24, maxAlive: 4, hp: 6000 },
-  { id: 'wyrm-nest', monster: 'wyrm', spawnS: 30, maxAlive: 3, hp: 8000, escort: 'draugr' },
+  { id: 'wyrm-nest', monster: 'wyrm', spawnS: 30, maxAlive: 3, hp: 6000, escort: 'draugr' },
 ];
 
 // Level-up cards; a party is offered 3 and its leader auto-picks (level-ups.md): `god` offers
@@ -767,7 +791,7 @@ export const ITEMS: readonly ItemDef[] = [
     slot: 'weapon',
     level: 1,
     name: 'Tempered',
-    price: 60,
+    price: 20,
     shop: 'smithy',
     shopTier: 1,
     effects: { power: 2 },
@@ -796,7 +820,7 @@ export const ITEMS: readonly ItemDef[] = [
     id: 'armour-1',
     slot: 'armour',
     level: 1,
-    price: 50,
+    price: 20,
     shop: 'smithy',
     shopTier: 1,
     effects: {
@@ -858,18 +882,28 @@ export const ITEMS: readonly ItemDef[] = [
 ];
 
 export const GRAYBOX: GameData = {
-  startGold: 420,
+  startGold: 480,
   map: { width: 2400, height: 1600 },
   townHall: { x: 1200, y: 800 },
-  // Balance pass (Aesir skills and passives, items, potions, card auto-pick, level cap 8,
-  // knockout cost, sealed boss lair, pacing review; 300 runs, seeds 1 and 1001). Town income is
-  // item tax only: start gold 420 builds a temple, market and smithy, and tax is 60% of an
-  // item's price. Unset keys use DEFAULT_TUNING.
+  // Balance pass (roles and quirks, Fafnir's breath, raids after a lair tier-up, shop trips, on
+  // top of the Aesir, item, card and pacing rows; 300 runs, seeds 1 and 1001): 69-73% wins,
+  // median 16-17 min, boss fight about 14.5 min, timeouts under 1%. Town income is item tax only:
+  // start gold 480 builds a temple, market and smithy, and tax is 60% of an item's price. Unset
+  // keys use DEFAULT_TUNING.
   tuning: {
-    hero: { maxPerTemple: 7, recruitMs: 22_000, taxRate: 0.6 },
-    town: { raidFirstMs: 360_000, raidEveryMs: 180_000, raidGrowEveryMs: 300_000, raidSize: 1 },
+    hero: { maxPerTemple: 7, recruitMs: 22_000, taxRate: 0.6, shopTripGold: 0 },
+    // Raids after a lair tier-up are on (Stefan): one raider, every second tier-up.
+    town: {
+      raidFirstMs: 360_000,
+      raidEveryMs: 210_000,
+      raidGrowEveryMs: 400_000,
+      raidSize: 1,
+      raidOnTierUp: true,
+      tierRaidSize: 1,
+      tierRaidEvery: 2,
+    },
     // Pacing (docs/systems/pacing-review.md): slower levels and a staggered lair clock.
-    party: { xpPerLevel: 40 },
+    party: { xpPerLevel: 45 },
     lair: { firstTierUpMs: 360_000, tierUpStaggerMs: 120_000, tierUpEveryMs: 420_000 },
   },
   classes: CLASSES,
@@ -928,7 +962,7 @@ export const GRAYBOX: GameData = {
     {
       id: 'smithy',
       cost: 120,
-      text: 'Sells weapons and armour to heroes; the town takes a tax.',
+      text: 'Sells weapons and armour; the town takes a tax on every sale.',
     },
   ],
 };

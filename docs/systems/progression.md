@@ -22,16 +22,16 @@ tiers) and on `combat.md`, `paths-and-skills.md` and `items-and-shops.md`.
 
 ## 1. Party levels
 
-| Level | XP to reach (40n, Balance 2026-10-14) | Total | Unlocks                                     | Target time (best party) |
+| Level | XP to reach (45n, Balance 2026-10-14) | Total | Unlocks                                     | Target time (best party) |
 | ----- | ------------------------------------- | ----- | ------------------------------------------- | ------------------------ |
 | 1     | 0                                     | 0     | arrives; level-1 parties merge (today)      | 0:30-2:00                |
-| 2     | 40                                    | 40    | card                                        | 2:00-3:30                |
-| 3     | 80                                    | 120   | card, tier 2: path pick and signature skill | 4:00-6:00                |
-| 4     | 120                                   | 240   | card                                        | 6:00-8:00                |
-| 5     | 160                                   | 400   | card                                        | 8:00-10:00               |
-| 6     | 200                                   | 600   | card, tier 3: skill upgrade, new art        | 11:00-14:00              |
-| 7     | 240                                   | 840   | god's favour card                           | 14:00-17:00              |
-| 8     | 280                                   | 1120  | card (rare or better); the cap              | rare, a great run        |
+| 2     | 45                                    | 45    | card                                        | 2:00-3:30                |
+| 3     | 90                                    | 135   | card, tier 2: path pick and signature skill | 4:00-6:00                |
+| 4     | 135                                   | 270   | card                                        | 6:00-8:00                |
+| 5     | 180                                   | 450   | card                                        | 8:00-10:00               |
+| 6     | 225                                   | 675   | card, tier 3: skill upgrade, new art        | 11:00-14:00              |
+| 7     | 270                                   | 945   | god's favour card                           | 14:00-17:00              |
+| 8     | 315                                   | 1260  | card (rare or better); the cap              | rare, a great run        |
 
 - **XP** comes from kills and lairs as today (`MonsterDef.xp`, `lairXp`, times the lair tier's
   `rewardMult`). Every member gets the whole amount (shared, not split).
