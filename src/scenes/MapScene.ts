@@ -21,6 +21,7 @@ import {
   type UnitState,
   type Vec2,
   type World,
+  OmenDef,
 } from '../sim/api';
 import { TAX_STYLE, drawCoin, drawPile, popText, tillShown } from '../ui/taxLook';
 import { clearSave, isNewerSave, newSeed, readSave, writeSave } from '../ui/saveStore';
@@ -34,6 +35,7 @@ import { releaseSets } from '../ui/parts/bake';
 import { effectiveSpeed } from '../ui/pathSpeed';
 import { STYLE } from '../ui/style';
 import { LAIR_UI_DEPTH, LairIndicators, groundScale, plateColor } from '../ui/lairRings';
+import { bakeRings } from '../ui/bake';
 import {
   footprintRing,
   groundShadow,
@@ -116,6 +118,8 @@ export class MapScene extends Phaser.Scene {
   private ruinMarks = new Map<number, Phaser.GameObjects.Image>();
   private selectRingFor = 0;
   private nodeViews!: NodeViews;
+  // The fallen star's marker (omens): one at a time, gone when found or when the omen ends.
+  private starMarker: Phaser.GameObjects.Container | null = null;
   // Party whose level-up cards are open (the sim is frozen until it is picked), or null.
   private offerKey: string | null = null;
   // The ring on the ground around the party that levelled, while its cards are up.
@@ -441,6 +445,35 @@ export class MapScene extends Phaser.Scene {
     return command(this.world, { kind: 'upgrade', building });
   }
 
+  // The row of an omen in this run's deck (for its look).
+  omenDef(id: string): OmenDef | undefined {
+    return this.world.data.omens?.find((o) => o.id === id);
+  }
+
+  // The fallen star's marker: shown while the snapshot says a star lies unfound (so it also
+  // survives a reload), gone when it is found or the omen ends.
+  private syncStar(): void {
+    const at = this.snap.omen?.star;
+    if (!at) {
+      if (this.starMarker) {
+        this.starMarker.destroy();
+        this.starMarker = null;
+      }
+      return;
+    }
+    if (this.starMarker) return;
+    const c = this.add.container(at.x, at.y).setDepth(800000);
+    const glow = bakeRings(this, [
+      { w: 120, h: 46, fill: [0x9fb7ff, 0.25] },
+      { w: 84, h: 32, line: [3, 0xf2c14e, 0.9] },
+    ]);
+    const star = this.add.star(0, -34, 5, 9, 20, 0xfff3b0).setStrokeStyle(2, 0xf2c14e, 1);
+    c.add([glow, star]);
+    this.tweens.add({ targets: star, y: -8, duration: 900, yoyo: true, repeat: -1 });
+    this.tweens.add({ targets: glow, alpha: 0.5, duration: 700, yoyo: true, repeat: -1 });
+    this.starMarker = c;
+  }
+
   // The seed of this run (createWorld(seed, GRAYBOX) replays its map).
   get seed(): number {
     return this.world.seed;
@@ -726,6 +759,7 @@ export class MapScene extends Phaser.Scene {
     }
     this.syncPlots();
     this.syncSelectRing();
+    this.syncStar();
   }
 
   // The thin footprint ring under the building whose panel is open (the HUD sets selectedBuilding).
