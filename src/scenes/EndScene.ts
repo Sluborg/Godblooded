@@ -85,19 +85,22 @@ export class EndScene extends Phaser.Scene {
       makeButton(this, cx + 200, 668, 300, 80, 'Title', () => this.leaveRun());
       return;
     }
-    makeButton(this, cx - 200, 668, 300, 80, 'Play again', () => this.playAgain());
-    makeButton(this, cx + 200, 668, 300, 80, 'Title', () => this.toTitle());
+    makeButton(this, cx - 340, 668, 260, 80, 'Title', () => this.toTitle());
+    makeButton(this, cx - 20, 668, 260, 80, 'Altar', () => this.openAltar());
+    makeButton(this, cx + 330, 668, 320, 80, 'Play again', () => this.playAgain());
   }
 
   // Folds the finished run into the meta save once (the End screen can be built again for the same
-  // run) and returns what it paid; null when this run was already counted.
+  // run) and returns what it paid (the same again when the screen is rebuilt, e.g. back from the Altar).
   private foldRun(report: RunReport): RunOutcome | null {
     const key = `${report.seed}:${report.timeMs}`;
-    if (this.registry.get('metaApplied') === key) return null;
+    if (this.registry.get('metaApplied') === key)
+      return (this.registry.get('metaOutcome') as RunOutcome | undefined) ?? null;
     this.registry.set('metaApplied', key);
     const trials = (this.scene.get('Map') as MapScene).playTrials;
     const out = applyRun(GRAYBOX, readMeta(), report, trials);
     writeMeta(out.meta);
+    this.registry.set('metaOutcome', out);
     return out;
   }
 
@@ -133,7 +136,7 @@ export class EndScene extends Phaser.Scene {
       .text(X + 16, totalY + 4, '', { fontFamily: FONT, fontSize: '30px', color: '#f2c14e' })
       .setOrigin(0, 0.5);
     this.add
-      .text(X + W - 16, totalY + 4, `Essence ${out.meta.essence}`, {
+      .text(X + W - 16, totalY + 4, `Essence ${readMeta().essence}`, {
         fontFamily: FONT,
         fontSize: '22px',
         color: COLORS.textMuted,
@@ -298,6 +301,12 @@ export class EndScene extends Phaser.Scene {
     this.scene.sleep('Hud');
     this.scene.stop();
     this.scene.launch('Title');
+  }
+
+  private openAltar(): void {
+    this.registry.set('altarReturn', 'End');
+    this.scene.stop();
+    this.scene.launch('Altar');
   }
 
   private playAgain(): void {
