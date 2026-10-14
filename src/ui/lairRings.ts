@@ -125,19 +125,20 @@ export class LairIndicators {
     const beat = stage === 'pulse' ? 0.5 + 0.5 * Math.sin(t * Math.PI * 2) : 0;
     this.beats.set(l.id, beat);
     const color = stage === 'dim' ? 0xe6e1d2 : 0xffb43a;
-    // A dark track so the empty part reads on the grass.
-    g.lineStyle(6, 0x1a1410, 0.38).strokeEllipse(cx, cy, rx * 2, ry * 2);
-    g.lineStyle(
-      stage === 'dim' ? 3 : 4 + beat * 3,
-      color,
-      stage === 'dim' ? 0.55 : 0.8 + beat * 0.2,
-    );
+    // The growth timer is a small arc by the name plate (no ring round the lair): a dark disc, the
+    // filled part of the way to the next tier, the seconds left beside it in the last minute.
+    const tx = cx + 118;
+    const ty = l.pos.y + 46;
+    g.fillStyle(0x140d0a, 0.82).fillCircle(tx, ty, 15 + beat * 2);
+    g.lineStyle(2, 0x000000, 0.8).strokeCircle(tx, ty, 15 + beat * 2);
+    g.lineStyle(3, 0x7a6a58, 0.5).strokeCircle(tx, ty, 9);
+    g.lineStyle(stage === 'dim' ? 4 : 5 + beat * 2, color, stage === 'dim' ? 0.7 : 0.95);
     g.beginPath();
-    const steps = Math.max(2, Math.round(fill * 72));
+    const steps = Math.max(2, Math.round(fill * 40));
     for (let i = 0; i <= steps; i++) {
       const a = -Math.PI / 2 + (i / steps) * fill * Math.PI * 2;
-      const x = cx + Math.cos(a) * rx;
-      const y = cy + Math.sin(a) * ry;
+      const x = tx + Math.cos(a) * 9;
+      const y = ty + Math.sin(a) * 9;
       if (i === 0) g.moveTo(x, y);
       else g.lineTo(x, y);
     }
@@ -146,7 +147,7 @@ export class LairIndicators {
     if (secs !== null) {
       text
         .setText(`${secs}`)
-        .setPosition(cx + 126, l.pos.y + 46)
+        .setPosition(tx + 38, ty)
         .setVisible(true);
     }
     // One soft drum beat per tier-up, when the last 15 s begin.
