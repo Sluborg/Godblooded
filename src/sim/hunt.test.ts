@@ -267,19 +267,38 @@ describe('responsiveness', () => {
     expect(w.heroRuntime.get(h.id)?.goal?.id).toBe(b);
   });
 
-  it('a lair goal at its lair holds against a new flag', () => {
-    const w = createWorld(1, {
-      ...base,
-      lairs: [{ id: 'barrow', monster: 'draugr', spawnS: 100_000, maxAlive: 0, hp: 50_000 }],
-      lairSites: [{ lair: 'barrow', pos: { x: 700, y: 500 } }],
+  describe('a party at its lair', () => {
+    const atLair = () => {
+      const w = createWorld(1, {
+        ...base,
+        lairs: [{ id: 'barrow', monster: 'draugr', spawnS: 100_000, maxAlive: 0, hp: 50_000 }],
+        lairSites: [{ lair: 'barrow', pos: { x: 700, y: 500 } }],
+      });
+      const h = hero(w, 650, 500);
+      return { w, h };
+    };
+
+    it('mid-fight (a foe within 100) holds its lair goal against a new flag', () => {
+      const { w, h } = atLair();
+      const m = monster(w, 690, 500);
+      m.hp = 1e9;
+      m.maxHp = 1e9;
+      // the party took on the lair (the guard standing by makes it a poor pick on its own)
+      const rt = w.heroRuntime.get(h.id);
+      if (!rt) throw new Error('rt');
+      rt.goal = { kind: 'lair', id: w.lairs[0].id, score: 0, sinceMs: -100_000 };
+      flag(w, 1500, 500, 900);
+      run(w, 3_000);
+      expect(w.heroRuntime.get(h.id)?.goal?.kind).toBe('lair');
     });
-    const h = hero(w, 650, 500);
-    run(w, 1_100);
-    const goal = w.heroRuntime.get(h.id)?.goal;
-    expect(goal?.kind).toBe('lair');
-    flag(w, 1500, 500, 900);
-    run(w, 3_000);
-    expect(w.heroRuntime.get(h.id)?.goal?.kind).toBe('lair');
+
+    it('with no foe near re-scores like an explorer and takes a fresh flag', () => {
+      const { w, h } = atLair();
+      run(w, 1_100);
+      expect(w.heroRuntime.get(h.id)?.goal?.kind).toBe('lair');
+      const id = flag(w, 1500, 500, 900);
+      expect(w.heroRuntime.get(h.id)?.goal?.id).toBe(id);
+    });
   });
 
   it('considering is said once per flag, however the scores wobble', () => {

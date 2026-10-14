@@ -195,8 +195,20 @@ try {
       else if (nearest.mode === 'return') p.why = 'retreating';
       else if (party?.intent.kind === 'lair') {
         const at = party.intent.pos;
-        const near = at && Math.hypot(nearest.pos.x - at.x, nearest.pos.y - at.y) <= 350;
-        p.why = near ? 'at its lair (sticky)' : 'walking to a lair';
+        const near =
+          at &&
+          Math.hypot(nearest.pos.x - at.x, nearest.pos.y - at.y) <= w.tuning.monster.lairAggro;
+        const foe = snap.units.some(
+          (u) =>
+            u.kind === 'monster' &&
+            Math.hypot(u.pos.x - nearest.pos.x, u.pos.y - nearest.pos.y) <=
+              w.tuning.ai.stickyFoeRange,
+        );
+        p.why = !near
+          ? 'walking to a lair'
+          : foe
+            ? 'at its lair, mid-fight'
+            : 'at its lair, no foe near';
       } else if (party?.intent.kind === 'flag') p.why = 'on another flag';
       else if (party?.intent.kind === 'revenge') p.why = 'sworn revenge';
       else if (nearest.target !== null) p.why = 'in a fight, flag not worth it';
