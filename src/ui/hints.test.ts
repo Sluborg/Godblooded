@@ -138,6 +138,14 @@ describe('hintsFromEvent', () => {
       x: 1,
       y: 2,
     });
+    expect(
+      hintsFromEvent({ kind: 'bountyPlaced', bounty: 1, gold: 5, target: 9 }).fire.map(
+        (f) => f.trigger,
+      ),
+    ).toEqual(['bountyPlaced', 'huntFlag']);
+    expect(
+      hintsFromEvent({ kind: 'bountyPlaced', bounty: 1, gold: 5 }).fire.map((f) => f.trigger),
+    ).toEqual(['bountyPlaced']);
     expect(hintsFromEvent({ kind: 'raidWarning' }).fire[0].trigger).toBe('raidWarning');
     expect(hintsFromEvent({ kind: 'nothing' })).toEqual({ fire: [], skip: [] });
   });
