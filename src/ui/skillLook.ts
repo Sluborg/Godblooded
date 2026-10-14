@@ -28,6 +28,15 @@ export function skillVisuals(def: Pick<SkillDef, 'visual'> | undefined): SkillVi
   return (def?.visual ?? []).filter(isSkillVisual);
 }
 
+// A skill row as a caster of this tier sees it: at tier 3 the `t3` fields replace the row's (the
+// same merge Sim does in sim/skills.ts).
+export function skillAtTier<T extends { t3?: object }>(
+  def: T | undefined,
+  tier: number,
+): T | undefined {
+  return def && tier >= 3 && def.t3 ? { ...def, ...def.t3 } : def;
+}
+
 const HEAL_TINT = 0xb6ffb0;
 
 // Colour of a skill: its first damage effect's type, else healing green when it heals, else the

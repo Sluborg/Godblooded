@@ -1,9 +1,10 @@
 import { landStrike, attackStrike } from './strike';
 import { dist, maxHp, scaleAttrs, tierValue, type Stats } from './units';
+import { isSwallowed } from './effects';
 import { targetOf } from './world';
 import type { Area } from './swing';
 import type { World } from './world';
-import type { BossTuning, LairState, MonsterDef, UnitState } from './types';
+import type { BossMove, BossTuning, ConeArea, LairState, MonsterDef, UnitState } from './types';
 
 // Bosses (Sim 220, docs/systems/combat.md section 7). A boss is a monster row with `boss`. It
 // waits inside its lair until the lair is below tuning.boss.emergeBelow of its hp, then comes
@@ -17,6 +18,15 @@ export interface BossRuntime {
   // Strikes made so far; the cleaveEvery-th one is a cleave.
   strikes: number;
   enraged: boolean;
+  // Timed signature moves (bossmoves.ts): when the next one starts and the one being announced.
+  nextMoveMs?: number;
+  pending?: { kind: 'venom' | 'howl' | 'riddle' | 'swallow'; atMs: number; target: number };
+  // Three Heads: heads left, cuts made so far, and when the cut head regrows (null: stays cut).
+  heads?: number;
+  cuts?: number;
+  regrowAtMs?: number | null;
+  // Heads cut and still to grow back (a fire hit on a regrowing head empties it).
+  regrowing?: number;
 }
 
 export const isBoss = (mon: MonsterDef | undefined): boolean => !!mon?.boss;
@@ -149,12 +159,44 @@ export function cleaveStrike(
   const n = mon ? bossNumbers(world, mon) : world.tuning.boss;
   landStrike(world, boss, foe, { ...attackStrike(stats, targetOf(world, foe)), canDodge: false });
   for (const u of world.units) {
-    if (u.kind !== 'hero' || u.ko || u.hp <= 0 || u.id === foe.id) continue;
+    if (u.kind !== 'hero' || u.ko || u.hp <= 0 || u.id === foe.id || isSwallowed(world, u.id))
+      continue;
     if (dist(u.pos, area) > area.r) continue;
     landStrike(world, boss, u, {
       ...attackStrike(stats, targetOf(world, u)),
       canDodge: false,
       skillMult: n.cleaveShare,
+    });
+  }
+}
+
+// The breath: every living hero inside the cone takes mult x the boss's strike as fire (or the
+// move's type), undodgeable, with the move's rider (burn).
+export function breathStrike(
+  world: World,
+  boss: UnitState,
+  stats: Stats,
+  cone: ConeArea,
+  move: NonNullable<NonNullable<BossMove['breath']>>,
+): void {
+  const half = ((move.angleDeg / 2) * Math.PI) / 180;
+  for (const u of world.units) {
+    // Heroes and their summons burn alike; the dead and knocked out are skipped.
+    if ((u.kind !== 'hero' && u.kind !== 'summon') || u.ko || u.hp <= 0 || isSwallowed(world, u.id))
+      continue;
+    const d = dist(cone.from, u.pos);
+    if (d > cone.range) continue;
+    // Straight at the boss counts as inside; otherwise the angle to the axis must fit.
+    if (d > 0) {
+      const cos = ((u.pos.x - cone.from.x) * cone.dir.x + (u.pos.y - cone.from.y) * cone.dir.y) / d;
+      if (Math.acos(Math.max(-1, Math.min(1, cos))) > half) continue;
+    }
+    landStrike(world, boss, u, {
+      ...attackStrike(stats, targetOf(world, u)),
+      type: move.type,
+      skillMult: move.mult,
+      canDodge: false,
+      ...(move.rider ? { rider: move.rider } : {}),
     });
   }
 }

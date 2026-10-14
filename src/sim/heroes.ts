@@ -5,8 +5,9 @@ import { slowOf } from './riders';
 import { revengeTarget } from './rivalry';
 import { emptyItems } from './items';
 import { buyItem, hasItemRows, nearestShop, planShopping, type ShopStop } from './shopping';
-import { isBound } from './effects';
+import { clearBossStatuses, curePoison, isBound } from './effects';
 import { passiveKoMult, passiveRestMult } from './passives';
+import { koTimeMult } from './quirks';
 import { dist, maxHp, speed, stepToward, tierValue, TICK_MS } from './units';
 import type { World } from './world';
 import type { LairState, PartyIntent, Vec2, UnitState } from './types';
@@ -124,6 +125,8 @@ export function runHeroes(world: World): void {
       world.events.push({ kind: 'fled', unit: unit.id });
     } else if (unit.mode === 'rest' || unit.mode === 'shop') {
       defend(world, unit, rt);
+    } else if (unit.mode === 'explore') {
+      shopTrip(world, unit, rt);
     }
   }
 }
@@ -188,6 +191,25 @@ function wantsToShop(world: World, unit: UnitState, rt: HeroRuntime): boolean {
   return true;
 }
 
+// An exploring hero with enough gold and no fight on walks to the shops (tuning.hero.shopTripGold)
+// instead of waiting to be hurt enough to rest. Every 20 ticks per hero. Only a party's leader
+// (or a hero alone) goes, and not while heading for a flag or a lair; the party goes with it.
+function shopTrip(world: World, unit: UnitState, rt: HeroRuntime): void {
+  const t = tune(world);
+  if (t.shopTripGold < 0 || unit.target !== null || unit.gold < t.shopMinGold) return;
+  if (!hasItemRows(world) || (world.timeMs / TICK_MS + unit.id) % 20 !== 0) return;
+  const lead = leaderOf(world, unit);
+  if (lead && lead.id !== unit.id) return;
+  if (rt.goal?.kind === 'flag' || rt.goal?.kind === 'lair') return;
+  if (t.shopTripGold > 0 && unit.gold < t.shopTripGold) return;
+  const plan = planShopping(world, unit);
+  if (plan.length === 0) return;
+  if (t.shopTripGold === 0 && !plan.some((s) => s.shop === 'smithy')) return;
+  rt.shop = plan;
+  unit.mode = 'shop';
+  rt.dest = null;
+}
+
 // Walks to the next planned shop, buys there, and moves on; done when the plan is.
 function visitShops(
   world: World,
@@ -223,14 +245,18 @@ function finishShopping(unit: UnitState, rt: HeroRuntime): void {
   rt.dest = null;
 }
 
-// A rested enough hero rejoins the fight when a monster comes within defendRange of the town hall.
+// A rested enough hero rejoins the fight when a monster comes within defendRange of the town hall,
+// or within defendBuildingRange of any building (a raider stands at the plot it attacks).
 function defend(world: World, unit: UnitState, rt: HeroRuntime): void {
   if (unit.hp < unit.maxHp * world.tuning.town.defendHp) return;
-  // Only monsters inside the town call a resting hero back, not ones near an outlying building.
-  const range = world.tuning.town.defendRange;
+  const { defendRange, defendBuildingRange } = world.tuning.town;
   const hall = world.data.townHall;
   const threatened = world.units.some(
-    (m) => m.kind === 'monster' && m.hp > 0 && dist(hall, m.pos) <= range,
+    (m) =>
+      m.kind === 'monster' &&
+      m.hp > 0 &&
+      (dist(hall, m.pos) <= defendRange ||
+        world.buildings.some((b) => dist(b.pos, m.pos) <= defendBuildingRange)),
   );
   if (!threatened) return;
   unit.mode = 'explore';
@@ -247,11 +273,13 @@ function revive(world: World, unit: UnitState, rt: HeroRuntime): void {
   world.events.push({ kind: 'revived', unit: unit.id });
 }
 
-export function heroKnockedOut(world: World, unit: UnitState): void {
+export function heroKnockedOut(world: World, unit: UnitState, by?: number): void {
   const rt = world.heroRuntime.get(unit.id);
   if (!rt) return;
   unit.mode = 'ko';
-  rt.koMs = tune(world).koMs * passiveKoMult(world, unit);
+  clearBossStatuses(world, unit.id);
+  rt.koMs =
+    tune(world).koMs * passiveKoMult(world, unit) * (by === undefined ? 1 : koTimeMult(world, by));
   rt.dest = null;
 }
 
@@ -311,6 +339,7 @@ export function heroMove(world: World, unit: UnitState): void {
         tune(world).restPerS *
         (spot.shrine ? tune(world).shrineMult : 1) *
         passiveRestMult(world, unit);
+      curePoison(world, unit.id);
       unit.hp = Math.min(unit.maxHp, unit.hp + (unit.maxHp * rate * TICK_MS) / 1000);
       if (unit.hp >= unit.maxHp) {
         unit.mode = wantsToShop(world, unit, rt) ? 'shop' : 'explore';

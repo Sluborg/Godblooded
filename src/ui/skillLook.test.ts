@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   STATUS_LOOK,
   angleTo,
+  skillAtTier,
   jagged,
   liveStatuses,
   newestRing,
@@ -77,5 +78,16 @@ describe('statuses', () => {
     expect(newestRing(held, live)).toBe('hot');
     expect(newestRing(held, ['shield'])).toBeNull();
     expect(STATUS_LOOK.shield.style).toBe('bubble');
+  });
+});
+
+describe('skillAtTier', () => {
+  const def = { visual: ['bolt'], t3: { visual: ['pillar'] } };
+  it('merges the t3 fields from tier 3 on and leaves lower tiers alone', () => {
+    expect(skillAtTier(def, 2)).toBe(def);
+    expect(skillAtTier(def, 3)?.visual).toEqual(['pillar']);
+    const plain: { visual: string[]; t3?: object } = { visual: ['bolt'] };
+    expect(skillAtTier(plain, 3)?.visual).toEqual(['bolt']);
+    expect(skillAtTier(undefined, 3)).toBeUndefined();
   });
 });

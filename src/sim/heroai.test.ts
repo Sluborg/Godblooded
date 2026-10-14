@@ -331,6 +331,36 @@ describe('defend', () => {
     expect(ev.some((e) => e.kind === 'defend' && e.unit === h.id)).toBe(true);
   });
 
+  it('a raider at an outer building, far from the hall, calls a rested hero (within 120 of it)', () => {
+    const w = withTown();
+    const hall = w.data.townHall;
+    const h = hero(w, hall.x, hall.y);
+    h.mode = 'rest';
+    // an outer plot: the raider stands 450 from the hall but 50 from the building it attacks
+    const outer = w.buildings[w.buildings.length - 1];
+    if (!outer) throw new Error('building');
+    outer.pos = { x: 900, y: 500 };
+    expect(Math.hypot(950 - hall.x, 500 - hall.y)).toBeGreaterThan(w.tuning.town.defendRange);
+    monster(w, 950, 500);
+    const ev = run(w, 200);
+    expect(ev.some((e) => e.kind === 'defend' && e.unit === h.id)).toBe(true);
+  });
+
+  it('a lair guard 250 from an outer plot does not call a rested hero', () => {
+    const w = withTown();
+    const hall = w.data.townHall;
+    const h = hero(w, hall.x, hall.y);
+    h.mode = 'rest';
+    h.hp = Math.floor(h.maxHp * 0.6);
+    const outer = w.buildings[w.buildings.length - 1];
+    if (!outer) throw new Error('building');
+    outer.pos = { x: 900, y: 500 };
+    monster(w, 1150, 500);
+    const ev = run(w, 200);
+    expect(h.mode).toBe('rest');
+    expect(ev.some((e) => e.kind === 'defend')).toBe(false);
+  });
+
   it('a monster near the hero but far from every building does not call it', () => {
     const w = withTown();
     const h = hero(w, 3000, 3000);

@@ -23,13 +23,13 @@ pool with a pantheon lean, one boss lair as the win goal).
 
 ## 1. Roles
 
-| Role    | Rule (Sim)                                                                                     | Who           |
-| ------- | ---------------------------------------------------------------------------------------------- | ------------- |
-| brute   | today's behaviour: nearest hero, melee until it drops                                          | draugr, troll |
-| harrier | targets the hero with the least hp in aggro range; flees to its lair at 30% hp, returns healed | harpy         |
-| charger | from 150-300 away, charges in a line: first strike 200% plus knockback 60; then a brute        | minotaur      |
-| pack    | +10% damage per other pack mate within 100 (max +30%); packs move together                     | jackal-man    |
-| swarm   | many and weak: `maxAlive` x2, splits once into two halves at 0 hp (half hp, half damage)       | scarab swarm  |
+| Role    | Rule (Sim)                                                                                                                                | Who           |
+| ------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
+| brute   | today's behaviour: nearest hero, melee until it drops                                                                                     | draugr, troll |
+| harrier | targets the hero with the least hp in aggro range; flees to its lair at 30% hp, returns healed; a raider (no lair to flee to) never flees | harpy         |
+| charger | from 150-300 away, charges in a line: first strike 200% plus knockback 60; then a brute                                                   | minotaur      |
+| pack    | +10% damage per other pack mate within 100 (max +30%); packs move together                                                                | jackal-man    |
+| swarm   | many and weak: `maxAlive` x2, splits once into two halves at 0 hp (half hp, half damage)                                                  | scarab swarm  |
 
 Roles are a field on the monster row; a new monster picks one of the five.
 
@@ -39,25 +39,25 @@ Combat values from `combat.md` (armour, tags, type rows) are repeated here for o
 
 | Monster      | Pantheon | Role    | Str | Dex | Sta | Per | Wp  | Hp  | Weapon s / range | Armour | Tags         | Weak       | Resist         | Bounty | XP  |
 | ------------ | -------- | ------- | --- | --- | --- | --- | --- | --- | ---------------- | ------ | ------------ | ---------- | -------------- | ------ | --- |
-| draugr       | aesir    | brute   | 5   | 3   | 5   | 3   | 6   | 60  | 1.7 / 40         | 4      | undead       | holy, fire | death, frost   | 12     | 10  |
-| troll        | aesir    | brute   | 10  | 2   | 11  | 2   | 4   | 128 | 2.4 / 50         | 8      | giant        | fire       | frost          | 40     | 35  |
-| harpy        | greek    | harrier | 4   | 7   | 3   | 6   | 3   | 40  | 1.2 / 40         | 1      | beast, flyer | lightning  | none           | 14     | 10  |
-| minotaur     | greek    | charger | 9   | 3   | 10  | 3   | 5   | 116 | 2.2 / 45         | 10     | beast, giant | frost      | physical x0.75 | 38     | 32  |
-| jackal-man   | egyptian | pack    | 5   | 5   | 4   | 5   | 4   | 52  | 1.4 / 40         | 3      | undead       | holy       | death          | 12     | 10  |
-| scarab swarm | egyptian | swarm   | 3   | 4   | 3   | 2   | 2   | 36  | 0.9 / 30         | 2      | beast        | fire       | physical x0.75 | 6      | 5   |
+| draugr       | aesir    | brute   | 5   | 3   | 5   | 3   | 6   | 60  | 1.7 / 40         | 2      | undead       | holy, fire | death, frost   | 12     | 10  |
+| troll        | aesir    | brute   | 10  | 2   | 11  | 2   | 4   | 128 | 2.4 / 50         | 4      | giant        | fire       | frost          | 40     | 35  |
+| harpy        | greek    | harrier | 4   | 7   | 4   | 5   | 3   | 48  | 1.3 / 40         | 1      | beast, flyer | lightning  | none           | 14     | 12  |
+| minotaur     | greek    | charger | 9   | 3   | 10  | 3   | 5   | 116 | 2.1 / 50         | 5      | beast, giant | frost      | physical x0.75 | 34     | 30  |
+| jackal-man   | egyptian | pack    | 6   | 5   | 6   | 4   | 5   | 72  | 1.6 / 45         | 2      | undead       | holy       | death          | 18     | 15  |
+| scarab swarm | egyptian | swarm   | 3   | 4   | 3   | 2   | 2   | 36  | 0.9 / 30         | 1      | beast        | fire       | physical x0.75 | 6      | 5   |
 
-Draugr and troll are today's rows unchanged (armour and types from `combat.md`).
+Rows follow the data after Balance's bot pass (2026-10-14): armour at half the first draft, harpy, minotaur and jackal-man attributes as shipped; hp is Sta x 8 + Str x 4. The scarab swarm's armour is halved to match (not in data yet).
 
 ### Monster quirks (one each, always on)
 
-| Monster      | Quirk                                                                                       |
-| ------------ | ------------------------------------------------------------------------------------------- |
-| draugr       | **Grave-cold:** a hero it knocks out wakes 50% slower                                       |
-| troll        | **Regrowth:** heals 1% max hp per second; a fire hit stops it for 5 s                       |
-| harpy        | **Snatch:** a landed strike steals 5 gold from the hero (shown as a coin); returned on kill |
-| minotaur     | **Bull rush:** the charge (role) cannot be dodged                                           |
-| jackal-man   | **Scavenger:** heals 10% of max hp when its pack knocks out a hero                          |
-| scarab swarm | **Splitting:** the swarm role's split                                                       |
+| Monster      | Quirk                                                                                                                            |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------- |
+| draugr       | **Grave-cold:** a hero it knocks out wakes 50% slower                                                                            |
+| troll        | **Regrowth:** heals 1% max hp per second; a fire hit stops it for 5 s                                                            |
+| harpy        | **Snatch:** a landed strike steals 2 gold from the hero (shown as a coin); the hero that kills the harpy gets it with the bounty |
+| minotaur     | **Bull rush:** the charge (role) cannot be dodged                                                                                |
+| jackal-man   | **Scavenger:** heals 10% of max hp when its pack knocks out a hero                                                               |
+| scarab swarm | **Splitting:** the swarm role's split                                                                                            |
 
 Quirks reuse passive keys (`paths-and-skills.md`) where they can; Snatch and Regrowth are two
 new keys (`stealGold`, `regen` with `stopOnType`), Scavenger a third (`healOnKo`).
@@ -85,15 +85,14 @@ signature move.
 
 | Boss        | Pantheon | Hp   | Str | Armour | Strike s / range | Type     | Weak      | Resist               | Bounty | XP  |
 | ----------- | -------- | ---- | --- | ------ | ---------------- | -------- | --------- | -------------------- | ------ | --- |
-| Fafnir      | aesir    | 2400 | 22  | 14     | 2.0 / 70         | physical | frost     | fire, physical x0.75 | 400    | 300 |
+| Fafnir      | aesir    | 1200 | 14  | 7      | 2.0 / 70         | physical | frost     | fire, physical x0.75 | 400    | 300 |
 | Hydra       | greek    | 2200 | 14  | 8      | 1.6 / 80         | physical | fire      | frost                | 400    | 300 |
 | Apep        | egyptian | 2600 | 18  | 10     | 2.2 / 70         | death    | holy      | death                | 400    | 300 |
 | Jormungandr | aesir    | 2600 | 20  | 10     | 2.2 / 90         | death    | lightning | frost, death         | 400    | 300 |
 | Cerberus    | greek    | 2300 | 16  | 9      | 1.4 / 70         | fire     | holy      | fire                 | 400    | 300 |
 | Sphinx      | egyptian | 2400 | 17  | 12     | 2.0 / 70         | physical | frost     | holy, physical x0.8  | 400    | 300 |
 
-Boss hp is a data value, not Sta x 8 + Str x 4 (`combat.md`). A party of four tier 3 heroes
-does about 30-40 damage per second, so a boss fight lasts 60-90 s.
+Boss hp is a data value, not Sta x 8 + Str x 4 (`combat.md`). Fafnir follows the data after Balance's bot pass (hp 1200, Str 14, armour 7, 2026-10-14); a party of four tier 3 heroes does about 30-40 damage per second, so the fight lasts 30-40 s. The other five bosses keep this first draft until their M3 bot pass, which scales them like Fafnir.
 
 ### Signature moves
 
@@ -125,12 +124,12 @@ does about 30-40 damage per second, so a boss fight lasts 60-90 s.
 | Lair          | Monster      | Pantheon | Size  | Hp    | Spawn s | Max alive | Art                        |
 | ------------- | ------------ | -------- | ----- | ----- | ------- | --------- | -------------------------- |
 | barrow        | draugr       | aesir    | small | 3500  | 10      | 6         | `bld_lair_barrow_t1` (B10) |
-| troll-den     | troll        | aesir    | big   | 9000  | 25      | 4         | `bld_lair_troll-den_t1`    |
+| troll-den     | troll        | aesir    | big   | 6000  | 25      | 4         | `bld_lair_troll-den_t1`    |
 | harpy-roost   | harpy        | greek    | small | 3000  | 9       | 6         | `bld_lair_harpy-roost_t1`  |
-| labyrinth     | minotaur     | greek    | big   | 9000  | 24      | 4         | `bld_lair_labyrinth_t1`    |
+| labyrinth     | minotaur     | greek    | big   | 6000  | 24      | 4         | `bld_lair_labyrinth_t1`    |
 | jackal-camp   | jackal-man   | egyptian | small | 3500  | 10      | 6         | `bld_lair_jackal-camp_t1`  |
 | scarab-pit    | scarab swarm | egyptian | small | 3000  | 6       | 10        | new                        |
-| wyrm-nest     | Fafnir       | aesir    | boss  | 16000 | 30      | 3 guards  | `bld_lair_wyrm-nest_t1`    |
+| wyrm-nest     | Fafnir       | aesir    | boss  | 8000  | 30      | 3 guards  | `bld_lair_wyrm-nest_t1`    |
 | hydra-marsh   | Hydra        | greek    | boss  | 16000 | 30      | 3 guards  | new                        |
 | apep-tomb     | Apep         | egyptian | boss  | 16000 | 30      | 3 guards  | new                        |
 | serpent-shore | Jormungandr  | aesir    | boss  | 16000 | 30      | 3 guards  | new                        |
@@ -138,9 +137,11 @@ does about 30-40 damage per second, so a boss fight lasts 60-90 s.
 | sphinx-plinth | Sphinx       | egyptian | boss  | 16000 | 30      | 3 guards  | new                        |
 
 - **Troll den changes:** today it is the final lair (24000 hp). With the boss lair as the win
-  goal (Sim 150) it becomes a big normal lair: 9000 hp, 4 alive.
-- **Boss lair guards:** a boss lair spawns the pantheon's big monster (troll, minotaur) or, for
-  Egyptian, jackal-men, as guards until the boss emerges.
+  goal (Sim 150) it becomes a big normal lair: 6000 hp, 4 alive (Balance, 2026-10-14). The wyrm
+  nest is 8000 hp; the other boss lairs keep 16000 until their M3 bot pass.
+- **Boss lair guards:** a boss lair spawns guards until the boss emerges: the wyrm nest spawns
+  draugr (Balance, 2026-10-14: trolls at the nest made the boss fight a wall in the bot); Greek
+  and Egyptian boss lairs spawn the minotaur and jackal-men until their bot pass.
 - **Raids** come from every lair as today; harriers and swarms raid faster (1.5x walk speed).
 
 ### How lairs look per tier

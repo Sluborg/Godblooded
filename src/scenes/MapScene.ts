@@ -7,12 +7,14 @@ import { GRAYBOX } from '../data/graybox';
 import {
   command,
   createWorld,
+  runReport,
   loadWorld,
   saveWorld,
   SaveError,
   snapshot,
   step,
   type CommandResult,
+  type RunReport,
   type Snapshot,
   type UnitState,
   type Vec2,
@@ -347,6 +349,11 @@ export class MapScene extends Phaser.Scene {
     return command(this.world, { kind: 'upgrade', building });
   }
 
+  // The end-screen numbers for the run as it stands (Quit from Pause shows them as abandoned).
+  abandonReport(): RunReport {
+    return runReport(this.world);
+  }
+
   // Take a bounty flag down (half the gold comes back) or add gold to one that stands.
   tryCancelBounty(bounty: number): CommandResult {
     return command(this.world, { kind: 'cancelBounty', bounty });
@@ -387,10 +394,10 @@ export class MapScene extends Phaser.Scene {
       .map((e) => ({ e, d: Math.hypot(e.pos.x - w.x, e.pos.y - w.y) }))
       .filter(({ d }) => d < TARGET_RADIUS)
       .sort((a, b) => a.d - b.d)[0];
-    // A flag stands on the monster or lair it was placed on: the nearer of the two wins a tap.
+    // A flag stands on the monster or lair it was placed on: the nearer wins a tap, and a tie (a flag sits exactly on its target) goes to the flag.
     const flag = flagAt(this.snap.bounties, w);
     const flagPos = this.snap.bounties.find((b) => b.id === flag)?.pos;
-    if (flag !== null && flagPos && (!hit || Math.hypot(flagPos.x - w.x, flagPos.y - w.y) < hit.d))
+    if (flag !== null && flagPos && (!hit || Math.hypot(flagPos.x - w.x, flagPos.y - w.y) <= hit.d))
       return { plot: null, flag, target: null };
     if (hit) return { plot: null, target: { pos: { ...hit.e.pos }, label: hit.e.type } };
     return {

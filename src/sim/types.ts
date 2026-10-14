@@ -15,6 +15,8 @@ export interface BuildingDef {
   // Gold for tier 2 and tier 3 (index = current tier - 1). Missing: the building's cost times
   // tuning.building.upgradeCostMult.
   upgradeCost?: readonly number[];
+  // One plain line for the build menu and tooltips (Design, buildings.md). Display only.
+  text?: string;
 }
 
 // A god: heroes are children of a god, called by a temple of its pantheon. `template` is the
@@ -136,8 +138,121 @@ export interface MonsterDef {
   // A boss: one unit per final lair (docs/systems/combat.md section 7). The object overrides
   // tuning.boss for this boss; `{}` takes the defaults.
   boss?: Partial<BossTuning>;
+  // Boss only: its signature move, which replaces the generic cleave (monsters-and-bosses.md 3).
+  move?: BossMove;
   // Boss only: its own hit points instead of Sta * 8 + Str * 4 (scaled by lair tier).
   hp?: number;
+  // How it behaves (docs/systems/monsters-and-bosses.md section 1); missing is a brute.
+  role?: MonsterRole;
+  // One always-on trick (docs/systems/monsters-and-bosses.md, Monster quirks).
+  quirk?: MonsterQuirk;
+}
+
+export interface MonsterQuirk {
+  // Regrowth: heals pctS of max hp per second; a hit of type `stopOnType` stops it for stopS.
+  regen?: { pctS: number; stopOnType?: DamageType; stopS?: number };
+  // Snatch: a landed strike steals this much gold from a hero; the hero that kills it gets it.
+  stealGold?: number;
+  // Grave-cold: a hero it knocks out wakes this many times slower (1.5: 50% slower).
+  koMult?: number;
+  // Scavenger: it and its pack mates within packRadius of the fallen heal this share of max hp
+  // when it knocks a hero out.
+  healOnKo?: number;
+  // Bull rush: its charge cannot be dodged.
+  chargeSure?: boolean;
+}
+
+export type MonsterRole = 'brute' | 'harrier' | 'charger' | 'pack' | 'swarm';
+
+// Monster roles. Raiders of a harrier or swarm role walk raidSpeedMult faster.
+export interface RoleTuning {
+  // Harrier: flees to its lair below this share of max hp, heals healPctS of max hp per second
+  // there, and comes back at returnHp.
+  harrierFleeHp: number;
+  harrierHealPctS: number;
+  harrierReturnHp: number;
+  // Charger: charges a hero chargeMin to chargeMax away at chargeSpeedMult x its speed; the
+  // first strike is chargeMult x with a knockback of chargeKnockback, and it charges once per
+  // fight (again after chargeResetMs without a foe). A charger's hits on buildings are
+  // buildingMult x.
+  chargeMin: number;
+  chargeMax: number;
+  chargeSpeedMult: number;
+  chargeMult: number;
+  chargeKnockback: number;
+  chargeResetMs: number;
+  // The charge is announced this long before it starts (event windup).
+  chargeWindupMs: number;
+  buildingMult: number;
+  // Pack: +packBonus damage per other pack mate within packRadius, at most packMax.
+  packBonus: number;
+  packRadius: number;
+  packMax: number;
+  // Swarm: its lair keeps swarmAliveMult x as many alive; a raid has swarmRaidMult x as many
+  // with swarmRaidHpMult of the hp; at 0 hp it splits once into two halves of swarmSplitShare
+  // of the hp and damage, worth swarmSplitShare of the reward each.
+  swarmAliveMult: number;
+  swarmRaidMult: number;
+  swarmRaidHpMult: number;
+  swarmSplitShare: number;
+  raidSpeedMult: number;
+}
+
+// A boss's signature move. Only the breath so far (Fafnir); the others arrive as rows of the same
+// shape.
+export interface BossMove {
+  // Fire Breath: every everyN-th strike (enragedEveryN once enraged) is a cone in front of the
+  // boss: range, a full angle in degrees, mult x its strike, of a type with an optional rider.
+  // It is announced windupMs ahead, cannot be dodged, and hits every hero inside the cone.
+  breath?: {
+    everyN: number;
+    enragedEveryN: number;
+    range: number;
+    angleDeg: number;
+    mult: number;
+    type: DamageType;
+    rider?: RiderId;
+    windupMs: number;
+  };
+  // Venom (Jormungandr): every everyS seconds it spits on the hero with the most hp in reach; that
+  // hero and every hero within radius of it are poisoned, dotPct of max hp per second as death for
+  // s seconds. Any heal on a hero ends its poison.
+  venom?: TimedMove & { radius: number; dotPct: number; s: number };
+  // Howl (Cerberus): heroes within radius below belowHp break and flee for fleeS (brave and proud
+  // heroes ignore it); it calls `calls` guards from its lair.
+  howl?: TimedMove & { radius: number; belowHp: number; fleeS: number; calls: number };
+  // Riddle (Sphinx): asks the hero in reach with the lowest Int: intAtLeast or more answers (+buff
+  // damage for buffS), less is turned to stone for stoneS (no actions, half damage taken).
+  riddle?: TimedMove & { intAtLeast: number; buff: number; buffS: number; stoneS: number };
+  // Swallow (Apep): the hero with the most hp in reach is swallowed for s seconds (out of the
+  // fight, dotPct of max hp per second as death); freePct of the boss's max hp in damage frees it.
+  swallow?: TimedMove & { s: number; dotPct: number; freePct: number };
+  // Three Heads (Hydra): every strike hits up to `heads` heroes in reach; at each hp share of
+  // cutAt a head is cut and regrows after regrowS (enragedRegrowS) unless a hit of stopType lands
+  // on the boss meanwhile (then it stays cut).
+  heads?: {
+    count: number;
+    cutAt: number[];
+    regrowS: number;
+    enragedRegrowS: number;
+    stopType: DamageType;
+  };
+}
+
+// A move on a timer: every everyS seconds (enragedEveryS once enraged), announced windupMs ahead.
+export interface TimedMove {
+  everyS: number;
+  enragedEveryS: number;
+  windupMs: number;
+}
+
+// A cone on the ground a strike hits, fixed when the windup starts.
+export interface ConeArea {
+  from: Vec2;
+  // Unit vector the cone opens along.
+  dir: Vec2;
+  range: number;
+  angleDeg: number;
 }
 
 // Boss numbers. Defaults in tuning.boss; a MonsterDef.boss row can override any of them.
@@ -321,6 +436,11 @@ export interface HeroTuning {
   restPerS: number;
   shrineMult: number;
   shopMinGold: number;
+  // A shopping trip for an exploring hero that is not in a fight: -1 off (only the rest stop
+  // shops); 0 when its plan buys a weapon or armour level; above 0 when it carries that much
+  // gold and has anything to buy. Checked every 20 ticks, party leaders and lone heroes only, and
+  // never while heading for a flag or a lair.
+  shopTripGold: number;
   spendShare: number;
   // Spend share of a greedy (hoards) and a proud (wants the best) hero, when item rows exist.
   greedySpend: number;
@@ -754,9 +874,22 @@ export interface TownTuning {
   // Raids get one monster bigger per lair every this many ms.
   raidGrowEveryMs: number;
   // A resting hero at or above this hp fraction rejoins the fight when a monster comes within
-  // defendRange of the town hall.
+  // defendRange of the town hall or defendBuildingRange of any building.
   defendHp: number;
   defendRange: number;
+  defendBuildingRange: number;
+  // A raid is announced this long before it arrives (event raidWarning), and a tower of tier 2
+  // or more in town gives the warning towerWarnAddMs earlier still.
+  raidWarnMs: number;
+  towerWarnAddMs: number;
+  // A lair that tiers up sends one raid of its own (announced raidWarnMs ahead).
+  raidOnTierUp: boolean;
+  // The size of a tier-up raid: 0 follows the clock raid (raidSize + growth), else this flat size.
+  tierRaidSize: number;
+  // Only every n-th tier-up (counted across all lairs) sends a raid; 1 is every one.
+  tierRaidEvery: number;
+  // Gold the town gets when every raider of a raid is dead ("the town cheers").
+  raidBeatenGold: number;
 }
 
 // How a hero chooses (docs/systems/hero-ai.md section 3): flag, lair and explore all get a score;
@@ -847,6 +980,7 @@ export interface Tuning {
   save: SaveTuning;
   stats: StatsTuning;
   ai: AiTuning;
+  role: RoleTuning;
   favour: FavourTuning;
   town: TownTuning;
   bounty: BountyTuning;
@@ -886,6 +1020,7 @@ export interface GameData {
     save?: Partial<SaveTuning>;
     stats?: Partial<StatsTuning>;
     ai?: Partial<AiTuning>;
+    role?: Partial<RoleTuning>;
     favour?: Partial<FavourTuning>;
     town?: Partial<TownTuning>;
     bounty?: Partial<BountyTuning>;
@@ -1046,8 +1181,16 @@ export type SimEvent =
       inMs: number;
       // A cleave: the ground marker Scene draws until the strike lands.
       area?: { x: number; y: number; r: number };
+      // A breath: the cone Scene draws until the strike lands.
+      cone?: ConeArea;
+      // A timed boss move being announced (venom, howl, riddle, swallow).
+      move?: 'venom' | 'howl' | 'riddle' | 'swallow';
     }
   | { kind: 'bossEmerged'; unit: number; lair: number }
+  // The Sphinx asked `target`; `answered` is true when it knew the answer.
+  | { kind: 'riddle'; boss: number; target: number; answered: boolean }
+  // The Hydra lost or regrew a head; `heads` is how many it has now.
+  | { kind: 'bossHeads'; unit: number; heads: number }
   | { kind: 'enraged'; unit: number }
   // `source: 'miracle'`: a god's doing; `healer` is 0 (no unit swings or casts).
   | { kind: 'heal'; healer: number; target: number; amount: number; source?: 'miracle' }
@@ -1099,7 +1242,30 @@ export type SimEvent =
     }
   | { kind: 'tierUp'; unit: number; tier: number; path: string | null }
   | { kind: 'pathOffer'; party: number; hero: number; options: string[] }
-  | { kind: 'raid'; lair: number; size: number }
+  // A hero saw a kind of monster or lair for the first time this run (hints, barks).
+  | { kind: 'discovered'; what: 'monster' | 'lair'; type: string; unit: number; pos: Vec2 }
+  // A charger starts its charge toward `to`.
+  | { kind: 'charge'; unit: number; to: Vec2 }
+  // A swarm splits into two halves.
+  | { kind: 'split'; unit: number; into: number[] }
+  // A monster snatched gold from a hero.
+  | { kind: 'stolen'; thief: number; victim: number; gold: number }
+  // A raid is coming from `from` (the lair) in `inMs`; `early` is the tower's longer warning.
+  | {
+      kind: 'raidWarning';
+      raid: number;
+      lair: number;
+      size: number;
+      inMs: number;
+      from: Vec2;
+      dir: Vec2;
+      early?: boolean;
+    }
+  | { kind: 'raid'; lair: number; size: number; raid?: number }
+  // Every raider of the raid is dead: the town cheers and gets `gold`.
+  | { kind: 'raidBeaten'; raid: number; gold: number }
+  // The lair fell before its announced raid left: no raid comes.
+  | { kind: 'raidCancelled'; raid: number; lair: number }
   // A rider took hold on `target` (burn, chill, wither; arc and sear show in the hit itself).
   | { kind: 'rider'; target: number; rider: RiderId; by: number }
   // A hero starts casting a skill; it lands `inMs` later. `say`: Scene shows the skill name.
@@ -1120,7 +1286,17 @@ export type SimEvent =
   | {
       kind: 'status';
       unit: number;
-      status: 'shield' | 'mark' | 'buff' | 'taunt' | 'bind' | 'hot';
+      status:
+        | 'shield'
+        | 'mark'
+        | 'buff'
+        | 'taunt'
+        | 'bind'
+        | 'hot'
+        | 'poison'
+        | 'fear'
+        | 'stone'
+        | 'swallowed';
       until: number;
     }
   | { kind: 'argue'; a: number; b: number }
@@ -1210,7 +1386,8 @@ export interface HeroReport {
 }
 
 export interface RunReport {
-  outcome: 'won' | 'lost';
+  // 'abandoned': the player quit a run that was still going (api.runReport).
+  outcome: 'won' | 'lost' | 'abandoned';
   timeMs: number;
   mvp: number | null;
   heroes: HeroReport[];

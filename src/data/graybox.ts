@@ -8,6 +8,8 @@ import type {
   LairDef,
   MonsterDef,
   PathDef,
+  SkillDef,
+  SummonDef,
   UpgradeDef,
 } from '../sim/types';
 
@@ -31,7 +33,7 @@ export const CLASSES: readonly ClassDef[] = [
     kit: 'light',
     armour: 3,
   },
-  // Wizard: str stands for spell power until magic has its own stat.
+  // Wizard: spell power is Int x spellMult; Str only adds hp.
   {
     id: 'wizard',
     attrs: { str: 5, dex: 4, sta: 3, cha: 3, per: 5, int: 7, wp: 5 },
@@ -73,10 +75,52 @@ export const CLASSES: readonly ClassDef[] = [
 // Gods (docs/game-design.md, "Gods and paths", decision 2026-10-13): a temple calls a child of
 // one of its pantheon's gods. `template` is the hidden ClassDef a tier 1 child uses.
 export const GODS: readonly GodDef[] = [
-  { id: 'odin', pantheon: 'aesir', name: 'Odin', template: 'wizard', damageType: 'death' },
-  { id: 'thor', pantheon: 'aesir', name: 'Thor', template: 'warrior' },
-  { id: 'loki', pantheon: 'aesir', name: 'Loki', template: 'rogue' },
-  { id: 'freyja', pantheon: 'aesir', name: 'Freyja', template: 'healer', damageType: 'holy' },
+  {
+    id: 'odin',
+    pantheon: 'aesir',
+    name: 'Odin',
+    template: 'wizard',
+    damageType: 'death',
+    passive: {
+      id: 'allfather-eye',
+      name: "All-Father's Eye",
+      effects: [{ scope: 'party', range: 300, keys: { attr: { per: 3 }, firstStrike: true } }],
+    },
+  },
+  {
+    id: 'thor',
+    pantheon: 'aesir',
+    name: 'Thor',
+    template: 'warrior',
+    passive: {
+      id: 'giant-bane',
+      name: 'Giant-Bane',
+      effects: [{ scope: 'self', keys: { vsTag: { giant: 1.3 } } }],
+    },
+  },
+  {
+    id: 'loki',
+    pantheon: 'aesir',
+    name: 'Loki',
+    template: 'rogue',
+    passive: {
+      id: 'slippery',
+      name: 'Slippery',
+      effects: [{ scope: 'self', keys: { firstHitMisses: true, dodge: 0.05 } }],
+    },
+  },
+  {
+    id: 'freyja',
+    pantheon: 'aesir',
+    name: 'Freyja',
+    template: 'healer',
+    damageType: 'holy',
+    passive: {
+      id: 'chooser',
+      name: 'Chooser of the Slain',
+      effects: [{ scope: 'mates', range: 300, keys: { koGoldLoss: 0, koMult: 0.667 } }],
+    },
+  },
   { id: 'athena', pantheon: 'greek', name: 'Athena', template: 'paladin' },
   { id: 'ares', pantheon: 'greek', name: 'Ares', template: 'warrior' },
   { id: 'apollo', pantheon: 'greek', name: 'Apollo', template: 'ranger' },
@@ -319,9 +363,13 @@ export const PATHS: readonly PathDef[] = [
   },
 ];
 
+// Roles and quirks: docs/systems/monsters-and-bosses.md sections 1-2. Fafnir's Fire Breath
+// (section 3) replaces the generic cleave.
 export const MONSTERS: readonly MonsterDef[] = [
   {
     id: 'draugr',
+    role: 'brute',
+    quirk: { koMult: 1.5 },
     attrs: { str: 5, dex: 3, sta: 5, cha: 1, per: 3, int: 1, wp: 6 },
     weapon: { baseAttackS: 1.7, range: 40 },
     bounty: 12,
@@ -332,6 +380,8 @@ export const MONSTERS: readonly MonsterDef[] = [
   },
   {
     id: 'troll',
+    role: 'brute',
+    quirk: { regen: { pctS: 0.01, stopOnType: 'fire', stopS: 5 } },
     attrs: { str: 10, dex: 2, sta: 11, cha: 1, per: 2, int: 1, wp: 4 },
     weapon: { baseAttackS: 2.4, range: 50 },
     bounty: 40,
@@ -342,6 +392,8 @@ export const MONSTERS: readonly MonsterDef[] = [
   },
   {
     id: 'harpy',
+    role: 'harrier',
+    quirk: { stealGold: 2 },
     attrs: { str: 4, dex: 7, sta: 4, cha: 1, per: 5, int: 1, wp: 3 },
     weapon: { baseAttackS: 1.3, range: 40 },
     bounty: 14,
@@ -352,6 +404,8 @@ export const MONSTERS: readonly MonsterDef[] = [
   },
   {
     id: 'jackal-man',
+    role: 'pack',
+    quirk: { healOnKo: 0.1 },
     attrs: { str: 6, dex: 5, sta: 6, cha: 1, per: 4, int: 2, wp: 5 },
     weapon: { baseAttackS: 1.6, range: 45 },
     bounty: 18,
@@ -362,6 +416,8 @@ export const MONSTERS: readonly MonsterDef[] = [
   },
   {
     id: 'minotaur',
+    role: 'charger',
+    quirk: { chargeSure: true },
     attrs: { str: 9, dex: 3, sta: 10, cha: 1, per: 3, int: 1, wp: 5 },
     weapon: { baseAttackS: 2.1, range: 50 },
     bounty: 34,
@@ -370,10 +426,21 @@ export const MONSTERS: readonly MonsterDef[] = [
     tags: ['beast', 'giant'],
     types: { frost: 1.5, physical: 0.75 },
   },
-  // Fafnir (monsters-and-bosses.md section 3). Balance pass: hp 1200 and Str 14 (spec 2400 and 22)
-  // for the graybox parties, which are weaker than the spec's four tier 3 heroes.
+  // Fafnir (monsters-and-bosses.md section 3): hp 1200, Str 14, Fire Breath instead of the cleave.
   {
     id: 'wyrm',
+    move: {
+      breath: {
+        everyN: 3,
+        enragedEveryN: 2,
+        range: 160,
+        angleDeg: 70,
+        mult: 1.2,
+        type: 'fire',
+        rider: 'burn',
+        windupMs: 1200,
+      },
+    },
     attrs: { str: 14, dex: 3, sta: 12, cha: 1, per: 4, int: 2, wp: 8 },
     weapon: { baseAttackS: 2.0, range: 70 },
     bounty: 400,
@@ -387,15 +454,15 @@ export const MONSTERS: readonly MonsterDef[] = [
 ];
 
 // Lairs from docs/systems/monsters-and-bosses.md section 4; the wyrm nest is the boss lair (the
-// run is won when it falls) and spawns draugr guards. Balance pass (Lead 80): big lairs 6000 hp
-// and the nest 3500 hp (spec 9000 and 16000) keep the median run at 15-18 min.
+// run is won when it falls) and spawns draugr guards. Balance passes (Lead 80, 90): big lairs 6000 hp
+// and the nest 8000 hp (spec 9000 and 16000) keep the median run at 15-18 min.
 export const LAIRS: readonly LairDef[] = [
   { id: 'barrow', monster: 'draugr', spawnS: 10, maxAlive: 6, hp: 3500 },
   { id: 'troll-den', monster: 'troll', spawnS: 25, maxAlive: 4, hp: 6000 },
   { id: 'harpy-roost', monster: 'harpy', spawnS: 9, maxAlive: 6, hp: 3000 },
   { id: 'jackal-camp', monster: 'jackal-man', spawnS: 10, maxAlive: 6, hp: 3500 },
   { id: 'labyrinth', monster: 'minotaur', spawnS: 24, maxAlive: 4, hp: 6000 },
-  { id: 'wyrm-nest', monster: 'wyrm', spawnS: 30, maxAlive: 3, hp: 3500, escort: 'draugr' },
+  { id: 'wyrm-nest', monster: 'wyrm', spawnS: 30, maxAlive: 3, hp: 8000, escort: 'draugr' },
 ];
 
 // Level-up cards; a party is offered 3 and its leader auto-picks (level-ups.md): `god` offers
@@ -403,6 +470,8 @@ export const LAIRS: readonly LairDef[] = [
 export const UPGRADES: readonly UpgradeDef[] = [
   {
     id: 'iron-arms',
+    family: 'stats',
+    rarity: 'common',
     god: 'thor',
     pickTag: 'attack',
     name: 'Iron Arms',
@@ -411,6 +480,8 @@ export const UPGRADES: readonly UpgradeDef[] = [
   },
   {
     id: 'thick-hide',
+    family: 'stats',
+    rarity: 'common',
     god: 'anubis',
     pickTag: 'defence',
     name: 'Thick Hide',
@@ -419,6 +490,8 @@ export const UPGRADES: readonly UpgradeDef[] = [
   },
   {
     id: 'quick-feet',
+    family: 'stats',
+    rarity: 'common',
     god: 'loki',
     pickTag: 'attack',
     name: 'Quick Feet',
@@ -427,6 +500,8 @@ export const UPGRADES: readonly UpgradeDef[] = [
   },
   {
     id: 'hawk-eyes',
+    family: 'stats',
+    rarity: 'common',
     god: 'horus',
     pickTag: 'sight',
     name: 'Hawk Eyes',
@@ -435,6 +510,8 @@ export const UPGRADES: readonly UpgradeDef[] = [
   },
   {
     id: 'iron-will',
+    family: 'stats',
+    rarity: 'common',
     god: 'athena',
     pickTag: 'defence',
     name: 'Iron Will',
@@ -443,6 +520,8 @@ export const UPGRADES: readonly UpgradeDef[] = [
   },
   {
     id: 'battle-hymn',
+    family: 'stats',
+    rarity: 'common',
     god: 'ares',
     pickTag: 'attack',
     name: 'Battle Hymn',
@@ -451,6 +530,8 @@ export const UPGRADES: readonly UpgradeDef[] = [
   },
   {
     id: 'odins-eye',
+    family: 'nerve',
+    rarity: 'common',
     god: 'odin',
     pickTag: 'nerve',
     name: "Odin's Eye",
@@ -459,6 +540,8 @@ export const UPGRADES: readonly UpgradeDef[] = [
   },
   {
     id: 'second-wind',
+    family: 'sustain',
+    rarity: 'common',
     god: 'freyja',
     pickTag: 'sustain',
     name: 'Second Wind',
@@ -467,12 +550,235 @@ export const UPGRADES: readonly UpgradeDef[] = [
   },
   {
     id: 'berserker',
+    family: 'nerve',
+    rarity: 'rare',
     god: 'sekhmet',
     pickTag: 'nerve',
     name: 'Berserker',
     text: '+3 Strength, but the party never flees',
     effect: { attr: { str: 3 }, flee: 0 },
   },
+  {
+    id: 'keen-mind',
+    god: 'odin',
+    pickTag: 'attack',
+    family: 'stats',
+    rarity: 'common',
+    needs: { caster: true },
+    name: 'Keen Mind',
+    text: '+2 Intelligence for the whole party',
+    effect: { attr: { int: 2 } },
+  },
+  {
+    id: 'giants-blood',
+    god: 'thor',
+    pickTag: 'defence',
+    family: 'stats',
+    rarity: 'rare',
+    name: "Giant's Blood",
+    text: '+2 Strength and +2 Stamina, -1 Dexterity',
+    effect: { attr: { str: 2, sta: 2, dex: -1 } },
+  },
+  {
+    id: 'field-dressing',
+    god: 'freyja',
+    pickTag: 'sustain',
+    family: 'sustain',
+    rarity: 'common',
+    name: 'Field Dressing',
+    text: 'The party rests 50% faster',
+    effect: { keys: { restMult: 1.5 } },
+  },
+  {
+    id: 'deep-pockets',
+    god: 'loki',
+    pickTag: 'sustain',
+    family: 'sustain',
+    rarity: 'rare',
+    name: 'Deep Pockets',
+    text: '+1 potion slot each',
+    effect: { keys: { potionSlots: 1 } },
+  },
+  {
+    id: 'tight-purse',
+    god: 'loki',
+    pickTag: 'gold',
+    family: 'nerve',
+    rarity: 'common',
+    name: 'Tight Purse',
+    text: 'Knocked-out members lose half as much gold',
+    effect: { keys: { koGoldLoss: 0.5 } },
+  },
+  {
+    id: 'wolf-blood',
+    god: 'odin',
+    pickTag: 'nerve',
+    family: 'nerve',
+    rarity: 'common',
+    name: 'Wolf Blood',
+    text: '+25% damage while below 30% hp',
+    effect: { keys: { belowHp: { below: 0.3, stat: 'damage', amount: 0.25 } } },
+  },
+];
+
+// Aesir path skills (docs/systems/aesir-content.md section 4), one per path, mapped onto the
+// SkillDef shapes Sim shipped. Multipliers are on power (Str, or Int x spellMult).
+export const SKILLS: readonly SkillDef[] = [
+  // Approximation: the spec marks the foe with the most hp and caps tier 3 at 3 targets;
+  // SkillDef marks the hero's own foe and every foe in the circle.
+  {
+    id: 'raven-omen',
+    path: 'odin-seer',
+    name: 'Raven Omen',
+    trigger: { kind: 'ready', range: 300 },
+    cooldownS: 12,
+    target: 'foe',
+    shape: { kind: 'single' },
+    effects: [{ kind: 'mark', pct: 0.25, s: 6 }],
+    visual: ['mark'],
+    t3: {
+      shape: { kind: 'circle', radius: 200 },
+      effects: [{ kind: 'mark', pct: 0.35, s: 6 }],
+    },
+  },
+  {
+    id: 'gungnir',
+    path: 'odin-wanderer',
+    name: 'Gungnir',
+    trigger: { kind: 'engage', min: 120, max: 300 },
+    cooldownS: 14,
+    target: 'foe',
+    shape: { kind: 'single' },
+    effects: [{ kind: 'damage', mult: 2.5, type: 'physical', sure: true }],
+    visual: ['line'],
+    // Tier 3 pierces the line. Approximation: the spec's extra 1.0x on the first foe has no field.
+    t3: { shape: { kind: 'line', length: 300 } },
+  },
+  {
+    id: 'mjolnir-slam',
+    path: 'thor-hammerborn',
+    name: 'Mjolnir Slam',
+    trigger: { kind: 'crowd', n: 2, radius: 90 },
+    cooldownS: 10,
+    target: 'self',
+    shape: { kind: 'circle', radius: 90 },
+    effects: [{ kind: 'damage', mult: 1.5, type: 'lightning' }, { kind: 'stagger' }],
+    visual: ['pillar', 'burst'],
+    t3: {
+      shape: { kind: 'circle', radius: 130 },
+      effects: [
+        { kind: 'damage', mult: 2.0, type: 'lightning', rider: 'arc' },
+        { kind: 'stagger' },
+      ],
+    },
+  },
+  {
+    id: 'chain-lightning',
+    path: 'thor-stormcaller',
+    name: 'Chain Lightning',
+    trigger: { kind: 'ready', range: 220 },
+    cooldownS: 10,
+    target: 'foe',
+    shape: { kind: 'chain', jumps: 3, radius: 120, falloff: 0.7 },
+    effects: [{ kind: 'damage', mult: 0.9, type: 'lightning' }],
+    visual: ['chain'],
+    // Approximation: the spec's tier 3 pillar on the last foe hit has no field.
+    t3: { shape: { kind: 'chain', jumps: 5, radius: 120, falloff: 0.7 } },
+  },
+  {
+    id: 'mirror-double',
+    path: 'loki-trickster',
+    name: 'Mirror Double',
+    trigger: {
+      any: [
+        { kind: 'selfHurt', below: 0.6 },
+        { kind: 'selfHurt', n: 2 },
+      ],
+    },
+    cooldownS: 16,
+    target: 'self',
+    shape: { kind: 'single' },
+    effects: [
+      { kind: 'summon', summon: 'decoy', count: 1, s: 6 },
+      { kind: 'buff', stat: 'dodge', amount: 0.3, s: 6, to: 'self' },
+    ],
+    visual: ['summon'],
+    t3: {
+      effects: [
+        {
+          kind: 'summon',
+          summon: 'decoy',
+          count: 2,
+          s: 6,
+          end: { radius: 60, effects: [{ kind: 'damage', mult: 1.0, type: 'fire' }] },
+        },
+        { kind: 'buff', stat: 'dodge', amount: 0.3, s: 6, to: 'self' },
+      ],
+    },
+  },
+  {
+    id: 'wildfire',
+    path: 'loki-flamebinder',
+    name: 'Wildfire',
+    trigger: { kind: 'ready', range: 220 },
+    cooldownS: 10,
+    target: 'foe',
+    shape: { kind: 'circle', radius: 70 },
+    effects: [{ kind: 'damage', mult: 1.2, type: 'fire', rider: 'burn' }],
+    visual: ['bolt', 'burst'],
+    // Approximation: the spec's 6 s burn at tier 3 has no field; the burn keeps its tuning length.
+    t3: { shape: { kind: 'circle', radius: 100 } },
+  },
+  {
+    id: 'valkyrie-swoop',
+    path: 'freyja-valkyrie',
+    name: "Valkyrie's Swoop",
+    trigger: { kind: 'allyHurt', below: 0.35, radius: 300 },
+    cooldownS: 14,
+    target: 'point',
+    shape: { kind: 'circle', radius: 70 },
+    effects: [
+      { kind: 'dash' },
+      { kind: 'damage', mult: 1.8, type: 'physical' },
+      { kind: 'shield', pct: 0.2, s: 5 },
+    ],
+    visual: ['dash', 'shield'],
+    // Approximation: the spec hits the hurt ally's attacker; SkillDef hits every foe within 70 of
+    // the ally (the attacker is one of them), and tier 3's 1.0x burst lands on the same circle.
+    t3: {
+      effects: [
+        { kind: 'dash' },
+        { kind: 'damage', mult: 1.8, type: 'physical' },
+        { kind: 'damage', mult: 1.0, type: 'physical' },
+        { kind: 'shield', pct: 0.35, s: 5 },
+      ],
+    },
+  },
+  {
+    id: 'seidr-ward',
+    path: 'freyja-seidkona',
+    name: 'Seidr Ward',
+    trigger: { kind: 'allyHurt', below: 0.5, radius: 220 },
+    cooldownS: 12,
+    target: 'ally',
+    shape: { kind: 'single' },
+    // Approximation: the spec also chills the ally's attacker at tier 2; a single-ally shape holds
+    // no foe, so the chill comes with the tier 3 circle.
+    effects: [{ kind: 'shield', mult: 2, s: 6 }],
+    visual: ['shield'],
+    t3: {
+      shape: { kind: 'circle', radius: 200 },
+      effects: [
+        { kind: 'shield', mult: 2, s: 6 },
+        { kind: 'damage', mult: 0, type: 'frost', rider: 'chill' },
+      ],
+    },
+  },
+];
+
+// Units the skills call.
+export const SUMMONS: readonly SummonDef[] = [
+  { id: 'decoy', hpShare: 0.2, taunt: { radius: 120 } },
 ];
 
 // Gear (docs/systems/items-and-shops.md section 2). Weapon and armour levels come from the
@@ -484,7 +790,7 @@ export const ITEMS: readonly ItemDef[] = [
     slot: 'weapon',
     level: 1,
     name: 'Tempered',
-    price: 60,
+    price: 20,
     shop: 'smithy',
     shopTier: 1,
     effects: { power: 2 },
@@ -513,7 +819,7 @@ export const ITEMS: readonly ItemDef[] = [
     id: 'armour-1',
     slot: 'armour',
     level: 1,
-    price: 50,
+    price: 20,
     shop: 'smithy',
     shopTier: 1,
     effects: {
@@ -575,16 +881,29 @@ export const ITEMS: readonly ItemDef[] = [
 ];
 
 export const GRAYBOX: GameData = {
-  startGold: 420,
+  startGold: 480,
   map: { width: 2400, height: 1600 },
   townHall: { x: 1200, y: 800 },
-  // Balance pass (Lead 100; items, potions, card auto-pick, level cap 8, knockout cost; 300 runs,
-  // seeds 1 and 1001): win rate 66-67%, median run 15.6 min, timeouts under 1%. Town income is
-  // item tax only: start gold 420 builds a temple, market and smithy, and tax is 60% of an
-  // item's price. Unset keys use DEFAULT_TUNING.
+  // Balance pass (gear before the first potion, roles and quirks, Fafnir's breath, raids after a
+  // lair tier-up, shop trips, on top of the Aesir, item, card and pacing rows; 300 runs, seeds 1
+  // and 1001): 68-69% wins, median 15.6 min, boss out at about 12.5-13 min, no timeouts, 88% of
+  // heroes with gear by 8:00. Town income is item tax only: start gold 480 builds a temple, market and
+  // smithy, and tax is 50% of an item's price. Unset keys use DEFAULT_TUNING.
   tuning: {
-    hero: { maxPerTemple: 7, recruitMs: 22_000, taxRate: 0.6 },
-    town: { raidFirstMs: 420_000, raidEveryMs: 180_000, raidGrowEveryMs: 240_000, raidSize: 1 },
+    hero: { maxPerTemple: 7, recruitMs: 22_000, taxRate: 0.5, shopTripGold: 0 },
+    // Raids after a lair tier-up are on (Stefan): one raider on every tier-up.
+    town: {
+      raidFirstMs: 360_000,
+      raidEveryMs: 180_000,
+      raidGrowEveryMs: 400_000,
+      raidSize: 1,
+      raidOnTierUp: true,
+      tierRaidSize: 1,
+      tierRaidEvery: 1,
+    },
+    // Pacing (docs/systems/pacing-review.md): slower levels and a staggered lair clock.
+    party: { xpPerLevel: 45 },
+    lair: { firstTierUpMs: 360_000, tierUpStaggerMs: 120_000, tierUpEveryMs: 420_000 },
   },
   classes: CLASSES,
   gods: GODS,
@@ -593,6 +912,8 @@ export const GRAYBOX: GameData = {
   monsters: MONSTERS,
   lairs: LAIRS,
   items: ITEMS,
+  skills: SKILLS,
+  summons: SUMMONS,
   // Each run draws its own map (Sim 150): 4-6 lairs from the pool, leaning on one pantheon, and
   // the wyrm nest as the boss lair; the run is won when the boss falls.
   lairSites: [],
@@ -624,10 +945,23 @@ export const GRAYBOX: GameData = {
     { x: 1476, y: 588 },
   ],
   buildings: [
-    { id: 'temple_aesir', cost: 150 },
-    { id: 'market', cost: 100 },
-    { id: 'shrine', cost: 120 },
-    { id: 'tower', cost: 80 },
-    { id: 'smithy', cost: 120 },
+    // `text`: one plain line for the build menu (docs/systems/buildings.md section 4).
+    {
+      id: 'temple_aesir',
+      cost: 150,
+      text: 'Calls the children of Odin, Thor, Loki and Freyja to your town.',
+    },
+    {
+      id: 'market',
+      cost: 100,
+      text: 'Sells potions to heroes; the town takes a tax on every sale.',
+    },
+    { id: 'shrine', cost: 120, text: 'Wounded heroes rest here and heal fast.' },
+    { id: 'tower', cost: 80, text: 'Shoots monsters that come near the town.' },
+    {
+      id: 'smithy',
+      cost: 120,
+      text: 'Sells weapons and armour; the town takes a tax on every sale.',
+    },
   ],
 };
