@@ -14,10 +14,19 @@ import { SkillGalleryScene } from './scenes/SkillGalleryScene';
 import { PartsGalleryScene } from './scenes/PartsGalleryScene';
 
 // Auto-update: a new deploy is picked up and the page reloads with it.
+// An installed app can sit in memory for days and never navigate, so the browser's own update
+// check (on navigation) never runs: also check every hour, whenever the app comes back to the
+// foreground and when the network returns. autoUpdate then swaps the worker and reloads the page.
 registerSW({
   immediate: true,
   onRegisteredSW(_url, registration) {
-    if (registration) setInterval(() => registration.update(), 60 * 60 * 1000);
+    if (!registration) return;
+    const check = () => void registration.update().catch(() => undefined);
+    setInterval(check, 60 * 60 * 1000);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') check();
+    });
+    window.addEventListener('online', check);
   },
 });
 
