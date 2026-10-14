@@ -77,8 +77,11 @@ describe('solveTwoBone', () => {
 
 describe('layout', () => {
   it('needs the body parts and skips the optional ones', () => {
-    expect(kitComplete(kit().parts)).toBe(true);
-    expect(kitComplete({ ...kit().parts, shin: undefined })).toBe(false);
+    expect(kitComplete(kit().parts, 'bent')).toBe(true);
+    expect(kitComplete({ ...kit().parts, shin: undefined }, 'bent')).toBe(false);
+    // The default is the floating rig: it needs hands and boots, not limbs.
+    expect(kitComplete(kit().parts)).toBe(false);
+    expect(kitComplete(kit({ hand: part(20, 20), boot: part(24, 16) }).parts)).toBe(true);
     const draws = layout(kit(), pose);
     expect(draws.some((d) => d.part === kit().parts.cloak)).toBe(false);
   });
