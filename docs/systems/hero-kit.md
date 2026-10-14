@@ -50,14 +50,14 @@ with Scene); Scene combines and animates; Balance and Lead write the item rows. 
 
 ## 2. Item slots and families
 
-| Slot     | Families (M2 Aesir in bold)                                                      | Levels | Buys at | Worn socket |
-| -------- | -------------------------------------------------------------------------------- | ------ | ------- | ----------- |
-| weapon   | **staff, spear, hammer, daggers, wand**; later sword, axe, bow, khopesh, claws   | 0-3    | smithy  | weapon      |
-| armour   | **heavy, light, robe** (the template's kit)                                      | 0-3    | smithy  | torso, legs |
-| headgear | **heavy helm, light hood, robe hat** (by kit)                                    | 0-3    | smithy  | headgear    |
-| off-hand | **shield** (heavy kit), **second blade** (rogue), **focus** (casters: rune tome) | 0-3    | smithy  | off-hand    |
-| potion   | **healing potion**                                                               | count  | market  | none        |
-| charm    | the four charms (M3)                                                             | one    | market  | none        |
+| Slot     | Families (M2 Aesir in bold)                                                           | Levels | Buys at | Worn socket |
+| -------- | ------------------------------------------------------------------------------------- | ------ | ------- | ----------- |
+| weapon   | **staff, spear, hammer, daggers, wand**; later sword, axe, bow, khopesh, claws        | 0-3    | smithy  | weapon      |
+| armour   | **heavy, light, robe** (the template's kit)                                           | 0-3    | smithy  | torso, legs |
+| headgear | **heavy helm, light hood, robe hat** (by kit)                                         | 0-3    | smithy  | headgear    |
+| off-hand | **shield** (heavy kit), **second blade** (light kit), **focus** (robe kit: rune tome) | 0-3    | smithy  | off-hand    |
+| potion   | **healing potion**                                                                    | count  | market  | none        |
+| charm    | the four charms (M3)                                                                  | one    | market  | none        |
 
 - **Each weapon level is its own item and piece:** for example staff 0 "Ash staff", 1
   "Tempered staff", 2 "Runed staff", 3 "Star staff"; Balance and Lead name the rows. The family
