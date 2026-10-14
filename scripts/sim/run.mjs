@@ -15,6 +15,8 @@
 // and spent, nodes freed, defiled and sprouted, and the gatherers and guards lost.
 // --hall-tiers turns the town hall tiers on (tuning.town.hallTiers): the bot upgrades the hall too.
 // --ruins turns ruins on (a destroyed building leaves a ruin); the bot rebuilds them when it can.
+// --first-run plays the gentler first run (data.firstRun overrides apply, the clock waits for the
+// first temple), to tune data.firstRun.
 // --data takes a JSON file that overrides GRAYBOX fields (top level; `tuning` groups are
 // merged one by one), so data passes can be tried without editing src/data.
 import { readFileSync } from 'node:fs';
@@ -48,6 +50,7 @@ const BUILD_ARG = buildIdx >= 0 ? args[buildIdx + 1].split(',') : undefined;
 const UPGRADE = !args.includes('--no-upgrade') && !HUMAN;
 const HALL_TIERS = args.includes('--hall-tiers');
 const RUINS = args.includes('--ruins');
+const FIRST_RUN = args.includes('--first-run');
 const HUNT = args.includes('--hunt');
 const FLAGS = args.includes('--flags') || HUNT;
 const FLAG_GOLD = opt('flag-gold', HUNT ? 50 : 40);
@@ -96,7 +99,7 @@ try {
       probes: new Map(),
       seen: { arrivedMs: null, hurtMs: null, raidMs: null },
     };
-    const w = sim.createWorld(seed0 + r, GRAYBOX);
+    const w = sim.createWorld(seed0 + r, GRAYBOX, { firstRun: FIRST_RUN });
     let snap = sim.snapshot(w);
     let timeout = false;
     // Minutes of the first boss emerge and the first blow to or from a boss (null: never).
