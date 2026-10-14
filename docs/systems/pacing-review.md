@@ -73,3 +73,49 @@ retries. The early beats come too close together; the late beats spread out.
 | Sim     | 10    | Boss lair sealed until `bossUnsealMs` (720000) or `bossUnsealLairs` (2) lairs have fallen                                               |
 | Sim     | 20    | Run stats for the beats (first party, tier 2, raid, lair fall, tier 3, boss) in `RunReport`, printed by `npm run sim` (part of Sim 450) |
 | Balance | 20    | Re-measure with the bot after the Aesir data lands; then win-rate tuning                                                                |
+
+## 5. Re-measure on main 668fcc3 (2026-10-14, row 50)
+
+All of section 3 is in the data, plus the Aesir skills, passives, items and cards (#235) and
+raids after a lair tier-up. Same probe, 100 seeds, two bot variants: A places one 50 gold flag
+on the nearest lair when gold is over 150 (as before); B places a 40 gold flag 150 from a hero
+once a minute when gold is 60 or more (to measure steering).
+
+| Event                      | Target     | A (median, middle half) | B                |
+| -------------------------- | ---------- | ----------------------- | ---------------- |
+| First party                |            | 1.1 (0.8-1.3)           | 1.1              |
+| Party level 2              |            | 2.3 (1.8-2.7)           | 2.4              |
+| Tier 2                     | 4-6        | 3.4 (2.7-4.1)           | 3.4              |
+| First raid                 | 6          | 6.0                     | 6.0              |
+| First lair tier-up         | 6          | 6.0                     | 6.0              |
+| First lair falls           | 7-11       | 7.0 (5.6-9.1)           | 6.6              |
+| Tier 3                     | 11-14      | 8.4 (7.5-9.9)           | 8.4              |
+| Boss emerges               | 12-15      | 13.9 (11.3-17.1)        | 13.9             |
+| Run ends                   | 15-18      | 17.0 (14.4-20.3)        | 15.7 (11.3-19.0) |
+| Wins                       | 55-75%     | 66%                     | 56%              |
+| Longest quiet stretch      | under 60 s | 17.6 s                  | 16.7 s           |
+| Average gear level at 8:00 | 1 or more  | 0.1                     | 0.1              |
+| Flags placed per run       |            |                         | 4 (2-6)          |
+| Flags a party turns to     |            |                         | 50% (30-70%)     |
+| Time until a party turns   |            |                         | 21 s (5-64)      |
+
+- **Pacing is on target** except tier 2 and tier 3, which still come about 1 and 3 minutes
+  early even with the 40n curve: the Aesir passives and skills add the XP the curve took away.
+  Boss, raids, lair clock and run length land where section 3 aimed.
+- **Gear fails the fun gate** (`m2-plan.md` 4: average gear level 1+ by 8:00). At 8:00 most
+  heroes carry potions and level 0 weapon and armour: in a sample run 2 of 7 heroes had any.
+  Not yet traced: likely the shopping order (potions first) or the smithy's level 1 price against a hero's purse.
+- **Town gold is tight in the first 5 minutes:** with the build order done, the town holds
+  about 50 to 140 gold between 3:00 and 5:00, so a 40 gold flag is a real choice but the
+  player cannot place one every minute. Flags cost wins: B wins 56% against A's 66%.
+- **Flags do steer, slowly:** half the flags get a party turning to them, the median after
+  21 s; a flag on a lair reads as a lair goal (intent `lair`), not a flag.
+
+### Proposals (for Balance and Sim)
+
+| Order | Change                                                                                                                           | Why                                         | Expected                        |
+| ----- | -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- | ------------------------------- |
+| 70    | Smithy level 1 weapon and armour cheaper, or heroes buy a weapon before a second potion (shopping order, `items-and-shops.md` 3) | the gear gate                               | gear 1+ at 8:00                 |
+| 80    | `xpPerLevel` 45 or a slower lair XP (`rewardMult` tier 1)                                                                        | tier 2 at 4-6 and tier 3 at 11-14           | tier 2 about 4, tier 3 about 10 |
+| 90    | Start gold or early tax a little up (about +60 by 3:00), or a cheaper smallest flag (25)                                         | a flag a minute must be affordable          | 6+ flags a run                  |
+| 100   | Sim: `turnsPerFlag` and gear at 8:00 in `RunReport` (Sim row 150 run stats)                                                      | so the bot prints these, not Design's probe |                                 |
