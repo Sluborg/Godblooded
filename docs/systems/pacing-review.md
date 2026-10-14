@@ -130,3 +130,9 @@ gold. Balance's bot: 69-73% wins, median run 16-17 min, gear at 8:00 weapon 0.4 
 once it lands.
 
 - **Gate redefined** (Lead, 2026-10-14): the gear gate is now "at least 80% of heroes alive at 8:00 (knocked-out ones count, slain ones do not) own a gear piece", not an average level of 1. Design's next re-run reports that share.
+
+### Balance's second pass (branch `balance/gear-first-retune`, 2026-10-14)
+
+`taxRate` 0.5, raids every 3:00, a one-raider raid on every lair tier-up, wyrm nest back to
+8000 hp. Balance's bot: 68-69% wins, median run 15.6 min, boss out at 12.4-13.0, 88% of heroes
+geared at 8:00 (the gate is 80%).
