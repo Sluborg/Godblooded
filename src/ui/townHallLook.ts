@@ -1,7 +1,5 @@
 import Phaser from 'phaser';
 import { bake } from './bake';
-import { footprintPoints } from './groundDecal';
-import { hash, insidePoly } from './organic';
 
 // The town hall has to read as THE main building, in code until Art draws a great hall (Stefan,
 // playtest 2026-10-14): larger than any other building, on a stone plaza with a gold rim, two tall
@@ -19,53 +17,26 @@ export function isTownHall(type: string): boolean {
   return type === 'townhall';
 }
 
-// The flagstone yard under the hall: an irregular patch shaped to the hall's footprint (a rounded
-// diamond with a ragged edge), paved with uneven flagstones, some broken or missing at the edge, no
-// rim. The gold ring shows only when the hall is tapped (footprintRing), like every building.
+// A stone plaza disc with paving joints and a gold trim ring, on the ground layer.
 export function plazaDecal(scene: Phaser.Scene): Phaser.GameObjects.Image {
-  const { w, h, stone, light, joint } = HALL_STYLE.plaza;
-  return bake(scene, 'plaza2', w / 2 + 24, h / 2 + 24, (g) => {
-    // The patch: the footprint diamond with its edge pushed in and out.
-    const patch = footprintPoints(w).map((p, i) => {
-      const k = 1 + (hash(i + 300) - 0.5) * 0.14 + Math.sin(i * 1.7) * 0.03;
-      return { x: p.x * k, y: -6 + (p.y + 6) * k };
-    });
-    const grown = patch.map((p) => ({ x: p.x * 1.06, y: -6 + (p.y + 6) * 1.12 }));
-    g.fillStyle(0x24140a, 0.22).fillPoints(grown, true);
-    g.fillStyle(0x4a4538, 1).fillPoints(patch, true);
-    // Flagstones on a loose grid in the iso plane; near the edge some are broken or missing.
-    const cw = 36;
-    const ch = 17;
-    for (let row = -7; row <= 7; row++) {
-      for (let col = -8; col <= 8; col++) {
-        const n = row * 31 + col * 7;
-        const cx = col * cw + (row % 2 ? cw / 2 : 0) + (hash(n) - 0.5) * 5;
-        const cy = -6 + row * ch + (hash(n + 1) - 0.5) * 3;
-        if (!insidePoly(patch, cx, cy)) continue;
-        const edge = !insidePoly(patch, cx * 0.9, -6 + (cy + 6) * 0.9);
-        if (edge && hash(n + 2) < 0.35) continue;
-        const sw = cw * (0.82 + hash(n + 3) * 0.14);
-        const sh = ch * (0.8 + hash(n + 4) * 0.14);
-        const tone = hash(n + 5);
-        const fill = tone < 0.33 ? joint : tone < 0.7 ? stone : light;
-        const quad = [
-          { x: cx - sw / 2 + (hash(n + 6) - 0.5) * 3, y: cy - sh / 2 },
-          { x: cx + sw / 2 + (hash(n + 7) - 0.5) * 3, y: cy - sh / 2 + (hash(n + 8) - 0.5) * 2 },
-          { x: cx + sw / 2 + (hash(n + 9) - 0.5) * 3, y: cy + sh / 2 },
-          { x: cx - sw / 2 + (hash(n + 10) - 0.5) * 3, y: cy + sh / 2 + (hash(n + 11) - 0.5) * 2 },
-        ];
-        g.fillStyle(fill, edge ? 0.8 : 1).fillPoints(quad, true);
-        g.lineStyle(1.5, 0x2e2a22, 0.7).strokePoints(quad, true, true);
-        g.lineStyle(1, 0xe6dfc8, 0.22).lineBetween(
-          quad[0].x + 1,
-          quad[0].y + 1,
-          quad[1].x - 1,
-          quad[1].y + 1,
-        );
-      }
+  const { w, h, stone, light, joint, trim } = HALL_STYLE.plaza;
+  return bake(scene, 'plaza', (w + 24) / 2 + 12, (h + 14) / 2 + 12, (g) => {
+    g.fillStyle(0x24140a, 0.28).fillEllipse(8, 0, w + 24, h + 14);
+    g.fillStyle(stone, 1).fillEllipse(0, -6, w, h);
+    g.fillStyle(light, 0.55).fillEllipse(0, -10, w * 0.72, h * 0.66);
+    // Paving: radial joints and one inner ring.
+    g.lineStyle(2, joint, 0.55).strokeEllipse(0, -6, w * 0.74, h * 0.74);
+    for (let i = 0; i < 14; i++) {
+      const a = (i / 14) * Math.PI * 2;
+      g.lineBetween(
+        Math.cos(a) * w * 0.37,
+        -6 + Math.sin(a) * h * 0.37,
+        Math.cos(a) * w * 0.5,
+        -6 + Math.sin(a) * h * 0.5,
+      );
     }
-    // A worn dark outline, not a gold rim.
-    g.lineStyle(2, 0x2e2a22, 0.5).strokePoints(patch, true, true);
+    g.lineStyle(6, trim, 0.95).strokeEllipse(0, -6, w, h);
+    g.lineStyle(2, 0x3b2a10, 0.8).strokeEllipse(0, -6, w + 8, h + 6);
   });
 }
 
