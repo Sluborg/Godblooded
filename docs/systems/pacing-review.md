@@ -120,3 +120,13 @@ once a minute when gold is 60 or more (to measure steering).
 | 80    | `xpPerLevel` 45 or a slower lair XP (`rewardMult` tier 1)                                                                                                                                                | tier 2 at 4-6 and tier 3 at 11-14           | tier 2 about 4, tier 3 about 10 |
 | 90    | Start gold or early tax a little up (about +60 by 3:00), or a cheaper smallest flag (25)                                                                                                                 | a flag a minute must be affordable          | 6+ flags a run                  |
 | 100   | Sim: `turnsPerFlag` and gear at 8:00 in `RunReport` (Sim row 150 run stats)                                                                                                                              | so the bot prints these, not Design's probe |                                 |
+
+### Balance's answer (branch `balance/roles-raids`, 2026-10-14)
+
+Level 1 weapon and armour 20 gold, start gold 480, `xpPerLevel` 45, raids every 3:30 growing
+every 400 s, tier-up raids on (1 raider on every 2nd tier-up), wyrm nest 6000 hp, Snatch 2
+gold. Balance's bot: 69-73% wins, median run 16-17 min, gear at 8:00 weapon 0.4 and armour
+0.3 (up from about 0.1, still under the gate's 1). Design re-runs this section on that data
+once it lands.
+
+- **Gate redefined** (Lead, 2026-10-14): the gear gate is now "at least 80% of heroes alive at 8:00 (knocked-out ones count, slain ones do not) own a gear piece", not an average level of 1. Design's next re-run reports that share.
