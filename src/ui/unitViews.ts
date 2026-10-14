@@ -1243,6 +1243,7 @@ export class UnitViews {
       if (view.gone) {
         view.destroy();
         this.dying.delete(id);
+        this.strikeType.delete(id);
       }
     }
     this.flushQueued();

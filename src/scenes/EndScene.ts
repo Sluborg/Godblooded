@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { COLORS, GAME_HEIGHT, GAME_WIDTH } from '../config';
 import { makeButton } from '../ui/button';
+import { markRunEnded } from '../ui/hintStore';
 import { formatClock, sparkline, visibleHeroes } from '../ui/endReport';
 import { heroLabel } from '../ui/partyLook';
 import type { HeroReport, RunReport } from '../sim/api';
@@ -41,6 +42,14 @@ export class EndScene extends Phaser.Scene {
         color: COLORS.textMuted,
       })
       .setOrigin(0.5);
+    // Fixed lines (docs/systems/hint-texts.md): the outcome, and on the first finished run a promise.
+    if (!abandoned) {
+      const first = markRunEnded();
+      const line = [won ? 'The boss is slain.' : 'The town hall has fallen.']
+        .concat(first ? ['The next run will be harder.'] : [])
+        .join('  ');
+      this.text(cx, 124, line, 20, '#c9b48a', 0.5);
+    }
 
     this.heroTable(report?.heroes ?? []);
     this.mvpCard(report?.heroes.find((h) => h.mvp) ?? null);

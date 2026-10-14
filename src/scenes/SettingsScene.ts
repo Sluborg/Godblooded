@@ -2,6 +2,8 @@ import Phaser from 'phaser';
 import { COLORS, GAME_HEIGHT, GAME_WIDTH } from '../config';
 import { makeButton, type Button } from '../ui/button';
 import { stepVolume } from '../ui/musicPlan';
+import { clearSeen } from '../ui/hintStore';
+import type { HudScene } from './HudScene';
 import { makePanel } from '../ui/panel';
 import { PARTY_COLORS, PARTY_COLORS_CB } from '../ui/partyLook';
 import { getSettings, updateSettings, type PaletteId, type Speed } from '../ui/settings';
@@ -20,7 +22,10 @@ export class SettingsScene extends Phaser.Scene {
   private paletteButtons: Button[] = [];
   private motion!: Button;
   private names!: Button;
+  private hintsBtn!: Button;
+  private hintsAgain!: Phaser.GameObjects.Text;
   private musicText!: Phaser.GameObjects.Text;
+  private effectsText!: Phaser.GameObjects.Text;
   private muteButton!: Button;
   private swatches!: Phaser.GameObjects.Graphics;
 
@@ -49,21 +54,23 @@ export class SettingsScene extends Phaser.Scene {
     );
 
     this.row(220, 'Reduced motion');
-    this.motion = makeButton(this, 640, 220, 280, 80, '', () => {
+    this.motion = makeButton(this, 480, 220, 190, 80, '', () => {
       updateSettings({ reducedMotion: !getSettings().reducedMotion });
       this.refresh();
     });
 
-    this.row(305, 'Hero names');
-    this.names = makeButton(this, 640, 305, 280, 80, '', () => {
+    this.add
+      .text(680, 220, 'Hero names', { fontFamily: FONT, fontSize: '32px', color: COLORS.text })
+      .setOrigin(0, 0.5);
+    this.names = makeButton(this, 1030, 220, 190, 80, '', () => {
       updateSettings({ heroNames: !getSettings().heroNames });
       this.refresh();
     });
 
-    this.row(390, 'Party colours');
+    this.row(305, 'Party colours');
     PALETTES.forEach((p, i) =>
       this.paletteButtons.push(
-        makeButton(this, 640 + i * 230, 390, 210, 80, p.label, () => {
+        makeButton(this, 640 + i * 230, 305, 210, 80, p.label, () => {
           updateSettings({ palette: p.id });
           this.refresh();
         }),
@@ -71,18 +78,45 @@ export class SettingsScene extends Phaser.Scene {
     );
     this.swatches = this.add.graphics();
 
-    this.row(540, 'Music');
-    makeButton(this, 560, 540, 90, 80, '-', () => this.nudgeMusic(-1));
+    this.row(450, 'Music');
+    makeButton(this, 560, 450, 90, 80, '-', () => this.nudgeMusic(-1));
     this.musicText = this.add
-      .text(670, 540, '', { fontFamily: FONT, fontSize: '32px', color: COLORS.text })
+      .text(670, 450, '', { fontFamily: FONT, fontSize: '32px', color: COLORS.text })
       .setOrigin(0.5);
-    makeButton(this, 780, 540, 90, 80, '+', () => this.nudgeMusic(1));
-    this.muteButton = makeButton(this, 960, 540, 200, 80, '', () => {
+    makeButton(this, 780, 450, 90, 80, '+', () => this.nudgeMusic(1));
+    this.muteButton = makeButton(this, 960, 450, 200, 80, '', () => {
       updateSettings({ musicMuted: !getSettings().musicMuted });
       this.refresh();
     });
 
-    makeButton(this, cx, 640, 300, 80, 'Back', () => this.scene.stop());
+    this.row(535, 'Effects');
+    makeButton(this, 560, 535, 90, 80, '-', () => this.nudgeEffects(-1));
+    this.effectsText = this.add
+      .text(670, 535, '', { fontFamily: FONT, fontSize: '32px', color: COLORS.text })
+      .setOrigin(0.5);
+    makeButton(this, 780, 535, 90, 80, '+', () => this.nudgeEffects(1));
+    this.hintsBtn = makeButton(this, 902, 535, 150, 80, '', () => {
+      updateSettings({ hintsOn: !getSettings().hintsOn });
+      this.refresh();
+      (this.scene.get('Hud') as HudScene | undefined)?.refreshHints();
+    });
+    makeButton(this, 1110, 535, 230, 80, 'Show hints again', () => {
+      clearSeen();
+      // The running director keeps its own copy and would write it back over the cleared list.
+      (this.scene.get('Hud') as HudScene | undefined)?.refreshHints();
+      this.hintsAgain.setAlpha(1);
+      this.tweens.add({ targets: this.hintsAgain, alpha: 0, delay: 1200, duration: 400 });
+    });
+    this.hintsAgain = this.add
+      .text(1100, 485, 'Hints will show again', {
+        fontFamily: FONT,
+        fontSize: '20px',
+        color: COLORS.textMuted,
+      })
+      .setOrigin(0.5)
+      .setAlpha(0);
+
+    makeButton(this, cx, 630, 300, 80, 'Back', () => this.scene.stop(), { sfx: 'sfx_ui_back' });
     this.refresh();
   }
 
@@ -90,6 +124,11 @@ export class SettingsScene extends Phaser.Scene {
     this.add
       .text(110, y, label, { fontFamily: FONT, fontSize: '32px', color: COLORS.text })
       .setOrigin(0, 0.5);
+  }
+
+  private nudgeEffects(dir: 1 | -1): void {
+    updateSettings({ effectsVolume: stepVolume(getSettings().effectsVolume, dir) });
+    this.refresh();
   }
 
   private nudgeMusic(dir: 1 | -1): void {
@@ -100,6 +139,7 @@ export class SettingsScene extends Phaser.Scene {
   private refresh(): void {
     const s = getSettings();
     this.musicText.setText(`${Math.round(s.musicVolume * 100)}%`);
+    this.effectsText.setText(`${Math.round(s.effectsVolume * 100)}%`);
     this.muteButton.setLabel(s.musicMuted ? 'Muted' : 'Mute');
     this.muteButton.setActive(s.musicMuted);
     this.speedButtons.forEach((b, i) => b.setActive(SPEEDS[i] === s.speed));
@@ -107,12 +147,14 @@ export class SettingsScene extends Phaser.Scene {
     this.motion.setActive(s.reducedMotion);
     this.names.setLabel(s.heroNames ? 'Always' : 'On tap');
     this.names.setActive(s.heroNames);
+    this.hintsBtn.setLabel(s.hintsOn ? 'Hints on' : 'Hints off');
+    this.hintsBtn.setActive(s.hintsOn);
     this.paletteButtons.forEach((b, i) => b.setActive(PALETTES[i].id === s.palette));
     const colors = s.palette === 'colourblind' ? PARTY_COLORS_CB : PARTY_COLORS;
     this.swatches.clear();
     colors.forEach((c, i) => {
-      this.swatches.fillStyle(c, 1).fillCircle(400 + i * 68, 465, 24);
-      this.swatches.lineStyle(2, 0x000000, 0.6).strokeCircle(400 + i * 68, 465, 24);
+      this.swatches.fillStyle(c, 1).fillCircle(400 + i * 68, 380, 24);
+      this.swatches.lineStyle(2, 0x000000, 0.6).strokeCircle(400 + i * 68, 380, 24);
     });
   }
 }
