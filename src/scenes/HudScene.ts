@@ -195,6 +195,7 @@ export class HudScene extends Phaser.Scene {
     this.goldText.setText(`${this.goldIcon ? '' : 'Gold '}${this.registry.get('gold') ?? 0}`);
     // On a first run the clock stands still until the first temple: say so instead of 0:00.
     const waiting = (this.scene.get('Map') as MapScene).snapshot.waiting;
+    this.clockText.setFontSize(waiting ? 22 : 30);
     this.clockText.setText(
       waiting ? 'Build a temple' : formatClock((this.registry.get('timeMs') as number) ?? 0),
     );
