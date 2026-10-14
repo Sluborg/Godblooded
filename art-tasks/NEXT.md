@@ -2,17 +2,19 @@
 
 **One style (Stefan, playtest run 2, 2026-10-14):** every batch follows the new `STYLE.md`
 (the painted buildings are the anchor). The big-head cartoon batches are Void. **Ready (Stefan's
-go 2026-10-14): B13, G1 (the parts kit test only).** Every other batch stays Draft until Stefan says go for it. Then take the first **Ready** batch of **your track** that is not in the upload
+go 2026-10-14): B13, G1 (the parts kit test only), B19-B24, V2.** Every other batch stays Draft until Stefan says go for it. Then take the first **Ready** batch of **your track** that is not in the upload
 log; never a **Draft** (Art is still waiting on Stefan). Art sets a batch to Done when its images are shipped.
 
 | Batch | Track     | File     | What                                                                | Images | Status |
 | ----- | --------- | -------- | ------------------------------------------------------------------- | ------ | ------ |
-| B19   | buildings | `B19.md` | Redo town hall t2: same longhouse grown, nothing odd on the back    | 1      | Draft  |
-| B20   | buildings | `B20.md` | Redo Greek and Egyptian temples t1: real temples with an inside     | 2      | Draft  |
-| B21   | buildings | `B21.md` | Redo smithy t1 (real weapons) and market t2 (calmer, real logs)     | 2      | Draft  |
-| B22   | buildings | `B22.md` | Redo watch tower t2: believable, built from tower t1                | 1      | Draft  |
-| B23   | buildings | `B23.md` | Redo troll den t1: no wheel, no smoke, grimmer                      | 1      | Draft  |
-| V2    | monsters  | `V2.md`  | Redo minotaur t1: a real two-handed grip                            | 1      | Draft  |
+| B13   | buildings | `B13.md` | Map markers: build plot and bounty flag (M2)                        | 2      | Ready  |
+| B19   | buildings | `B19.md` | Redo town hall t2: same longhouse grown, nothing odd on the back    | 1      | Ready  |
+| B20   | buildings | `B20.md` | Redo Greek and Egyptian temples t1: real temples with an inside     | 2      | Ready  |
+| B21   | buildings | `B21.md` | Redo smithy t1 (real weapons) and market t2 (calmer, real logs)     | 2      | Ready  |
+| B22   | buildings | `B22.md` | Redo watch tower t2: believable, built from tower t1                | 1      | Ready  |
+| B23   | buildings | `B23.md` | Redo troll den t1: no wheel, no smoke, grimmer                      | 1      | Ready  |
+| B24   | buildings | `B24.md` | Redo barrow t1: grimmer, dead grass, spookier                       | 1      | Ready  |
+| V2    | monsters  | `V2.md`  | Redo minotaur t1: a real two-handed grip                            | 1      | Ready  |
 | G1    | heroes    | `G1.md`  | Hero parts kit test: Grim's segments sheet, axe icon, portrait      | 4      | Ready  |
 | G2    | heroes    | `G2.md`  | Aesir paths t2 in the one style (after G1)                          | 8      | Draft  |
 | G3    | heroes    | `G3.md`  | Town folk: tax reeve with ledger and coin chest, gatherer, guard    | 3      | Draft  |
@@ -53,7 +55,6 @@ log; never a **Draft** (Art is still waiting on Stefan). Art sets a batch to Don
 | B15   | buildings | `B15.md` | Buildings tier 1 in the new look: eight (town hall: B18)            | 8      | Void   |
 | B18   | buildings | `B18.md` | Town hall t1 as the great hall: clearly the main building           | 1      | Void   |
 | B17   | buildings | `B17.md` | Lairs tier 1 in the new look (redraw)                               | 6      | Void   |
-| B13   | buildings | `B13.md` | Map markers: build plot and bounty flag (M2)                        | 2      | Ready  |
 | B16   | buildings | `B16.md` | Buildings tier 2 in the new look: all nine (after B15)              | 9      | Void   |
 | B14   | buildings | `B14.md` | Buildings tier 3: all nine, per Design table                        | 9      | Draft  |
 | B12   | buildings | `B12.md` | Merchant caravan, ruin, scaffold, 3 grave markers                   | 6      | Draft  |
