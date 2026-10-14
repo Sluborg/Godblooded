@@ -25,6 +25,11 @@ const json = args.includes('--json');
 // --human: a player who builds a few buildings at the start and then only watches: no upgrades,
 // no flags, no lair flag. --build a,b,c sets the buildings (default temple_aesir,tower,shrine).
 const HUMAN = args.includes('--human');
+// --profile: steps one 50 ms tick at a time and times step() and snapshot(); the report adds ms per
+// tick (p50/p95/p99/max) for the whole run and for minutes 14-18 (late-game load).
+const PROFILE = args.includes('--profile');
+const windowAt = args.indexOf('--window');
+const WINDOW = (windowAt >= 0 ? args[windowAt + 1] : '14,18').split(',').map(Number);
 // --hints (with --human): builds in the order the hints give: the temple at once, a market about 20 s
 // after the first hero arrives, a shrine after the first hero flees or falls, a tower once a
 // raid is announced or at 6:00. Cards and paths are picked after a 5-15 s think (one in ten is
@@ -61,7 +66,8 @@ try {
       BUILD_ORDER.length,
       ...(BUILD_ARG ?? ['temple_aesir', 'tower', 'shrine']),
     );
-  const DT = 100;
+  const DT = PROFILE ? 50 : 100;
+  const samples = { all: [], late: [] };
   const results = [];
 
   let flagRun = null;
@@ -128,8 +134,17 @@ try {
         timeout = true;
         break;
       }
+      const t0 = PROFILE ? performance.now() : 0;
       sim.step(w, DT);
+      const t1 = PROFILE ? performance.now() : 0;
       snap = sim.snapshot(w);
+      if (PROFILE) {
+        const t2 = performance.now();
+        const sample = { step: t1 - t0, snap: t2 - t1 };
+        samples.all.push(sample);
+        if (w.timeMs >= WINDOW[0] * 60_000 && w.timeMs < WINDOW[1] * 60_000)
+          samples.late.push(sample);
+      }
       watch(snap);
       for (const at of Object.keys(goldAt)) {
         if (goldAt[at] === null && snap.timeMs >= Number(at)) goldAt[at] = snap.gold;
@@ -210,7 +225,11 @@ try {
   function hintOrder(snap) {
     const s = flagRun.seen;
     const out = ['temple_aesir'];
-    if (s.arrivedMs !== null && snap.timeMs >= s.arrivedMs + 20_000) out.push('market');
+    if (s.arrivedMs !== null && snap.timeMs >= s.arrivedMs + 20_000) {
+      out.push('market');
+      // The smithy hint follows the market: the bot builds it next after it.
+      if (GRAYBOX.buildings.some((b) => b.id === 'smithy')) out.push('smithy');
+    }
     if (s.hurtMs !== null) out.push('shrine');
     if (s.raidMs !== null || snap.timeMs >= 360_000) out.push('tower');
     return out;
@@ -314,6 +333,22 @@ try {
   }
 
   const report = summarize(results);
+  if (PROFILE) {
+    const q = (a, p) => {
+      const v = [...a].sort((x, y) => x - y);
+      return v.length === 0 ? 0 : v[Math.min(v.length - 1, Math.floor(p * v.length))];
+    };
+    const line = (name, list) => {
+      const st = list.map((s) => s.step);
+      const sn = list.map((s) => s.snap);
+      const both = list.map((s) => s.step + s.snap);
+      const f = (n) => n.toFixed(3);
+      return `  ${name.padEnd(18)} ticks ${String(list.length).padStart(7)}  step p50 ${f(q(st, 0.5))} p95 ${f(q(st, 0.95))} p99 ${f(q(st, 0.99))} max ${f(Math.max(0, ...st))}  snapshot p50 ${f(q(sn, 0.5))} p95 ${f(q(sn, 0.95))}  both p95 ${f(q(both, 0.95))} ms`;
+    };
+    console.log('Tick cost (ms per 50 ms tick):');
+    console.log(line('whole runs', samples.all));
+    console.log(line(`minutes ${WINDOW[0]}-${WINDOW[1]}`, samples.late));
+  }
   if (json) console.log(JSON.stringify({ runs, seed0, maxMin, report, results }, null, 2));
   else print(report);
 } finally {

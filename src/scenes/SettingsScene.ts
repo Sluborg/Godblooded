@@ -7,6 +7,7 @@ import type { HudScene } from './HudScene';
 import { makePanel } from '../ui/panel';
 import { PARTY_COLORS, PARTY_COLORS_CB } from '../ui/partyLook';
 import { getSettings, updateSettings, type PaletteId, type Speed } from '../ui/settings';
+import { fitDesignCamera } from '../ui/designCamera';
 
 const FONT = 'Georgia, serif';
 const SPEEDS: Speed[] = [1, 2, 4];
@@ -23,6 +24,7 @@ export class SettingsScene extends Phaser.Scene {
   private motion!: Button;
   private names!: Button;
   private hintsBtn!: Button;
+  private sharpBtn!: Button;
   private hintsAgain!: Phaser.GameObjects.Text;
   private musicText!: Phaser.GameObjects.Text;
   private effectsText!: Phaser.GameObjects.Text;
@@ -34,6 +36,7 @@ export class SettingsScene extends Phaser.Scene {
   }
 
   create(): void {
+    fitDesignCamera(this);
     this.speedButtons = [];
     this.paletteButtons = [];
     const cx = GAME_WIDTH / 2;
@@ -116,6 +119,11 @@ export class SettingsScene extends Phaser.Scene {
       .setOrigin(0.5)
       .setAlpha(0);
 
+    // Beside Back: the page must reload for a change to show (the canvas size is set at start-up).
+    this.sharpBtn = makeButton(this, 300, 630, 330, 80, '', () => {
+      updateSettings({ sharp: !getSettings().sharp });
+      this.refresh();
+    });
     makeButton(this, cx, 630, 300, 80, 'Back', () => this.scene.stop(), { sfx: 'sfx_ui_back' });
     this.refresh();
   }
@@ -147,6 +155,8 @@ export class SettingsScene extends Phaser.Scene {
     this.motion.setActive(s.reducedMotion);
     this.names.setLabel(s.heroNames ? 'Always' : 'On tap');
     this.names.setActive(s.heroNames);
+    this.sharpBtn.setLabel(s.sharp ? 'Sharp: on (reload)' : 'Sharp: off (reload)');
+    this.sharpBtn.setActive(s.sharp);
     this.hintsBtn.setLabel(s.hintsOn ? 'Hints on' : 'Hints off');
     this.hintsBtn.setActive(s.hintsOn);
     this.paletteButtons.forEach((b, i) => b.setActive(PALETTES[i].id === s.palette));
