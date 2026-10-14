@@ -1,6 +1,6 @@
 import { payIntoTill, payTithe } from './collector';
 import { escortHeldBy, escortOpenTo } from './escort';
-import { lairSealed, nearSealedLair } from './boss';
+import { bossLair, lairSealed, nearSealedLair } from './boss';
 import { earn, newRecord } from './runstats';
 import { baseFleeOf, fledParty, fleeThreshold, newParty, pantheonOf, TRAITS } from './parties';
 import { slowOf } from './riders';
@@ -529,7 +529,33 @@ function lairScore(world: World, unit: UnitState, lair: LairState): number | nul
     tm.lairXp * world.tuning.ai.lairXpWeight -
     (t.lairDanger + monsters) * t.costPerDanger * fearMult(world, unit) -
     dist(unit.pos, lair.pos) * world.tuning.ai.distanceCost;
-  return score > 0 ? score : null;
+  const call = bossCall(world, unit, lair);
+  const total = call ? Math.max(score + call.bonus, call.floor ?? 0) : score;
+  return total > 0 ? total : null;
+}
+
+// The boss call (hero-ai.md 5c): from the unsealing the boss lair scores as if a flag stood on it,
+// and with no normal lair left, a healthy party's score for it is at least explore + switchMin.
+function bossCall(
+  world: World,
+  unit: UnitState,
+  lair: LairState,
+): { bonus: number; floor?: number } | undefined {
+  const ai = world.tuning.ai;
+  if (!world.bossUnsealed || ai.bossCallBonus <= 0 || bossLair(world)?.id !== lair.id) {
+    return undefined;
+  }
+  const normalStands = world.lairs.some((l) => l.id !== lair.id);
+  const members =
+    unit.party !== 0 ? (world.parties.get(unit.party)?.members ?? [unit.id]) : [unit.id];
+  const healthy = members.every((id) => {
+    const m = world.units.find((u) => u.id === id);
+    return !m || (!m.ko && m.hp > m.maxHp * ai.bossCallHp);
+  });
+  return {
+    bonus: ai.bossCallBonus,
+    ...(!normalStands && healthy ? { floor: ai.exploreValue + ai.switchMin } : {}),
+  };
 }
 
 // Hunt flags follow their monster; flags on open ground are claimed by a hero standing on one once
