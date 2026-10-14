@@ -9,6 +9,7 @@ import {
   type Stats,
 } from './units';
 import { dropTill } from './collector';
+import { leaveRuin } from './ruins';
 import { takeDamage } from './effects';
 import { shareXp } from './parties';
 import { earn, tally } from './runstats';
@@ -76,6 +77,7 @@ export function attackBuilding(
     world.buildings = world.buildings.filter((x) => x.id !== b.id);
     world.stats.buildingsLost++;
     world.events.push({ kind: 'buildingDestroyed', building: b.id, type: b.type });
+    leaveRuin(world, b);
     if (b.type === 'townhall') {
       world.status = 'lost';
       world.events.push({ kind: 'lost' });

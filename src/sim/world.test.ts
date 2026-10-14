@@ -140,6 +140,7 @@ describe('world', () => {
         building: r.ok ? r.id : -1,
         locked: false,
         unlockTier: 1,
+        ruin: null,
       },
       {
         id: 1,
@@ -148,6 +149,7 @@ describe('world', () => {
         building: null,
         locked: false,
         unlockTier: 1,
+        ruin: null,
       },
     ]);
     expect(s.buildings.find((b) => b.type === 'market')).toMatchObject({

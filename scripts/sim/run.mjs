@@ -14,6 +14,7 @@
 // Recall of the fallen, then a temple tier, then an Offering. The report adds Ambrosia gathered
 // and spent, nodes freed, defiled and sprouted, and the gatherers and guards lost.
 // --hall-tiers turns the town hall tiers on (tuning.town.hallTiers): the bot upgrades the hall too.
+// --ruins turns ruins on (a destroyed building leaves a ruin); the bot rebuilds them when it can.
 // --data takes a JSON file that overrides GRAYBOX fields (top level; `tuning` groups are
 // merged one by one), so data passes can be tried without editing src/data.
 import { readFileSync } from 'node:fs';
@@ -46,6 +47,7 @@ const BUILD_ARG = buildIdx >= 0 ? args[buildIdx + 1].split(',') : undefined;
 // The bot buys building tiers unless --no-upgrade is given.
 const UPGRADE = !args.includes('--no-upgrade') && !HUMAN;
 const HALL_TIERS = args.includes('--hall-tiers');
+const RUINS = args.includes('--ruins');
 const HUNT = args.includes('--hunt');
 const FLAGS = args.includes('--flags') || HUNT;
 const FLAG_GOLD = opt('flag-gold', HUNT ? 50 : 40);
@@ -67,9 +69,8 @@ try {
   const { GRAYBOX: base } = await server.ssrLoadModule('/src/data/graybox.ts');
   const data0 = dataFile ? withOverride(base, JSON.parse(readFileSync(dataFile, 'utf8'))) : base;
   const data1 = M3 ? withOverride(data0, { tuning: { nodes: { enabled: true } } }) : data0;
-  const GRAYBOX = HALL_TIERS
-    ? withOverride(data1, { tuning: { town: { hallTiers: true } } })
-    : data1;
+  const data2 = HALL_TIERS ? withOverride(data1, { tuning: { town: { hallTiers: true } } }) : data1;
+  const GRAYBOX = RUINS ? withOverride(data2, { tuning: { town: { ruins: true } } }) : data2;
   // The smithy joins the order once the data has one (heroes then buy weapons and armour).
   const BUILD_ORDER = ['temple_aesir', 'market', 'shrine', 'tower'];
   if (GRAYBOX.buildings.some((b) => b.id === 'smithy')) BUILD_ORDER.splice(2, 0, 'smithy');
@@ -333,6 +334,12 @@ try {
       const plot = snap.plots.find((p) => !p.occupied);
       if (!plot) break;
       sim.command(w, { kind: 'build', type, plot: plot.id });
+    }
+    for (const ruin of snap.ruins ?? []) {
+      const def = GRAYBOX.buildings.find((d) => d.id === ruin.type);
+      if (def && snap.gold >= def.cost * w.tuning.town.rebuildCostMult + 60) {
+        sim.command(w, { kind: 'rebuildRuin', ruin: ruin.id });
+      }
     }
     // With gold to spare, buy the next tier of a temple, tower or market (cheapest first).
     if (UPGRADE) {

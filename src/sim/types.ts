@@ -902,6 +902,14 @@ export interface TownTuning {
   hallHpByTier: readonly number[];
   hallUpgradeCost: readonly number[];
   plotsByHallTier: readonly number[];
+  // Ruins and repair (docs/systems/buildings.md section 3). Off: a destroyed building just goes.
+  // On: it leaves a ruin on its plot (the town hall never does), rebuildable for rebuildCostMult
+  // of its cost; buildings heal repairPerS of their max hp a second with no monster within
+  // repairSafeRange.
+  ruins: boolean;
+  rebuildCostMult: number;
+  repairPerS: number;
+  repairSafeRange: number;
   buildingHp: number;
   // Raids: monsters from every lair march on the town.
   raidFirstMs: number;
@@ -1094,6 +1102,15 @@ export interface GameData {
   townHall: Vec2;
 }
 
+// What a destroyed building leaves on its plot when tuning.town.ruins is on (ruins.ts): rebuilt at
+// tier 1 for rebuildCostMult of its cost, or cleared for nothing.
+export interface RuinState {
+  id: number;
+  type: string;
+  plot: number;
+  pos: Vec2;
+}
+
 export interface BuildingState {
   id: number;
   type: string;
@@ -1123,6 +1140,8 @@ export interface PlotState {
   // Closed until the town hall reaches `unlockTier` (always open without hall tiers).
   locked: boolean;
   unlockTier: number;
+  // The ruin that stands on it, if any.
+  ruin: number | null;
 }
 
 export interface LairState {
@@ -1530,6 +1549,8 @@ export type SimEvent =
   | { kind: 'lairSprouted'; node: number; lair: number }
   | { kind: 'nodeFreed'; node: number; lair: number; pos: Vec2; pool: number }
   | { kind: 'lairDestroyed'; lair: number; type: string; by: number; bounty: number }
+  | { kind: 'ruinLeft'; ruin: number; type: string; plot: number; pos: Vec2 }
+  | { kind: 'ruinCleared'; ruin: number }
   | { kind: 'buildingDestroyed'; building: number; type: string }
   // A hero paid its tithe into the till of `building` (its home temple; the town hall, banked at
   // once, when none stands) as it started to rest.
@@ -1620,7 +1641,10 @@ export type Command =
   | { kind: 'pickUpgrade'; party: number; upgrade: string }
   | { kind: 'pickPath'; party: number; path: string }
   // Buy the next tier of a building.
-  | { kind: 'upgrade'; building: number };
+  | { kind: 'upgrade'; building: number }
+  // A ruin: rebuild at tier 1 for half the cost, or clear it for nothing (frees the plot).
+  | { kind: 'rebuildRuin'; ruin: number }
+  | { kind: 'clearRuin'; ruin: number };
 
 export type CommandResult = { ok: true; id: number } | { ok: false; reason: string };
 
@@ -1687,6 +1711,8 @@ export interface Snapshot {
   readonly parties: readonly Readonly<PartyState>[];
   readonly paths: readonly Readonly<PathState>[];
   readonly bounties: readonly Readonly<BountyState>[];
+  // Ruins of destroyed buildings (tuning.town.ruins).
+  readonly ruins: readonly Readonly<RuinState>[];
   // Gold piles on the ground (a fallen tax collector's load).
   readonly piles: readonly Readonly<PileState>[];
   // Celestial nodes (empty while tuning.nodes.enabled is off) and the Ambrosia in the town's hands.

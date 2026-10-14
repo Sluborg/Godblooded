@@ -51,6 +51,7 @@ import {
 } from './boss';
 import { buildReport, sampleGold, tally, type HeroRecord } from './runstats';
 import { collectorFell, runCollector } from './collector';
+import { clearRuin, rebuildRuin, runRepair } from './ruins';
 import { raiderHeld } from './corrupt';
 import { offering, recallFallen, upgradeWithAmbrosia } from './ambrosia';
 import { placeEscort, runEscorts } from './escort';
@@ -123,6 +124,7 @@ import type {
   JarState,
   NodeState,
   PileState,
+  RuinState,
   ConeArea,
   SkillEffect,
   GraveState,
@@ -287,6 +289,8 @@ export interface World {
   // (collector.ts).
   piles: PileState[];
   collectorQueue: number[];
+  // Ruins of destroyed buildings (ruins.ts).
+  ruins: RuinState[];
   // Celestial nodes and the Ambrosia the town holds (nodes.ts).
   nodes: NodeState[];
   ambrosia: number;
@@ -355,6 +359,7 @@ export function createWorld(seed: number, data: GameData): World {
     bounties: [],
     piles: [],
     collectorQueue: [],
+    ruins: [],
     nodes: [],
     ambrosia: 0,
     jars: [],
@@ -446,6 +451,7 @@ function runTick(world: World): void {
   sampleGold(world);
   runTemples(world);
   runTowers(world);
+  runRepair(world);
   // Tower victims leave now, before the lairs count their monsters or the units act.
   settleDeaths(world);
   runStatuses(world);
@@ -1091,6 +1097,8 @@ export function command(world: World, cmd: Command): CommandResult {
       if (world.buildings.some((b) => b.plot === cmd.plot)) {
         return { ok: false, reason: 'plot taken' };
       }
+      if (world.ruins.some((r) => r.plot === cmd.plot))
+        return { ok: false, reason: 'plot has a ruin' };
       if (plotLocked(world, cmd.plot)) {
         return { ok: false, reason: `needs town hall tier ${plotUnlockTier(world, cmd.plot)}` };
       }
@@ -1125,6 +1133,10 @@ export function command(world: World, cmd: Command): CommandResult {
       return sendGatherer(world, cmd.node);
     case 'recallGatherers':
       return recallGatherers(world, cmd.node);
+    case 'rebuildRuin':
+      return rebuildRuin(world, cmd.ruin);
+    case 'clearRuin':
+      return clearRuin(world, cmd.ruin);
     case 'upgrade':
       return upgradeBuilding(world, cmd.building);
     case 'pickUpgrade':
@@ -1239,6 +1251,7 @@ export function snapshot(world: World): Snapshot {
         building: b ? b.id : null,
         locked: plotLocked(world, id),
         unlockTier: plotUnlockTier(world, id),
+        ruin: world.ruins.find((r) => r.plot === id)?.id ?? null,
       };
     }),
     buildings: world.buildings.map((b) => ({
@@ -1268,6 +1281,7 @@ export function snapshot(world: World): Snapshot {
       ...(u.summon ? { summon: { ...u.summon } } : {}),
     })),
     bounties: world.bounties.map((b) => ({ ...b, pos: { ...b.pos } })),
+    ruins: world.ruins.map((r) => ({ ...r, pos: { ...r.pos } })),
     piles: world.piles.map((d) => ({ ...d, pos: { ...d.pos } })),
     nodes: world.nodes.map((n) => ({ ...n, pos: { ...n.pos } })),
     ambrosia: world.ambrosia,
