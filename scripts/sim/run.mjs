@@ -172,6 +172,36 @@ try {
         .sort((a, b) => a.upgradeCost - b.upgradeCost);
       if (ups.length > 0) sim.command(w, { kind: 'upgrade', building: ups[0].id });
     }
+    // Why no party heads for a probe flag 5 s after it was placed: what the party of the hero
+    // nearest to it was doing then.
+    for (const [id, p] of flagRun.probes) {
+      if (p.why !== undefined || snap.timeMs - p.at < 5000) continue;
+      if (p.headedS !== null) {
+        p.why = 'headed';
+        continue;
+      }
+      const flag = snap.bounties.find((b) => b.id === id);
+      const heroes = snap.units.filter((u) => u.kind === 'hero');
+      if (!flag || heroes.length === 0) {
+        p.why = flag ? 'no hero' : 'flag gone';
+        continue;
+      }
+      const d = (u) => Math.hypot(u.pos.x - flag.pos.x, u.pos.y - flag.pos.y);
+      const nearest = heroes.reduce((a, b) => (d(b) < d(a) ? b : a));
+      const party = snap.parties.find((q) => q.id === nearest.party);
+      if (nearest.ko) p.why = 'knocked out';
+      else if (nearest.mode === 'rest') p.why = 'resting';
+      else if (nearest.mode === 'shop') p.why = 'shopping';
+      else if (nearest.mode === 'return') p.why = 'retreating';
+      else if (party?.intent.kind === 'lair') {
+        const at = party.intent.pos;
+        const near = at && Math.hypot(nearest.pos.x - at.x, nearest.pos.y - at.y) <= 350;
+        p.why = near ? 'at its lair (sticky)' : 'walking to a lair';
+      } else if (party?.intent.kind === 'flag') p.why = 'on another flag';
+      else if (party?.intent.kind === 'revenge') p.why = 'sworn revenge';
+      else if (nearest.target !== null) p.why = 'in a fight, flag not worth it';
+      else p.why = 'exploring, flag not worth it';
+    }
     if (HUNT && snap.timeMs >= flagRun.nextMs && snap.gold >= FLAG_GOLD + 10) {
       const open = [...flagRun.probes.keys()].some((id) => snap.bounties.some((b) => b.id === id));
       const heroes = snap.units.filter((u) => u.kind === 'hero' && !u.ko);
@@ -185,7 +215,7 @@ try {
         if (r.ok) {
           flagRun.placed++;
           flagRun.nextMs = snap.timeMs + 60_000;
-          flagRun.probes.set(r.id, { at: snap.timeMs, headedS: null, paid: false });
+          flagRun.probes.set(r.id, { at: snap.timeMs, headedS: null, paid: false, why: undefined });
         }
       }
     } else if (FLAGS && !HUNT && snap.timeMs >= flagRun.nextMs && snap.gold >= 60) {
@@ -353,8 +383,14 @@ function print(rep) {
     const paid = all.filter((p) => p.paid).length;
     const pct = (a, b) => (b > 0 ? `${((a / b) * 100).toFixed(0)}%` : '-');
     console.log(
-      `  hunt probe (${FLAG_GOLD} gold on a monster 350-900 from the nearest hero): ${all.length} flags; a party headed for it in ${pct(headed.length, all.length)}, median ${headed.length ? f(headed[Math.floor(headed.length / 2)]) : '-'} s, within 5 s ${pct(headed.filter((s) => s <= 5).length, all.length)}; paid as a hunt ${pct(paid, all.length)}`,
+      `  hunt probe (${FLAG_GOLD} gold on a monster 350-900 from the nearest hero): ${all.length} flags; a party headed for it in ${pct(headed.length, all.length)}, median ${headed.length ? f(headed[Math.floor(headed.length / 2)]) : '-'} s, within 5 s ${pct(headed.filter((s) => s <= 5).length, all.length)}; paid as a hunt ${pct(paid, all.length)} (a flag a tower kill turned into a ground flag, claimed later, counts as not paid as a hunt)`,
     );
+  }
+  if (HUNT) {
+    const why = new Map();
+    for (const p of rep.probes) if (p.why) why.set(p.why, (why.get(p.why) ?? 0) + 1);
+    const list = [...why.entries()].sort((a, b) => b[1] - a[1]).map(([k, n]) => `${k} ${n}`);
+    console.log(`  at 5 s after placing, the nearest hero's party was: ${list.join(', ') || '-'}`);
   }
   console.log('  per run (mean):');
   for (const [k, v] of Object.entries(rep.perRun)) console.log(`    ${k.padEnd(16)} ${f(v)}`);
