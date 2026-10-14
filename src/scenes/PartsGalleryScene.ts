@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { GAME_HEIGHT, GAME_WIDTH } from '../config';
 import { heroPartsLook, partsGods } from '../data/heroParts';
 import { ensureHeroSet } from '../ui/parts/bake';
+import { fitDesignCamera } from '../ui/designCamera';
 
 // A review page for the part-based heroes (`?gallery=thor`, `?gallery=all` for the gods in a
 // row): every look of a god (tier 1, both paths at tiers 2 and 3) with its idle, walk, attack and
@@ -12,6 +13,7 @@ export class PartsGalleryScene extends Phaser.Scene {
   }
 
   create(): void {
+    fitDesignCamera(this);
     this.cameras.main.setBackgroundColor(0x3d5a2e);
     const q = new URLSearchParams(location.search).get('gallery') || 'thor';
     const all = partsGods();

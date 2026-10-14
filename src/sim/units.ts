@@ -110,7 +110,9 @@ export function aggroRange(a: Attributes): number {
 }
 
 export function dist(a: Vec2, b: Vec2): number {
-  return Math.hypot(a.x - b.x, a.y - b.y);
+  const dx = a.x - b.x;
+  const dy = a.y - b.y;
+  return Math.sqrt(dx * dx + dy * dy);
 }
 
 // The value of a per-tier tuning array for `tier` (1-based); the last entry holds above it.

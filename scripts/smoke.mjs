@@ -7,7 +7,7 @@ import { existsSync, mkdirSync, rmSync } from 'node:fs';
 import { chromium } from 'playwright-core';
 
 const PORT = 5198;
-const URL = `http://localhost:${PORT}/?debug`;
+const URL = `http://localhost:${PORT}/?debug${process.env.SMOKE_SCALE ? `&scale=${process.env.SMOKE_SCALE}` : ''}`;
 const OUT = 'smoke-out';
 const GAME_MS = 180_000;
 const REAL_TIMEOUT_MS = 10 * 60_000;
@@ -75,8 +75,8 @@ try {
         const c = g.scene.getScene('Map').cameras.main;
         const r = g.canvas.getBoundingClientRect();
         return [
-          r.left + ((wx - c.worldView.x) * c.zoom * r.width) / 1280,
-          r.top + ((wy - c.worldView.y) * c.zoom * r.height) / 720,
+          r.left + ((wx - c.worldView.x) * c.zoom * r.width) / g.canvas.width,
+          r.top + ((wy - c.worldView.y) * c.zoom * r.height) / g.canvas.height,
         ];
       },
       [wx, wy],
@@ -107,7 +107,8 @@ try {
     timeout: 15_000,
   });
   await page.waitForFunction(() => window.__game?.scene.isActive('Title'), null, {
-    timeout: 15_000,
+    // Software GL is slow at a high render scale (SMOKE_SCALE): the boot takes several times longer.
+    timeout: process.env.SMOKE_SCALE ? 60_000 : 15_000,
   });
   await sleep(500);
   // Title: Play is the first button (design y 420 when there is no run to continue).
@@ -256,7 +257,7 @@ try {
     fail(`${problems.length} console/page errors`);
   }
 } catch (e) {
-  fail(e instanceof Error ? e.message : String(e));
+  fail(e instanceof Error ? (process.env.SMOKE_STACK ? e.stack : e.message) : String(e));
 } finally {
   await cleanup(browser);
 }

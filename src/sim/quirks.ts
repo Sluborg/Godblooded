@@ -1,4 +1,5 @@
 import { dist, TICK_MS } from './units';
+import { stealJar } from './workers';
 import type { World } from './world';
 import type { MonsterQuirk, UnitState } from './types';
 
@@ -34,6 +35,7 @@ export function regenHit(world: World, foe: UnitState, type: string): void {
 export function snatch(world: World, thief: UnitState, victim: UnitState): void {
   const n = quirkOf(world, thief)?.stealGold;
   const rt = world.unitRuntime.get(thief.id);
+  if (n && victim.kind === 'worker' && stealJar(world, thief, victim)) return;
   if (!n || !rt || victim.kind !== 'hero' || victim.gold <= 0) return;
   const gold = Math.min(n, victim.gold);
   victim.gold -= gold;
