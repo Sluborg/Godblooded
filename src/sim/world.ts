@@ -51,6 +51,7 @@ import {
 } from './boss';
 import { buildReport, sampleGold, tally, type HeroRecord } from './runstats';
 import { notePositions, runCollision } from './collision';
+import { noteTemple } from './facts';
 import { collectorFell, runCollector } from './collector';
 import { clearRuin, rebuildRuin, runRepair } from './ruins';
 import { raiderHeld } from './corrupt';
@@ -126,6 +127,7 @@ import type {
   NodeState,
   PileState,
   RuinState,
+  RunFacts,
   ConeArea,
   SkillEffect,
   GraveState,
@@ -289,6 +291,7 @@ export interface World {
   // Tier-ups seen so far that could have raided (for tuning.town.tierRaidEvery).
   tierUps: number;
   stats: RunStats;
+  facts: RunFacts;
   bounties: BountyState[];
   // Gold piles on the ground, and when replacements for fallen tax collectors may appear
   // (collector.ts).
@@ -362,6 +365,7 @@ export function createWorld(seed: number, data: GameData): World {
       taxCollected: 0,
       taxLost: 0,
     },
+    facts: { peakLevel: {}, heroPantheons: [], templePantheons: [], gear2: false, boss: null },
     bounties: [],
     piles: [],
     collectorQueue: [],
@@ -403,12 +407,13 @@ export function createWorld(seed: number, data: GameData): World {
     if (!def) throw new Error(`lair site names unknown lair: ${site.lair}`);
     const id = world.nextId++;
     const lt = world.tuning.lair;
-    const hp = Math.round(def.hp * tierValue(lt.hpMult, 1, 1));
+    const tier = Math.max(1, lt.startTier);
+    const hp = Math.round(def.hp * tierValue(lt.hpMult, tier, 1));
     world.lairs.push({
       id,
       type: def.id,
       boss: i === bossIndex,
-      tier: 1,
+      tier,
       pos: { ...site.pos },
       hp,
       maxHp: hp,
@@ -1113,6 +1118,10 @@ function wanderPoint(world: World, center: Vec2): Vec2 {
 
 export { spawnHero } from './heroes';
 
+// What a bounty flag of `gold` costs the town (the Altar's Bounty Ledger makes it cheaper).
+const flagCost = (world: World, gold: number): number =>
+  Math.max(1, Math.round(gold * world.tuning.bounty.flagCostMult));
+
 export function command(world: World, cmd: Command): CommandResult {
   if (world.status !== 'running') return { ok: false, reason: 'run over' };
   switch (cmd.kind) {
@@ -1142,6 +1151,7 @@ export function command(world: World, cmd: Command): CommandResult {
         maxHp: world.tuning.town.buildingHp,
       });
       world.events.push({ kind: 'built', building: id, type: def.id });
+      noteTemple(world, def.id);
       return { ok: true, id };
     }
     case 'hireGatherer':
@@ -1173,8 +1183,8 @@ export function command(world: World, cmd: Command): CommandResult {
     case 'placeBounty': {
       if (!inMap(world, cmd.pos)) return { ok: false, reason: 'off map' };
       if (!Number.isInteger(cmd.gold) || cmd.gold <= 0) return { ok: false, reason: 'bad amount' };
-      if (world.gold < cmd.gold) return { ok: false, reason: 'not enough gold' };
-      world.gold -= cmd.gold;
+      if (world.gold < flagCost(world, cmd.gold)) return { ok: false, reason: 'not enough gold' };
+      world.gold -= flagCost(world, cmd.gold);
       const id = world.nextId++;
       // On a monster (within huntSnap): a hunt flag bound to the nearest one. A flag on a lair
       // stays a lair flag, whatever guards stand around it.
@@ -1215,8 +1225,8 @@ export function command(world: World, cmd: Command): CommandResult {
       const flag = world.bounties.find((b) => b.id === cmd.bounty);
       if (!flag) return { ok: false, reason: 'unknown bounty' };
       if (!Number.isInteger(cmd.gold) || cmd.gold <= 0) return { ok: false, reason: 'bad amount' };
-      if (world.gold < cmd.gold) return { ok: false, reason: 'not enough gold' };
-      world.gold -= cmd.gold;
+      if (world.gold < flagCost(world, cmd.gold)) return { ok: false, reason: 'not enough gold' };
+      world.gold -= flagCost(world, cmd.gold);
       flag.gold += cmd.gold;
       // A raised flag is news again: it may break a commitment for a while, and is weighed now.
       flag.placedMs = world.timeMs;

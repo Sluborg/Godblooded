@@ -27,6 +27,7 @@ export const DEFAULT_TUNING: Tuning = {
     lairDeathRange: 400,
   },
   hero: {
+    pantheonRecruitMult: {},
     firstRecruitMs: 5_000,
     recruitMs: 15_000,
     maxPerTemple: 4,
@@ -59,6 +60,7 @@ export const DEFAULT_TUNING: Tuning = {
     lairSearchShare: 0.7,
   },
   party: {
+    firstPartyXp: 0,
     maxParty: 4,
     mergeRange: 250,
     mergeEveryTicks: 20,
@@ -96,6 +98,7 @@ export const DEFAULT_TUNING: Tuning = {
     lairAggro: 350,
   },
   lair: {
+    startTier: 1,
     tierUpEveryMs: 480_000,
     firstTierUpMs: 0,
     tierUpStaggerMs: 0,
@@ -304,6 +307,7 @@ export const DEFAULT_TUNING: Tuning = {
     raidBeatenGold: 20,
   },
   bounty: {
+    flagCostMult: 1,
     dangerRadius: 250,
     lairDanger: 3,
     costPerDanger: 15,

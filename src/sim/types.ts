@@ -6,6 +6,8 @@ export interface Vec2 {
 }
 
 // Content row shapes the sim reads. Lead owns the rows in src/data/ and imports these types.
+import type { MetaRules } from './meta';
+
 export interface BuildingDef {
   id: string;
   cost: number;
@@ -427,6 +429,8 @@ export interface MapRules {
   margin: number;
   minTownDist: number;
   minLairDist: number;
+  // The pantheon the player chose to lean on at the Altar: first in the lean list (meta.ts).
+  forceLean?: string;
 }
 
 // Where a lair stands on the map.
@@ -472,6 +476,8 @@ export interface CollisionTuning {
 }
 
 export interface HeroTuning {
+  // A pantheon's temples recruit in this share of the usual time (the Altar's Favoured: 0.85).
+  pantheonRecruitMult: Record<string, number>;
   firstRecruitMs: number;
   recruitMs: number;
   maxPerTemple: number;
@@ -513,6 +519,8 @@ export interface HeroTuning {
 }
 
 export interface PartyTuning {
+  // XP the first party of a run starts with (the Altar's Seasoned Blood: 15).
+  firstPartyXp: number;
   maxParty: number;
   mergeRange: number;
   mergeEveryTicks: number;
@@ -568,6 +576,8 @@ export interface MonsterTuning {
 // Lair growth: every tierUpEveryMs a lair goes up one tier (to maxTier). The arrays are indexed
 // by tier - 1 (the last entry holds for higher tiers).
 export interface LairTuning {
+  // The tier lairs begin at (the Trial Restless Dead: 2).
+  startTier: number;
   // 0 turns growth off.
   tierUpEveryMs: number;
   // First tier-up of the nearest lair (0: the same as tierUpEveryMs), and how much later each
@@ -1004,6 +1014,8 @@ export interface AiTuning {
 }
 
 export interface BountyTuning {
+  // What a flag costs in gold as a share of the gold it holds (the Altar's Bounty Ledger: 0.9).
+  flagCostMult: number;
   // Monsters within this radius of a flag count as its danger.
   dangerRadius: number;
   // A lair near the flag adds this much danger.
@@ -1102,6 +1114,8 @@ export interface GameData {
   buildings: readonly BuildingDef[];
   // Building plots; a plot id is its index. Optional until Lead's rows land.
   plots?: readonly Vec2[];
+  // The meta layer's rows (Essence, the Altar, unlocks, Trials); missing: meta.ts's defaults.
+  meta?: MetaRules;
   // Optional until src/data and Scene's stub carry rows; missing means no lairs.
   classes?: readonly ClassDef[];
   // Gods a temple calls children of. Classes are hidden templates the gods and paths point at.
@@ -1699,6 +1713,19 @@ export type Command =
 
 export type CommandResult = { ok: true; id: number } | { ok: false; reason: string };
 
+// What a run did that the meta unlock conditions read (meta.ts).
+export interface RunFacts {
+  // The highest party level reached by a party with a hero of each pantheon.
+  peakLevel: Record<string, number>;
+  // Pantheons whose heroes arrived, and whose temples were built.
+  heroPantheons: string[];
+  templePantheons: string[];
+  // A hero bought level 2 gear.
+  gear2: boolean;
+  // The type of the run's boss lair (the next run's boss differs).
+  boss: string | null;
+}
+
 export interface RunStats {
   monstersKilled: number;
   lairsDestroyed: number;
@@ -1714,6 +1741,8 @@ export interface RunStats {
 // lair destroyed, damage as tie-breaker); heroes come sorted best first.
 export interface HeroReport {
   unit: number;
+  // The hero's name, when heroes are named.
+  name?: string;
   // Killed for good (see `slain`).
   slain?: boolean;
   type: string;
@@ -1747,6 +1776,7 @@ export interface RunReport {
   lairsCleared: { lair: number; type: string; timeMs: number; by: number }[];
   // Town gold over the run, sampled every tuning.stats.goldSampleMs plus the final value.
   goldHistory: { timeMs: number; gold: number }[];
+  facts: RunFacts;
 }
 
 export interface Snapshot {
