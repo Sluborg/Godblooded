@@ -197,7 +197,11 @@ export function runRaids(world: World): void {
 function runVanguard(world: World): void {
   const t = world.tuning.boss;
   if (t.vanguardSize <= 0 || !world.bossUnsealed) return;
-  const v = (world.vanguard ??= { nextMs: world.timeMs, count: 0 });
+  const v = world.vanguard;
+  if (!v.started) {
+    v.started = true;
+    v.nextMs = world.timeMs;
+  }
   if (v.nextMs === null || world.timeMs < v.nextMs) return;
   const lair = bossLair(world);
   const def = lair && world.data.lairs?.find((d) => d.id === lair.type);

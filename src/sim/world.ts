@@ -280,11 +280,11 @@ export interface World {
   }[];
   nextRaidMs: number;
   // Raids announced and still to arrive, the timed raid already planned for, and raids on the way.
-  // The boss lair's vanguard clock (town.ts runVanguard): next plan at nextMs, null once over.
-  vanguard?: { nextMs: number | null; count: number };
   raidPlans: { id: number; atMs: number; lair: number; size: number; early: boolean }[];
   raidPlannedFor: number;
   raidActive: number[];
+  // The boss lair's vanguard clock (town.ts runVanguard): next plan at nextMs, null once over.
+  vanguard: { nextMs: number | null; count: number; started: boolean };
   // Tier-ups seen so far that could have raided (for tuning.town.tierRaidEvery).
   tierUps: number;
   stats: RunStats;
@@ -348,6 +348,7 @@ export function createWorld(seed: number, data: GameData): World {
     respawns: [],
     nextRaidMs: 0,
     raidPlans: [],
+    vanguard: { nextMs: null, count: 0, started: false },
     raidPlannedFor: -1,
     raidActive: [],
     tierUps: 0,

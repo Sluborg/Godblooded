@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { createWorld, snapshot, step, TICK_MS, type GameData, type SimEvent } from './api';
+import {
+  createWorld,
+  loadWorld,
+  saveWorld,
+  snapshot,
+  step,
+  TICK_MS,
+  type GameData,
+  type SimEvent,
+} from './api';
 
 const none = { str: 0, dex: 0, sta: 0, cha: 0, per: 0, int: 0, wp: 0 };
 const weapon = { baseAttackS: 2, range: 60 };
@@ -72,6 +81,16 @@ describe('vanguard', () => {
     const d = data();
     d.lairs = [{ id: 'wyrm-nest', monster: 'wyrm', spawnS: 100_000, maxAlive: 3, hp: 1000 }];
     const ev = run(createWorld(1, d), 120_000);
+    expect(ev.some((e) => e.kind === 'raidWarning')).toBe(false);
+  });
+
+  it('keeps its clock through a save and load', () => {
+    const w = createWorld(1, data());
+    run(w, 30_000);
+    expect(w.vanguard).toMatchObject({ count: 1, started: true });
+    const loaded = loadWorld(JSON.parse(JSON.stringify(saveWorld(w))), data());
+    expect(loaded.vanguard).toEqual(w.vanguard);
+    const ev = run(loaded, 30_000);
     expect(ev.some((e) => e.kind === 'raidWarning')).toBe(false);
   });
 });
