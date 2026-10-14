@@ -120,6 +120,7 @@ export function omenSnapshot(world: World): OmenView | null {
     text: def.text,
     phase: announced ? 'announced' : 'active',
     msLeft: Math.max(0, (announced ? cur.startMs : cur.endMs) - world.timeMs),
+    ...(cur.star ? { star: { ...cur.star.pos } } : {}),
   };
 }
 

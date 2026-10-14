@@ -34,6 +34,8 @@ export type {
   MapRules,
   LairTuning,
   MonsterDef,
+  OmenDef,
+  OmenView,
   MonsterTuning,
   PartyState,
   PassiveDef,
