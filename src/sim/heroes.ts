@@ -1,4 +1,5 @@
 import { visitPoint } from './collision';
+import { nameHero } from './names';
 import { payIntoTill, payTithe } from './collector';
 import { escortHeldBy, escortOpenTo } from './escort';
 import { lairSealed, nearSealedLair } from './boss';
@@ -49,6 +50,7 @@ export function spawnHero(world: World, godId: string, pos: Vec2, temple = 0): n
   if (!cls) throw new Error(`unknown god or template: ${godId}`);
   const id = world.nextId++;
   const hp = maxHp(cls.attrs);
+  const name = nameHero(world, id, god);
   world.units.push({
     id,
     kind: 'hero',
@@ -56,6 +58,7 @@ export function spawnHero(world: World, godId: string, pos: Vec2, temple = 0): n
     tier: 1,
     god: god?.id ?? null,
     path: null,
+    ...(name ? { name } : {}),
     pos: { ...pos },
     facing: { x: 0, y: 1 },
     hp,

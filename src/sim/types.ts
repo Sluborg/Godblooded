@@ -21,6 +21,15 @@ export interface BuildingDef {
   text?: string;
 }
 
+// Given names, epithets and the way parentage reads, for one pantheon (names.ts).
+export interface NameSet {
+  male: readonly string[];
+  female: readonly string[];
+  epithets: readonly string[];
+  // 'suffix': Eirik Thorsson / Astrid Thorsdottir. 'of': Kallias son of Ares.
+  patronym: 'suffix' | 'of';
+}
+
 // A god: heroes are children of a god, called by a temple of its pantheon. `template` is the
 // ClassDef id (a hidden stats, weapon and strike template) a tier 1 child uses.
 export type DamageType = 'physical' | 'fire' | 'frost' | 'lightning' | 'death' | 'holy';
@@ -1112,6 +1121,8 @@ export interface GameData {
   paths?: readonly PathDef[];
   // Item rows the smithy and market sell.
   items?: readonly ItemDef[];
+  // Hero names by pantheon (src/data/names.ts). Without them heroes have none.
+  names?: Readonly<Record<string, NameSet>>;
   // Path skills, one per path (tier 2, upgraded at tier 3).
   skills?: readonly SkillDef[];
   // One miracle per pantheon (docs/systems/events.md section 3). Without rows no bar fills.
@@ -1235,6 +1246,8 @@ export interface UnitState {
   facing: Vec2;
   hp: number;
   maxHp: number;
+  // Heroes: the name given on arrival from GameData.names (absent without name rows).
+  name?: string;
   // Heroes: gear carried (absent: nothing). Monsters never have any.
   items?: HeroItems;
   // Summons: who called it, from which row, and when it ends (null: until it dies).
@@ -1302,6 +1315,7 @@ export interface PathState {
 export interface GraveState {
   // The slain hero's unit id.
   id: number;
+  name?: string;
   type: string;
   god: string | null;
   path: string | null;
@@ -1714,6 +1728,8 @@ export interface RunStats {
 // lair destroyed, damage as tie-breaker); heroes come sorted best first.
 export interface HeroReport {
   unit: number;
+  // The hero's name, when the data names heroes.
+  name?: string;
   // Killed for good (see `slain`).
   slain?: boolean;
   type: string;
