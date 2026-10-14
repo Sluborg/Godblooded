@@ -184,6 +184,24 @@ once-a-second re-score and a 6 s commit.
 - The first target (a 50 gold flag drawing a party within 5 s) is replaced by this rule: the
   player who wants a fast answer pays for it. Fights still hold a party (part 2).
 
+### 4. A felt need for flags (playtest 1, Lead 2026-10-14)
+
+Stefan placed no flags: "heroes were always fighting so I didn't feel a need to move them." His
+heroes fought the monsters that wandered and raided near town and never pushed a lair (0 lairs
+by 9:39). Flags now steer (parts 1 to 3); the player needs a reason to use them.
+
+- **Ship first (look and hint only, no rule change):**
+  - Lair growth ring with a 60 s countdown and a 15 s pulse (`monsters-and-bosses.md` section 4).
+  - Raid source on the raid arrow: the lair icon, and a trail from the lair (`events.md` section 4).
+  - Nudge hint `h-nudge` after 2 minutes with no flag while a lair sits untouched (`hint-texts.md`).
+- **Held candidates** (Lead: wait for Stefan's next run, then use these only if the three above
+  are not enough):
+  - **Lair regen while untouched:** a lair heals (about 2% of max hp a second) after 15 s with no
+    hero hitting it. Only a committed party finishes a lair, which in practice means a flagged
+    one. Risk: hands-off runs never kill a lair.
+  - **Unflagged parties patrol near town:** explore value drops beyond about 600 from the hall,
+    so a flag is how heroes leave town. This is the strongest lever, but hands-off play stalls.
+
 ## 6. Smaller fixes
 
 | Today                                                                   | Proposed                                                                         |

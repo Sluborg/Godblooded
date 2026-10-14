@@ -39,8 +39,8 @@ export function drawCollector(g: Phaser.GameObjects.Graphics, size: 0 | 1 | 2): 
   g.clear();
   const ink = 0x1a0f08;
   // Sack first, behind the body.
-  const r = size === 0 ? 14 : size === 1 ? 20 : 27;
-  const sx = -26;
+  const r = size === 0 ? 18 : size === 1 ? 26 : 34;
+  const sx = -30;
   const sy = -26 - r * 0.2;
   g.fillStyle(TAX_STYLE.sack, 1).fillEllipse(sx, sy, r * 1.7, r * 2);
   g.lineStyle(3, ink, 0.85).strokeEllipse(sx, sy, r * 1.7, r * 2);

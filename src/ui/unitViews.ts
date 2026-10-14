@@ -118,6 +118,8 @@ interface FrameCtx {
   namesHero: number;
   fx: FxLayer;
   shake: () => void;
+  // The collector's carry cap (the world's tuning), for its sack size.
+  carryCap: number;
   // Chest of a unit, building or lair by sim id, if it is on the map.
   chestOf: (id: number) => Vec | undefined;
   // Receives the visual side of a landed strike (flash, knockback, number).
@@ -269,7 +271,7 @@ export class UnitView {
       // section 2), instead of the capsule.
       this.capsule.setVisible(false);
       this.nose.setVisible(false);
-      this.sackG = scene.add.graphics().setScale(1.3);
+      this.sackG = scene.add.graphics().setScale(0.78);
       this.body.add(this.sackG);
       this.label.setFontSize(20).setColor('#f2c14e').setStroke('#000000', 4);
       this.drawSackFor(u.gold ?? 0);
@@ -589,9 +591,9 @@ export class UnitView {
     }
   }
 
-  private drawSackFor(carried: number): void {
+  private drawSackFor(carried: number, cap = DEFAULT_TUNING.collector.carryCap): void {
     if (!this.sackG) return;
-    const size = sackSize(carried, DEFAULT_TUNING.collector.carryCap);
+    const size = sackSize(carried, cap);
     if (size === this.sackDrawn) return;
     this.sackDrawn = size;
     drawCollector(this.sackG, size);
@@ -779,7 +781,7 @@ export class UnitView {
 
   update(u: UnitState, ctx: FrameCtx, role: PartyRole = 'solo'): void {
     this.tierNow = u.tier;
-    if (u.kind === 'collector') this.drawSackFor(u.gold ?? 0);
+    if (u.kind === 'collector') this.drawSackFor(u.gold ?? 0, ctx.carryCap);
     if (!this.applyParts(u)) this.applyArt(u);
     if (u.kind === 'hero') {
       this.label.setText(heroLabel(u));
@@ -1194,6 +1196,8 @@ export class UnitViews {
   private readonly skillFx: SkillFx;
   // What each hero strikes with, for the colour of a skill with an untyped damage effect.
   private readonly strikeType = new Map<number, string>();
+  // The world's tuning of the collector (MapScene sets it each frame), for the sack sizes.
+  carryCap = DEFAULT_TUNING.collector.carryCap;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -1223,6 +1227,7 @@ export class UnitViews {
       dtS,
       intents,
       timeMs,
+      carryCap: this.carryCap,
       namesParty: sel && sel.party > 0 ? sel.party : 0,
       namesHero: sel?.id ?? 0,
       fx: this.fx,

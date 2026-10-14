@@ -6,7 +6,6 @@ import Phaser from 'phaser';
 import { COLORS, GAME_HEIGHT, GAME_WIDTH } from '../config';
 import { GRAYBOX } from '../data/graybox';
 import {
-  DEFAULT_TUNING,
   command,
   createWorld,
   runReport,
@@ -34,6 +33,7 @@ import { releaseSets } from '../ui/parts/bake';
 import { effectiveSpeed } from '../ui/pathSpeed';
 import { STYLE } from '../ui/style';
 import { groundShadow, lairDecal, lairPlate, townPatch } from '../ui/groundDecal';
+import { HALL_STYLE, drawBanners, isTownHall, plazaDecal } from '../ui/townHallLook';
 import {
   buildingArtCandidates,
   buildingScale,
@@ -174,7 +174,7 @@ export class MapScene extends Phaser.Scene {
     this.scene.launch('Hud');
   }
 
-  update(_time: number, deltaMs: number): void {
+  update(time: number, deltaMs: number): void {
     const button = (this.registry.get('speed') as number) ?? 1;
     // A path offer open (as of the last snapshot) slows the run to 0.3x, absolute.
     const speed = effectiveSpeed(
@@ -193,6 +193,7 @@ export class MapScene extends Phaser.Scene {
     this.syncOffer();
     // Motion runs at the game speed, but not past 2x: a 4x swing would be a blur.
     this.sync(deltaMs * Math.min(speed, 2));
+    this.waveBanners(time);
     this.updateCamera(deltaMs);
   }
 
@@ -478,7 +479,15 @@ export class MapScene extends Phaser.Scene {
       seen.add(key);
       if (!this.views.has(key)) this.views.set(key, this.makeBuilding(b.type, b.tier, b.pos));
       const top = (this.views.get(key)?.getData('top') as number | undefined) ?? BUILDING_SIZE;
-      this.updateBar(this.views.get(key), b.hp, b.maxHp, BUILDING_SIZE, -top - 14);
+      const hall = isTownHall(b.type);
+      this.updateBar(
+        this.views.get(key),
+        b.hp,
+        b.maxHp,
+        hall ? HALL_STYLE.barWidth : BUILDING_SIZE,
+        -top - 14,
+        hall,
+      );
       this.updateTill(this.views.get(key), b.till, -top - 52);
     }
     for (const l of this.snap.lairs) {
@@ -519,6 +528,7 @@ export class MapScene extends Phaser.Scene {
         this.views.delete(key);
       }
     }
+    this.unitViews.carryCap = this.world.tuning.collector.carryCap;
     this.unitViews.sync(
       this.snap.units,
       this.snap.events,
@@ -661,7 +671,7 @@ export class MapScene extends Phaser.Scene {
     y: number,
   ): void {
     if (!(view instanceof Phaser.GameObjects.Container)) return;
-    const show = tillShown(till, DEFAULT_TUNING.collector.minTill);
+    const show = tillShown(till, this.world.tuning.collector.minTill);
     let tag = view.getData('till') as Phaser.GameObjects.Container | undefined;
     if (!tag) {
       if (!show) return;
@@ -780,14 +790,25 @@ export class MapScene extends Phaser.Scene {
       const p = at(e.building);
       if (p) this.coinPop(p, e.gold, 'till');
     } else if (e.kind === 'tithe') {
-      const p = at(e.building) ?? hall;
-      if (p) this.coinPop(p, e.gold, 'till');
+      // A tithe into a temple's till also fires `till` (that pops); only the hall case, banked at
+      // once (building 0 or the hall itself), pops here.
+      const b = this.snap.buildings.find((x) => x.id === e.building);
+      if ((e.building === 0 || b?.type === 'townhall') && hall) this.coinPop(hall, e.gold, 'till');
     } else if (e.kind === 'tillEmptied') {
       const from = e.source === 'till' ? at(e.id) : this.snap.piles.find((q) => q.id === e.id)?.pos;
       if (from) this.flyCoin(from, e.unit);
     } else if (e.kind === 'collected') {
       if (hall) this.coinPop(hall, e.gold, 'deliver');
       this.hud()?.pulseGold();
+    }
+  }
+
+  // The hall's banners wave (still with reduced motion).
+  private waveBanners(time: number): void {
+    const still = getSettings().reducedMotion;
+    for (const v of this.views.values()) {
+      const g = v.getData?.('banners') as Phaser.GameObjects.Graphics | undefined;
+      if (g) drawBanners(g, time, still);
     }
   }
 
@@ -799,6 +820,7 @@ export class MapScene extends Phaser.Scene {
     maxHp: number,
     width: number,
     y: number,
+    always = false,
   ): void {
     if (!(view instanceof Phaser.GameObjects.Container)) return;
     let bar = view.getData('bar') as Phaser.GameObjects.Graphics | undefined;
@@ -808,7 +830,7 @@ export class MapScene extends Phaser.Scene {
       view.setData('bar', bar);
     }
     bar.clear();
-    if (hp >= maxHp || maxHp <= 0) return;
+    if ((hp >= maxHp && !always) || maxHp <= 0) return;
     bar.fillStyle(0x000000, 0.65).fillRect(-width / 2, y, width, 10);
     bar
       .fillStyle(hp / maxHp > 0.4 ? 0x6fcf6f : 0xcf4f4f, 1)
@@ -833,7 +855,12 @@ export class MapScene extends Phaser.Scene {
   // coloured square with the type name when the manifest has none.
   private makeBuilding(type: string, tier: number, pos: Vec2): Phaser.GameObjects.Container {
     const view = this.makeBuildingView(type, tier, pos);
-    this.groundUnder(view, townPatch(this), pos);
+    if (isTownHall(type)) {
+      this.groundUnder(view, plazaDecal(this), pos);
+      const banners = this.add.graphics();
+      view.add(banners);
+      view.setData('banners', banners);
+    } else this.groundUnder(view, townPatch(this), pos);
     const w = view.getData('w') as number | undefined;
     if (w) this.groundUnder(view, groundShadow(this, w), pos, 0.6);
     return view;
@@ -857,7 +884,7 @@ export class MapScene extends Phaser.Scene {
       const img = this.add.image(0, FOOT_Y, art);
       const o = footOrigin(img.width, img.height);
       img.setOrigin(o.x, o.y);
-      const k = buildingScale(img.width, img.height);
+      const k = buildingScale(img.width, img.height) * (isTownHall(type) ? HALL_STYLE.scale : 1);
       img.setScale(k);
       return this.add
         .container(pos.x, pos.y, [img])

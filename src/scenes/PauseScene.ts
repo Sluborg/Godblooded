@@ -3,6 +3,7 @@ import { COLORS, GAME_HEIGHT, GAME_WIDTH } from '../config';
 import type { MapScene } from './MapScene';
 import { addIcon } from '../ui/icons';
 import { makeButton } from '../ui/button';
+import { addSeedLabel } from '../ui/seedLabel';
 import { makePanel } from '../ui/panel';
 
 // Pause menu over a frozen map: Resume, Restart, Settings, Quit to title.
@@ -22,6 +23,12 @@ export class PauseScene extends Phaser.Scene {
     this.add
       .text(cx, 110, 'Paused', { fontFamily: 'Georgia, serif', fontSize: '64px', color: '#f2c14e' })
       .setOrigin(0.5);
+    addSeedLabel(
+      this,
+      (this.scene.get('Map') as MapScene).abandonReport().seed,
+      16,
+      GAME_HEIGHT - 12,
+    );
     const items: [string, () => void][] = [
       ['Resume', () => this.resume()],
       ['Restart', () => this.restart()],
