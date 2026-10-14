@@ -83,6 +83,9 @@ hero stands on its building's spot, and the hero is the more specific target.
   switches the selection; a tap outside the menu cancels. An item the town can't afford still
   shows its info, with the cost in red; the second tap shows "Need 40 more gold" and builds
   nothing.
+- **A tap near a hunt flag** opens the flag card (row 50 before row 60), on purpose: a monster
+  carries at most one flag and the card is the useful answer. To put a bounty on another monster
+  nearby, tap it more than 60 from the flag.
 - **With a menu open:** a tap on bare ground closes it (today).
 - Drag pans, pinch zooms, any camera move stops the watch camera (today). No long-press: every
   action stays one tap, to be predictable on a phone.

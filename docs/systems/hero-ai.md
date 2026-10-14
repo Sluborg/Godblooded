@@ -137,15 +137,17 @@ once-a-second re-score and a 6 s commit.
 
 ### 1. Hunt bounties (ship first)
 
-| Rule        | Value                                                                                                                            |
-| ----------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| Becomes one | a flag placed within `huntSnap` (60) of a living monster attaches to the nearest one: `BountyState.target = monster id`          |
-| Moves       | the flag follows its target every tick (the flag icon stays over the monster)                                                    |
-| Danger      | its score counts only monsters other than the target within `dangerRadius`; the target itself is no danger                       |
-| Paid        | to the hero whose strike kills the target (event `bountyClaimed` as today, plus `hunt: true`); a summon's kill pays its summoner |
-| Target lost | if the target dies to a tower, a miracle or anything that is not a hero, the flag drops where it died and becomes a ground flag  |
-| Ground flag | a flag on open ground keeps today's rule but claims when no monster is within `claimClearRadius` (100), not 250                  |
-| Lairs       | a flag placed on a lair stays a lair flag: paid with the lair bounty to the hero that destroys it (today's lair goal plus gold)  |
+| Rule        | Value                                                                                                                                                                             |
+| ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Becomes one | a flag placed within `huntSnap` (60) of a living monster attaches to the nearest one: `BountyState.target = monster id`                                                           |
+| Moves       | the flag follows its target every tick (the flag icon stays over the monster)                                                                                                     |
+| Danger      | its score counts only monsters other than the target within `dangerRadius`; the target itself is no danger                                                                        |
+| Paid        | to the hero who kills the target, by a strike or a skill (the same kill credit as deaths), (event `bountyClaimed` as today, plus `hunt: true`); a summon's kill pays its summoner |
+| Target lost | if the target dies to a tower, a miracle or anything that is not a hero, the flag drops where it died and becomes a ground flag                                                   |
+| Ground flag | a flag on open ground keeps today's rule but claims when no monster is within `claimClearRadius` (100), not 250                                                                   |
+| Lairs       | a flag placed on a lair stays a lair flag: paid with the lair bounty to the hero that destroys it (today's lair goal plus gold)                                                   |
+| Boss        | a hunt flag on the boss pays when it dies, which is the moment the run is won: allowed, but the gold no longer matters                                                            |
+| Save        | `target` is optional: an old save loads its flags as ground flags, no version bump; the `considering` memory is not saved, and re-emitting it once after a load is harmless       |
 
 ### 2. A new flag is seen at once
 
