@@ -211,6 +211,9 @@ export class UnitView {
   // The baked parts look this hero is drawn with (null: a picture or the placeholder).
   private partsSet: BakedSet | null = null;
   private partsId = '';
+  // Whether this hero has a painted still (checked once per tier/path/god, not every frame).
+  private stillKey = '';
+  private stillOk = false;
   private attackProgress = -1;
   // Green heal tint, 1 right after a heal and fading to 0.
   private healGlow = 0;
@@ -351,13 +354,14 @@ export class UnitView {
   // A hero with a parts row is drawn from baked parts frames; false when it has none.
   private applyParts(u: UnitState): boolean {
     if (!USE_PARTS || u.kind !== 'hero' || !u.god) return this.leaveParts();
-    if (
-      ART_BEATS_PARTS &&
-      artCandidates(u.kind, u.type, u.tier, u.path, u.god).some((c) =>
+    const sk = `${u.god}:${u.path}:${u.tier}`;
+    if (sk !== this.stillKey) {
+      this.stillKey = sk;
+      this.stillOk = artCandidates(u.kind, u.type, u.tier, u.path, u.god).some((c) =>
         this.scene.textures.exists(c),
-      )
-    )
-      return this.leaveParts();
+      );
+    }
+    if (ART_BEATS_PARTS && this.stillOk) return this.leaveParts();
     const look = heroPartsLook(u.god, u.path, u.tier);
     if (!look) return this.leaveParts();
     const id = look.id;
