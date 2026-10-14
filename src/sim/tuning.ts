@@ -217,6 +217,8 @@ export const DEFAULT_TUNING: Tuning = {
     claimRadius: 100,
     claimClearRadius: 100,
     huntSnap: 60,
+    flagBonus: 0,
+    flagDistanceCost: -1,
     freshFlagMs: 10_000,
     considerShare: 0.7,
     greedyGoldMult: 1.5,

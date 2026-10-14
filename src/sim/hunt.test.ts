@@ -312,3 +312,28 @@ describe('responsiveness', () => {
     expect(w.heroRuntime.get(h.id)?.goal?.id).toBe(a);
   });
 });
+
+describe('flag score knobs', () => {
+  const goalAfter = (bounty: object, gold: number) => {
+    const w = createWorld(1, {
+      ...base,
+      tuning: { ...base.tuning, bounty },
+    });
+    const h = hero(w, 500, 500);
+    flag(w, 1100, 500, gold);
+    run(w, 1_100);
+    return w.heroRuntime.get(h.id)?.goal?.kind;
+  };
+
+  it('a 25 gold flag 600 away pulls nobody by default, but does with a bonus and cheaper walking', () => {
+    expect(goalAfter({}, 25)).not.toBe('flag');
+    expect(goalAfter({ flagBonus: 15, flagDistanceCost: 0.02 }, 25)).toBe('flag');
+  });
+
+  it('flagDistanceCost -1 follows ai.distanceCost; it leaves lairs alone', () => {
+    // 25 + 15 - 600 * 0.05 = 10: still below exploring
+    expect(goalAfter({ flagBonus: 15 }, 25)).not.toBe('flag');
+    // 25 - 600 * 0.01 = 19: below 30, a cheaper walk alone is not enough
+    expect(goalAfter({ flagDistanceCost: 0.01 }, 25)).not.toBe('flag');
+  });
+});
