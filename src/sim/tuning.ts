@@ -60,6 +60,7 @@ export const DEFAULT_TUNING: Tuning = {
   },
   party: {
     maxParty: 4,
+    joinBelowLevel: 3,
     mergeRange: 250,
     mergeEveryTicks: 20,
     // Party level n needs xpPerLevel * n xp.
