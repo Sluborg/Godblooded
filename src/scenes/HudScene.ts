@@ -21,6 +21,9 @@ import type { MapScene, MapTap } from './MapScene';
 import { collectorInfo } from '../ui/taxLook';
 import { RaidArrowView } from '../ui/raidArrowView';
 import { fitDesignCamera } from '../ui/designCamera';
+import { gatherersAt, poolLine } from '../ui/nodeLook';
+import { graveLabel, godPantheonOf, recallable, templeAmbrosiaCost } from '../ui/ambrosiaCards';
+import { AMBROSIA_STYLE, drawJar } from '../ui/ambrosiaLook';
 
 const ROSTER_PER_PAGE = 5;
 const ROSTER_W = 470;
@@ -41,6 +44,8 @@ const TEXT = { fontFamily: 'Georgia, serif', fontSize: '30px', color: COLORS.tex
 // through MapScene.tryBuild; it holds no rules.
 export class HudScene extends Phaser.Scene {
   private goldText!: Phaser.GameObjects.Text;
+  private ambIcon!: Phaser.GameObjects.Graphics;
+  private ambText!: Phaser.GameObjects.Text;
   private raidArrows!: RaidArrowView;
   private goldIcon: Phaser.GameObjects.Image | null = null;
   private clockText!: Phaser.GameObjects.Text;
@@ -102,6 +107,13 @@ export class HudScene extends Phaser.Scene {
     this.goldText = this.add
       .text(this.goldIcon ? 66 : 20, 36, '', { ...TEXT, color: '#f2c14e' })
       .setOrigin(0, 0.5);
+    // Ambrosia (M3, once the map has celestial nodes): a jar and the amount, beside the gold.
+    this.ambIcon = this.add.graphics().setVisible(false);
+    drawJar(this.ambIcon, 214, 36, 1.2);
+    this.ambText = this.add
+      .text(238, 36, '', { ...TEXT, color: AMBROSIA_STYLE.text })
+      .setOrigin(0, 0.5)
+      .setVisible(false);
     this.clockText = this.add.text(GAME_WIDTH / 2, 36, '0:00', TEXT).setOrigin(0.5);
     SPEEDS.forEach((s, i) => {
       const b = makeButton(
@@ -191,6 +203,10 @@ export class HudScene extends Phaser.Scene {
     if (!this.scene.isPaused('Map')) this.feed.update(deltaMs);
     this.drawFeed(this.scene.get('Map') as MapScene);
     this.goldText.setText(`${this.goldIcon ? '' : 'Gold '}${this.registry.get('gold') ?? 0}`);
+    const ambSnap = (this.scene.get('Map') as MapScene).snapshot;
+    const ambOn = ambSnap.nodes.length > 0;
+    this.ambIcon.setVisible(ambOn);
+    this.ambText.setVisible(ambOn).setText(`${Math.floor(ambSnap.ambrosia)}`);
     this.clockText.setText(formatClock((this.registry.get('timeMs') as number) ?? 0));
     const status = this.registry.get('status') as string | undefined;
     if ((status === 'won' || status === 'lost') && !this.ended) this.showEnd();
@@ -240,6 +256,7 @@ export class HudScene extends Phaser.Scene {
     const levels = new Map<number, number>();
     for (const e of events) {
       if (e.kind === 'levelUp') levels.set(e.party, e.level);
+      if (e.kind === 'jarHome') this.pulseAmbrosia();
       if (e.kind === 'raidWarning')
         this.raidArrows.add({ raid: e.raid, lair: e.lair, untilMs: snap.timeMs + e.inMs });
       if (e.kind === 'raid') {
@@ -496,6 +513,11 @@ export class HudScene extends Phaser.Scene {
       this.panel.show(tap.hero);
       return;
     }
+    if (tap.node != null) {
+      this.panel.hide();
+      this.openNodeCard(map, tap.node);
+      return;
+    }
     if (tap.collector != null) {
       this.closeMenu();
       this.panel.hide();
@@ -568,6 +590,44 @@ export class HudScene extends Phaser.Scene {
       title: `Bounty flag  ·  ${flag.gold} gold`,
       affordable: true,
       lines: flagLines(flag.gold, heading, rate, this.targetLabel(map, flag.target)),
+    });
+  }
+
+  // The node card (nodes.md section 2): the pool, who works it, send a gatherer or bring them home.
+  private openNodeCard(map: MapScene, id: number): void {
+    const snap = map.snapshot;
+    const node = snap.nodes.find((n) => n.id === id);
+    if (!node) return;
+    const here = gatherersAt(snap.workers, id);
+    const idle = snap.workers.filter((w) => w.phase === 'idle' && w.node === null).length;
+    const options: MenuOption[] = [];
+    if (node.state === 'freed')
+      options.push({
+        label: `Send\ngatherer`,
+        cost: 0,
+        pick: () => {
+          const res = map.trySendGatherer(id);
+          if (res.ok) this.openNodeCard(map, id);
+          else this.showToast(res.reason);
+        },
+      });
+    if (here > 0)
+      options.push({
+        label: 'Recall',
+        cost: 0,
+        pick: () => {
+          const res = map.tryRecallGatherers(id);
+          if (res.ok) this.openNodeCard(map, id);
+          else this.showToast(res.reason);
+        },
+      });
+    this.openMenu('Celestial node', options, {
+      title: `Celestial node  ·  ${poolLine(node.pool, node.max)}`,
+      affordable: true,
+      lines:
+        node.state === 'defiled'
+          ? ['Defiled: kill the defilers, then stand a hero here to cleanse it']
+          : [`${here} gatherer${here === 1 ? '' : 's'} here, ${idle} idle at the hall`],
     });
   }
 
@@ -702,38 +762,118 @@ export class HudScene extends Phaser.Scene {
       line(150, nextTierEffect(b.type, b.tier), 20, COLORS.textMuted),
     );
     const y = cy + h / 2 - 60;
+    const snap = map.snapshot;
+    const nodesOn = snap.gathererCap > 0 || snap.nodes.length > 0;
+    const nodeTuning = map.nodeTuning;
+    const specs: { label: string; cost: number; icon?: string; pick: () => void }[] = [];
+    const said = (res: CommandResult, ok: string) => {
+      if (res.ok) this.showToast(ok);
+      else this.showToast(res.reason);
+    };
     if (b.upgradeCost !== null) {
       const cost = b.upgradeCost;
-      const up = makeButton(
-        this,
-        cx - 150,
-        y,
-        280,
-        90,
-        `Upgrade\n${cost} gold`,
-        () => {
+      specs.push({
+        label: `Upgrade\n${cost} gold`,
+        cost,
+        icon: 'ui_icon_upgrade',
+        pick: () => {
           const res = map.tryUpgrade(b.id);
           if (res.ok) {
             this.closeMenu();
             this.showToast(`${buildingName(b.type)} upgraded to tier ${b.tier + 1}`);
           } else this.showToast(res.reason);
         },
-        { icon: 'ui_icon_upgrade' },
-      );
-      this.menu.push(up.container);
-      this.menuButtons.push({ button: up, cost });
+      });
     }
-    const close = makeButton(
-      this,
-      b.upgradeCost !== null ? cx + 150 : cx,
-      y,
-      240,
-      90,
-      'Close',
-      () => this.closeMenu(),
-    );
-    this.menu.push(close.container);
-    this.menuButtons.push({ button: close, cost: 0 });
+    // The town hall with gatherers on (M3): Hire gatherer.
+    if (b.type === 'townhall' && snap.gathererCap > 0)
+      specs.push({
+        label: `Hire gatherer\n${nodeTuning.gathererCost} gold  (${snap.workers.length}/${snap.gathererCap})`,
+        cost: nodeTuning.gathererCost,
+        pick: () => said(map.tryHireGatherer(), 'A gatherer joins the town'),
+      });
+    // Temples (M3): what Ambrosia buys.
+    if (nodesOn && b.type.startsWith('temple')) {
+      if (b.tier < maxTier)
+        specs.push({
+          label: `Upgrade\n${templeAmbrosiaCost(nodeTuning.templeCost, b.tier)} Ambrosia`,
+          cost: 0,
+          pick: () => {
+            const res = map.tryAmbrosiaUpgrade(b.id);
+            if (res.ok) this.closeMenu();
+            said(res, `${buildingName(b.type)} upgraded with Ambrosia`);
+          },
+        });
+      specs.push({
+        label: `Offering\n${nodeTuning.offeringCost} Ambrosia`,
+        cost: 0,
+        pick: () => said(map.tryOffering(b.id), 'The gods accept the offering'),
+      });
+      specs.push({
+        label: `Recall\n${nodeTuning.recallCost} Ambrosia`,
+        cost: 0,
+        pick: () => this.openRecallList(map, b),
+      });
+    }
+    // Towers (M3): lend a guard to a gatherer on the road.
+    if (nodesOn && b.type === 'tower')
+      specs.push({
+        label: `Send guard\n${nodeTuning.guardCost} gold`,
+        cost: nodeTuning.guardCost,
+        pick: () => {
+          // The first gatherer out that the sim accepts: one already guarded is skipped.
+          const out = snap.workers.filter(
+            (x) => (x.phase === 'out' || x.phase === 'gather') && !x.fleeing,
+          );
+          if (out.length === 0) return this.showToast('No gatherer is out to guard');
+          let last: CommandResult | null = null;
+          for (const g of out) {
+            last = map.trySendGuard(g.unit);
+            if (last.ok) return this.showToast('A guard goes with the gatherer');
+          }
+          if (last && !last.ok) this.showToast(last.reason);
+        },
+      });
+    specs.push({ label: 'Close', cost: 0, pick: () => this.closeMenu() });
+    const n = specs.length;
+    const gap = 14;
+    const bw = Math.min(280, Math.floor((w - 60 - (n - 1) * gap) / n));
+    const total = n * bw + (n - 1) * gap;
+    specs.forEach((sp, i) => {
+      const x = cx - total / 2 + bw / 2 + i * (bw + gap);
+      const btn = makeButton(
+        this,
+        x,
+        y,
+        bw,
+        90,
+        sp.label,
+        sp.pick,
+        sp.icon ? { icon: sp.icon } : {},
+      );
+      this.menu.push(btn.container);
+      this.menuButtons.push({ button: btn, cost: sp.cost });
+    });
+  }
+
+  // Recall the fallen (nodes.md): the graves of this temple's pantheon that have not been recalled.
+  private openRecallList(map: MapScene, temple: BuildingState): void {
+    const pantheon = temple.type.replace(/^temple_?/, '');
+    const graves = recallable(map.snapshot.graves, pantheon, godPantheonOf);
+    const options: MenuOption[] = graves.slice(0, 4).map((g) => ({
+      label: `${graveLabel(g)}\nlevel ${g.level ?? 1}`,
+      cost: 0,
+      pick: () => {
+        const res = map.tryRecallFallen(temple.id, g.id);
+        if (res.ok) this.closeMenu();
+        this.showToast(res.ok ? 'A fallen hero returns' : res.reason);
+      },
+    }));
+    if (options.length === 0) {
+      this.showToast('No fallen hero of this pantheon to recall');
+      return;
+    }
+    this.openMenu(`Recall the fallen  ·  ${map.nodeTuning.recallCost} Ambrosia`, options);
   }
 
   private closeMenu(): void {
@@ -748,6 +888,13 @@ export class HudScene extends Phaser.Scene {
   private run(res: CommandResult): void {
     if (res.ok) this.closeMenu();
     else this.showToast(res.reason);
+  }
+
+  // The Ambrosia counter ticks when a jar comes home.
+  private pulseAmbrosia(): void {
+    this.tweens.killTweensOf(this.ambText);
+    this.ambText.setScale(1);
+    this.tweens.add({ targets: this.ambText, scale: 1.3, duration: 140, yoyo: true });
   }
 
   // The top bar gold ticks: a quick pop in size when the collector brings gold home.

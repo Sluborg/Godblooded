@@ -148,6 +148,12 @@ export const SFX: readonly SfxPreset[] = [
     id: 'sfx_horn_far',
     voices: [v('saw', 150, 1, 0.2, { to: 160, lp: 500, a: 0.2 })],
   },
+  // M3: a gatherer or guard is hit or lost (two short falling notes), and a jar of Ambrosia comes home.
+  {
+    id: 'sfx_alarm',
+    voices: [v('square', 660, 0.12, 0.18), v('square', 440, 0.16, 0.18, { at: 0.12 })],
+  },
+  { id: 'sfx_chime', voices: bell(880, 0.16, 0.8) },
   // One soft drum beat: a lair is about to grow (once per tier-up, in its last 15 s).
   {
     id: 'sfx_drum',

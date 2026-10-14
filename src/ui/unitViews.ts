@@ -43,6 +43,7 @@ import { RIDER_LOOK, riderDurationMs } from './riderLook';
 import { damageLook, MAX_FLOATS, typeTint, type FloatLook, type HitInfo } from './damageLook';
 import { getSettings } from './settings';
 import { sackSize, drawCollector } from './taxLook';
+import { drawJar } from './ambrosiaLook';
 import { heroLabel, partyColor, partyRole, type PartyRole } from './partyLook';
 import { SpeechLimit } from './speechLimit';
 import { cardColor } from './levelUpLook';
@@ -127,6 +128,8 @@ interface FrameCtx {
   shake: () => void;
   // The collector's carry cap (the world's tuning), for its sack size.
   carryCap: number;
+  // Ambrosia each gatherer carries, by unit id (the jar on its back).
+  carry: ReadonlyMap<number, number>;
   // Chest of a unit, building or lair by sim id, if it is on the map.
   chestOf: (id: number) => Vec | undefined;
   // Receives the visual side of a landed strike (flash, knockback, number).
@@ -219,6 +222,8 @@ export class UnitView {
   private statusDrawn = false;
   private readonly intentG: Phaser.GameObjects.Graphics;
   private sackG: Phaser.GameObjects.Graphics | null = null;
+  private jarG: Phaser.GameObjects.Graphics | null = null;
+  private jarDrawn = false;
   private collector = false;
   private sackDrawn = -1;
   private intentDrawn = false;
@@ -598,6 +603,18 @@ export class UnitView {
     }
   }
 
+  // The gatherer's jar on its back while it carries Ambrosia.
+  private drawJarFor(carrying: boolean): void {
+    if (!this.jarG) {
+      this.jarG = this.scene.add.graphics();
+      this.body.add(this.jarG);
+    }
+    if (carrying === this.jarDrawn) return;
+    this.jarDrawn = carrying;
+    this.jarG.clear();
+    if (carrying) drawJar(this.jarG, -this.w * 0.55, -this.h * 0.55, 1.2);
+  }
+
   private drawSackFor(carried: number, cap = DEFAULT_TUNING.collector.carryCap): void {
     if (!this.sackG) return;
     const size = sackSize(carried, cap);
@@ -789,6 +806,7 @@ export class UnitView {
   update(u: UnitState, ctx: FrameCtx, role: PartyRole = 'solo'): void {
     this.tierNow = u.tier;
     if (u.kind === 'collector') this.drawSackFor(u.gold ?? 0, ctx.carryCap);
+    if (u.kind === 'worker') this.drawJarFor((ctx.carry.get(u.id) ?? 0) > 0);
     if (!this.applyParts(u)) this.applyArt(u);
     if (u.kind === 'hero') {
       this.label.setText(heroLabel(u));
@@ -1214,6 +1232,8 @@ export class UnitViews {
   private readonly strikeType = new Map<number, string>();
   // The world's tuning of the collector (MapScene sets it each frame), for the sack sizes.
   carryCap = DEFAULT_TUNING.collector.carryCap;
+  // Ambrosia carried by each gatherer (MapScene sets it each frame from the snapshot).
+  carry: ReadonlyMap<number, number> = new Map();
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -1244,6 +1264,7 @@ export class UnitViews {
       intents,
       timeMs,
       carryCap: this.carryCap,
+      carry: this.carry,
       namesParty: sel && sel.party > 0 ? sel.party : 0,
       namesHero: sel?.id ?? 0,
       fx: this.fx,
@@ -1289,6 +1310,7 @@ export class UnitViews {
       else if (e.kind === 'built') this.onBuilt(e, others);
       else if (e.kind === 'rider') this.views.get(e.target)?.setRider(e.rider);
       else if (e.kind === 'collectorHit') this.views.get(e.unit)?.cue('!', '#ff9a8a', 700);
+      else if (e.kind === 'workerHit') this.views.get(e.unit)?.cue('!', '#ff9a8a', 700);
       else if (e.kind === 'drank') this.onDrank(e, ctx);
       else if (e.kind === 'riddle' && e.answered)
         this.views.get(e.target)?.cue('!', '#f2c14e', 1200);

@@ -87,6 +87,12 @@ export function sfxFor(e: SimEvent, ctx: SfxCtx): SfxRequest[] {
       return e.auto ? [{ id: 'sfx_ui_tap' }] : [];
     case 'tierUp':
       return [{ id: 'sfx_tierup', at: ctx.unitPos(e.unit) }];
+    case 'workerHit':
+    case 'workerFell':
+    case 'guardFell':
+      return [{ id: 'sfx_alarm', at: e.kind === 'workerHit' ? ctx.unitPos(e.unit) : e.pos }];
+    case 'jarHome':
+      return [{ id: 'sfx_chime' }];
     case 'raidWarning':
       return [{ id: 'sfx_horn_far', high: true }];
     case 'raid':

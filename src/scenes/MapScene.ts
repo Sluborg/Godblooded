@@ -47,6 +47,8 @@ import { attachCameraControls } from '../ui/cameraControls';
 import { easeToward, WatchDirector } from '../ui/watchCam';
 import type { HudScene } from './HudScene';
 import { trailDots } from '../ui/raidArrow';
+import { NodeViews } from '../ui/nodeViews';
+import { AMBROSIA_STYLE, ambrosiaPop, drawJarOnGround } from '../ui/ambrosiaLook';
 
 // The first picture of a skill's row; its sound follows it (sfx_skill_<picture>).
 const skillVisual = (id: string): string | undefined =>
@@ -78,6 +80,8 @@ export interface MapTap {
   plot: number | null;
   // Id of a tapped hero (opens the party panel), or null.
   hero?: number | null;
+  // Id of a tapped celestial node (opens its card), or null.
+  node?: number | null;
   // Id of the tapped tax collector (shows its info strip), or null.
   collector?: number | null;
   // Id of a tapped building (opens the building panel), or null.
@@ -99,6 +103,7 @@ export class MapScene extends Phaser.Scene {
   private lairInd!: LairIndicators;
   // Lairs with a raid on the way: the run time the warning ends (a dotted trail to the town).
   private raidTrails = new Map<number, number>();
+  private nodeViews!: NodeViews;
   // Party whose level-up cards are open (the sim is frozen until it is picked), or null.
   private offerKey: string | null = null;
   // The ring on the ground around the party that levelled, while its cards are up.
@@ -184,6 +189,7 @@ export class MapScene extends Phaser.Scene {
       if (STYLE.screenShake && !getSettings().reducedMotion) this.cameras.main.shake(130, 0.004);
     });
     this.links = this.add.graphics().setDepth(1_000_000);
+    this.nodeViews = new NodeViews(this);
     this.lairInd = new LairIndicators(this);
     this.snap = snapshot(this.world);
     this.sync();
@@ -416,6 +422,54 @@ export class MapScene extends Phaser.Scene {
     return command(this.world, { kind: 'cancelBounty', bounty });
   }
 
+  tryAmbrosiaUpgrade(building: number): CommandResult {
+    return command(this.world, { kind: 'upgradeWithAmbrosia', building });
+  }
+
+  tryOffering(building: number): CommandResult {
+    return command(this.world, { kind: 'offering', building });
+  }
+
+  tryRecallFallen(building: number, grave: number): CommandResult {
+    return command(this.world, { kind: 'recallFallen', building, grave });
+  }
+
+  trySendGuard(unit: number): CommandResult {
+    return command(this.world, { kind: 'sendGuard', unit });
+  }
+
+  // The world's node tuning (costs of the Ambrosia cards, the gatherer and the guard).
+  get nodeTuning() {
+    const t = this.world.tuning.nodes;
+    return {
+      gathererCost: t.gathererCost,
+      guardCost: t.guardCost,
+      templeCost: t.templeCost,
+      offeringCost: t.offeringCost,
+      recallCost: t.recallCost,
+    };
+  }
+
+  tryHireGatherer(): CommandResult {
+    return command(this.world, { kind: 'hireGatherer' });
+  }
+
+  trySendGatherer(node: number): CommandResult {
+    return command(this.world, { kind: 'sendGatherer', node });
+  }
+
+  tryRecallGatherers(node?: number): CommandResult {
+    return command(this.world, {
+      kind: 'recallGatherers',
+      ...(node === undefined ? {} : { node }),
+    });
+  }
+
+  // The world's gatherer cost (tuning), for the hall card.
+  get gathererCost(): number {
+    return this.world.tuning.nodes.gathererCost;
+  }
+
   tryRaiseBounty(bounty: number, gold: number): CommandResult {
     return command(this.world, { kind: 'raiseBounty', bounty, gold });
   }
@@ -436,6 +490,19 @@ export class MapScene extends Phaser.Scene {
   private resolveTap(w: Phaser.Math.Vector2): MapTap {
     const plot = this.plotAt(w);
     if (plot !== null) return { plot, target: null };
+    // A freed or defiled node (the column of light): its card sends gatherers.
+    const node = this.snap.nodes
+      .filter((n) => n.state !== 'locked')
+      .map((n) => ({ n, d: Math.hypot(n.pos.x - w.x, n.pos.y - 40 - w.y) }))
+      .filter(({ d }) => d < TARGET_RADIUS + 30)
+      .sort((a, b) => a.d - b.d)[0];
+    if (
+      node &&
+      !this.snap.units.some(
+        (u) => u.kind === 'hero' && Math.hypot(u.pos.x - w.x, u.pos.y - w.y) < TARGET_RADIUS,
+      )
+    )
+      return { plot: null, node: node.n.id, target: null };
     // The tax collector: its own tap (an info strip), found before heroes so a crowd does not hide it.
     const collector = this.snap.units
       .filter((u) => u.kind === 'collector')
@@ -554,10 +621,16 @@ export class MapScene extends Phaser.Scene {
         flagView.setDepth(flagView.y);
       }
       this.markHunt(this.views.get(key), b.target !== undefined);
+      this.markEscort(this.views.get(key), b.escort !== undefined, b.escortBy !== undefined);
       this.updateInterest(
         this.views.get(key),
         this.snap.units.filter((u) => u.bounty === b.id),
       );
+    }
+    for (const j of this.snap.jars) {
+      const key = `a${j.id}`;
+      seen.add(key);
+      if (!this.views.has(key)) this.views.set(key, this.makeJar(j.amount, j.pos));
     }
     for (const p of this.snap.piles) {
       const key = `g${p.id}`;
@@ -572,6 +645,7 @@ export class MapScene extends Phaser.Scene {
       }
     }
     this.unitViews.carryCap = this.world.tuning.collector.carryCap;
+    this.unitViews.carry = new Map(this.snap.workers.map((w) => [w.unit, w.carry]));
     this.unitViews.sync(
       this.snap.units,
       this.snap.events,
@@ -586,6 +660,7 @@ export class MapScene extends Phaser.Scene {
       this.snap.paths,
     );
     this.drawLinks();
+    this.nodeViews.update(this.snap);
     this.lairInd.update(this.snap, dtMs, this.world.tuning.monster.lairAggro);
     // The plate pulses with its ring in the last 15 s before a tier-up.
     for (const l of this.snap.lairs)
@@ -598,6 +673,7 @@ export class MapScene extends Phaser.Scene {
       if (e.kind === 'raidWarning') this.lairInd.flashRed(e.lair);
       if (e.kind === 'raidWarning') this.raidTrails.set(e.lair, this.snap.timeMs + e.inMs);
       this.taxEvent(e);
+      this.nodeEvent(e);
       if (e.kind !== 'hit') continue;
       const view = this.views.get(`b${e.target}`) ?? this.views.get(`l${e.target}`);
       if (view && !e.dodged)
@@ -618,6 +694,30 @@ export class MapScene extends Phaser.Scene {
       view.setData('hunt', ring);
     }
     ring?.setVisible(hunt);
+  }
+
+  // An escort flag (it walks with a gatherer): a teal ring and a small figure mark; the ring fills
+  // once a hero has taken it.
+  private markEscort(
+    view: Phaser.GameObjects.GameObject | undefined,
+    escort: boolean,
+    taken: boolean,
+  ): void {
+    if (!(view instanceof Phaser.GameObjects.Container)) return;
+    let g = view.getData('escort') as Phaser.GameObjects.Graphics | undefined;
+    if (!g && escort) {
+      g = this.add.graphics();
+      view.addAt(g, 0);
+      view.setData('escort', g);
+    }
+    if (!g) return;
+    g.setVisible(escort);
+    if (!escort || view.getData('taken') === taken) return;
+    view.setData('taken', taken);
+    g.clear();
+    g.lineStyle(5, 0x6fd0c8, 0.95).strokeEllipse(0, 0, 100, 42);
+    if (taken) g.fillStyle(0x6fd0c8, 0.3).fillEllipse(0, 0, 100, 42);
+    g.fillStyle(0x6fd0c8, 1).fillCircle(0, -22, 6).fillRect(-4, -16, 8, 12);
   }
 
   // A party weighs this flag: a quick glint.
@@ -768,6 +868,29 @@ export class MapScene extends Phaser.Scene {
     tag.setX(-label.width / 2 + 2);
   }
 
+  // A jar of Ambrosia on the ground (a gatherer fell or dropped it): it pulses once as it lands.
+  private makeJar(amount: number, pos: Vec2): Phaser.GameObjects.Container {
+    const g = this.add.graphics();
+    drawJarOnGround(g, amount);
+    const label = this.add
+      .text(0, 6, `${Math.round(amount)}`, {
+        fontFamily: 'Georgia, serif',
+        fontSize: '24px',
+        color: AMBROSIA_STYLE.text,
+        stroke: '#000000',
+        strokeThickness: 5,
+      })
+      .setOrigin(0.5, 0);
+    const c = this.add.container(pos.x, pos.y, [g, label]).setDepth(pos.y);
+    this.tweens.add({
+      targets: c,
+      scale: { from: 1.5, to: 1 },
+      duration: 350,
+      ease: 'Back.easeOut',
+    });
+    return c;
+  }
+
   private makePile(gold: number, pos: Vec2): Phaser.GameObjects.Container {
     const g = this.add.graphics();
     drawPile(g, gold);
@@ -846,6 +969,43 @@ export class MapScene extends Phaser.Scene {
       duration: 450,
       ease: 'Sine.easeIn',
       onComplete: () => g.destroy(),
+    });
+  }
+
+  // The gatherers' events as pictures (nodes.md): the jar comes home with a "+N Ambrosia" at the hall.
+  private nodeEvent(e: Readonly<SimEvent>): void {
+    const hall = this.snap.buildings.find((b) => b.type === 'townhall')?.pos;
+    if (e.kind === 'jarHome') {
+      if (hall) this.textPop(hall, ambrosiaPop(e.amount), AMBROSIA_STYLE.text, 34);
+    } else if (e.kind === 'jarTaken') {
+      const u = this.snap.units.find((x) => x.id === e.unit)?.pos;
+      if (u) this.textPop(u, ambrosiaPop(e.amount), AMBROSIA_STYLE.text, 24);
+    } else if (e.kind === 'workerFell') {
+      this.textPop(e.pos, 'Gatherer lost', '#ff9a8a', 24);
+    } else if (e.kind === 'guardFell') {
+      this.textPop(e.pos, 'Guard fell', '#ff9a8a', 24);
+    }
+  }
+
+  // A short line that rises over a spot and fades.
+  private textPop(pos: Vec2, text: string, color: string, size: number): void {
+    const t = this.add
+      .text(pos.x, pos.y - 100, text, {
+        fontFamily: 'Georgia, serif',
+        fontSize: `${size}px`,
+        color,
+        stroke: '#000000',
+        strokeThickness: 5,
+      })
+      .setOrigin(0.5)
+      .setDepth(1_000_000);
+    this.tweens.add({
+      targets: t,
+      y: t.y - 55,
+      alpha: 0,
+      duration: 1300,
+      ease: 'Cubic.easeOut',
+      onComplete: () => t.destroy(),
     });
   }
 
