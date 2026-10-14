@@ -109,10 +109,41 @@ export function workerInfos(world: World): WorkerInfo[] {
   return out;
 }
 
-// A gatherer fell: what it carried is lost for now (slice 3 drops it as a jar).
+// Ambrosia lying on the ground for the next gatherer to pass (monsters ignore it).
+function dropJar(world: World, pos: { x: number; y: number }, amount: number): void {
+  if (amount <= 0) return;
+  const jar = {
+    id: world.nextId++,
+    pos: { x: pos.x, y: pos.y },
+    amount,
+    untilMs: world.timeMs + world.tuning.nodes.jarMs,
+  };
+  world.jars.push(jar);
+  world.events.push({ kind: 'jarDropped', jar: jar.id, pos: { ...jar.pos }, amount });
+}
+
+// A gatherer fell: what it carried drops as a jar where it died.
 export function workerFell(world: World, unit: UnitState): void {
   const carried = world.unitRuntime.get(unit.id)?.worker?.carry ?? 0;
   world.events.push({ kind: 'workerFell', unit: unit.id, pos: { ...unit.pos }, carried });
+  dropJar(world, unit.pos, carried);
+}
+
+// Snatch on a carrying gatherer: the thief takes the jar instead of gold. True when it did.
+export function stealJar(world: World, thief: UnitState, victim: UnitState): boolean {
+  const w = world.unitRuntime.get(victim.id)?.worker;
+  const rt = world.unitRuntime.get(thief.id);
+  if (!w || !rt || w.carry <= 0) return false;
+  rt.jar = (rt.jar ?? 0) + w.carry;
+  world.events.push({ kind: 'jarStolen', thief: thief.id, victim: victim.id, amount: w.carry });
+  w.carry = 0;
+  return true;
+}
+
+// A thief that falls drops the jar it took, where it lies.
+export function dropStolenJar(world: World, thief: UnitState): void {
+  const jar = world.unitRuntime.get(thief.id)?.jar ?? 0;
+  if (jar > 0) dropJar(world, thief.pos, jar);
 }
 
 export function runWorkers(world: World): void {
@@ -121,9 +152,22 @@ export function runWorkers(world: World): void {
   const h = hall(world);
   const cls = world.data.classes?.[0];
   const base = ((cls ? speed(cls.attrs) : 80) * t.speedMult * TICK_MS) / 1000;
+  world.jars = world.jars.filter((j) => world.timeMs < j.untilMs);
+  // Guards whose replacement time has come are back on the tower's books.
+  world.guardQueue = world.guardQueue.filter((q) => world.timeMs < q.atMs);
   for (const u of living(world)) {
     const w = world.unitRuntime.get(u.id)?.worker;
     if (!w) continue;
+    // A gatherer on the move picks up a jar it passes.
+    if (!w.fleeing) {
+      const jar = world.jars.find((j) => dist(j.pos, u.pos) <= t.reach);
+      if (jar) {
+        world.jars = world.jars.filter((j) => j !== jar);
+        w.carry += jar.amount;
+        world.events.push({ kind: 'jarTaken', jar: jar.id, unit: u.id, amount: jar.amount });
+        if (w.phase === 'idle' || w.phase === 'out') w.phase = 'back';
+      }
+    }
     const walk = (to: { x: number; y: number }, mult = 1): boolean => {
       const dir = stepToward(u.pos, to, base * mult);
       if (dir.x !== 0 || dir.y !== 0) u.facing = dir;
