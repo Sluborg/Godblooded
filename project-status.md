@@ -6,24 +6,31 @@ Lead keeps this to one screen. Read it first when resuming.
 
 - Game: https://sluborg.github.io/Godblooded/
 - Repo: https://github.com/Sluborg/Godblooded
-- Motion test: https://claude.ai/artifact/Q4fbxESdGgQsstWkVTFvFg
+- Style test: https://claude.ai/artifact/Pui1kjpMZ5tT5pTrni78K9
+- Taste test: https://claude.ai/artifact/NZDwHZTNcPQQ6wUcZpdCE8
 
-## Now
+## Process (since 2026-10-14)
 
-- **Godbloods redesign is in the game:** 12 gods, 24 paths, sibling cap; names and path cards in
-  the UI (no class words).
-- **Merged 2026-10-13:** save/load + autosave, rivalries, seeded map with a boss lair, lair growth,
-  building tiers, run report; Scene splash, buttons, building art, watch camera, tower shots,
-  bounty close fix; Art opaque pipeline, B10, B11, U2, U3 batches; all 10 Design specs in
-  `docs/systems/`.
-- **In review:** Scene #105 building panel, #107 end screen v2 (merging main in).
-- **Next:** Sim 175 (boss never raids), then Lead map data (harpy, jackal-man, minotaur, wyrm
-  boss) and the combat rows; Design on ui-flows, onboarding, audio, content roadmap.
-- **ChatGPT:** quota ran out around 18:00 UTC; Art rebuilds the watches and rings the bell.
+- PRs are scarce (Codex auto-review spends Stefan's quota). Workers push `<role>/<topic>`
+  branches; Review reviews by message; Integrator lands batch PRs. See `CLAUDE.md` "Git".
+
+## Now (2026-10-14 morning)
+
+- **M2 "Aesir, alive" is close.** On main: Aesir skills, passives, cards, items and gear,
+  hero AI with retreat and intent icons, raids by role (tier-up raids on), monster roles and
+  quirks, Fafnir boss moves and telegraphs, sealed boss lair, hints, sound effects, title music,
+  tap-twice build menu, report on quit, grass, wood UI, parts heroes.
+- **Bot:** about 63-75% wins, run about 16 min, boss at about 13 min, 80%+ heroes geared by 8:00.
+- **In flight:** Sim hunt bounties and flag responsiveness (core verb fix, Review gaps), then
+  Scene "?" considering sign and Balance flag pricing.
+- **Art:** S5 taste batch running (Thor parts sheet looks good, fists need a re-roll); U1B logo
+  b2/b3 ready. Art freeze holds for everything else.
+- **M3 specs ready:** nodes and gatherers (Ambrosia in-run), Altar with Essence, chosen lean.
 
 ## Waiting on Stefan
 
-- OPEN questions from the specs (grouped list sent 2026-10-13): combat, skills, items,
-  progression, meta A/B/C, bosses, miracles, buildings.
-- Pick a logo when U1 lands (three options).
-- Is the game fun to watch? (decides M3 vs M4 order)
+- Logo: b2 (hexagon, Lead's pick) or b3 (sun).
+- Fafnir: keep code version as stand-in (held off main) and order painted parts later?
+- Verdict on S5 sheets when all 8 are in; only then other art batches.
+- Gear gate redefinition (80% geared by 8:00), veto if needed.
+- M2 playtest on the phone (`docs/playtest-m2.md`) once flags land.
