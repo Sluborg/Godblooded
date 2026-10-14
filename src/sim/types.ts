@@ -904,6 +904,9 @@ export interface AiTuning {
   switchMin: number;
   // What exploring is worth.
   exploreValue: number;
+  // A party with a monster this close is mid-fight: its lair goal at the lair holds, and no new
+  // flag pulls it away.
+  stickyFoeRange: number;
   // A lair's xp counts this much next to its gold.
   lairXpWeight: number;
 }
