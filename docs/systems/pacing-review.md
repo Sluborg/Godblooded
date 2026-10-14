@@ -159,7 +159,15 @@ tier-up raids on.
 
 - **The gear gate passes** (100% median, 90% at the lower quarter) and wins, run length, boss
   and quiet stretches sit inside their targets, with a bot that spends on flags.
-- **Still early:** tier 2 (3.6) and tier 3 (9.3) come a little before their windows. Not a fun
+- **Still early:** the first lair fall (6.3, window 7-11) is the earliest miss and pulls tier 3
+  forward; tier 2 (3.6) and tier 3 (9.3) also come a little before their windows. Not a fun
   gate; Stefan's playtest decides whether it matters.
-- **Steering is the open fun-gate item:** half the flags get a party, the median after 27 s.
-  Stefan's run 2 ("Steer") is where this is judged.
+- **Steering is the open fun-gate item.** The flags above sit 150 from a hero, and most claims
+  are walk-overs. A flag on a monster 350-900 from the nearest hero (how a player uses it):
+  at 50 gold almost no hero heads for it, at 100 gold one heads there after a median 115 s and
+  half are never claimed, at 200 gold heroes head there at once but rarely claim it. Causes in
+  `src/sim/heroes.ts`: the claim needs no monster within 250, each monster near the flag costs
+  15 points against an explore value of 20, and goals hold 6 s. Proposals went to Lead
+  (2026-10-14): a hunt bounty that follows its monster and pays the killer, a re-score on
+  placement with a visible "considering" beat, then a Balance pass. Stefan's run 2 ("Steer")
+  judges the result.
