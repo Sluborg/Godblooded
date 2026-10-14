@@ -43,9 +43,9 @@ export function drawCollector(g: Phaser.GameObjects.Graphics, size: 0 | 1 | 2): 
   const sx = -30;
   const sy = -26 - r * 0.2;
   g.fillStyle(TAX_STYLE.sack, 1).fillEllipse(sx, sy, r * 1.7, r * 2);
-  g.lineStyle(3, ink, 0.85).strokeEllipse(sx, sy, r * 1.7, r * 2);
+  g.lineStyle(2, ink, 0.85).strokeEllipse(sx, sy, r * 1.7, r * 2);
   g.fillStyle(TAX_STYLE.sackTie, 1).fillRect(sx - r * 0.3, sy - r * 1.05, r * 0.6, 6);
-  if (size > 0) drawCoin(g, sx, sy + 2, size === 2 ? 9 : 7);
+  if (size > 0) drawCoin(g, sx, sy + 1, size === 2 ? 5 : 4);
   // Robe: a wide rounded bell.
   g.fillStyle(0x7a5a30, 1).fillEllipse(0, -26, 54, 56);
   g.lineStyle(3, ink, 0.85).strokeEllipse(0, -26, 54, 56);
