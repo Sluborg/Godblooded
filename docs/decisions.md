@@ -387,3 +387,41 @@ interim collector with the hero rig at hero proportions until the kit lands.
 logo, U5-U7 icons and frames, the rest of G3). G2 (paths t2, rewritten as kit parts) and the
 Fafnir kit follow once the G1 Grim kit test passes QA and Stefan has seen it animated. Every
 image still passes Art's QA before it reaches the Art Verdicts page.
+
+## 2026-10-15 Fill the full phone width (Stefan)
+
+Wide phones (about 20:9) showed dark side bars with Scale.FIT 1280x720. Stefan chose to fill the
+screen: the design height stays 720, the width grows with the screen's aspect, the map shows
+more to the sides, and the HUD anchors to the screen edges and safe areas.
+
+## 2026-10-15 Heroes in the RimWorld manner, dark and pretty (Stefan)
+
+Ratings: bounty flag 4 and axe icon 5 (ship both). Grim assembled 1: "I don't want full size,
+movement can't be good. I want the RimWorld, but dark and pretty." Grim portrait 1: "I don't want
+portraits, I want game graphics as portraits. Multiple faces, and headwear and type of body."
+
+- **Heroes are built like RimWorld pawns:** a body sprite (a few body types: lean, average,
+  broad, heavy; male and female) with a head sprite on top (many faces, hair, beards), worn
+  layers on the body (armour, cloaks), headgear on the head, a held weapon and off-hand drawn
+  separately. No limbs to animate; movement is a slide with a small bob, attacks are a weapon
+  swing or lunge, all in code. Three facings: front, side (mirrored) and back.
+- **Painted dark and pretty** in the one style (STYLE.md), not RimWorld's flat cartoon.
+- **No separate portraits:** a portrait is the same in-game head and body drawn larger.
+- The full-size Grim parts test, the floating-vs-bent question and the por_ portraits are
+  dropped. The approved Grim still stays the look reference for colour, cloth and mood.
+
+## 2026-10-15 Correction: keep the small rig, change the look (Stefan)
+
+"I liked the small legs and arms you made. I just didn't like the childish wizard and princess
+style art. If they had cool gear like on the painterly art. Dope." This replaces the RimWorld
+entry above: heroes keep the compact animated parts rig from the prototype (small body, small
+floating hands and feet that move in code). What changes is the art on it: painted pieces in the
+one style, adult grim faces, cool believable gear (mail, leather, furs, carved weapons, hoods and
+helms) instead of wizard hats and princess dresses. Still a kit: faces, headgear, bodies and gear
+combine per hero; portraits are the in-game hero drawn larger.
+
+## 2026-10-15 G7 hero look test go (Stefan)
+
+"Proportions are fine. Have heroes make some test art so I can describe what works." G7 is
+Ready: eight assembled compact heroes at today's proportions (Grim, axeman, old warrior,
+shieldmaiden, son of Loki, son of Thor, two darker variants), QA-checked, then rated by Stefan.
