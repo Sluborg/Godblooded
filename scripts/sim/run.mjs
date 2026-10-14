@@ -8,6 +8,8 @@
 // --hunt (implies --flags, 50 gold unless --flag-gold): the probe flag goes on a living monster
 // 350 to 900 from the nearest hero instead (skipped while there is none, no other probe flag
 // open), and the report adds how soon a party headed for it and how many were paid. --no-lair-flag turns the bot's own 50 gold lair flag off.
+// --replay-check replays every run from its replay code and reports how many replays equal the
+// original run report (the determinism check; also tries the code through `npm run replay`).
 // --data takes a JSON file that overrides GRAYBOX fields (top level; `tuning` groups are
 // merged one by one), so data passes can be tried without editing src/data.
 import { readFileSync } from 'node:fs';
@@ -39,6 +41,7 @@ const buildIdx = args.indexOf('--build');
 const BUILD_ARG = buildIdx >= 0 ? args[buildIdx + 1].split(',') : undefined;
 // The bot buys building tiers unless --no-upgrade is given.
 const UPGRADE = !args.includes('--no-upgrade') && !HUMAN;
+const REPLAY_CHECK = args.includes('--replay-check');
 const HUNT = args.includes('--hunt');
 const FLAGS = args.includes('--flags') || HUNT;
 const FLAG_GOLD = opt('flag-gold', HUNT ? 50 : 40);
@@ -193,7 +196,23 @@ try {
     }
     snap = sim.snapshot(w);
     watch(snap);
+    let replayOk = null;
+    let replayCode = null;
+    if (REPLAY_CHECK) {
+      const original = sim.runReport(w);
+      replayCode = original.replay;
+      const again = sim.runReport(sim.runReplay(original.replay, GRAYBOX).world);
+      replayOk = JSON.stringify(original) === JSON.stringify(again);
+      if (!replayOk) {
+        const keys = Object.keys(original).filter(
+          (k) => JSON.stringify(original[k]) !== JSON.stringify(again[k]),
+        );
+        console.error(`replay differs (seed ${seed0 + r}): ${keys.join(', ')}; ticks ${w.tick}`);
+      }
+    }
     results.push({
+      replayOk,
+      ...(replayCode ? { replayCode } : {}),
       seed: seed0 + r,
       outcome: timeout ? 'timeout' : snap.status,
       minutes: snap.timeMs / 60_000,
@@ -425,6 +444,9 @@ function summarize(results) {
       geared8: meanOf(results, 'geared8'),
       carried8: meanOf(results, 'carried8'),
     },
+    replayCheck: REPLAY_CHECK
+      ? { identical: results.filter((r) => r.replayOk).length, of: results.length }
+      : null,
     probes: results.flatMap((r) => r.probes ?? []),
     flags: {
       placed: meanOf(results, 'flagsPlaced'),
@@ -478,6 +500,11 @@ function print(rep) {
   console.log(
     `  town gold: 3:00 ${n(rep.pacing.gold3)}  5:00 ${n(rep.pacing.gold5)}   hero gear level at 8:00: weapon ${n(rep.pacing.weapon8)}  armour ${n(rep.pacing.armour8)}  with any gear ${rep.pacing.geared8 === null ? '-' : `${(rep.pacing.geared8 * 100).toFixed(0)}%`}  gold carried by heroes at 8:00 ${n(rep.pacing.carried8)}`,
   );
+  if (rep.replayCheck) {
+    console.log(
+      `  replay check: ${rep.replayCheck.identical} of ${rep.replayCheck.of} replays equal the original run report`,
+    );
+  }
   if (FLAGS) {
     const share = rep.flags.placed > 0 ? rep.flags.claimed / rep.flags.placed : 0;
     const hp = rep.flags.huntPlaced;

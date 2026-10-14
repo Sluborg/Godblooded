@@ -2,6 +2,7 @@
 export { createWorld, step, command, snapshot, TICK_MS } from './world';
 export { DEFAULT_TUNING } from './tuning';
 export { runReport } from './runstats';
+export { decodeReplay, replayHash, runReplay } from './replay';
 export { loadWorld, migrateSave, saveWorld, SAVE_VERSION, SaveError } from './save';
 export type { SaveGame } from './save';
 export type { World } from './world';
