@@ -215,12 +215,15 @@ try {
   await sleep(300);
   if (await menuOpen()) throw new Error('bounty menu did not close on a bare-ground tap');
 
-  // 4x speed.
+  // 4x speed: the one speed button cycles 1x, 2x, 4x, so two taps.
   const fast = await page.evaluate(() => {
-    const b = window.__game.scene.getScene('Hud').speedButtons[2].rect;
+    const b = window.__game.scene.getScene('Hud').speedBtn.rect;
     return [b.centerX, b.centerY];
   });
   await tap(await designToScreen(fast));
+  await tap(await designToScreen(fast));
+  const speed = await page.evaluate(() => window.__game.registry.get('speed'));
+  if (speed !== 4) throw new Error(`speed button did not reach 4x (got ${speed})`);
 
   // Run: pick the first card whenever a level-up opens, shot every game minute.
   const started = Date.now();
