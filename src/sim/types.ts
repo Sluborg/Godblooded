@@ -1137,7 +1137,7 @@ export interface LairState {
 export interface UnitState {
   id: number;
   // 'summon': a unit a hero's skill called; it fights for the party and monsters can target it.
-  kind: 'hero' | 'monster' | 'summon' | 'collector' | 'worker';
+  kind: 'hero' | 'monster' | 'summon' | 'collector' | 'worker' | 'guard';
   // Monsters: the monster id. Heroes: the id of the template in use (ClassDef): the god's at
   // tier 1, the path's from tier 2. Look and strike fall back on it.
   type: string;
@@ -1268,6 +1268,27 @@ export interface NodesTuning {
   // goes out again (0: goes straight back out).
   returnAtHp: number;
   reach: number;
+  // Guards a tower lends (guards.ts): gold per trip, how many at a time by tower tier, body, a
+  // spear of guardDamage x a level 1 hero's strength, how far it strays from its gatherer, how
+  // long before the tower lends a replacement, and how long a dropped jar lies.
+  guardCost: number;
+  guardPerTower: readonly number[];
+  guardHp: number;
+  guardArmour: number;
+  guardDamage: number;
+  guardRange: number;
+  guardLeash: number;
+  guardHeel: number;
+  guardRelendMs: number;
+  jarMs: number;
+}
+
+// A jar of Ambrosia lying on the ground (a fallen gatherer's, or a thief's when it falls).
+export interface JarState {
+  id: number;
+  pos: Vec2;
+  amount: number;
+  untilMs: number;
 }
 
 // What a gatherer is doing: waiting at the hall, walking out, gathering, or carrying home.
@@ -1438,6 +1459,12 @@ export type SimEvent =
   | { kind: 'gathererHired'; unit: number }
   | { kind: 'workerHit'; unit: number }
   | { kind: 'jarHome'; unit: number; node: number | null; amount: number; total: number }
+  | { kind: 'guardOut'; unit: number; escort: number; tower: number }
+  | { kind: 'guardHome'; unit: number }
+  | { kind: 'guardFell'; unit: number; pos: Vec2 }
+  | { kind: 'jarDropped'; jar: number; pos: Vec2; amount: number }
+  | { kind: 'jarStolen'; thief: number; victim: number; amount: number }
+  | { kind: 'jarTaken'; jar: number; unit: number; amount: number }
   | { kind: 'workerFell'; unit: number; pos: Vec2; carried: number }
   | { kind: 'nodeFreed'; node: number; lair: number; pos: Vec2; pool: number }
   | { kind: 'lairDestroyed'; lair: number; type: string; by: number; bounty: number }
@@ -1506,6 +1533,8 @@ export type Command =
   // recall them from one node, or all.
   | { kind: 'hireGatherer' }
   | { kind: 'sendGatherer'; node: number }
+  // A tower lends a guard to walk beside this gatherer (15 gold).
+  | { kind: 'sendGuard'; unit: number }
   | { kind: 'recallGatherers'; node?: number }
   | { kind: 'placeBounty'; pos: Vec2; gold: number }
   // Take a flag down and get cancelRefund (50%) of its gold back.
@@ -1589,6 +1618,7 @@ export interface Snapshot {
   readonly ambrosia: number;
   // Gatherers: what each is doing, and how many the town hall may keep.
   readonly workers: readonly Readonly<WorkerInfo>[];
+  readonly jars: readonly Readonly<JarState>[];
   readonly gathererCap: number;
   // Favour bar of every pantheon with a miracle row (0 to max); a full bar waits for a fight.
   readonly favour: readonly Readonly<{ pantheon: string; value: number; max: number }>[];
