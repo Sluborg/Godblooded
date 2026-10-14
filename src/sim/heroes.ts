@@ -2,7 +2,6 @@ import { isWorking } from './town';
 import { visitPoint } from './collision';
 import { omenBounty, omenMods } from './omens';
 import { noteHeroArrived } from './facts';
-import { nameHero } from './names';
 import { payIntoTill, payTithe } from './collector';
 import { hearthBuff, hearthOf, partyHurt } from './hearth';
 import { escortHeldBy, escortOpenTo } from './escort';
