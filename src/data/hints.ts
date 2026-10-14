@@ -291,6 +291,16 @@ export const HINTS: readonly HintDef[] = [
     line2: 'A smithy sells weapons and armour.',
   },
   {
+    id: 'h-vanguard',
+    order: 139,
+    group: 'first',
+    trigger: 'vanguard',
+    milestone: 2,
+    target: { kind: 'spot' },
+    line1: 'The boss lair is open.',
+    line2: 'Its vanguard marches on the town.',
+  },
+  {
     id: 'h-ruin',
     order: 140,
     group: 'first',
