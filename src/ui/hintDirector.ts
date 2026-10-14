@@ -27,6 +27,8 @@ export class HintDirector {
   private readonly nudge = new NudgeWatch();
   // Run time of the latest snapshot, for the events that carry none.
   private timeMs = 0;
+  // The boss lairs of the latest snapshot (a raid warning from one is a vanguard).
+  private bossLairs = new Set<number>();
   private savedSize = this.seen.size;
 
   constructor(
@@ -71,6 +73,9 @@ export class HintDirector {
       this.engine.skip(...r.skip);
       for (const f of r.fire) this.engine.fire(f.trigger, f.unit, f.at ?? null);
       if (e.kind === 'bountyPlaced') this.nudge.flagPlaced(this.timeMs);
+      // A raid warning from the boss lair is a vanguard (h-vanguard): the arrow is the target.
+      if (e.kind === 'raidWarning' && this.bossLairs.has(e.lair))
+        this.engine.fire('vanguard', null, e.from);
     }
   }
 
@@ -86,6 +91,7 @@ export class HintDirector {
   ): void {
     const now = this.scene.time.now;
     this.timeMs = snap.timeMs;
+    this.bossLairs = new Set(snap.lairs.filter((l) => l.boss).map((l) => l.id));
     if (!this.started) {
       this.started = true;
       this.engine.fire('start');
