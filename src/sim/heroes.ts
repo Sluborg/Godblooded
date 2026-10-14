@@ -336,6 +336,21 @@ export function heroMove(world: World, unit: UnitState): void {
         step(rt.dest);
         break;
       }
+      // A loyal hero stands over a knocked out party mate and fights what comes near.
+      const fallen =
+        unit.trait === 'loyal'
+          ? world.parties
+              .get(unit.party)
+              ?.members.map((id) => world.units.find((u) => u.id === id))
+              .find((m) => m && m.id !== unit.id && m.ko)
+          : undefined;
+      if (fallen) {
+        if (dist(unit.pos, fallen.pos) > world.tuning.trait.loyalGuardRange) {
+          rt.dest = fallen.pos;
+          step(rt.dest);
+        }
+        break;
+      }
       const lead = leaderOf(world, unit);
       const flag =
         rt.bounty === undefined ? undefined : world.bounties.find((b) => b.id === rt.bounty);
