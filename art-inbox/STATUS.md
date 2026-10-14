@@ -172,3 +172,7 @@ U1B delivery: four unchanged 1254x1254 PNGs, built-in image edits of original U1
 G1-test | 2026-10-14T19:18:41.918Z | heroes | started
 
 B13-test | 2026-10-14T19:19:13.607Z | buildings | started
+
+
+G1-test | 2026-10-14T19:19:38.096Z | heroes | hero_odin_t1_front | uploaded
+G1 test Grim: unchanged1254x1254 built-in PNG, 1885817 bytes; https://drive.google.com/file/d/1Bt6jy48KbjyRFacH9ZRfAN_RxaFRg51L/view?usp=drivesdk. Drive metadata verified name PNG MIME size folder. Required hall tower temple draugr raw anchors used. Review: adult stern dark beard, grounded proportions greyblue worn cloak leather iron feathers, right-facing, no effects. Figure taller than75% nominal and staff head is near head height rather than shoulder height; staff front hand correctly viewer-right. Fine speckled texture and dark outline need review against no-grain thin-outline requirement. Near-magenta background. No cropping resizing conversion recompression. Test does not complete G1. Watches remain paused per Stefan.
