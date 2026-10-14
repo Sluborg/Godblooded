@@ -388,3 +388,37 @@ export function drawKit(ctx: Ctx, draws: readonly Draw[], p: RigPose): void {
   }
   ctx.restore();
 }
+
+// A head and shoulders portrait of the kit in a square canvas of `size` px: the torso's top, the
+// head and the headgear, facing right, centred. Transparent behind (the UI draws the plate).
+export function drawPortrait(ctx: Ctx, kit: Kit, size: number): void {
+  const { parts } = kit;
+  const head = parts.head as KitPart;
+  const torso = parts.torso as KitPart;
+  const [, headH] = sizeOf(head, kit.build.head, kit.build.head);
+  // The head takes about half the height; the neck sits two thirds down.
+  const k = (size * 0.5) / headH;
+  const nx = size / 2;
+  const ny = size * 0.68;
+  const put = (part: KitPart, name: string, x: number, y: number, sx: number, sy: number) => {
+    const [fx, fy] = pivot(part, name);
+    const [w, h] = sizeOf(part, sx, sy);
+    const c = part.cell;
+    ctx.drawImage(part.img, c.x, c.y, c.w, c.h, x - fx * w * k, y - fy * h * k, w * k, h * k);
+  };
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(0, 0, size, size);
+  ctx.clip();
+  if (parts.cloak) put(parts.cloak, 'clasp', nx - 4 * k, ny + 1 * k, 1, 1);
+  put(torso, 'neck', nx, ny, kit.build.torso[0], kit.build.torso[1]);
+  if (kit.layers.torso)
+    put(kit.layers.torso, 'neck', nx, ny, kit.build.torso[0], kit.build.torso[1]);
+  put(head, 'neck', nx, ny, kit.build.head, kit.build.head);
+  const gear = parts.headgear;
+  if (gear) {
+    const [bx, by] = offsetIn(head, 'neck', 'brow', kit.build.head, kit.build.head);
+    put(gear, 'brow', nx + bx * k, ny + by * k, kit.build.head, kit.build.head);
+  }
+  ctx.restore();
+}

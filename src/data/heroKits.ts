@@ -83,3 +83,6 @@ export function kitFor(lookId: string): KitCombo | undefined {
   for (const id of tries) if (HERO_KITS[id]) return HERO_KITS[id];
   return undefined;
 }
+
+// The face name of a kit head part id: `head_grim` -> `grim` (Art's portrait is `por_grim`).
+export const faceOf = (headId: string): string => headId.replace(/^head_/, '');
