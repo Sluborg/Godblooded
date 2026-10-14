@@ -339,3 +339,16 @@ melted or duplicated parts; matches STYLE.md; reads at target size. A failed ima
 (up to three tries) or reported as a failure, never shown. Review spot-checks images on art
 branches. U1B is Void; Art writes U1C, a simpler logo with an explicit stacking order, shown to
 Stefan only after it passes QA. Lead also checks images before showing them.
+
+## 2026-10-14 Reference set and art realism rules (Stefan's ratings)
+
+Stefan rated 18 shipped pieces on the Art Verdicts page. Reference set (score 4-5, with Grim):
+town hall t1, labyrinth lair, jackal-man, watch tower t1, Aesir temple t2, shrine, barrow lair
+(should be grimmer: dead grass), jackal camp, troll. Rejected for redo (1-2): watch tower t2
+(unrealistic), town hall t2 (odd extras on the back), Greek temple (too narrow, fewer front
+pillars, room inside), Egyptian temple (reads as a gate, not a temple), market t2 (too busy,
+impossible logs), smithy (unreal weapons). Middling (3): draugr, troll den (confusing wheel,
+baked smoke), minotaur (hand positions). New QA rules: everything physically believable and
+buildable, weapons usable and gripped like real hands, a building reads as its function, no
+baked-in effects (smoke, sparks, glow are code), clear silhouette over busy props. Redo
+batches are drafted by Art and need Stefan's go each.

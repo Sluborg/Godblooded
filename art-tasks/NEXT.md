@@ -7,6 +7,12 @@ log; never a **Draft** (Art is still waiting on Stefan). Art sets a batch to Don
 
 | Batch | Track     | File     | What                                                                | Images | Status |
 | ----- | --------- | -------- | ------------------------------------------------------------------- | ------ | ------ |
+| B19   | buildings | `B19.md` | Redo town hall t2: same longhouse grown, nothing odd on the back    | 1      | Draft  |
+| B20   | buildings | `B20.md` | Redo Greek and Egyptian temples t1: real temples with an inside     | 2      | Draft  |
+| B21   | buildings | `B21.md` | Redo smithy t1 (real weapons) and market t2 (calmer, real logs)     | 2      | Draft  |
+| B22   | buildings | `B22.md` | Redo watch tower t2: believable, built from tower t1                | 1      | Draft  |
+| B23   | buildings | `B23.md` | Redo troll den t1: no wheel, no smoke, grimmer                      | 1      | Draft  |
+| V2    | monsters  | `V2.md`  | Redo minotaur t1: a real two-handed grip                            | 1      | Draft  |
 | G1    | heroes    | `G1.md`  | Hero parts kit test: Grim's segments sheet, axe icon, portrait      | 4      | Ready  |
 | G2    | heroes    | `G2.md`  | Aesir paths t2 in the one style (after G1)                          | 8      | Draft  |
 | G3    | heroes    | `G3.md`  | Town folk: tax reeve with ledger and coin chest, gatherer, guard    | 3      | Draft  |
