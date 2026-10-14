@@ -41,15 +41,17 @@ Design owns this spec. Lead turns the proposed rows into backlog rows and data. 
 
 | Level | Name (weapon kits) | Name (casters) | Power | Price | Smithy tier |
 | ----- | ------------------ | -------------- | ----- | ----- | ----------- |
-| 1     | Tempered           | Carved focus   | +2    | 60    | 1           |
+| 1     | Tempered           | Carved focus   | +2    | 20    | 1           |
 | 2     | Master-forged      | Runed focus    | +4    | 150   | 2           |
 | 3     | Godsteel           | Star focus     | +7    | 320   | 3           |
+
+Level 1 is 20 gold (first draft 60) so heroes own gear by 8:00 (Balance, 2026-10-14; `pacing-review.md` 5).
 
 ### Armour (smithy)
 
 | Level | Price | Heavy: armour / Wp | Light: armour / Wp | Robe: armour / Wp | Smithy tier |
 | ----- | ----- | ------------------ | ------------------ | ----------------- | ----------- |
-| 1     | 50    | +4 / 0             | +2 / +1            | 0 / +2            | 1           |
+| 1     | 20    | +4 / 0             | +2 / +1            | 0 / +2            | 1           |
 | 2     | 130   | +8 / +1            | +4 / +2            | +1 / +4           | 2           |
 | 3     | 280   | +13 / +2           | +7 / +3            | +2 / +7           | 3           |
 
@@ -96,7 +98,8 @@ Charms are generic, not per pantheon: pantheon flavour lives in passives and ski
       armour first);
    3. a charm, if it has none;
    4. a second potion (third at a tier 3 market).
-4. **Tax:** the town gets `price x taxRate x shop tier multiplier` per item (today's
+4. **Tax:** the town gets `price x taxRate x shop tier multiplier` per item (`taxRate` 0.5,
+   Balance 2026-10-14; today's
    `marketTaxMult` 1, 1.25, 1.5, now also on the smithy). The event `shopped` carries the
    item id.
 5. **Stock:** a shop of tier t sells every level up to t, so a hero arriving late with level 0
@@ -115,6 +118,7 @@ Charms are generic, not per pantheon: pantheon flavour lives in passives and ski
 | Heroes spend | items, 60% budget per visit       | 200-450 per hero   |
 | Town earns   | tax on items (50-75%)             | 1500-3000 total    |
 | Town spends  | buildings, upgrades, bounty flags | all of it          |
+| Town starts  | `startGold` 480                   |                    |
 
 A hero who reaches party level 6 should own about level 2 weapon and armour with a tier 2
 smithy, and level 3 of one with a tier 3 smithy. Lead checks this with the Sim bot (new

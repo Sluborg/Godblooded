@@ -89,6 +89,31 @@ describe('raid after a lair tier-up', () => {
     expect(w.units.filter((u) => w.unitRuntime.get(u.id)?.raidId === warn.raid)).toHaveLength(2);
   });
 
+  it('tierRaidSize gives the tier-up raid its own flat size', () => {
+    const w = createWorld(
+      1,
+      mk(
+        { raidFirstMs: 10_000_000, raidOnTierUp: true, tierRaidSize: 1 },
+        { tierUpEveryMs: 20_000, maxTier: 2 },
+      ),
+    );
+    const [warn] = of(run(w, 40_000), 'raidWarning');
+    expect(warn.size).toBe(1);
+  });
+
+  it('tierRaidEvery 2 raids on every second tier-up only', () => {
+    const w = createWorld(
+      1,
+      mk(
+        { raidFirstMs: 10_000_000, raidOnTierUp: true, tierRaidEvery: 2 },
+        { tierUpEveryMs: 20_000, maxTier: 3 },
+      ),
+    );
+    const ev = run(w, 70_000);
+    expect(of(ev, 'lairTierUp')).toHaveLength(2);
+    expect(of(ev, 'raidWarning')).toHaveLength(1);
+  });
+
   it('can be switched off', () => {
     const w = createWorld(
       1,

@@ -8,12 +8,14 @@ import { GRAYBOX } from '../data/graybox';
 import {
   command,
   createWorld,
+  runReport,
   loadWorld,
   saveWorld,
   SaveError,
   snapshot,
   step,
   type CommandResult,
+  type RunReport,
   type Snapshot,
   type UnitState,
   type Vec2,
@@ -365,6 +367,11 @@ export class MapScene extends Phaser.Scene {
   // Upgrade a building to its next tier (the sim checks gold and the tier cap).
   tryUpgrade(building: number): CommandResult {
     return command(this.world, { kind: 'upgrade', building });
+  }
+
+  // The end-screen numbers for the run as it stands (Quit from Pause shows them as abandoned).
+  abandonReport(): RunReport {
+    return runReport(this.world);
   }
 
   // Take a bounty flag down (half the gold comes back) or add gold to one that stands.
