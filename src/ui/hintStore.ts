@@ -39,3 +39,13 @@ export function markRunEnded(): boolean {
     return false; // storage blocked: no first-run line
   }
 }
+
+// True until a run has finished on this device (the sim's first-run mode: gentler start, the clock
+// waits for the first temple). Counts finished runs only, so an abandoned first run is still first.
+export function isFirstRun(): boolean {
+  try {
+    return !(Number(localStorage.getItem(RUNS_KEY) ?? 0) > 0);
+  } catch {
+    return false; // storage blocked: play the normal run
+  }
+}
