@@ -2,6 +2,16 @@ import { uncollected } from './collector';
 import type { World } from './world';
 import type { HeroReport, RunReport, UnitState } from './types';
 
+// The type of the run's boss lair (standing or cleared), for the meta layer.
+function bossType(world: World): string | null {
+  if (world.bossLair === null) return null;
+  return (
+    world.lairs.find((l) => l.id === world.bossLair)?.type ??
+    world.lairLog.find((l) => l.lair === world.bossLair)?.type ??
+    null
+  );
+}
+
 // Per hero and per run tallies for the end screen. Kept apart from the rules: the sim only
 // counts, nothing here changes an outcome.
 
@@ -117,6 +127,13 @@ export function runReport(world: World): RunReport {
     heroes,
     lairsCleared: world.lairLog.map((l) => ({ ...l })),
     goldHistory: goldHistory(world),
+    facts: {
+      peakLevel: { ...world.facts.peakLevel },
+      heroPantheons: [...world.facts.heroPantheons],
+      templePantheons: [...world.facts.templePantheons],
+      gear2: world.facts.gear2,
+      boss: bossType(world),
+    },
   };
 }
 
