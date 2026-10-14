@@ -436,6 +436,10 @@ export interface HeroTuning {
   restPerS: number;
   shrineMult: number;
   shopMinGold: number;
+  // A shopping trip for an exploring hero that is not in a fight: -1 off (only the rest stop
+  // shops); 0 when its plan buys a weapon or armour level; above 0 when it carries that much
+  // gold and has anything to buy. Checked about once a second.
+  shopTripGold: number;
   spendShare: number;
   // Spend share of a greedy (hoards) and a proud (wants the best) hero, when item rows exist.
   greedySpend: number;

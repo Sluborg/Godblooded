@@ -171,3 +171,65 @@ describe('shopping trips', () => {
     expect(h.mode).toBe('explore');
   });
 });
+
+describe('shopping trips for exploring heroes', () => {
+  const explorer = (w: W, gold: number): UnitState => {
+    const h = hero(w, gold);
+    h.mode = 'explore';
+    h.pos = { x: 700, y: 700 };
+    return h;
+  };
+  const withTrip = (shopTripGold: number): W => {
+    const w = town({ smithy: 1, market: 1 });
+    w.tuning.hero.shopTripGold = shopTripGold;
+    return w;
+  };
+
+  it('is off by default: an exploring hero with gold keeps exploring', () => {
+    const w = town({ smithy: 1, market: 1 });
+    const h = explorer(w, 200);
+    run(w, 2_000);
+    expect(h.mode).toBe('explore');
+  });
+
+  it('0: a hero whose plan buys gear walks to the shops, buys, and goes back to exploring', () => {
+    const w = withTrip(0);
+    const h = explorer(w, 200);
+    run(w, 1_500);
+    expect(h.mode).toBe('shop');
+    run(w, 20_000);
+    expect(h.mode).toBe('explore');
+    expect(h.items?.armour).toBe(1);
+  });
+
+  it('0: a hero that can only afford potions does not make a trip', () => {
+    const w = withTrip(0);
+    const h = explorer(w, 30);
+    run(w, 3_000);
+    expect(h.mode).toBe('explore');
+  });
+
+  it('above 0: goes at that much gold, not before', () => {
+    const w = withTrip(100);
+    const poor = explorer(w, 90);
+    run(w, 2_000);
+    expect(poor.mode).toBe('explore');
+    poor.gold = 120;
+    run(w, 2_000);
+    expect(poor.mode).toBe('shop');
+  });
+
+  it('does not leave a fight', () => {
+    const w = withTrip(0);
+    const h = explorer(w, 200);
+    // in a fight the whole time, over more than one check
+    for (let t = 0; t < 2_000; t += TICK_MS) {
+      h.target = 999;
+      step(w, TICK_MS);
+    }
+    expect(h.mode).toBe('explore');
+    h.target = null;
+    run(w, 1_500);
+    expect(h.mode).toBe('shop');
+  });
+});

@@ -125,6 +125,8 @@ export function runHeroes(world: World): void {
       world.events.push({ kind: 'fled', unit: unit.id });
     } else if (unit.mode === 'rest' || unit.mode === 'shop') {
       defend(world, unit, rt);
+    } else if (unit.mode === 'explore') {
+      shopTrip(world, unit, rt);
     }
   }
 }
@@ -187,6 +189,21 @@ function wantsToShop(world: World, unit: UnitState, rt: HeroRuntime): boolean {
   if (plan.length === 0) return false;
   rt.shop = plan;
   return true;
+}
+
+// An exploring hero with enough gold and no fight on walks to the shops (tuning.hero.shopTripGold)
+// instead of waiting to be hurt enough to rest. About once a second per hero.
+function shopTrip(world: World, unit: UnitState, rt: HeroRuntime): void {
+  const t = tune(world);
+  if (t.shopTripGold < 0 || unit.target !== null || unit.gold < t.shopMinGold) return;
+  if (!hasItemRows(world) || (world.timeMs / TICK_MS + unit.id) % 20 !== 0) return;
+  if (t.shopTripGold > 0 && unit.gold < t.shopTripGold) return;
+  const plan = planShopping(world, unit);
+  if (plan.length === 0) return;
+  if (t.shopTripGold === 0 && !plan.some((s) => s.shop === 'smithy')) return;
+  rt.shop = plan;
+  unit.mode = 'shop';
+  rt.dest = null;
 }
 
 // Walks to the next planned shop, buys there, and moves on; done when the plan is.
