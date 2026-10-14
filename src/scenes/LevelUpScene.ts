@@ -110,7 +110,7 @@ export class LevelUpScene extends Phaser.Scene {
       this.add
         .text(x, 224, m.label, {
           fontFamily: FONT,
-          fontSize: '16px',
+          fontSize: '22px',
           color: lit ? COLORS.text : COLORS.textMuted,
           align: 'center',
           wordWrap: { width: 118 },
@@ -201,7 +201,7 @@ export class LevelUpScene extends Phaser.Scene {
     this.add
       .text(x, y + CARD_H / 2 - 80, `${godName(p.god)}'s paths: ${siblings}`, {
         fontFamily: FONT,
-        fontSize: '18px',
+        fontSize: '20px',
         color: COLORS.textMuted,
         align: 'center',
         wordWrap: { width: w - 24 },
@@ -210,8 +210,8 @@ export class LevelUpScene extends Phaser.Scene {
     this.add
       .text(x, y + CARD_H / 2 - 40, 'Tap to choose', {
         fontFamily: FONT,
-        fontSize: '22px',
-        color: COLORS.textMuted,
+        fontSize: '28px',
+        color: COLORS.text,
       })
       .setOrigin(0.5);
     bg.on('pointerover', () => bg.setFillStyle(0x4a3322)).on('pointerout', () =>
@@ -233,7 +233,7 @@ export class LevelUpScene extends Phaser.Scene {
     this.add
       .text(x, y - CARD_H / 2 + 60, def?.name ?? id, {
         fontFamily: FONT,
-        fontSize: '36px',
+        fontSize: '42px',
         color: '#f2c14e',
         align: 'center',
         wordWrap: { width: CARD_W - 40 },
@@ -242,7 +242,7 @@ export class LevelUpScene extends Phaser.Scene {
     this.add
       .text(x, y, def?.text ?? '', {
         fontFamily: FONT,
-        fontSize: '26px',
+        fontSize: '32px',
         color: COLORS.text,
         align: 'center',
         wordWrap: { width: CARD_W - 50 },
@@ -251,8 +251,8 @@ export class LevelUpScene extends Phaser.Scene {
     this.add
       .text(x, y + CARD_H / 2 - 40, 'Tap to choose', {
         fontFamily: FONT,
-        fontSize: '22px',
-        color: COLORS.textMuted,
+        fontSize: '28px',
+        color: COLORS.text,
       })
       .setOrigin(0.5);
     bg.on('pointerover', () => bg.setFillStyle(0x4a3322)).on('pointerout', () =>
