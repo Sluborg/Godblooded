@@ -4,6 +4,7 @@ import {
   command,
   createWorld,
   decodeReplay,
+  encodeReplay,
   loadWorld,
   replayHash,
   runReplay,
@@ -91,5 +92,17 @@ describe('replay code', () => {
     const other = { ...GRAYBOX, startGold: GRAYBOX.startGold + 1 };
     expect(replayHash(other)).not.toBe(replayHash(GRAYBOX));
     expect(runReplay(code, other).dataMatches).toBe(false);
+  });
+
+  it('plays a first run and an avoided boss back the same', () => {
+    const w = createWorld(5, GRAYBOX, { firstRun: true, avoidBoss: 'fenrir' });
+    command(w, { kind: 'build', type: 'temple_aesir', plot: 0 });
+    for (let i = 0; i < 400; i++) step(w, 50);
+    const code = encodeReplay(w);
+    expect(decodeReplay(code).opts).toEqual({ firstRun: true, avoidBoss: 'fenrir' });
+    const back = runReplay(code, GRAYBOX).world;
+    expect(back.firstRun).toBe(true);
+    expect(back.started).toBe(w.started);
+    expect(runReport(back)).toEqual(runReport(w));
   });
 });

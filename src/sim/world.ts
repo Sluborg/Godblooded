@@ -319,6 +319,8 @@ export interface World {
   // covers the whole run (false for a run loaded from a save that had none).
   commandLog: { tick: number; cmd: Command }[];
   replayable: boolean;
+  // The options the world was made with (replay.ts plays them back).
+  options: WorldOptions;
   // Celestial nodes and the Ambrosia the town holds (nodes.ts).
   nodes: NodeState[];
   ambrosia: number;
@@ -400,6 +402,7 @@ export function createWorld(seed: number, data: GameData, opts: WorldOptions = {
     started: !opts.firstRun,
     commandLog: [],
     replayable: true,
+    options: { ...opts },
     nodes: [],
     ambrosia: 0,
     jars: [],
