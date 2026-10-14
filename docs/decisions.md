@@ -237,3 +237,14 @@ towers, Recall once per hero, escort paid on return, far nodes hold more.
 The M2 gear gate "average gear level 1+ at 8:00" is not reachable with data alone. It is now:
 at least 80% of heroes alive at 8:00 (knocked-out ones count, slain ones do not) own a gear
 piece (weapon or armour). Heroes buy their first gear piece before their first potion.
+
+## 2026-10-14 Flag steering rules (Lead, Stefan judges in playtest run 2)
+
+- A flag dropped on a monster becomes a hunt flag: it follows the monster and pays the hero who
+  kills it.
+- A party standing at a lair with no monster within 100 can drop its lair goal for a fresh flag;
+  a party mid-fight never breaks off for a flag.
+- Gold size is the steering dial: a 100-gold flag draws a party within 10 s in about 70% of
+  cases, a 50-gold flag draws one more slowly. Replaces the old target (50-gold flag heads
+  within 5 s). Rich flags may lure heroes into danger; that is the player's risk.
+- The "Bounties steer" fun gate is judged by Stefan's feel in playtest run 2, then tuned.
