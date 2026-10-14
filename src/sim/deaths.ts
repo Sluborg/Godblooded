@@ -81,6 +81,7 @@ export function deathChance(world: World, unit: UnitState, by: number): number |
 export function slayHero(world: World, unit: UnitState): void {
   world.graves.push({
     id: unit.id,
+    ...(unit.name ? { name: unit.name } : {}),
     type: unit.type,
     god: unit.god,
     path: unit.path,
