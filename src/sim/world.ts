@@ -77,6 +77,8 @@ import {
   heroKnockedOut,
   heroMove,
   payBounty,
+  claimHunt,
+  rescoreForFlag,
   runBounties,
   syncFlagView,
   syncIntent,
@@ -905,6 +907,7 @@ function settleDeaths(world: World): void {
       if (krt?.fight) krt.fight.kills++;
       healOnKill(world, by);
       payBounty(world, by, bounty + stolenBy(world, unit.id));
+      claimHunt(world, unit.id, by);
       shareXp(world, by, xp);
       splitSwarm(world, unit, mrt);
     }
@@ -1000,8 +1003,30 @@ export function command(world: World, cmd: Command): CommandResult {
       if (world.gold < cmd.gold) return { ok: false, reason: 'not enough gold' };
       world.gold -= cmd.gold;
       const id = world.nextId++;
-      world.bounties.push({ id, pos: { ...cmd.pos }, gold: cmd.gold });
-      world.events.push({ kind: 'bountyPlaced', bounty: id, gold: cmd.gold });
+      // On a monster (within huntSnap): a hunt flag bound to the nearest one. A flag on a lair
+      // stays a lair flag, whatever guards stand around it.
+      const snap = world.tuning.bounty.huntSnap;
+      const onLair = world.lairs.some((l) => dist(l.pos, cmd.pos) <= snap);
+      let prey: UnitState | undefined;
+      for (const u of onLair ? [] : world.units) {
+        if (u.kind !== 'monster' || u.hp <= 0) continue;
+        const d = dist(u.pos, cmd.pos);
+        if (d <= snap && (!prey || d < dist(prey.pos, cmd.pos))) prey = u;
+      }
+      world.bounties.push({
+        id,
+        pos: prey ? { ...prey.pos } : { ...cmd.pos },
+        gold: cmd.gold,
+        placedMs: world.timeMs,
+        ...(prey ? { target: prey.id } : {}),
+      });
+      world.events.push({
+        kind: 'bountyPlaced',
+        bounty: id,
+        gold: cmd.gold,
+        ...(prey ? { target: prey.id } : {}),
+      });
+      rescoreForFlag(world);
       return { ok: true, id };
     }
     case 'cancelBounty': {
@@ -1020,6 +1045,9 @@ export function command(world: World, cmd: Command): CommandResult {
       if (world.gold < cmd.gold) return { ok: false, reason: 'not enough gold' };
       world.gold -= cmd.gold;
       flag.gold += cmd.gold;
+      // A raised flag is news again: it may break a commitment for a while, and is weighed now.
+      flag.placedMs = world.timeMs;
+      rescoreForFlag(world);
       world.events.push({
         kind: 'bountyRaised',
         bounty: flag.id,
