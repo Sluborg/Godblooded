@@ -30,12 +30,14 @@ export function refundFor(gold: number, rate: number): number {
   return Math.floor(gold * rate);
 }
 
-export function flagLines(gold: number, heading: number, rate: number): string[] {
+// `target`: what a hunt flag follows (a monster or lair type), if it is one.
+export function flagLines(gold: number, heading: number, rate: number, target?: string): string[] {
   const who =
     heading === 0
       ? 'No hero is heading for it yet'
       : heading === 1
         ? '1 hero is heading for it'
         : `${heading} heroes are heading for it`;
-  return [who, `Cancel takes it down and gives ${refundFor(gold, rate)} gold back`];
+  const hunt = target ? [`Follows the ${target}; the hero who kills it gets the gold`] : [];
+  return [...hunt, who, `Cancel takes it down and gives ${refundFor(gold, rate)} gold back`];
 }

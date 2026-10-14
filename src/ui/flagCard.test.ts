@@ -22,6 +22,9 @@ describe('flag card text', () => {
   it('says who is heading for the flag', () => {
     expect(flagLines(50, 0, 0.5)[0]).toBe('No hero is heading for it yet');
     expect(flagLines(50, 1, 0.5)[0]).toBe('1 hero is heading for it');
+    expect(flagLines(50, 0, 0.5, 'wolf')[0]).toBe(
+      'Follows the wolf; the hero who kills it gets the gold',
+    );
     expect(flagLines(50, 3, 0.5)).toEqual([
       '3 heroes are heading for it',
       'Cancel takes it down and gives 25 gold back',
