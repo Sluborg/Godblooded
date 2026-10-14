@@ -105,7 +105,8 @@ export class HudScene extends Phaser.Scene {
     const dx = VW - GAME_WIDTH;
     // Scene instances are reused on restart: drop state that pointed at the old display list.
     this.panel = new PartyPanel(this);
-    this.ended = false;
+    // A rebuild (the view changed) while the End screen is up must not launch it again.
+    this.ended = this.scene.isActive('End');
     this.speedBtn = null;
     this.menu = [];
     this.menuButtons = [];
