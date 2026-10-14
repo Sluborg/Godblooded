@@ -71,6 +71,8 @@ export interface MapTap {
   plot: number | null;
   // Id of a tapped hero (opens the party panel), or null.
   hero?: number | null;
+  // Id of the tapped tax collector (shows its info strip), or null.
+  collector?: number | null;
   // Id of a tapped building (opens the building panel), or null.
   building?: number | null;
   // Id of a tapped bounty flag (opens the flag card), or null.
@@ -409,6 +411,13 @@ export class MapScene extends Phaser.Scene {
   private resolveTap(w: Phaser.Math.Vector2): MapTap {
     const plot = this.plotAt(w);
     if (plot !== null) return { plot, target: null };
+    // The tax collector: its own tap (an info strip), found before heroes so a crowd does not hide it.
+    const collector = this.snap.units
+      .filter((u) => u.kind === 'collector')
+      .map((u) => ({ u, d: Math.hypot(u.pos.x - w.x, u.pos.y - 40 - w.y) }))
+      .filter(({ d }) => d < TARGET_RADIUS + 20)
+      .sort((a, b) => a.d - b.d)[0];
+    if (collector) return { plot: null, collector: collector.u.id, target: null };
     const hero = this.snap.units
       .filter((u) => u.kind === 'hero')
       .map((u) => ({ u, d: Math.hypot(u.pos.x - w.x, u.pos.y - w.y) }))

@@ -18,6 +18,7 @@ import { PartyPanel } from '../ui/partyPanel';
 import type { SimEvent, Vec2 } from '../sim/api';
 import { describeEvent, EventFeed, type FeedWorld } from '../ui/eventFeed';
 import type { MapScene, MapTap } from './MapScene';
+import { collectorInfo } from '../ui/taxLook';
 
 const ROSTER_PER_PAGE = 5;
 const ROSTER_W = 470;
@@ -484,6 +485,13 @@ export class HudScene extends Phaser.Scene {
       this.panel.show(tap.hero);
       return;
     }
+    if (tap.collector != null) {
+      this.closeMenu();
+      this.panel.hide();
+      const c = map.snapshot.units.find((u) => u.id === tap.collector);
+      if (c) this.showToast(collectorInfo(c.gold ?? 0), 2600);
+      return;
+    }
     if (tap.building != null) {
       const b = map.snapshot.buildings.find((x) => x.id === tap.building);
       this.panel.hide();
@@ -738,8 +746,9 @@ export class HudScene extends Phaser.Scene {
     this.tweens.add({ targets: this.goldText, scale: 1.3, duration: 140, yoyo: true });
   }
 
-  private showToast(text: string): void {
+  private showToast(text: string, holdMs = 1200): void {
     this.toast.setText(text).setAlpha(1);
-    this.tweens.add({ targets: this.toast, alpha: 0, delay: 1200, duration: 400 });
+    this.tweens.killTweensOf(this.toast);
+    this.tweens.add({ targets: this.toast, alpha: 0, delay: holdMs, duration: 400 });
   }
 }
