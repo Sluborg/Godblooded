@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { hintTargetPos, idleGold, monsterSeenBy, upgradeAffordable } from './hintTarget';
+import { firstTill, hintTargetPos, idleGold, monsterSeenBy, upgradeAffordable } from './hintTarget';
 
 const snap = {
   plots: [
@@ -56,5 +56,17 @@ describe('idleGold', () => {
     expect(idleGold({ buildings: [b('market')], units: [h(150, true)] })).toBe(false);
     expect(idleGold({ buildings: [b('market'), b('smithy')], units: [h(500)] })).toBe(false);
     expect(idleGold({ buildings: [], units: [h(500)] })).toBe(false);
+  });
+});
+
+describe('firstTill', () => {
+  it('finds the first building with a till of at least minTill', () => {
+    const bs = [
+      { id: 1, pos: { x: 1, y: 2 }, till: 5 },
+      { id: 2, pos: { x: 3, y: 4 }, till: 12 },
+      { id: 3, pos: { x: 5, y: 6 } },
+    ] as never;
+    expect(firstTill(bs, 10)).toEqual({ id: 2, pos: { x: 3, y: 4 } });
+    expect(firstTill(bs, 20)).toBeNull();
   });
 });

@@ -380,6 +380,10 @@ export class MapScene extends Phaser.Scene {
   }
 
   // The end-screen numbers for the run as it stands (Quit from Pause shows them as abandoned).
+  get collectorMinTill(): number {
+    return this.world.tuning.collector.minTill;
+  }
+
   abandonReport(): RunReport {
     return runReport(this.world);
   }

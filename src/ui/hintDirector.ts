@@ -5,7 +5,7 @@ import { DEFAULT_TUNING, type SimEvent, type Snapshot, type Vec2 } from '../sim/
 import { GAME_WIDTH } from '../config';
 import { HintEngine, hintLines, hintsFromEvent, type ShownHint } from './hints';
 import { loadSeen, saveSeen } from './hintStore';
-import { hintTargetPos, idleGold, monsterSeenBy, upgradeAffordable } from './hintTarget';
+import { firstTill, hintTargetPos, idleGold, monsterSeenBy, upgradeAffordable } from './hintTarget';
 import { getSettings } from './settings';
 import { NudgeWatch } from './nudgeWatch';
 import { makePanel } from './panel';
@@ -73,7 +73,8 @@ export class HintDirector {
     }
   }
 
-  update(snap: Snapshot, gold: number): void {
+  // `minTill`: the collector's smallest worthwhile till (the world's tuning), for b-till.
+  update(snap: Snapshot, gold: number, minTill = DEFAULT_TUNING.collector.minTill): void {
     const now = this.scene.time.now;
     this.timeMs = snap.timeMs;
     if (!this.started) {
@@ -87,6 +88,8 @@ export class HintDirector {
       const idleLair = this.nudge.update(snap.lairs, snap.timeMs, DEFAULT_TUNING.lair.maxTier);
       if (idleLair !== null) this.engine.fire('noFlagIdle', idleLair);
       if (idleGold(snap)) this.engine.fire('idleGold');
+      const till = firstTill(snap.buildings, minTill);
+      if (till) this.engine.fire('tillFirst', till.id, till.pos);
       const up = upgradeAffordable(snap.buildings, gold);
       if (up !== null) this.engine.fire('upgrade', up);
     }

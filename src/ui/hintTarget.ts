@@ -73,3 +73,12 @@ export function idleGold(
     .reduce((sum, u) => sum + u.gold, 0);
   return carried >= minGold;
 }
+
+// The b-till condition: the first building whose till reached `minTill` (its id and spot), or null.
+export function firstTill(
+  buildings: Pick<Snapshot, 'buildings'>['buildings'],
+  minTill: number,
+): { id: number; pos: Vec2 } | null {
+  const b = buildings.find((x) => (x.till ?? 0) >= minTill);
+  return b ? { id: b.id, pos: b.pos } : null;
+}
