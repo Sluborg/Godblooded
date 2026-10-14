@@ -182,3 +182,5 @@ B13 test: test--bld_plot.png unchanged built-in PNG 1254x1254, https://drive.goo
 
 G1 | 2026-10-14T20:39:44.499Z | heroes | started
 G1 current scope: Grim segments test kit, axe icon, assembled reference and portrait (request 300).
+
+B13 | 2026-10-14T20:40:27.720Z | buildings | started
