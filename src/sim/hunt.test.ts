@@ -375,7 +375,9 @@ describe('tithe', () => {
     expect(w.stats.taxCollected).toBe(3);
     // the hero's record counts the 9 that reached the purse
     expect(w.heroRecords.get(h.id)?.goldEarned).toBe(9);
-    expect(ev.filter((e) => e.kind === 'tithe')).toEqual([{ kind: 'tithe', unit: h.id, gold: 3 }]);
+    expect(ev.filter((e) => e.kind === 'tithe')).toEqual([
+      { kind: 'tithe', unit: h.id, building: 0, gold: 3 },
+    ]);
   });
 
   it('is off by default', () => {

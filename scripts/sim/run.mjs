@@ -25,6 +25,11 @@ const json = args.includes('--json');
 // --human: a player who builds a few buildings at the start and then only watches: no upgrades,
 // no flags, no lair flag. --build a,b,c sets the buildings (default temple_aesir,tower,shrine).
 const HUMAN = args.includes('--human');
+// --hints (with --human): builds in the order the hints give: the temple at once, a market about 20 s
+// after the first hero arrives, a shrine after the first hero flees or falls, a tower once a
+// raid is announced or at 6:00. Cards and paths are picked after a 5-15 s think (one in ten is
+// left to the auto-pick). Overrides --build.
+const HINTS = args.includes('--hints');
 const buildIdx = args.indexOf('--build');
 const BUILD_ARG = buildIdx >= 0 ? args[buildIdx + 1].split(',') : undefined;
 // The bot buys building tiers unless --no-upgrade is given.
@@ -69,6 +74,7 @@ try {
       nextMs: 60_000,
       // --hunt probe flags by id: placed at, seconds until a party headed for it, paid or not
       probes: new Map(),
+      seen: { arrivedMs: null, hurtMs: null, raidMs: null },
     };
     const w = sim.createWorld(seed0 + r, GRAYBOX);
     let snap = sim.snapshot(w);
@@ -76,6 +82,15 @@ try {
     // Minutes of the first boss emerge and the first blow to or from a boss (null: never).
     let firstLairMin = null;
     let bossOutMin = null;
+    // --hints: when the first hero arrived, and the first flee or fall, and a raid warning.
+    const seen = flagRun.seen;
+    const think = new Map();
+    let rngState = (seed0 + r) * 2654435761 + 1;
+    const rand = () => {
+      rngState = (rngState * 1103515245 + 12345) % 2147483648;
+      return rngState / 2147483648;
+    };
+    let lairsBy10 = 0;
     let bossFightMin = null;
     const bossIds = new Set();
     // Town gold at 3:00 and 5:00, and mean hero gear levels at 8:00 (all hero units, knocked out too;
@@ -96,6 +111,10 @@ try {
         }
         if (e.kind === 'bountyClaimed' && probe(e.bounty)) probe(e.bounty).paid = !!e.hunt;
         if (e.kind === 'lairDestroyed') firstLairMin ??= sn.timeMs / 60_000;
+        if (e.kind === 'arrived') seen.arrivedMs ??= sn.timeMs;
+        if (e.kind === 'fled' || e.kind === 'knockout') seen.hurtMs ??= sn.timeMs;
+        if (e.kind === 'raidWarning') seen.raidMs ??= sn.timeMs;
+        if (e.kind === 'lairDestroyed' && sn.timeMs <= 600_000) lairsBy10++;
         if (e.kind === 'bossEmerged') {
           bossIds.add(e.unit);
           bossOutMin ??= sn.timeMs / 60_000;
@@ -133,16 +152,27 @@ try {
                 heroes.length,
         };
       }
+      // A human thinks 5-15 s over a card (one in ten is never tapped: the auto-pick decides).
+      const ready = (id) => {
+        if (!HINTS) return true;
+        if (!think.has(id))
+          think.set(id, rand() < 0.1 ? Infinity : snap.timeMs + 5000 + rand() * 10_000);
+        return snap.timeMs >= think.get(id);
+      };
       const pathCard = snap.parties.find((p) => p.pathOffer);
       if (pathCard) {
-        sim.command(w, {
-          kind: 'pickPath',
-          party: pathCard.id,
-          path: pathCard.pathOffer.options[0],
-        });
+        if (ready(`path${pathCard.id}`)) {
+          sim.command(w, {
+            kind: 'pickPath',
+            party: pathCard.id,
+            path: pathCard.pathOffer.options[0],
+          });
+        }
       } else if (snap.parties.some((p) => p.offer)) {
         const p = snap.parties.find((x) => x.offer);
-        sim.command(w, { kind: 'pickUpgrade', party: p.id, upgrade: p.offer[0] });
+        if (ready(`card${p.id}:${p.level}`)) {
+          sim.command(w, { kind: 'pickUpgrade', party: p.id, upgrade: p.offer[0] });
+        }
       }
       if (t % 5000 === 0) botTurn(w, snap);
     }
@@ -155,6 +185,8 @@ try {
       bossOutMin,
       firstLairMin,
       bossFightMin,
+      lairsBy10,
+      lostBy10: !timeout && snap.status === 'lost' && snap.timeMs <= 600_000,
       flagsPlaced: flagRun.placed,
       flagsClaimed: flagRun.claimed,
       huntPlaced: flagRun.huntPlaced,
@@ -174,8 +206,19 @@ try {
 
   // Build temple, market, shrine, tower as gold allows; with gold to spare, put a 50 gold flag
   // on the lair nearest the town hall (one flag at a time).
+  // The buildings a player following the hints has asked for by now.
+  function hintOrder(snap) {
+    const s = flagRun.seen;
+    const out = ['temple_aesir'];
+    if (s.arrivedMs !== null && snap.timeMs >= s.arrivedMs + 20_000) out.push('market');
+    if (s.hurtMs !== null) out.push('shrine');
+    if (s.raidMs !== null || snap.timeMs >= 360_000) out.push('tower');
+    return out;
+  }
+
   function botTurn(w, snap) {
-    for (const type of BUILD_ORDER) {
+    const order = HINTS ? hintOrder(snap) : BUILD_ORDER;
+    for (const type of order) {
       if (snap.buildings.some((b) => b.type === type)) continue;
       const plot = snap.plots.find((p) => !p.occupied);
       if (!plot) break;
@@ -354,6 +397,14 @@ function summarize(results) {
       huntPlaced: meanOf(results, 'huntPlaced'),
       huntClaimed: meanOf(results, 'huntClaimed'),
     },
+    lostBy10: results.filter((r) => r.lostBy10).length,
+    noLairBy10: results.filter((r) => r.lairsBy10 === 0).length,
+    spread: Object.fromEntries(
+      ['lairsDestroyed', 'taxCollected', 'knockouts', 'monstersKilled'].map((k) => {
+        const v = results.map((r) => r[k]).sort((a, b) => a - b);
+        return [k, { p10: pct(v, 0.1), median: pct(v, 0.5), p90: pct(v, 0.9) }];
+      }),
+    ),
     perRun: Object.fromEntries(
       [
         'monstersKilled',
@@ -423,6 +474,14 @@ function print(rep) {
     const list = [...why.entries()].sort((a, b) => b[1] - a[1]).map(([k, n]) => `${k} ${n}`);
     console.log(`  at 5 s after placing, the nearest hero's party was: ${list.join(', ') || '-'}`);
   }
-  console.log('  per run (mean):');
-  for (const [k, v] of Object.entries(rep.perRun)) console.log(`    ${k.padEnd(16)} ${f(v)}`);
+  console.log(
+    `  by 10:00: lost ${rep.lostBy10} of ${rep.runs} runs, no lair down in ${rep.noLairBy10} of ${rep.runs} runs`,
+  );
+  console.log('  per run (mean; p10 / median / p90 where shown):');
+  for (const [k, v] of Object.entries(rep.perRun)) {
+    const sp = rep.spread[k];
+    console.log(
+      `    ${k.padEnd(16)} ${f(v)}${sp ? `   (${f(sp.p10)} / ${f(sp.median)} / ${f(sp.p90)})` : ''}`,
+    );
+  }
 }

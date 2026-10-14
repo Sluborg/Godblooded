@@ -50,6 +50,7 @@ import {
   type BossRuntime,
 } from './boss';
 import { buildReport, sampleGold, tally, type HeroRecord } from './runstats';
+import { collectorFell, runCollector } from './collector';
 import {
   attackBuilding,
   attackLair,
@@ -100,6 +101,7 @@ import {
 } from './units';
 import type {
   BountyState,
+  PileState,
   ConeArea,
   SkillEffect,
   GraveState,
@@ -108,6 +110,7 @@ import type {
   CommandResult,
   GameData,
   LairDef,
+  MonsterDef,
   LairSite,
   LairState,
   RunStats,
@@ -128,6 +131,8 @@ interface LairRuntime {
   nextSpawnMs: number;
   // When the lair next goes up a tier (Infinity once at the top or with growth off).
   nextTierMs: number;
+  // When the wait for it began (the run start, the last timed tier-up, or an early one).
+  tierFromMs?: number;
   // The boss of a boss lair has come out (once).
   bossSpawned?: boolean;
   // Heroes its monsters have knocked out since its last tier-up (pressure growth).
@@ -157,6 +162,14 @@ export interface UnitRuntime {
   cooldownMs: number;
   target: Vec2 | null;
   idleMs: number;
+  // The tax collector's route (collector.ts): hp last seen (a drop means it was hit), running home,
+  // the stop it walks to and the time its stop at it ends.
+  collector?: {
+    hpSeen: number;
+    fleeing: boolean;
+    stop?: { kind: 'till' | 'pile'; id: number; pos: Vec2; gold: number };
+    waitUntilMs?: number;
+  };
   // Active riders on this unit (burn, chill, wither).
   status?: UnitStatus;
   // Set on a boss unit.
@@ -233,6 +246,10 @@ export interface World {
   tierUps: number;
   stats: RunStats;
   bounties: BountyState[];
+  // Gold piles on the ground, and when replacements for fallen tax collectors may appear
+  // (collector.ts).
+  piles: PileState[];
+  collectorQueue: number[];
   // Generated map: the boss lair that wins the run and the pantheons the map leans on.
   bossLair: number | null;
   // The seal on the boss lairs has broken (runBossSeal).
@@ -288,8 +305,11 @@ export function createWorld(seed: number, data: GameData): World {
       knockouts: 0,
       buildingsLost: 0,
       taxCollected: 0,
+      taxLost: 0,
     },
     bounties: [],
+    piles: [],
+    collectorQueue: [],
     bossLair: null,
     bossUnsealed: false,
     mapLean: [],
@@ -396,6 +416,7 @@ function runTick(world: World): void {
   runHeroes(world);
   runSummonUpkeep(world);
   runBounties(world);
+  runCollector(world);
   runQuirks(world);
   runFavour(world);
   runParties(world);
@@ -419,6 +440,7 @@ function tierUpLair(
   lair.maxHp = maxHp;
   rt.kos = 0;
   // An early (pressure) tier-up restarts the clock from now; a timed one keeps its rhythm.
+  rt.tierFromMs = pressure ? world.timeMs : rt.nextTierMs;
   rt.nextTierMs =
     lair.tier >= t.maxTier
       ? Infinity
@@ -432,6 +454,19 @@ function tierUpLair(
     ...(pressure ? { pressure: true } : {}),
   });
   planTierRaid(world, lair, pressure);
+}
+
+// Living monsters of a lair (raiders it sent out do not count), and how many it keeps.
+function aliveAt(world: World, lairId: number): number {
+  return world.units.filter((u) => {
+    const r = world.unitRuntime.get(u.id);
+    return r?.lair === lairId && !r.raid && u.hp > 0;
+  }).length;
+}
+
+function capOf(world: World, lair: LairState, def: LairDef, mon: MonsterDef): number {
+  const lt = world.tuning.lair;
+  return (def.maxAlive + tierValue(lt.maxAliveAdd, lair.tier, 0)) * aliveMult(world, mon);
 }
 
 function runLairs(world: World): void {
@@ -451,14 +486,11 @@ function runLairs(world: World): void {
     }
     if (world.timeMs < rt.nextSpawnMs) continue;
     rt.nextSpawnMs = world.timeMs + def.spawnS * 1000 * tierValue(lt.spawnMult, lair.tier, 1);
-    const alive = world.units.filter((u) => {
-      const r = world.unitRuntime.get(u.id);
-      return r?.lair === lair.id && !r.raid;
-    }).length;
+    const alive = aliveAt(world, lair.id);
     // A lair whose monster is a boss spawns nothing regular unless it has an escort.
     const mon = world.data.monsters?.find((m) => m.id === (def.escort ?? def.monster));
     if (!mon || isBoss(mon)) continue;
-    const cap = (def.maxAlive + tierValue(lt.maxAliveAdd, lair.tier, 0)) * aliveMult(world, mon);
+    const cap = capOf(world, lair, def, mon);
     if (alive >= cap) continue;
     // The guards of a boss lair stand until the boss comes out; only the enrage call adds more.
     if (rt.bossSpawned) continue;
@@ -477,6 +509,11 @@ export function statsOf(world: World, unit: UnitState): Stats | undefined {
 
 function unitStats(world: World, unit: UnitState): Stats | undefined {
   if (unit.kind === 'summon') return summonStats(world, unit);
+  // The tax collector does not fight (collector.ts moves it).
+  if (unit.kind === 'collector') {
+    const none = { str: 0, dex: 0, sta: 0, cha: 0, per: 0, int: 0, wp: 0 };
+    return { attrs: none, weapon: { baseAttackS: 99, range: 0 } };
+  }
   if (unit.kind === 'hero') {
     const cls = world.data.classes?.find((c) => c.id === unit.type);
     return (
@@ -575,6 +612,7 @@ function runUnits(world: World): void {
       cancelDrink(rt);
       continue;
     }
+    if (unit.kind === 'collector') continue;
     rt.cooldownMs = Math.max(0, rt.cooldownMs - TICK_MS);
     tickSkill(rt);
     if (unit.kind === 'summon') {
@@ -842,6 +880,8 @@ function settleDeaths(world: World): void {
     settled.add(victim);
     if (unit.kind === 'summon') {
       removeSummon(world, unit, 'died');
+    } else if (unit.kind === 'collector') {
+      collectorFell(world, unit);
     } else if (unit.kind === 'hero') {
       unit.target = null;
       world.stats.knockouts++;
@@ -1065,6 +1105,27 @@ function inMap(world: World, p: { x: number; y: number }): boolean {
 }
 
 // Copies out the state; the returned object never aliases the live world. Drains events.
+// A lair as the snapshot shows it: the tier-up clock (ms left and the length of the current wait,
+// for the growth ring) and the guards (alive, kept, ms to the next spawn; null when full).
+function lairView(world: World, l: LairState): LairState {
+  const rt = world.lairRuntime.get(l.id);
+  const def = world.data.lairs?.find((d) => d.id === l.type);
+  const at = rt?.nextTierMs;
+  const timed = at !== undefined && Number.isFinite(at) && l.tier < world.tuning.lair.maxTier;
+  const mon = world.data.monsters?.find((m) => m.id === (def?.escort ?? def?.monster));
+  const alive = aliveAt(world, l.id);
+  const cap = def && mon && !isBoss(mon) ? capOf(world, l, def, mon) : 0;
+  return {
+    ...l,
+    pos: { ...l.pos },
+    nextTierMs: timed ? Math.max(0, at - world.timeMs) : null,
+    tierSpanMs: timed ? Math.max(1, at - (rt?.tierFromMs ?? 0)) : null,
+    alive,
+    maxAlive: cap,
+    nextSpawnMs: rt && alive < cap ? Math.max(0, rt.nextSpawnMs - world.timeMs) : null,
+  };
+}
+
 export function snapshot(world: World): Snapshot {
   syncFlagView(world);
   const events = world.events;
@@ -1096,7 +1157,7 @@ export function snapshot(world: World): Snapshot {
       intent: p.intent ? { ...p.intent } : { kind: 'explore' },
     })),
     paths: pathStates(world),
-    lairs: world.lairs.map((l) => ({ ...l, pos: { ...l.pos } })),
+    lairs: world.lairs.map((l) => lairView(world, l)),
     units: world.units.map((u) => ({
       ...u,
       pos: { ...u.pos },
@@ -1105,6 +1166,7 @@ export function snapshot(world: World): Snapshot {
       ...(u.summon ? { summon: { ...u.summon } } : {}),
     })),
     bounties: world.bounties.map((b) => ({ ...b, pos: { ...b.pos } })),
+    piles: world.piles.map((d) => ({ ...d, pos: { ...d.pos } })),
     favour: (world.data.miracles ?? []).map((m) => ({
       pantheon: m.pantheon,
       value: world.favour[m.pantheon] ?? 0,
