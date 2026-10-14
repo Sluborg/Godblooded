@@ -4,6 +4,7 @@ import { ASSETS_KEY, loadManifest, type ManifestAsset } from '../ui/assets';
 import { pickLogoId } from '../ui/assetPriority';
 import { drawBackdrop } from '../ui/backdrop';
 import { getSettings } from '../ui/settings';
+import { fitDesignCamera } from '../ui/designCamera';
 
 const FONT = 'Georgia, serif';
 const BAR = { w: 520, h: 14, y: GAME_HEIGHT - 70 };
@@ -21,6 +22,7 @@ export class BootScene extends Phaser.Scene {
   }
 
   create(): void {
+    fitDesignCamera(this);
     this.started = this.time.now;
     this.cameras.main.setBackgroundColor(COLORS.background);
     this.drawBar();

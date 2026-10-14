@@ -7,6 +7,7 @@ import { formatClock, sparkline, visibleHeroes } from '../ui/endReport';
 import { heroLabel } from '../ui/partyLook';
 import type { HeroReport, RunReport } from '../sim/api';
 import type { MapScene } from './MapScene';
+import { fitDesignCamera } from '../ui/designCamera';
 
 const FONT = 'Georgia, serif';
 const ROWS = 7;
@@ -19,6 +20,7 @@ export class EndScene extends Phaser.Scene {
   }
 
   create(): void {
+    fitDesignCamera(this);
     const snap = (this.scene.get('Map') as MapScene).snapshot;
     // Quit from Pause: the report of the unfinished run, marked as abandoned.
     const abandoned = (this.registry.get('abandonReport') as RunReport | undefined) ?? null;

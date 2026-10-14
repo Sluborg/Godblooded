@@ -3,7 +3,7 @@ import { makeGround, releaseGround } from '../ui/ground';
 import { flagAt } from '../ui/flagCard';
 import { getMusic } from '../ui/musicPlayer';
 import Phaser from 'phaser';
-import { COLORS, GAME_HEIGHT, GAME_WIDTH } from '../config';
+import { COLORS, GAME_HEIGHT, GAME_WIDTH, RENDER_SCALE } from '../config';
 import { GRAYBOX } from '../data/graybox';
 import {
   command,
@@ -24,7 +24,8 @@ import {
 } from '../sim/api';
 import { TAX_STYLE, drawCoin, drawPile, popText, tillShown } from '../ui/taxLook';
 import { clearSave, isNewerSave, newSeed, readSave, writeSave } from '../ui/saveStore';
-import { getSettings } from '../ui/settings';
+import { getSettings, updateSettings } from '../ui/settings';
+import { FpsGuard } from '../ui/fpsGuard';
 import { heroLabel, partyColor } from '../ui/partyLook';
 import { artCandidates } from '../ui/unitLook';
 import { UnitViews } from '../ui/unitViews';
@@ -44,6 +45,7 @@ import { OFFER_KEY, type LevelUpOffer } from './LevelUpScene';
 import { attachCameraControls } from '../ui/cameraControls';
 import { easeToward, WatchDirector } from '../ui/watchCam';
 import type { HudScene } from './HudScene';
+import { trailDots } from '../ui/raidArrow';
 
 // The first picture of a skill's row; its sound follows it (sfx_skill_<picture>).
 const skillVisual = (id: string): string | undefined =>
@@ -66,6 +68,10 @@ const PLOT_SIZE = 120;
 const INTEREST_MAX = 8;
 const PLOT_RADIUS = 110;
 
+// The camera's start zoom: 0.7 shows 1830 x 1030 world units on a 1280 x 720 screen, enough for the
+// plot ring (about 1040 x 760) with the buildings on it.
+const DEFAULT_ZOOM = 0.7;
+
 export interface MapTap {
   // Sim plot id of a free plot, or null.
   plot: number | null;
@@ -87,6 +93,8 @@ export class MapScene extends Phaser.Scene {
   private unitViews!: UnitViews;
   // Lines from the selected hero's party to the flags it is heading for.
   private links!: Phaser.GameObjects.Graphics;
+  // Lairs with a raid on the way: the run time the warning ends (a dotted trail to the town).
+  private raidTrails = new Map<number, number>();
   // Party whose level-up cards are open (the sim is frozen until it is picked), or null.
   private offerKey: string | null = null;
   // The ring on the ground around the party that levelled, while its cards are up.
@@ -94,6 +102,7 @@ export class MapScene extends Phaser.Scene {
   private resumeWatch = false;
   // Camera mode: by hand, watching the best fight, or following one hero (until it is gone).
   private cam: 'off' | 'watch' | 'unit' = 'off';
+  private fpsGuard: FpsGuard | null = null;
   private followId = 0;
   private director = new WatchDirector();
   private readonly sfxFeed = new SfxFeed();
@@ -138,16 +147,18 @@ export class MapScene extends Phaser.Scene {
     // The title theme plays on Boot, Title and the hall only; there is no run music yet.
     getMusic(this).stop(800);
     this.sfxFeed.reset();
+    this.fpsGuard = new FpsGuard();
     this.world = this.startWorld();
     this.registry.set('speed', getSettings().speed);
     const cam = this.cameras.main;
     const minZoom = Math.max(GAME_WIDTH / width, GAME_HEIGHT / height);
-    cam.setBounds(0, 0, width, height).setZoom(Math.max(minZoom, 0.8));
+    cam.setBounds(0, 0, width, height).setZoom(Math.max(minZoom, DEFAULT_ZOOM) * RENDER_SCALE);
     cam.centerOn(GRAYBOX.townHall.x, GRAYBOX.townHall.y);
     cam.setBackgroundColor(COLORS.background);
     makeGround(this, width, height);
     attachCameraControls(this, {
       minZoom,
+      scale: RENDER_SCALE,
       onTap: (w) => this.events.emit('mapTapped', this.resolveTap(w)),
       onManual: () => this.setWatch(false),
       blocked: (x, y) => this.registry.get('modal') === true || (this.hud()?.blocks(x, y) ?? false),
@@ -175,6 +186,7 @@ export class MapScene extends Phaser.Scene {
   }
 
   update(time: number, deltaMs: number): void {
+    this.watchFrameRate(time);
     const button = (this.registry.get('speed') as number) ?? 1;
     // A path offer open (as of the last snapshot) slows the run to 0.3x, absolute.
     const speed = effectiveSpeed(
@@ -379,6 +391,11 @@ export class MapScene extends Phaser.Scene {
     return command(this.world, { kind: 'upgrade', building });
   }
 
+  // The seed of this run (createWorld(seed, GRAYBOX) replays its map).
+  get seed(): number {
+    return this.world.seed;
+  }
+
   // The end-screen numbers for the run as it stands (Quit from Pause shows them as abandoned).
   abandonReport(): RunReport {
     return runReport(this.world);
@@ -438,6 +455,15 @@ export class MapScene extends Phaser.Scene {
 
   get snapshot(): Snapshot {
     return this.snap;
+  }
+
+  // Sharp rendering that runs too slow in the first minute is switched off for the next start.
+  private watchFrameRate(time: number): void {
+    if (RENDER_SCALE <= 1 || this.fpsGuard === null) return;
+    if (!this.fpsGuard.frame(time, !document.hidden)) return;
+    this.fpsGuard = null;
+    updateSettings({ sharp: false });
+    this.hud()?.showToast('Sharp mode off for speed; Settings to change', 4500);
   }
 
   private hud(): HudScene | null {
@@ -546,6 +572,7 @@ export class MapScene extends Phaser.Scene {
     for (const e of this.snap.events) {
       if (e.kind === 'lairTierUp') this.lairGrows(e.lair, e.tier);
       if (e.kind === 'considering') this.flagGlint(e.bounty);
+      if (e.kind === 'raidWarning') this.raidTrails.set(e.lair, this.snap.timeMs + e.inMs);
       this.taxEvent(e);
       if (e.kind !== 'hit') continue;
       const view = this.views.get(`b${e.target}`) ?? this.views.get(`l${e.target}`);
@@ -646,8 +673,25 @@ export class MapScene extends Phaser.Scene {
     });
   }
 
+  // For the 15 s of a raid warning, a dotted trail runs from the source lair toward the town.
+  private drawRaidTrails(): void {
+    const hall = this.snap.buildings.find((b) => b.type === 'townhall')?.pos;
+    for (const [lairId, untilMs] of this.raidTrails) {
+      const lair = this.snap.lairs.find((l) => l.id === lairId);
+      if (!lair || this.snap.timeMs >= untilMs) {
+        this.raidTrails.delete(lairId);
+        continue;
+      }
+      if (!hall) continue;
+      const phase = (this.snap.timeMs / 900) % 1;
+      for (const d of trailDots(lair.pos, hall, 0.6, 46, phase))
+        this.links.fillStyle(0xe03a2a, 0.9).fillCircle(d.x, d.y, 8);
+    }
+  }
+
   private drawLinks(): void {
     this.links.clear();
+    this.drawRaidTrails();
     const selected = this.snap.units.find((u) => u.id === this.registry.get('selectedUnit'));
     if (!selected) return;
     for (const u of this.snap.units) {
