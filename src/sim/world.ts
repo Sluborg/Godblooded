@@ -838,6 +838,7 @@ function runUnits(world: World): void {
     if (unit.kind === 'monster' && roleTurn(world, unit, rt, stats, foe)) continue;
     // A hero with a skill ready casts instead of its next strike or step.
     let casting = false;
+    if (unit.kind === 'monster' && unit.elite) casting = runSkill(world, unit, rt, foe);
     if (unit.kind === 'hero') {
       if (busy) {
         cancelCast(rt);

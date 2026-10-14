@@ -51,6 +51,12 @@ interface Found {
 
 // The hero's skill, with the tier 3 form merged over it from tier 3.
 export function skillOf(world: World, hero: UnitState): SkillDef | undefined {
+  // An elite monster may carry a skill of its own (SkillDef owner 'monster').
+  if (hero.kind === 'monster') {
+    return hero.elite
+      ? world.data.skills?.find((s) => s.owner === 'monster' && s.monster === hero.type)
+      : undefined;
+  }
   if (hero.kind !== 'hero' || !hero.path || hero.tier < 2) return undefined;
   const def = world.data.skills?.find((s) => s.path === hero.path);
   const merged = def && hero.tier >= 3 && def.t3 ? { ...def, ...def.t3 } : def;
@@ -174,11 +180,21 @@ function face(hero: UnitState, to: Vec2): void {
   if (d > 0) hero.facing = { x: (to.x - hero.pos.x) / d, y: (to.y - hero.pos.y) / d };
 }
 
-function foesOf(world: World): UnitState[] {
+// Whom a caster's skills treat as foes: monsters for a hero, the heroes and their summons for a
+// monster.
+function foesOf(world: World, caster?: UnitState): UnitState[] {
+  if (caster?.kind === 'monster') {
+    return world.units.filter(
+      (u) => (u.kind === 'hero' || u.kind === 'summon') && !u.ko && u.hp > 0,
+    );
+  }
   return world.units.filter((u) => u.kind === 'monster' && !u.ko && u.hp > 0);
 }
 
 function alliesOf(world: World, hero: UnitState): UnitState[] {
+  if (hero.kind === 'monster') {
+    return world.units.filter((u) => u.kind === 'monster' && u.id !== hero.id && u.hp > 0);
+  }
   const party = world.parties.get(hero.party);
   const out: UnitState[] = [];
   for (const id of party?.members ?? []) {
@@ -218,12 +234,12 @@ function evalTrigger(
     case 'ready': {
       // A ready skill is for a hero in a fight (it has a foe), not one passing by or hitting a lair.
       if (!foe) return undefined;
-      const near = foesOf(world).filter((f) => dist(hero.pos, f.pos) <= (trig.range ?? 300));
+      const near = foesOf(world, hero).filter((f) => dist(hero.pos, f.pos) <= (trig.range ?? 300));
       const pick = pickFoe(hero, hero.pos, near);
       return pick && { foe: pick, point: { ...pick.pos } };
     }
     case 'engage': {
-      const band = foesOf(world).filter((f) => {
+      const band = foesOf(world, hero).filter((f) => {
         const d = dist(hero.pos, f.pos);
         return d >= trig.min && d <= trig.max;
       });
@@ -233,7 +249,7 @@ function evalTrigger(
     case 'crowd': {
       // Counted around the skill's centre: the caster, or the foe it fights. A cone opens from
       // the caster toward the foe (the nearest one when the skill sits on the caster).
-      const all = foesOf(world);
+      const all = foesOf(world, hero);
       // Only for a hero in a fight (it has a foe), not one passing by.
       if (!foe) return undefined;
       const toward = foe;
@@ -260,7 +276,8 @@ function evalTrigger(
       const shift = hero.trait === 'coward' ? nudge : hero.trait === 'brave' ? -nudge : 0;
       const hurt = trig.below !== undefined && hero.hp / hero.maxHp < trig.below + shift;
       const hunted =
-        trig.n !== undefined && foesOf(world).filter((f) => f.target === hero.id).length >= trig.n;
+        trig.n !== undefined &&
+        foesOf(world, hero).filter((f) => f.target === hero.id).length >= trig.n;
       return hurt || hunted ? { foe: foe ?? undefined, point: { ...hero.pos } } : undefined;
     }
     case 'kill': {
@@ -322,7 +339,7 @@ export function foesInShape(
   point: Vec2,
   target: UnitState | undefined,
   // Who the shape can reach: foes by default, or the caster's side for support effects.
-  pool: UnitState[] = foesOf(world),
+  pool: UnitState[] = foesOf(world, hero),
 ): { unit: UnitState; mult: number }[] {
   const foes = pool;
   switch (shape.kind) {
