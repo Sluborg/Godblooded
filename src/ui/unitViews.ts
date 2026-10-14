@@ -270,7 +270,7 @@ export class UnitView {
     this.h = h;
     // One baked black ellipse (bake.ts) scaled and faded per frame: a Graphics ellipse was
     // re-triangulated 30 times a frame.
-    this.shadow = bakeRings(scene, [{ w: 100, h: 50, fill: [0x000000, 1] }]);
+    this.shadow = bakeRings(scene, [{ w: 100, h: 50, cx: 38, fill: [0x000000, 1] }]);
     this.capsule = scene.add
       .ellipse(0, -h / 2, w, h, this.look.color)
       .setStrokeStyle(3, 0x000000, 0.6);
@@ -1029,7 +1029,7 @@ export class UnitView {
     this.shadow
       .setPosition(fall, 0)
       .setScale(
-        (rx * 2) / 100 / RENDER_SCALE,
+        (rx * 2 * 1.45) / 100 / RENDER_SCALE,
         (UNIT_HEIGHT * this.look.footprint * 0.48) / 50 / RENDER_SCALE,
       )
       .setAlpha(Math.max(0, 0.32 - lift));

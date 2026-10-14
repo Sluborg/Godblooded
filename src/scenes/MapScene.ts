@@ -1194,7 +1194,8 @@ export class MapScene extends Phaser.Scene {
         pos,
       );
     const w = view.getData('w') as number | undefined;
-    if (w) this.groundUnder(view, groundShadow(this, w), pos, 0.6);
+    const h = view.getData('h') as number | undefined;
+    if (w) this.groundUnder(view, groundShadow(this, w, h), pos, 0.6);
     return view;
   }
 
@@ -1222,6 +1223,7 @@ export class MapScene extends Phaser.Scene {
         .container(pos.x, pos.y, [img])
         .setData('top', o.y * img.height * k - FOOT_Y)
         .setData('w', img.width * k)
+        .setData('h', img.height * k)
         .setDepth(footprintDepth(pos.y, img.width * k));
     }
     const body = this.add
@@ -1307,7 +1309,7 @@ export class MapScene extends Phaser.Scene {
     // The shadow follows the picture's size (a tier-up or a boss lair is larger).
     const old = view.getData('shadow') as Phaser.GameObjects.Image | undefined;
     old?.destroy();
-    const shadow = groundShadow(this, img.width * k);
+    const shadow = groundShadow(this, img.width * k, img.height * k);
     shadow.setPosition(view.x, view.y).setDepth(0.6);
     view.once(Phaser.GameObjects.Events.DESTROY, () => shadow.destroy());
     view.setData('shadow', shadow);
