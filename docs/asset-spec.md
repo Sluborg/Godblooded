@@ -144,6 +144,25 @@ the base segment it covers (chest = torso, bracer = forearm, glove = hand, boots
 thigh, helm = headgear, cloak = cloak, weapon = weapon), drawn over it with the same transform.
 Magenta stays the only key colour. Each item also gets an icon still `ui_item_<item>`.
 
+**Item ids** (Art owns them; data rows use them as is). An item id is
+`<slot>_<kind>_<level>`, lowercase, underscores only (no hyphens: `ui_` ids allow none):
+
+| Slot      | Kinds                                         | Levels | Example item id    |
+| --------- | --------------------------------------------- | ------ | ------------------ |
+| `chest`   | `heavy`, `light`, `robe`                      | 1-3    | `chest_heavy_1`    |
+| `legs`    | `heavy`, `light`, `robe`                      | 1-3    | `legs_light_2`     |
+| `head`    | `helm`, `hood`, `hat`                         | 1-3    | `head_hood_1`      |
+| `weapon`  | `staff`, `spear`, `hammer`, `daggers`, `wand` | 0-3    | `weapon_staff_0`   |
+| `offhand` | `shield`, `blade`, `focus`                    | 1-3    | `offhand_shield_1` |
+
+- **Icon:** `ui_item_<item id>` (`ui_item_chest_heavy_1`).
+- **Worn piece** (a cell id in a `kit_` sheet): chest `layer_torso_<item id>`; head
+  `layer_headgear_<item id>`; legs two layers, `layer_thigh_<item id>` (trousers) and
+  `layer_boot_<item id>` (boots); weapons and off-hands are whole parts named by the item id
+  itself (`weapon_staff_1`, `offhand_shield_1`).
+- Level 0 is the starting gear a hero has before any item. Kit-face cells stay `head_<face>`
+  with the portrait `por_<face>`.
+
 **Upload (ChatGPT):** a square sheet in a grid of equal cells (the batch gives the order), flat
 magenta between cells, every part inside its own cell, all at the same scale.
 
