@@ -78,12 +78,13 @@ with Scene); Scene combines and animates; Balance and Lead write the item rows. 
 | Off-hand 2 | 65    | shield +3 armour   | blade +5% crit | focus +2 power | shield, blade, focus (level 2) |
 | Off-hand 3 | 140   | shield +4 armour   | blade +8% crit | focus +3 power | shield, blade, focus (level 3) |
 
-- **Ids follow Art's scheme** (`asset-spec.md` "Item ids", `art/item-ids` e66375a; Art owns
+- **Ids follow Art's scheme** (`asset-spec.md` "Item ids", `art/item-ids` 900ce8c; Art owns
   ids). One item per level, a worn piece per kit: icons `ui_item_armour_N`,
   `ui_item_headgear_N`, `ui_item_offhand_N` (N 1-3) and `ui_item_weapon_<kind>_N` (N 0-3);
-  worn `layer_torso_<heavy|light|robe>_N`, `layer_headgear_<helm|hood|hat>_N`,
-  `offhand_<shield|blade|focus>_N`, `weapon_<kind>_N`; legs one per kit, `layer_thigh_<kit>`
-  and `layer_boot_<kit>`. Base parts are `<slot>_<variant>` (`head_odin_a`, `cloak_odin`).
+  worn armour as three layers `layer_torso_<kit>_N`, `layer_thigh_<kit>_N`, `layer_boot_<kit>_N`
+  (levels 2-3 may reuse the level 1 leg layers), `layer_headgear_<helm|hood|hat>_N`,
+  `offhand_<shield|blade|focus>_N`, `weapon_<kind>_N`. Base parts are `<slot>_<variant>`
+  (`head_odin_a`, `cloak_odin`).
 
 ## 3. Builds
 
