@@ -84,7 +84,13 @@ export interface PassiveKeys {
   // Resting heals this many times faster.
   restMult?: number;
   // Every `n`th basic strike also runs these effects on its target (stagger today).
-  everyNth?: { n: number; effects: readonly SkillEffect[] };
+  // `strike`: the nth basic strike itself changes type and/or carries a rider (Eye of Ra: every 4th
+  // strike is holy and sears).
+  everyNth?: {
+    n: number;
+    effects: readonly SkillEffect[];
+    strike?: { type?: DamageType; rider?: RiderId };
+  };
   // Aggro range multiplier.
   aggroMult?: number;
   // Added to the boss death chance on a knockout (read with Sim 230).
