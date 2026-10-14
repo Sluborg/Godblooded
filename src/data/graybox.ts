@@ -455,13 +455,13 @@ export const MONSTERS: readonly MonsterDef[] = [
 
 // Lairs from docs/systems/monsters-and-bosses.md section 4; the wyrm nest is the boss lair (the
 // run is won when it falls) and spawns draugr guards. Balance passes (Lead 80, 90 and the human-bot
-// pass): big lairs 3600 hp, small 1800-2100, the nest 8000 (spec 9000 and 16000).
+// pass): big lairs 4800 hp, small 2400-2800, the nest 8000 (spec 9000 and 16000).
 export const LAIRS: readonly LairDef[] = [
-  { id: 'barrow', monster: 'draugr', spawnS: 10, maxAlive: 6, hp: 2100 },
-  { id: 'troll-den', monster: 'troll', spawnS: 25, maxAlive: 4, hp: 3600 },
-  { id: 'harpy-roost', monster: 'harpy', spawnS: 9, maxAlive: 6, hp: 1800 },
-  { id: 'jackal-camp', monster: 'jackal-man', spawnS: 10, maxAlive: 6, hp: 2100 },
-  { id: 'labyrinth', monster: 'minotaur', spawnS: 24, maxAlive: 4, hp: 3600 },
+  { id: 'barrow', monster: 'draugr', spawnS: 10, maxAlive: 6, hp: 2800 },
+  { id: 'troll-den', monster: 'troll', spawnS: 25, maxAlive: 4, hp: 4800 },
+  { id: 'harpy-roost', monster: 'harpy', spawnS: 9, maxAlive: 6, hp: 2400 },
+  { id: 'jackal-camp', monster: 'jackal-man', spawnS: 10, maxAlive: 6, hp: 2800 },
+  { id: 'labyrinth', monster: 'minotaur', spawnS: 24, maxAlive: 4, hp: 4800 },
   { id: 'wyrm-nest', monster: 'wyrm', spawnS: 30, maxAlive: 3, hp: 8000, escort: 'draugr' },
 ];
 
@@ -885,10 +885,11 @@ export const GRAYBOX: GameData = {
   map: { width: 3000, height: 2000 },
   townHall: { x: 1500, y: 1000 },
   // Balance pass (human-bot pass: spacing option B, tax collector on with a 30% tithe, lairs at
-  // 60% hp; on top of flag pricing, gear first, roles, raids and the Aesir rows; 200 runs, seeds 1
-  // and 1001): the human-like bot (--human --hints) wins 63-64% and kills its first lair at about
-  // 6.3 min, the full bot 74%. Town income is the collector's tithe plus shop tax (55%): start gold
-  // 480. Unset keys use DEFAULT_TUNING.
+  // 80% hp; on top of flag pricing, gear first, roles, raids and the Aesir rows; 200 runs, seeds 1
+  // and 1001): the human-like bot that builds a smithy after the market (--human --hints) wins
+  // 67-74%, gears 88-90% of its heroes by 8:00 and kills its first lair at about 5.8 min; the full
+  // bot 62%. Town income is the collector's tithe plus shop tax (55%): start gold 480. Unset keys
+  // use DEFAULT_TUNING.
   tuning: {
     hero: { maxPerTemple: 7, recruitMs: 22_000, taxRate: 0.55, shopTripGold: 0, tithe: 0.3 },
     // Town income besides shop tax (docs/systems/tax-collector.md): the collector walks the tills.
