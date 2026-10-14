@@ -194,7 +194,7 @@ function retreatParties(world: World): void {
   }
 }
 
-// Oath-Brothers: a loyal hero stays in the fight while a mate stands beside it.
+// Oath-Brothers: a loyal hero stays in the fight while any living party mate stands, wherever it is.
 function loyalStays(world: World, unit: UnitState): boolean {
   if (unit.trait !== 'loyal' || !hasLoyalStays(world, unit)) return false;
   return (world.parties.get(unit.party)?.members ?? []).some((id) => {
