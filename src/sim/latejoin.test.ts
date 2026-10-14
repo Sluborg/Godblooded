@@ -73,4 +73,23 @@ describe('late recruits', () => {
     run(s.w, 20_000);
     expect(s.newcomer.party).toBe(s.p.id);
   });
+
+  it('a tier 2 Hearth Hall lets a level 3 or 4 party take one', () => {
+    const withHall = (tier: number) => {
+      const s = scene(4);
+      s.w.buildings.push({
+        id: s.w.nextId++,
+        type: 'hearth_hall',
+        tier,
+        pos: { x: 600, y: 600 },
+        plot: null,
+        hp: 100,
+        maxHp: 100,
+      });
+      run(s.w, 20_000);
+      return s.newcomer.party === s.p.id;
+    };
+    expect(withHall(1)).toBe(false);
+    expect(withHall(2)).toBe(true);
+  });
 });

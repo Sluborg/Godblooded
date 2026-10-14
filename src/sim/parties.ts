@@ -435,7 +435,14 @@ export function runParties(world: World): void {
 }
 
 // The level below which a party still takes new heroes.
-export const joinBelowLevel = (world: World): number => tune(world).joinBelowLevel;
+export function joinBelowLevel(world: World): number {
+  const base = tune(world).joinBelowLevel;
+  const hearth = hearthOf(world);
+  // A tier 2 Hearth Hall lets late recruits join older parties.
+  return base > 1 && hearth && hearth.tier >= 2
+    ? Math.max(base, world.tuning.building.hallJoinBelowLevel)
+    : base;
+}
 
 // Late recruits: a new hero (a level 1 party with no cards, exploring) that meets a party of level
 // 2 or more but below joinBelowLevel, with a free slot, may join it and takes its cards at once.
