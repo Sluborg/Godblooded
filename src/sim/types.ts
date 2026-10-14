@@ -1122,6 +1122,8 @@ export interface LairState {
   pos: Vec2;
   hp: number;
   maxHp: number;
+  // Grew on a node late in the run (corrupt.ts): it does not count toward lair-count rules.
+  sprouted?: true;
   // Snapshot only. The growth ring: ms until the next tier-up and the length of the current wait
   // (fill = 1 - nextTierMs / tierSpanMs); null at the top tier or with no tier clock.
   nextTierMs?: number | null;
@@ -1176,7 +1178,7 @@ export interface UnitState {
 export type UnitMode = 'wander' | 'explore' | 'return' | 'rest' | 'shop' | 'ko';
 
 export type IntentKind =
-  'flag' | 'lair' | 'revenge' | 'explore' | 'retreat' | 'shop' | 'rest' | 'defend';
+  'flag' | 'escort' | 'lair' | 'revenge' | 'explore' | 'retreat' | 'shop' | 'rest' | 'defend';
 
 // What a party is heading for: a flag or lair by id, with the place when it has one.
 export interface PartyIntent {
@@ -1225,6 +1227,9 @@ export interface GraveState {
   tier: number;
   pos: Vec2;
   timeMs: number;
+  // The party's level when it fell, and whether it has been recalled (once each). Old saves: 1.
+  level?: number;
+  recalled?: true;
 }
 
 // A celestial node (nodes.ts, docs/systems/nodes.md): under every non-boss lair. Locked while the
@@ -1234,10 +1239,18 @@ export interface NodeState {
   // The lair it lay under.
   lair: number;
   pos: Vec2;
-  state: 'locked' | 'freed';
+  state: 'locked' | 'freed' | 'defiled';
   // Ambrosia in the pool (0 while locked) and the most it holds.
   pool: number;
   max: number;
+  // Raiders have been at it since this time (corrupt.ts); the countdown to a defile.
+  threatSinceMs?: number;
+  // The raiders that stayed to hold it while defiled.
+  defilers?: number[];
+  // Time a hero or guard has stood on a defiled node with no foe near (the cleanse).
+  cleanseMs?: number;
+  // A lair will sprout here at this time (warned ahead).
+  sproutAtMs?: number;
 }
 
 // Celestial nodes and Ambrosia (nodes.ts). Off: no nodes, nothing changes.
@@ -1271,6 +1284,27 @@ export interface NodesTuning {
   // Guards a tower lends (guards.ts): gold per trip, how many at a time by tower tier, body, a
   // spear of guardDamage x a level 1 hero's strength, how far it strays from its gatherer, how
   // long before the tower lends a replacement, and how long a dropped jar lies.
+  // Ambrosia prices: the next temple tier (by the tier it has now), an Offering, a Recall.
+  templeCost: readonly number[];
+  offeringCost: number;
+  recallCost: number;
+  // Losing a node (corrupt.ts): raiders within defileRange stop, and after defileCountdownMs the
+  // node is defiled with `defilers` of them left behind. Cleansing: a hero or guard within
+  // cleanseRange for cleanseMs with no foe within cleanseFoeRange. From sproutFromMs a lair may
+  // sprout on a free node (warned sproutWarnMs ahead), at most sproutMax a run and one per
+  // sproutEveryMs; a sprouted lair's node reopens with its pool x sproutPoolMult.
+  defileRange: number;
+  defileCountdownMs: number;
+  defilers: number;
+  cleanseRange: number;
+  cleanseMs: number;
+  cleanseFoeRange: number;
+  sproutFromMs: number;
+  sproutWarnMs: number;
+  sproutEveryMs: number;
+  sproutMax: number;
+  sproutPoolMult: number;
+  escortGold: readonly number[];
   guardCost: number;
   guardPerTower: readonly number[];
   guardHp: number;
@@ -1319,6 +1353,10 @@ export interface BountyState {
   target?: number;
   // When it was placed (a new flag may break a party's commitment for a while). Missing: old.
   placedMs?: number;
+  // An escort bounty (escort.ts): follows this gatherer, taken by the first party to reach it
+  // (`escortBy`, a hero of that party), paid when the gatherer gets home with its jar.
+  escort?: number;
+  escortBy?: number;
 }
 
 export type SimEvent =
@@ -1459,6 +1497,14 @@ export type SimEvent =
   | { kind: 'gathererHired'; unit: number }
   | { kind: 'workerHit'; unit: number }
   | { kind: 'jarHome'; unit: number; node: number | null; amount: number; total: number }
+  | {
+      kind: 'ambrosiaSpent';
+      what: 'temple' | 'offering' | 'recall';
+      building: number;
+      cost: number;
+    }
+  | { kind: 'recalled'; unit: number; grave: number; building: number }
+  | { kind: 'escortTaken'; bounty: number; unit: number; gatherer: number }
   | { kind: 'guardOut'; unit: number; escort: number; tower: number }
   | { kind: 'guardHome'; unit: number }
   | { kind: 'guardFell'; unit: number; pos: Vec2 }
@@ -1466,6 +1512,10 @@ export type SimEvent =
   | { kind: 'jarStolen'; thief: number; victim: number; amount: number }
   | { kind: 'jarTaken'; jar: number; unit: number; amount: number }
   | { kind: 'workerFell'; unit: number; pos: Vec2; carried: number }
+  | { kind: 'nodeThreat'; node: number; inMs: number }
+  | { kind: 'nodeDefiled'; node: number; defilers: number[] }
+  | { kind: 'lairSprouting'; node: number; inMs: number }
+  | { kind: 'lairSprouted'; node: number; lair: number }
   | { kind: 'nodeFreed'; node: number; lair: number; pos: Vec2; pool: number }
   | { kind: 'lairDestroyed'; lair: number; type: string; by: number; bounty: number }
   | { kind: 'buildingDestroyed'; building: number; type: string }
@@ -1489,7 +1539,14 @@ export type SimEvent =
   | { kind: 'collectorHit'; unit: number }
   | { kind: 'collected'; unit: number; gold: number }
   | { kind: 'collectorFell'; unit: number; pos: Vec2; gold: number }
-  | { kind: 'bountyClaimed'; bounty: number; unit: number; gold: number; hunt?: true }
+  | {
+      kind: 'bountyClaimed';
+      bounty: number;
+      unit: number;
+      gold: number;
+      hunt?: true;
+      escort?: true;
+    }
   | { kind: 'won' }
   | { kind: 'lost' }
   | { kind: 'arrived'; unit: number; type: string; god: string | null }
@@ -1519,7 +1576,7 @@ export type SimEvent =
   | { kind: 'miracle'; id: string; pantheon: string; pos: Vec2; tellMs: number }
   // A party leader got a charm from a lair that fell.
   | { kind: 'relic'; unit: number; item: string; lair: number }
-  | { kind: 'bountyPlaced'; bounty: number; gold: number; target?: number }
+  | { kind: 'bountyPlaced'; bounty: number; gold: number; escort?: number; target?: number }
   // A party's score for a flag is at least consideringShare of its current goal's: Scene can
   // show it weighing the flag (it did not switch yet).
   | { kind: 'considering'; party: number; bounty: number }
@@ -1535,6 +1592,13 @@ export type Command =
   | { kind: 'sendGatherer'; node: number }
   // A tower lends a guard to walk beside this gatherer (15 gold).
   | { kind: 'sendGuard'; unit: number }
+  // Post an escort bounty on a gatherer: a moving flag heroes may take (25 or 50 gold).
+  | { kind: 'placeEscort'; unit: number; gold: number }
+  // Ambrosia buys (M3): a temple's next tier, an Offering that fills its pantheon's favour bar,
+  // and the Recall of a slain hero of its pantheon at the temple.
+  | { kind: 'upgradeWithAmbrosia'; building: number }
+  | { kind: 'offering'; building: number }
+  | { kind: 'recallFallen'; building: number; grave: number }
   | { kind: 'recallGatherers'; node?: number }
   | { kind: 'placeBounty'; pos: Vec2; gold: number }
   // Take a flag down and get cancelRefund (50%) of its gold back.
