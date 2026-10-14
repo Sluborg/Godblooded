@@ -64,6 +64,8 @@ export class TitleScene extends Phaser.Scene {
     const canContinue = this.canContinue();
     const labels: [string, () => void][] = [['Play', () => this.play()]];
     if (canContinue) labels.push(['Continue', () => this.continueRun()]);
+    // The Hall (Altar, Saga, Unlocks) is open once a run has been played.
+    if (readMeta().runs > 0) labels.push(['Hall', () => this.openHall()]);
     labels.push(['Settings', () => this.scene.launch('Settings')]);
     // The browser may decide the app is installable after the title is up (or the player may
     // install): rebuild the title then so the button appears or goes away.
@@ -125,6 +127,11 @@ export class TitleScene extends Phaser.Scene {
       return;
     }
     this.scene.start('Setup');
+  }
+
+  private openHall(): void {
+    this.registry.set('altarReturn', 'Title');
+    this.scene.launch('Altar');
   }
 
   private continueRun(): void {
