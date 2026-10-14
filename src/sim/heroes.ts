@@ -411,7 +411,7 @@ export function heroMove(world: World, unit: UnitState): void {
       const spot = restSpot(world, unit.pos, unit);
       const rate =
         tune(world).restPerS *
-        (spot.shrine ? tune(world).shrineMult : 1) *
+        (spot.shrine ? shrineRestMult(world, spot.shrineTier ?? 1) : 1) *
         (spot.hearth ? world.tuning.building.hallRestMult : 1) *
         passiveRestMult(world, unit);
       curePoison(world, unit.id);
@@ -501,11 +501,18 @@ function findMarket(world: World, from: Vec2) {
   );
 }
 
+// Resting at a shrine: tier 1 heals shrineMult times faster, higher tiers the row's multiplier.
+function shrineRestMult(world: World, tier: number): number {
+  return tier >= 2
+    ? tierValue(world.tuning.building.shrineRestMult, tier, tune(world).shrineMult)
+    : tune(world).shrineMult;
+}
+
 function restSpot(
   world: World,
   from: Vec2,
   unit?: UnitState,
-): { pos: Vec2; shrine: boolean; hearth: boolean } {
+): { pos: Vec2; shrine: boolean; hearth: boolean; shrineTier?: number } {
   const shrine = nearest(
     from,
     world.buildings.filter((b) => b.type === 'shrine' && isWorking(b)),
@@ -519,7 +526,7 @@ function restSpot(
   } else if (hearth && !shrine) {
     return { pos: hearth.pos, shrine: false, hearth: true };
   }
-  if (shrine) return { pos: shrine.pos, shrine: true, hearth: false };
+  if (shrine) return { pos: shrine.pos, shrine: true, hearth: false, shrineTier: shrine.tier };
   return { pos: world.data.townHall, shrine: false, hearth: false };
 }
 

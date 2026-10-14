@@ -119,6 +119,7 @@ export const DEFAULT_TUNING: Tuning = {
     hallBondMult: 1.5,
     hallJoinBelowLevel: 5,
     hallHpBuff: 0.1,
+    shrineRestMult: [3, 4, 5],
     upgradeCostMult: [1.5, 2.5],
     hpMult: [1, 1.5, 2],
     templeRecruitMult: [1, 0.8, 0.6],
