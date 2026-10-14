@@ -29,6 +29,15 @@ export function attachCameraControls(scene: Phaser.Scene, opts: CameraControlOpt
   let ignored = false;
 
   const clampZoom = (z: number) => Phaser.Math.Clamp(z, minZoom * scale, MAX_ZOOM * scale);
+  // Zooms keeping the world point under the screen point (x, y) where it is: pinching out from a
+  // spot zooms about that spot, not about the middle of the screen.
+  const zoomAt = (zoom: number, x: number, y: number) => {
+    const before = cam.getWorldPoint(x, y);
+    cam.setZoom(clampZoom(zoom));
+    const after = cam.getWorldPoint(x, y);
+    cam.scrollX += before.x - after.x;
+    cam.scrollY += before.y - after.y;
+  };
 
   input.on('pointerdown', (p: Phaser.Input.Pointer) => {
     dragging = false;
@@ -41,7 +50,7 @@ export function attachCameraControls(scene: Phaser.Scene, opts: CameraControlOpt
     const [a, b] = [input.pointer1, input.pointer2];
     if (a.isDown && b.isDown) {
       const d = Phaser.Math.Distance.Between(a.x, a.y, b.x, b.y);
-      if (pinchDist > 0) cam.setZoom(clampZoom(cam.zoom * (d / pinchDist)));
+      if (pinchDist > 0) zoomAt(cam.zoom * (d / pinchDist), (a.x + b.x) / 2, (a.y + b.y) / 2);
       pinchDist = d;
       dragging = true;
       onManual?.();
@@ -67,8 +76,8 @@ export function attachCameraControls(scene: Phaser.Scene, opts: CameraControlOpt
     if (!input.pointer1.isDown && !input.pointer2.isDown) dragging = false;
   });
 
-  input.on('wheel', (_p: unknown, _o: unknown, _dx: number, dy: number) => {
+  input.on('wheel', (p: Phaser.Input.Pointer, _o: unknown, _dx: number, dy: number) => {
     onManual?.();
-    cam.setZoom(clampZoom(cam.zoom * (dy > 0 ? 0.9 : 1.1)));
+    zoomAt(cam.zoom * (dy > 0 ? 0.9 : 1.1), p.x, p.y);
   });
 }
