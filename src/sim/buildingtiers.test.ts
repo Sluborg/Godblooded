@@ -35,7 +35,7 @@ const base: GameData = {
   lairs: [{ id: 'nest', monster: 'imp', spawnS: 5, maxAlive: 2, hp: 100_000 }],
   lairSites: [{ lair: 'nest', pos: { x: 800, y: 500 } }],
   tuning: {
-    town: { raidFirstMs: 10_000_000, buildingHp: 200 },
+    town: { raidFirstMs: 10_000_000, buildingHp: 200, hallTiers: false, ruins: false },
     hero: { firstRecruitMs: 1_000, recruitMs: 10_000, maxPerTemple: 2, maxPerGod: 99 },
     lair: { tierUpEveryMs: 0 },
   },

@@ -1682,7 +1682,8 @@ export type Command =
   | { kind: 'cancelBounty'; bounty: number }
   // Add gold to a flag that stands.
   | { kind: 'raiseBounty'; bounty: number; gold: number }
-  | { kind: 'pickUpgrade'; party: number; upgrade: string }
+  // `upgrade` left out: the party's leader picks (as with autoPick).
+  | { kind: 'pickUpgrade'; party: number; upgrade?: string }
   | { kind: 'pickPath'; party: number; path: string }
   // Buy the next tier of a building.
   | { kind: 'upgrade'; building: number }

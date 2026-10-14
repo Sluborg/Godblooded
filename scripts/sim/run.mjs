@@ -238,7 +238,7 @@ try {
       } else if (snap.parties.some((p) => p.offer)) {
         const p = snap.parties.find((x) => x.offer);
         if (ready(`card${p.id}:${p.level}`)) {
-          sim.command(w, { kind: 'pickUpgrade', party: p.id, upgrade: p.offer[0] });
+          sim.command(w, { kind: 'pickUpgrade', party: p.id, upgrade: undefined });
         }
       }
       if (t % 5000 === 0) {
