@@ -321,3 +321,10 @@ armour level ("Headgear should be its own thing"). Every weapon and every piece 
 its own item with its own painted worn piece and icon, not one piece per family with a level
 glow ("I thought all weapons and hand gear would be own things"). Design updates hero-kit.md;
 the M2 kit count grows accordingly, and Art batches it in priority order.
+
+## 2026-10-14 G1 Ready as a test only: floating vs bent limbs (Stefan)
+
+Stefan doubts bending limbs ("unsure it can be made to look good, prove it; floating hands and
+legs worked fine"). G1 is Ready as one test sheet of Grim (art/g1-parts): hands and boots are
+separate parts, so Scene renders the same art both ways (floating hands and feet, and bent IK
+limbs) for Stefan to pick. The full kit stays Draft until he picks.
