@@ -541,6 +541,9 @@ export interface HeroTuning {
 
 export interface PartyTuning {
   maxParty: number;
+  // A new hero (a level 1 party with no cards) may join a party below this level that has a free
+  // slot, when they meet; it takes the party's cards at once. 1 turns late joins off.
+  joinBelowLevel: number;
   mergeRange: number;
   mergeEveryTicks: number;
   xpPerLevel: number;

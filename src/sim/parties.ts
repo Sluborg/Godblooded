@@ -431,6 +431,52 @@ export function runParties(world: World): void {
     }
     if (best && world.rng() < mergeChance(world, a, best)) merge(world, a, best);
   }
+  lateJoins(world);
+}
+
+// The level below which a party still takes new heroes.
+export const joinBelowLevel = (world: World): number => tune(world).joinBelowLevel;
+
+// Late recruits: a new hero (a level 1 party with no cards, exploring) that meets a party of level
+// 2 or more but below joinBelowLevel, with a free slot, may join it and takes its cards at once.
+function lateJoins(world: World): void {
+  const limit = joinBelowLevel(world);
+  if (limit <= 2) return;
+  const ids = [...world.parties.keys()].sort((a, b) => a - b);
+  for (const nId of ids) {
+    const n = world.parties.get(nId);
+    if (!n || !mergeable(world, n)) continue;
+    const leaderN = world.units.find((u) => u.id === n.members[0]);
+    if (!leaderN) continue;
+    let best: Party | null = null;
+    let bestD = tune(world).mergeRange;
+    for (const pId of ids) {
+      const p = world.parties.get(pId);
+      if (!p || p.id === n.id || p.level < 2 || p.level >= limit) continue;
+      if (p.offer || p.pathOffer || p.members.length + n.members.length > tune(world).maxParty) {
+        continue;
+      }
+      if (partiesHaveRivals(world, n, p)) continue;
+      const leaderP = world.units.find((u) => u.id === p.members[0]);
+      const open = p.members.some((id) => {
+        const m = world.units.find((u) => u.id === id);
+        return !!m && !m.ko && m.hp > 0;
+      });
+      if (!leaderP || !open) continue;
+      const d = dist(leaderN.pos, leaderP.pos);
+      if (d <= bestD) {
+        best = p;
+        bestD = d;
+      }
+    }
+    if (!best || world.rng() >= mergeChance(world, n, best)) continue;
+    merge(world, best, n);
+    // The party's cards count for the newcomers at once: max hp follows the stat cards.
+    for (const id of best.members) {
+      const u = world.units.find((x) => x.id === id);
+      if (u) refreshMaxHp(world, u);
+    }
+  }
 }
 
 function mergeable(world: World, p: Party): boolean {
