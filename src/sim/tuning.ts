@@ -109,6 +109,10 @@ export const DEFAULT_TUNING: Tuning = {
   },
   building: {
     maxTier: 3,
+    hallRestMult: 1.5,
+    hallMergeRange: 400,
+    hallBondMult: 1.5,
+    hallHpBuff: 0.1,
     upgradeCostMult: [1.5, 2.5],
     hpMult: [1, 1.5, 2],
     templeRecruitMult: [1, 0.8, 0.6],

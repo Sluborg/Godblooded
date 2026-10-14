@@ -1,4 +1,5 @@
 import { payIntoTill, payTithe } from './collector';
+import { hearthBuff, hearthOf, partyHurt } from './hearth';
 import { escortHeldBy, escortOpenTo } from './escort';
 import { lairSealed, nearSealedLair } from './boss';
 import { earn, newRecord } from './runstats';
@@ -20,6 +21,8 @@ import type { BountyState, LairState, PartyIntent, Vec2, UnitState } from './typ
 
 export interface HeroRuntime {
   dest: Vec2 | null;
+  // Max hp a Hearth Hall tier 3 added until the hero next rests (hearth.ts).
+  hearthHp?: number;
   // Tithe set aside from bounties, paid into the home temple's till when the hero starts to rest.
   titheOwed?: number;
   // The bounty flag this hero is heading for.
@@ -351,17 +354,20 @@ export function heroMove(world: World, unit: UnitState): void {
       break;
     }
     case 'return': {
-      if (step(restSpot(world, unit.pos).pos)) {
+      const spot = restSpot(world, unit.pos, unit);
+      if (step(spot.pos)) {
         unit.mode = 'rest';
         payOwedTithe(world, unit, rt);
+        hearthBuff(world, unit, rt, spot.hearth);
       }
       break;
     }
     case 'rest': {
-      const spot = restSpot(world, unit.pos);
+      const spot = restSpot(world, unit.pos, unit);
       const rate =
         tune(world).restPerS *
         (spot.shrine ? tune(world).shrineMult : 1) *
+        (spot.hearth ? world.tuning.building.hallRestMult : 1) *
         passiveRestMult(world, unit);
       curePoison(world, unit.id);
       unit.hp = Math.min(unit.maxHp, unit.hp + (unit.maxHp * rate * TICK_MS) / 1000);
@@ -450,13 +456,26 @@ function findMarket(world: World, from: Vec2) {
   );
 }
 
-function restSpot(world: World, from: Vec2): { pos: Vec2; shrine: boolean } {
+function restSpot(
+  world: World,
+  from: Vec2,
+  unit?: UnitState,
+): { pos: Vec2; shrine: boolean; hearth: boolean } {
   const shrine = nearest(
     from,
     world.buildings.filter((b) => b.type === 'shrine'),
   );
-  if (shrine) return { pos: shrine.pos, shrine: true };
-  return { pos: world.data.townHall, shrine: false };
+  const hearth = hearthOf(world, from);
+  // With both, the closer one; a party below half its hp takes the shrine (hearth.ts).
+  if (shrine && hearth && !(unit && partyHurt(world, unit))) {
+    if (dist(from, hearth.pos) < dist(from, shrine.pos)) {
+      return { pos: hearth.pos, shrine: false, hearth: true };
+    }
+  } else if (hearth && !shrine) {
+    return { pos: hearth.pos, shrine: false, hearth: true };
+  }
+  if (shrine) return { pos: shrine.pos, shrine: true, hearth: false };
+  return { pos: world.data.townHall, shrine: false, hearth: false };
 }
 
 // Danger around a flag: monsters nearby, plus a lair standing close.
