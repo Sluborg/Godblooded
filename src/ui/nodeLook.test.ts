@@ -46,6 +46,12 @@ describe('node threats', () => {
     expect(threatLeft(1000, 20_000)).toBe(0);
   });
 
+  it('follows the tuning given instead of the defaults', () => {
+    expect(threatLeft(0, 5000, 20_000)).toBeCloseTo(0.75);
+    expect(cleanseDone(5000, 20_000)).toBeCloseTo(0.25);
+    expect(sproutProgress(60_000, 30_000, 60_000)).toBeCloseTo(0.5);
+  });
+
   it('shows cleanse progress and sprouting cracks', () => {
     expect(cleanseDone(undefined)).toBeNull();
     expect(cleanseDone(0)).toBeNull();
