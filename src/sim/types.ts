@@ -1842,6 +1842,8 @@ export interface OmenView {
   phase: 'announced' | 'active';
   // Time until it starts (announced) or ends (active).
   msLeft: number;
+  // Where a fallen star lies while no party has reached it.
+  star?: Vec2;
 }
 
 export interface Snapshot {

@@ -134,6 +134,7 @@ describe('Fallen Star', () => {
     const fell = ev.find((e) => e.kind === 'starFallen');
     expect(fell).toBeTruthy();
     const pos = fell?.kind === 'starFallen' ? fell.pos : { x: 0, y: 0 };
+    expect(snapshot(w).omen?.star).toEqual(pos);
     const a = spawnHero(w, 'warrior', { x: pos.x + 20, y: pos.y });
     const b = spawnHero(w, 'warrior', { x: pos.x - 20, y: pos.y });
     const found = run(w, 200).filter((e) => e.kind === 'starFound');
@@ -142,6 +143,7 @@ describe('Fallen Star', () => {
     expect(found[0]).toMatchObject({ party, xp: 60 });
     expect(w.parties.get(party)?.xp).toBeGreaterThan(0);
     expect(get(w, b)).toBeTruthy();
+    expect(snapshot(w).omen?.star).toBeUndefined();
     expect(run(w, 2_000).some((e) => e.kind === 'starFound')).toBe(false);
   });
 });
