@@ -303,3 +303,13 @@ hooded, bearded, weathered cloak with raven feathers, carved staff) as the hero 
 Heroes are made like the cartoon parts were, as a kit: a few interchangeable painted heads, a
 few bodies, legs, cloaks, weapons and off-hands, combined per hero and animated by the rig. Art
 writes the kit batch (part list, grid, pivots agreed with Scene); Scene combines and animates.
+
+## 2026-10-14 Items have an icon and a worn part; bodies come in builds (Stefan)
+
+Stefan: the parts kit also serves gear. Each item found for the inventory has two pictures: a
+still icon (inventory, loot, shop) and a worn part that fits the hero rig in its slot (weapon,
+off-hand, head, torso, cloak, legs). Bodies come in a few builds (lean, broad, tall, short) so
+heroes differ in shape, and every worn part fits every build through the rig's sockets. Stefan
+suggested marking replaceable areas in magenta; magenta is the chroma key for every upload, so
+Art and Scene pick the technical form (separate layers on sockets, or a second key colour).
+Item rows in `src/data` name both ids; a missing worn part falls back to the base kit part.
