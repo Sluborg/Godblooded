@@ -65,15 +65,15 @@ its party while its Party panel is open (Stefan, 2026-10-14); a level-up is a pi
 Order of resolution (new rows in bold). Heroes come before buildings: a resting or shopping
 hero stands on its building's spot, and the hero is the more specific target.
 
-| Order | Tap on                           | Does                                                        |
-| ----- | -------------------------------- | ----------------------------------------------------------- |
-| 10    | a free plot (within 110)         | build menu (today)                                          |
-| 20    | a hero (within 70)               | follow it and open its party card (today)                   |
-| 30    | **a built building (within 70)** | **building card** in the inspect slot (upgrade button)      |
-| 40    | **a ruin**                       | **rebuild menu**: rebuild at 50% or clear (`buildings.md`)  |
-| 50    | **a bounty flag (within 60)**    | **flag card**: amount, who is heading for it, raise, cancel |
-| 60    | a monster or lair (within 70)    | bounty menu on it (today)                                   |
-| 70    | bare ground                      | bounty menu on the spot (today)                             |
+| Order | Tap on                           | Does                                                                                                 |
+| ----- | -------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| 10    | a free plot (within 110)         | build menu (today)                                                                                   |
+| 20    | a hero (within 70)               | follow it and open its party card (today)                                                            |
+| 30    | **a built building (within 70)** | **building card** in the inspect slot (upgrade button)                                               |
+| 40    | **a ruin**                       | **rebuild menu**: rebuild at 50% or clear (`buildings.md`)                                           |
+| 50    | **a bounty flag (within 60)**    | **flag card**: amount, who is heading for it, raise, cancel                                          |
+| 60    | a monster or lair (within 70)    | bounty menu on it (today); on a monster it becomes a **hunt flag** that follows it (`hero-ai.md` 5b) |
+| 70    | bare ground                      | bounty menu on the spot (today)                                                                      |
 
 - **Build menu: tap for info, tap again to build** (Stefan, 2026-10-14). The first tap on an
   item selects it and shows its info strip above the menu: name and cost; its role in one line
@@ -83,6 +83,9 @@ hero stands on its building's spot, and the hero is the more specific target.
   switches the selection; a tap outside the menu cancels. An item the town can't afford still
   shows its info, with the cost in red; the second tap shows "Need 40 more gold" and builds
   nothing.
+- **A tap near a hunt flag** opens the flag card (row 50 before row 60), on purpose: a monster
+  carries at most one flag and the card is the useful answer. To put a bounty on another monster
+  nearby, tap it more than 60 from the flag.
 - **With a menu open:** a tap on bare ground closes it (today).
 - Drag pans, pinch zooms, any camera move stops the watch camera (today). No long-press: every
   action stays one tap, to be predictable on a phone.
@@ -96,13 +99,13 @@ opened from another card.
 XP bar, upgrades as one row of small icons), then 4 member rows of 80 px = 470 of the 480 px
 slot. Today's header is 190 px and the fourth row spills below the slot.
 
-| Card     | Opened by                | Shows                                                                              | Buttons                                                                   |
-| -------- | ------------------------ | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| Party    | tap a hero (today)       | level, XP, upgrades, member rows (today); name labels show over the party's heroes | member row tap opens the Hero card                                        |
-| Hero     | tap a member row         | god, path, tier, trait, the four item slots, gold, kills (`items-and-shops.md`)    | back                                                                      |
-| Building | tap a building           | name, tier, what it does now, what the next tier adds, hp                          | Upgrade (cost; greyed with the reason: gold, or "needs town hall tier 2") |
-| Shop     | tap the market or smithy | the building card plus what it sells now                                           | Upgrade                                                                   |
-| Flag     | tap a bounty flag        | amount, heroes heading for it (party dots), time placed                            | Raise (+25, +50), Cancel (50% back)                                       |
+| Card     | Opened by                | Shows                                                                                                            | Buttons                                                                   |
+| -------- | ------------------------ | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| Party    | tap a hero (today)       | level, XP, upgrades, member rows (today); name labels show over the party's heroes                               | member row tap opens the Hero card                                        |
+| Hero     | tap a member row         | god, path, tier, trait, the four item slots, gold, kills (`items-and-shops.md`)                                  | back                                                                      |
+| Building | tap a building           | name, tier, what it does now, what the next tier adds, hp                                                        | Upgrade (cost; greyed with the reason: gold, or "needs town hall tier 2") |
+| Shop     | tap the market or smithy | the building card plus what it sells now                                                                         | Upgrade                                                                   |
+| Flag     | tap a bounty flag        | amount, its target if a hunt flag, heroes heading for it (party dots), parties considering it ("?"), time placed | Raise (+25, +50), Cancel (50% back)                                       |
 
 ## 5. Menus in the bottom strip
 
@@ -127,18 +130,19 @@ slot. Today's header is 190 px and the fourth row spills below the slot.
 
 ### Scene
 
-| Order | Row                                                                          |
-| ----- | ---------------------------------------------------------------------------- |
-| 10    | Tap a building: building card with the upgrade button (Sim `upgrade` exists) |
-| 15    | Build menu: tap selects and shows the info strip, the same tap again builds  |
-| 20    | Inspect slot: one card at a time; party member rows open a Hero card         |
-| 30    | End screen: Title button, MVP line                                           |
-| 40    | Flag card: raise and cancel (needs Sim 10)                                   |
-| 50    | (dropped: LevelUp peek, see `level-ups.md`)                                  |
-| 60    | HUD speed choice saved as the default                                        |
-| 70    | Favour bars and the miracle tell (with `events.md` Sim rows)                 |
-| 80    | Hall, run setup, end screen v3 (with `meta-ui.md` and `meta.md` rows)        |
-| 90    | Rebuild menu and ruins (with `buildings.md` rows)                            |
+| Order | Row                                                                               |
+| ----- | --------------------------------------------------------------------------------- |
+| 10    | Tap a building: building card with the upgrade button (Sim `upgrade` exists)      |
+| 15    | Build menu: tap selects and shows the info strip, the same tap again builds       |
+| 20    | Inspect slot: one card at a time; party member rows open a Hero card              |
+| 30    | End screen: Title button, MVP line                                                |
+| 40    | Flag card: raise and cancel (needs Sim 10)                                        |
+| 45    | Hunt flag drawn over its monster; "?" over a considering party (hero-ai Scene 40) |
+| 50    | (dropped: LevelUp peek, see `level-ups.md`)                                       |
+| 60    | HUD speed choice saved as the default                                             |
+| 70    | Favour bars and the miracle tell (with `events.md` Sim rows)                      |
+| 80    | Hall, run setup, end screen v3 (with `meta-ui.md` and `meta.md` rows)             |
+| 90    | Rebuild menu and ruins (with `buildings.md` rows)                                 |
 
 ### Sim
 

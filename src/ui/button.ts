@@ -5,6 +5,7 @@ import { buttonState, type ButtonState } from './buttonStyle';
 import { UI_STYLE, WOOD_BUTTON } from './uiStyle';
 import { drawWoodSlab } from './woodFrame';
 import { addIcon } from './icons';
+import { getSfx } from './sfxPlayer';
 import { nineSliceArgs } from './nineSlice';
 
 export interface Button {
@@ -31,6 +32,8 @@ export interface ButtonOptions {
   // A kit icon id (`ui_icon_menu`): shown left of the label, or instead of it with `iconOnly`.
   icon?: string;
   iconOnly?: boolean;
+  // The tap sound (default `sfx_ui_tap`); a Back or Close button uses `sfx_ui_back`.
+  sfx?: string;
 }
 
 // A touch button centered on (x, y). Height and width are raised to MIN_TOUCH if smaller.
@@ -140,7 +143,10 @@ export function makeButton(
     .on('pointerup', (p: Phaser.Input.Pointer) => {
       const wasPressed = pressed;
       press(false);
-      if (enabled && wasPressed && p.getDistance() < 10) onTap();
+      const tapped = p.getDistance() < 10;
+      if (tapped && (wasPressed || !enabled))
+        getSfx(scene).play({ id: enabled ? (opts.sfx ?? 'sfx_ui_tap') : 'sfx_ui_off' });
+      if (enabled && wasPressed && tapped) onTap();
     });
   refresh();
 

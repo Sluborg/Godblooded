@@ -12,6 +12,8 @@ export class PauseScene extends Phaser.Scene {
   }
 
   create(): void {
+    // A report left by an abandoned Quit that never reached the End screen is stale.
+    this.registry.remove('abandonReport');
     const cx = GAME_WIDTH / 2;
     this.add
       .rectangle(cx, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.7)
@@ -52,13 +54,11 @@ export class PauseScene extends Phaser.Scene {
     this.scene.start('Map');
   }
 
+  // Quit shows the end screen for the run as it stands ("Run abandoned"), then the title; the run
+  // is still kept for Continue (EndScene does that when the player leaves).
   private quit(): void {
-    // Keep the run for Continue, also after a reload.
-    (this.scene.get('Map') as MapScene).saveNow();
-    this.scene.resume('Map');
-    this.scene.sleep('Map');
-    this.scene.sleep('Hud');
+    this.registry.set('abandonReport', (this.scene.get('Map') as MapScene).abandonReport());
     this.scene.stop();
-    this.scene.launch('Title');
+    this.scene.launch('End');
   }
 }

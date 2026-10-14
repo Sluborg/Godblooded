@@ -78,6 +78,9 @@ describe('statuses', () => {
     expect(newestRing(held, live)).toBe('hot');
     expect(newestRing(held, ['shield'])).toBeNull();
     expect(STATUS_LOOK.shield.style).toBe('bubble');
+    expect(STATUS_LOOK.poison.style).toBe('sign');
+    expect(STATUS_LOOK.stone.style).toBe('tint');
+    expect(STATUS_LOOK.swallowed.style).toBe('hide');
   });
 });
 

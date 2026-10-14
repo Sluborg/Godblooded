@@ -136,3 +136,38 @@ once it lands.
 `taxRate` 0.5, raids every 3:00, a one-raider raid on every lair tier-up, wyrm nest back to
 8000 hp. Balance's bot: 68-69% wins, median run 15.6 min, boss out at 12.4-13.0, 88% of heroes
 geared at 8:00 (the gate is 80%).
+
+## 6. Re-measure on main 44bfefe (2026-10-14, after both Balance passes)
+
+Probe variant B (a 40 gold flag 150 from a hero once a minute when gold allows), 100 seeds,
+tier-up raids on.
+
+| Event                            | Target     | Median (middle half) |
+| -------------------------------- | ---------- | -------------------- |
+| Tier 2                           | 4-6        | 3.6 (2.9-4.6)        |
+| First raid                       | 6          | 6.0                  |
+| First lair falls                 | 7-11       | 6.3 (5.2-7.6)        |
+| Tier 3                           | 11-14      | 9.3 (7.7-10.5)       |
+| Boss emerges                     | 12-15      | 13.4 (11.2-15.6)     |
+| Run ends                         | 15-18      | 15.9 (12.9-18.4)     |
+| Wins                             | 55-75%     | 63%                  |
+| Longest quiet stretch            | under 60 s | 18.6 s               |
+| Heroes with a gear piece at 8:00 | 80%+       | 100% (90-100%)       |
+| Flags placed per run             |            | 5 (3-7)              |
+| Flags a party turns to           |            | 50% (30-70%)         |
+| Time until a party turns         |            | 27 s (7-66)          |
+
+- **The gear gate passes** (100% median, 90% at the lower quarter) and wins, run length, boss
+  and quiet stretches sit inside their targets, with a bot that spends on flags.
+- **Still early:** the first lair fall (6.3, window 7-11) is the earliest miss and pulls tier 3
+  forward; tier 2 (3.6) and tier 3 (9.3) also come a little before their windows. Not a fun
+  gate; Stefan's playtest decides whether it matters.
+- **Steering is the open fun-gate item.** The flags above sit 150 from a hero, and most claims
+  are walk-overs. A flag on a monster 350-900 from the nearest hero (how a player uses it):
+  at 50 gold almost no hero heads for it, at 100 gold one heads there after a median 115 s and
+  half are never claimed, at 200 gold heroes head there at once but rarely claim it. Causes in
+  `src/sim/heroes.ts`: the claim needs no monster within 250, each monster near the flag needs
+  15 gold more for the flag to be worth it (plain exploring is worth 20), and goals hold 6 s. Proposals went to Lead
+  (2026-10-14): a hunt bounty that follows its monster and pays the killer, a re-score on
+  placement with a visible "considering" beat, then a Balance pass. Stefan's run 2 ("Steer")
+  judges the result.
