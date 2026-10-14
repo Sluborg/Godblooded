@@ -731,6 +731,13 @@ export class HudScene extends Phaser.Scene {
     else this.showToast(res.reason);
   }
 
+  // The top bar gold ticks: a quick pop in size when the collector brings gold home.
+  pulseGold(): void {
+    this.tweens.killTweensOf(this.goldText);
+    this.goldText.setScale(1);
+    this.tweens.add({ targets: this.goldText, scale: 1.3, duration: 140, yoyo: true });
+  }
+
   private showToast(text: string): void {
     this.toast.setText(text).setAlpha(1);
     this.tweens.add({ targets: this.toast, alpha: 0, delay: 1200, duration: 400 });
