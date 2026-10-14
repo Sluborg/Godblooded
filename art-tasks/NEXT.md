@@ -2,8 +2,8 @@
 
 **One style (Stefan, playtest run 2, 2026-10-14):** every batch follows the new `STYLE.md`
 (the painted buildings are the anchor). The big-head cartoon batches are Void. **Ready (Stefan's
-go 2026-10-14, "go with all"): every batch marked Ready below.** G2 waits for the G1
-kit test. Every other batch stays Draft until Stefan says go for it. Then take the first **Ready** batch of **your track** that is not in the upload
+go 2026-10-14, "go with all"): every batch marked Ready below.** **Heroes are on hold** (Stefan 2026-10-15: RimWorld-style pawns instead
+of the parts kit): G1, G2, G3 and G6 are Draft until the new pawn batches are written. Every other batch stays Draft until Stefan says go for it. Then take the first **Ready** batch of **your track** that is not in the upload
 log; never a **Draft** (Art is still waiting on Stefan). Art sets a batch to Done when its images are shipped.
 
 | Batch | Track     | File     | What                                                                | Images | Status |
@@ -20,10 +20,10 @@ log; never a **Draft** (Art is still waiting on Stefan). Art sets a batch to Don
 | B12   | buildings | `B12.md` | Merchant caravan, ruin, scaffold, 3 grave markers                   | 6      | Ready  |
 | B14   | buildings | `B14.md` | Buildings tier 3: all nine, per Design table                        | 9      | Ready  |
 | V2    | monsters  | `V2.md`  | Redo minotaur t1: a real two-handed grip                            | 1      | Ready  |
-| G1    | heroes    | `G1.md`  | Hero parts kit test: Grim's segments sheet, axe icon, portrait      | 4      | Ready  |
+| G1    | heroes    | `G1.md`  | Hero parts kit test: Grim's segments sheet, axe icon, portrait      | 4      | Draft  |
 | G2    | heroes    | `G2.md`  | Aesir paths t2 in the one style (after G1)                          | 8      | Draft  |
-| G3    | heroes    | `G3.md`  | Tax reeve as a parts kit, with portrait (gatherer, guard: G6)       | 3      | Ready  |
-| G6    | heroes    | `G6.md`  | Town folk kits: gatherer and guard, with portraits (after G3)       | 4      | Ready  |
+| G3    | heroes    | `G3.md`  | Tax reeve as a parts kit, with portrait (gatherer, guard: G6)       | 3      | Draft  |
+| G6    | heroes    | `G6.md`  | Town folk kits: gatherer and guard, with portraits (after G3)       | 4      | Draft  |
 | S5    | heroes    | `S5.md`  | Style test: cartoon units from parts, temple, barrow (first)        | 8      | Void   |
 | V1    | monsters  | `V1.md`  | Monster variants: draugr, harpy, jackal-man, minotaur -v2, -v3      | 8      | Done   |
 | A1    | heroes    | `A1.md`  | Aesir gods t1 (Odin, Thor, Loki, Freyja) and their 8 paths t2       | 12     | Done   |
