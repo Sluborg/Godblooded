@@ -1225,11 +1225,12 @@ export class UnitViews {
       else if (e.kind === 'levelUp') this.onLevelUp(e, parties);
       // The party weighs a flag it has not chosen: a "?" over its leader (the intent icon shows the
       // flag if it commits).
-      else if (e.kind === 'considering')
-        this.views
-          .get(parties.find((p) => p.id === e.party)?.members[0] ?? -1)
-          ?.cue('?', '#f4ead5', 1400);
-      else if (e.kind === 'upgradePicked' && e.auto) this.onAutoPick(e, parties);
+      else if (e.kind === 'considering') {
+        // The leader is the first member not knocked out (Sim's leaderOf).
+        const members = parties.find((p) => p.id === e.party)?.members ?? [];
+        const lead = members.find((id) => !units.find((u) => u.id === id)?.ko) ?? members[0];
+        this.views.get(lead ?? -1)?.cue('?', '#f4ead5', 1400);
+      } else if (e.kind === 'upgradePicked' && e.auto) this.onAutoPick(e, parties);
       else if (e.kind === 'built') this.onBuilt(e, others);
       else if (e.kind === 'rider') this.views.get(e.target)?.setRider(e.rider);
       else if (e.kind === 'drank') this.onDrank(e, ctx);

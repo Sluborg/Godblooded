@@ -486,8 +486,9 @@ export class MapScene extends Phaser.Scene {
       if (!flagView) this.views.set(key, this.makeBounty(b.gold, b.pos.x, b.pos.y));
       else if (flagView instanceof Phaser.GameObjects.Container) {
         // A hunt flag follows its monster; a flag whose monster died stays where it fell.
-        flagView.x += (b.pos.x - flagView.x) * 0.4;
-        flagView.y += (b.pos.y - flagView.y) * 0.4;
+        const k = 1 - Math.pow(0.6, Math.max(dtMs, 16) / 16.7);
+        flagView.x += (b.pos.x - flagView.x) * k;
+        flagView.y += (b.pos.y - flagView.y) * k;
         flagView.setDepth(flagView.y);
       }
       this.markHunt(this.views.get(key), b.target !== undefined);
@@ -544,7 +545,11 @@ export class MapScene extends Phaser.Scene {
   // A party weighs this flag: a quick glint.
   private flagGlint(bounty: number): void {
     const view = this.views.get(`f${bounty}`);
-    if (view) this.tweens.add({ targets: view, scale: 1.25, duration: 160, yoyo: true });
+    if (!view) return;
+    // Two parties weighing one flag: restart, so it never stays enlarged.
+    this.tweens.killTweensOf(view);
+    (view as Phaser.GameObjects.Container).setScale(1);
+    this.tweens.add({ targets: view, scale: 1.25, duration: 160, yoyo: true });
   }
 
   // One dot per hero heading for this flag, in its party colour, under the gold amount.
