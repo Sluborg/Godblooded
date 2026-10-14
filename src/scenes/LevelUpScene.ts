@@ -4,6 +4,7 @@ import { GRAYBOX, UPGRADES } from '../data/graybox';
 import { godName } from '../ui/partyLook';
 import { partyHeader, partySubtitle, pathHeader, readableOn } from '../ui/levelUpLook';
 import type { MapScene } from './MapScene';
+import { fitDesignCamera } from '../ui/designCamera';
 
 // What MapScene publishes when a party has an offer pending (the sim is frozen meanwhile).
 export interface LevelUpOffer {
@@ -42,6 +43,7 @@ export class LevelUpScene extends Phaser.Scene {
   }
 
   create(): void {
+    fitDesignCamera(this);
     const offer = this.registry.get(OFFER_KEY) as LevelUpOffer | undefined;
     if (!offer) return;
     const cx = GAME_WIDTH / 2;

@@ -7,8 +7,11 @@ const DRAG_THRESHOLD = 10;
 // One-finger drag pans, two-finger pinch zooms, wheel zooms. A press that never travels
 // DRAG_THRESHOLD is a tap: `onTap` gets the world position.
 export interface CameraControlOptions {
-  // Smallest zoom allowed (callers pass the zoom at which the map fills the screen).
+  // Smallest zoom allowed (callers pass the zoom at which the map fills the screen), in design
+  // units: the camera's own zoom is this times `scale`.
   minZoom: number;
+  // The canvas's render scale (config RENDER_SCALE): pointer positions arrive in canvas pixels.
+  scale?: number;
   onTap?: (world: Phaser.Math.Vector2) => void;
   // True when a press at this screen position belongs to the UI, not the map.
   blocked?: (screenX: number, screenY: number) => boolean;
@@ -18,6 +21,7 @@ export interface CameraControlOptions {
 
 export function attachCameraControls(scene: Phaser.Scene, opts: CameraControlOptions): void {
   const { minZoom, onTap, blocked, onManual } = opts;
+  const scale = opts.scale ?? 1;
   const cam = scene.cameras.main;
   const input = scene.input;
   input.addPointer(1);
@@ -25,12 +29,12 @@ export function attachCameraControls(scene: Phaser.Scene, opts: CameraControlOpt
   let dragging = false;
   let ignored = false;
 
-  const clampZoom = (z: number) => Phaser.Math.Clamp(z, minZoom, MAX_ZOOM);
+  const clampZoom = (z: number) => Phaser.Math.Clamp(z, minZoom * scale, MAX_ZOOM * scale);
 
   input.on('pointerdown', (p: Phaser.Input.Pointer) => {
     dragging = false;
     pinchDist = 0;
-    ignored = blocked?.(p.x, p.y) ?? false;
+    ignored = blocked?.(p.x / scale, p.y / scale) ?? false;
   });
 
   input.on('pointermove', (p: Phaser.Input.Pointer) => {

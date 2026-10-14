@@ -7,6 +7,7 @@ import type { HudScene } from './HudScene';
 import { makePanel } from '../ui/panel';
 import { PARTY_COLORS, PARTY_COLORS_CB } from '../ui/partyLook';
 import { getSettings, updateSettings, type PaletteId, type Speed } from '../ui/settings';
+import { fitDesignCamera } from '../ui/designCamera';
 
 const FONT = 'Georgia, serif';
 const SPEEDS: Speed[] = [1, 2, 4];
@@ -34,6 +35,7 @@ export class SettingsScene extends Phaser.Scene {
   }
 
   create(): void {
+    fitDesignCamera(this);
     this.speedButtons = [];
     this.paletteButtons = [];
     const cx = GAME_WIDTH / 2;

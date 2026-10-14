@@ -7,7 +7,7 @@ import { existsSync, mkdirSync, rmSync } from 'node:fs';
 import { chromium } from 'playwright-core';
 
 const PORT = 5198;
-const URL = `http://localhost:${PORT}/?debug`;
+const URL = `http://localhost:${PORT}/?debug${process.env.SMOKE_SCALE ? `&scale=${process.env.SMOKE_SCALE}` : ''}`;
 const OUT = 'smoke-out';
 const GAME_MS = 180_000;
 const REAL_TIMEOUT_MS = 10 * 60_000;
@@ -75,8 +75,8 @@ try {
         const c = g.scene.getScene('Map').cameras.main;
         const r = g.canvas.getBoundingClientRect();
         return [
-          r.left + ((wx - c.worldView.x) * c.zoom * r.width) / 1280,
-          r.top + ((wy - c.worldView.y) * c.zoom * r.height) / 720,
+          r.left + ((wx - c.worldView.x) * c.zoom * r.width) / g.canvas.width,
+          r.top + ((wy - c.worldView.y) * c.zoom * r.height) / g.canvas.height,
         ];
       },
       [wx, wy],

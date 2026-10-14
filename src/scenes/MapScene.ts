@@ -3,7 +3,7 @@ import { makeGround, releaseGround } from '../ui/ground';
 import { flagAt } from '../ui/flagCard';
 import { getMusic } from '../ui/musicPlayer';
 import Phaser from 'phaser';
-import { COLORS, GAME_HEIGHT, GAME_WIDTH } from '../config';
+import { COLORS, GAME_HEIGHT, GAME_WIDTH, RENDER_SCALE } from '../config';
 import { GRAYBOX } from '../data/graybox';
 import {
   command,
@@ -136,12 +136,13 @@ export class MapScene extends Phaser.Scene {
     this.registry.set('speed', getSettings().speed);
     const cam = this.cameras.main;
     const minZoom = Math.max(GAME_WIDTH / width, GAME_HEIGHT / height);
-    cam.setBounds(0, 0, width, height).setZoom(Math.max(minZoom, DEFAULT_ZOOM));
+    cam.setBounds(0, 0, width, height).setZoom(Math.max(minZoom, DEFAULT_ZOOM) * RENDER_SCALE);
     cam.centerOn(GRAYBOX.townHall.x, GRAYBOX.townHall.y);
     cam.setBackgroundColor(COLORS.background);
     makeGround(this, width, height);
     attachCameraControls(this, {
       minZoom,
+      scale: RENDER_SCALE,
       onTap: (w) => this.events.emit('mapTapped', this.resolveTap(w)),
       onManual: () => this.setWatch(false),
       blocked: (x, y) => this.registry.get('modal') === true || (this.hud()?.blocks(x, y) ?? false),

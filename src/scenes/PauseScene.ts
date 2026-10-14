@@ -4,6 +4,7 @@ import type { MapScene } from './MapScene';
 import { addIcon } from '../ui/icons';
 import { makeButton } from '../ui/button';
 import { makePanel } from '../ui/panel';
+import { fitDesignCamera } from '../ui/designCamera';
 
 // Pause menu over a frozen map: Resume, Restart, Settings, Quit to title.
 export class PauseScene extends Phaser.Scene {
@@ -12,6 +13,7 @@ export class PauseScene extends Phaser.Scene {
   }
 
   create(): void {
+    fitDesignCamera(this);
     // A report left by an abandoned Quit that never reached the End screen is stale.
     this.registry.remove('abandonReport');
     const cx = GAME_WIDTH / 2;

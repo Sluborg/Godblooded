@@ -6,6 +6,7 @@ import { SKILL_VISUALS, shapeBox, type SkillVisual } from '../ui/skillLook';
 import { UnitViews } from '../ui/unitViews';
 import { drawGlyph } from '../ui/itemGlyph';
 import type { Glyph } from '../ui/gearLook';
+import { fitDesignCamera } from '../ui/designCamera';
 
 const TINTS = [0xfff06a, 0xff9a4d, 0x9fe0ff, 0xb98cff, 0xfff6c2];
 const CELL_W = 256;
@@ -20,6 +21,7 @@ export class SkillGalleryScene extends Phaser.Scene {
   }
 
   create(): void {
+    fitDesignCamera(this);
     this.cameras.main.setBackgroundColor(0x3d5a2e);
     const fx = new SkillFx(this);
     SKILL_VISUALS.forEach((v, i) => {

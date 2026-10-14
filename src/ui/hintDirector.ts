@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { HINTS } from '../data/hints';
 import { GRAYBOX } from '../data/graybox';
 import type { SimEvent, Snapshot, Vec2 } from '../sim/api';
-import { GAME_WIDTH } from '../config';
+import { GAME_WIDTH, RENDER_SCALE } from '../config';
 import { HintEngine, hintLines, hintsFromEvent, type ShownHint } from './hints';
 import { loadSeen, saveSeen } from './hintStore';
 import { hintTargetPos, monsterSeenBy, upgradeAffordable } from './hintTarget';
@@ -157,6 +157,10 @@ export class HintDirector {
   private toScreen(p: Vec2): Vec2 {
     const cam = this.camera();
     const v = cam.worldView;
-    return { x: (p.x - v.x) * cam.zoom, y: (p.y - v.y) * cam.zoom };
+    // The map camera zooms by RENDER_SCALE on top of the design zoom; the HUD draws in design units.
+    return {
+      x: ((p.x - v.x) * cam.zoom) / RENDER_SCALE,
+      y: ((p.y - v.y) * cam.zoom) / RENDER_SCALE,
+    };
   }
 }

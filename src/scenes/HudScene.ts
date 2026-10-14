@@ -18,6 +18,7 @@ import { PartyPanel } from '../ui/partyPanel';
 import type { SimEvent, Vec2 } from '../sim/api';
 import { describeEvent, EventFeed, type FeedWorld } from '../ui/eventFeed';
 import type { MapScene, MapTap } from './MapScene';
+import { fitDesignCamera } from '../ui/designCamera';
 
 const ROSTER_PER_PAGE = 5;
 const ROSTER_W = 470;
@@ -72,6 +73,7 @@ export class HudScene extends Phaser.Scene {
   }
 
   create(): void {
+    fitDesignCamera(this);
     // Scene instances are reused on restart: drop state that pointed at the old display list.
     this.panel = new PartyPanel(this);
     this.ended = false;
