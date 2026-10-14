@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { lookOf } from '../data/looks';
 import {
+  footprintDepth,
   artCandidates,
   baseType,
   buildingArtCandidates,
@@ -114,5 +115,14 @@ describe('town units', () => {
   it('gives workers and guards the npc art prefix', () => {
     expect(unitArtId('worker', 'gatherer', 1)).toBe('npc_gatherer_t1_front');
     expect(unitArtId('guard', 'guard', 1)).toBe('npc_guard_t1_front');
+  });
+});
+
+describe('footprintDepth', () => {
+  it('sorts a building at the back edge of its footprint, so feet in front draw over it', () => {
+    expect(footprintDepth(500, 100)).toBe(480);
+    // A hero standing at the building's centre is above it; one a roof-height behind is below.
+    expect(520).toBeGreaterThan(footprintDepth(500, 100));
+    expect(450).toBeLessThan(footprintDepth(500, 100));
   });
 });
