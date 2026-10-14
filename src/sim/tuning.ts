@@ -38,6 +38,7 @@ export const DEFAULT_TUNING: Tuning = {
     restPerS: 0.1,
     shrineMult: 3,
     shopMinGold: 20,
+    shopTripGold: -1,
     spendShare: 0.6,
     greedySpend: 0.35,
     proudSpend: 0.8,
