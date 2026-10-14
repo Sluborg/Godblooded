@@ -44,6 +44,7 @@ import { OFFER_KEY, type LevelUpOffer } from './LevelUpScene';
 import { attachCameraControls } from '../ui/cameraControls';
 import { easeToward, WatchDirector } from '../ui/watchCam';
 import type { HudScene } from './HudScene';
+import { NodeViews } from '../ui/nodeViews';
 
 // The first picture of a skill's row; its sound follows it (sfx_skill_<picture>).
 const skillVisual = (id: string): string | undefined =>
@@ -71,6 +72,8 @@ export interface MapTap {
   plot: number | null;
   // Id of a tapped hero (opens the party panel), or null.
   hero?: number | null;
+  // Id of a tapped celestial node (opens its card), or null.
+  node?: number | null;
   // Id of a tapped building (opens the building panel), or null.
   building?: number | null;
   // Id of a tapped bounty flag (opens the flag card), or null.
@@ -87,6 +90,7 @@ export class MapScene extends Phaser.Scene {
   private unitViews!: UnitViews;
   // Lines from the selected hero's party to the flags it is heading for.
   private links!: Phaser.GameObjects.Graphics;
+  private nodeViews!: NodeViews;
   // Party whose level-up cards are open (the sim is frozen until it is picked), or null.
   private offerKey: string | null = null;
   // The ring on the ground around the party that levelled, while its cards are up.
@@ -169,6 +173,7 @@ export class MapScene extends Phaser.Scene {
       if (STYLE.screenShake && !getSettings().reducedMotion) this.cameras.main.shake(130, 0.004);
     });
     this.links = this.add.graphics().setDepth(1_000_000);
+    this.nodeViews = new NodeViews(this);
     this.snap = snapshot(this.world);
     this.sync();
     this.scene.launch('Hud');
@@ -389,6 +394,26 @@ export class MapScene extends Phaser.Scene {
     return command(this.world, { kind: 'cancelBounty', bounty });
   }
 
+  tryHireGatherer(): CommandResult {
+    return command(this.world, { kind: 'hireGatherer' });
+  }
+
+  trySendGatherer(node: number): CommandResult {
+    return command(this.world, { kind: 'sendGatherer', node });
+  }
+
+  tryRecallGatherers(node?: number): CommandResult {
+    return command(this.world, {
+      kind: 'recallGatherers',
+      ...(node === undefined ? {} : { node }),
+    });
+  }
+
+  // The world's gatherer cost (tuning), for the hall card.
+  get gathererCost(): number {
+    return this.world.tuning.nodes.gathererCost;
+  }
+
   tryRaiseBounty(bounty: number, gold: number): CommandResult {
     return command(this.world, { kind: 'raiseBounty', bounty, gold });
   }
@@ -409,6 +434,19 @@ export class MapScene extends Phaser.Scene {
   private resolveTap(w: Phaser.Math.Vector2): MapTap {
     const plot = this.plotAt(w);
     if (plot !== null) return { plot, target: null };
+    // A freed or defiled node (the column of light): its card sends gatherers.
+    const node = this.snap.nodes
+      .filter((n) => n.state !== 'locked')
+      .map((n) => ({ n, d: Math.hypot(n.pos.x - w.x, n.pos.y - 40 - w.y) }))
+      .filter(({ d }) => d < TARGET_RADIUS + 30)
+      .sort((a, b) => a.d - b.d)[0];
+    if (
+      node &&
+      !this.snap.units.some(
+        (u) => u.kind === 'hero' && Math.hypot(u.pos.x - w.x, u.pos.y - w.y) < TARGET_RADIUS,
+      )
+    )
+      return { plot: null, node: node.n.id, target: null };
     const hero = this.snap.units
       .filter((u) => u.kind === 'hero')
       .map((u) => ({ u, d: Math.hypot(u.pos.x - w.x, u.pos.y - w.y) }))
@@ -543,6 +581,7 @@ export class MapScene extends Phaser.Scene {
       this.snap.paths,
     );
     this.drawLinks();
+    this.nodeViews.update(this.snap);
     for (const e of this.snap.events) {
       if (e.kind === 'lairTierUp') this.lairGrows(e.lair, e.tier);
       if (e.kind === 'considering') this.flagGlint(e.bounty);

@@ -18,6 +18,7 @@ import { PartyPanel } from '../ui/partyPanel';
 import type { SimEvent, Vec2 } from '../sim/api';
 import { describeEvent, EventFeed, type FeedWorld } from '../ui/eventFeed';
 import type { MapScene, MapTap } from './MapScene';
+import { gatherersAt, poolLine } from '../ui/nodeLook';
 
 const ROSTER_PER_PAGE = 5;
 const ROSTER_W = 470;
@@ -484,6 +485,11 @@ export class HudScene extends Phaser.Scene {
       this.panel.show(tap.hero);
       return;
     }
+    if (tap.node != null) {
+      this.panel.hide();
+      this.openNodeCard(map, tap.node);
+      return;
+    }
     if (tap.building != null) {
       const b = map.snapshot.buildings.find((x) => x.id === tap.building);
       this.panel.hide();
@@ -549,6 +555,44 @@ export class HudScene extends Phaser.Scene {
       title: `Bounty flag  ·  ${flag.gold} gold`,
       affordable: true,
       lines: flagLines(flag.gold, heading, rate, this.targetLabel(map, flag.target)),
+    });
+  }
+
+  // The node card (nodes.md section 2): the pool, who works it, send a gatherer or bring them home.
+  private openNodeCard(map: MapScene, id: number): void {
+    const snap = map.snapshot;
+    const node = snap.nodes.find((n) => n.id === id);
+    if (!node) return;
+    const here = gatherersAt(snap.workers, id);
+    const idle = snap.workers.filter((w) => w.phase === 'idle' && w.node === null).length;
+    const options: MenuOption[] = [];
+    if (node.state === 'freed')
+      options.push({
+        label: `Send\ngatherer`,
+        cost: 0,
+        pick: () => {
+          const res = map.trySendGatherer(id);
+          if (res.ok) this.openNodeCard(map, id);
+          else this.showToast(res.reason);
+        },
+      });
+    if (here > 0)
+      options.push({
+        label: 'Recall',
+        cost: 0,
+        pick: () => {
+          const res = map.tryRecallGatherers(id);
+          if (res.ok) this.openNodeCard(map, id);
+          else this.showToast(res.reason);
+        },
+      });
+    this.openMenu('Celestial node', options, {
+      title: `Celestial node  ·  ${poolLine(node.pool, node.max)}`,
+      affordable: true,
+      lines:
+        node.state === 'defiled'
+          ? ['Defiled: kill the defilers, then stand a hero here to cleanse it']
+          : [`${here} gatherer${here === 1 ? '' : 's'} here, ${idle} idle at the hall`],
     });
   }
 
@@ -683,11 +727,13 @@ export class HudScene extends Phaser.Scene {
       line(150, nextTierEffect(b.type, b.tier), 20, COLORS.textMuted),
     );
     const y = cy + h / 2 - 60;
+    // The town hall with gatherers on (M3) has a third button: Hire gatherer on the left.
+    const hall = b.type === 'townhall' && map.snapshot.gathererCap > 0;
     if (b.upgradeCost !== null) {
       const cost = b.upgradeCost;
       const up = makeButton(
         this,
-        cx - 150,
+        hall ? cx : cx - 150,
         y,
         280,
         90,
@@ -704,9 +750,28 @@ export class HudScene extends Phaser.Scene {
       this.menu.push(up.container);
       this.menuButtons.push({ button: up, cost });
     }
+    if (hall) {
+      const cost = map.gathererCost;
+      const have = map.snapshot.workers.length;
+      const hire = makeButton(
+        this,
+        cx - 310,
+        y,
+        280,
+        90,
+        `Hire gatherer\n${cost} gold  (${have}/${map.snapshot.gathererCap})`,
+        () => {
+          const res = map.tryHireGatherer();
+          if (res.ok) this.showToast('A gatherer joins the town');
+          else this.showToast(res.reason);
+        },
+      );
+      this.menu.push(hire.container);
+      this.menuButtons.push({ button: hire, cost });
+    }
     const close = makeButton(
       this,
-      b.upgradeCost !== null ? cx + 150 : cx,
+      hall ? cx + 310 : b.upgradeCost !== null ? cx + 150 : cx,
       y,
       240,
       90,
