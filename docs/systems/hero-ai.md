@@ -19,6 +19,9 @@ personality you can see.
   nothing after level 1, and proud does nothing without flags.
 - **Fix 4, the party retreats together** when half of it is hurt, with a horn; the coward
   still runs alone, earlier, and everyone can see it.
+- **Fix 5, flags that steer** (Lead approved, 2026-10-14; section 5b): a flag on a monster
+  becomes a hunt bounty that follows it and pays the killer; a new flag is seen at once and a
+  party shows a "considering" beat within a second; then Balance retunes the danger cost.
 
 ## 1. Audit: what Sim does today
 
@@ -122,6 +125,49 @@ Every option a party leader (or a hero alone) can take gets one score; the highe
   flee keeps today's bond -1, and it is the moment the player remembers.
 - **Proud** stays until 20% even in a party retreat (and catches up after).
 
+## 5b. Fix 5: flags that steer
+
+Measured on main 44bfefe (`pacing-review.md` 6): a 50 gold flag on a monster 350-900 from the
+nearest hero draws almost nobody and is claimed only by chance after about 7 minutes; at 100
+gold a hero turns after a median 115 s and half are never claimed. Three causes in
+`src/sim/heroes.ts`: the claim needs no monster within `dangerRadius` (250), so a flag near a
+lair never pays; every monster near the flag costs `costPerDanger` (15) against `exploreValue`
+(20), so the monsters a flag is placed on make it worthless; and a new flag waits for the
+once-a-second re-score and a 6 s commit.
+
+### 1. Hunt bounties (ship first)
+
+| Rule        | Value                                                                                                                            |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Becomes one | a flag placed within `huntSnap` (60) of a living monster attaches to the nearest one: `BountyState.target = monster id`          |
+| Moves       | the flag follows its target every tick (the flag icon stays over the monster)                                                    |
+| Danger      | its score counts only monsters other than the target within `dangerRadius`; the target itself is no danger                       |
+| Paid        | to the hero whose strike kills the target (event `bountyClaimed` as today, plus `hunt: true`); a summon's kill pays its summoner |
+| Target lost | if the target dies to a tower, a miracle or anything that is not a hero, the flag drops where it died and becomes a ground flag  |
+| Ground flag | a flag on open ground keeps today's rule but claims when no monster is within `claimClearRadius` (100), not 250                  |
+| Lairs       | a flag placed on a lair stays a lair flag: paid with the lair bounty to the hero that destroys it (today's lair goal plus gold)  |
+
+### 2. A new flag is seen at once
+
+- **Re-score on placement:** `placeBounty` and `raiseBounty` make every exploring leader (and lone
+  hero) re-score that tick, not at the next 1 s step.
+- **Fresh flag breaks a commit:** for `freshFlagMs` (10 s) after it is placed or raised, a flag
+  may replace a goal inside its `commitMs` hold if it beats it by the usual margin. A lair goal
+  at its lair (the sticky case) still holds; the party finishes that fight first.
+- **Considering beat:** when a re-score finds a flag scoring at least `considerShare` (0.7) of
+  the party's current goal but not winning, Sim emits `considering {party, bounty}` once per
+  party and flag. Scene shows a "?" over that party's banner for 2 s; if the party commits, the
+  intent icon turns to the flag. So every flag gets a visible reaction within about a second,
+  even when nobody comes.
+
+### 3. Balance after 1 and 2
+
+- `costPerDanger` 15 to about 8, and the smallest flag (25) priced so it pulls within about 600
+  (Balance chooses: lower `distanceCost` for flags, or a flat flag bonus). Then a win-rate
+  pass: in the probe, chasing flags into danger cost wins.
+- **Target for the bot** (Design re-measures): a 50 gold hunt flag 350-900 away gets a party
+  heading for it within 5 s in most runs and is paid in at least 70% of cases.
+
 ## 6. Smaller fixes
 
 | Today                                                                   | Proposed                                                                         |
@@ -140,29 +186,39 @@ Every option a party leader (or a hero alone) can take gets one score; the highe
 | TraitDef     | new table: `id`, `goldMult`, `fearMult`, `fleeMult`, `exploreMult`, `behaviours` (keys above), `arrivalLine`                                                                                       |
 | GodDef       | `traitWeights` (decided)                                                                                                                                                                           |
 | state        | `lair.discovered`, `exploredCells` (snapshot and save), `unit.intent`; tuning `discoverRange` 400, `startDiscovered` 600, `cellSize` 200, `exploreRange` 150                                       |
-| events       | `intent`, `defend`, `partyRetreat`                                                                                                                                                                 |
+| events       | `intent`, `defend`, `partyRetreat`, `considering` (Fix 5)                                                                                                                                          |
+| Fix 5        | `BountyState.target`; tuning.bounty `huntSnap` 60, `claimClearRadius` 100, `freshFlagMs` 10000, `considerShare` 0.7; event `bountyClaimed` gains `hunt`                                            |
 
 ## 8. Proposed backlog rows
 
 ### Sim
 
-| Order | Row                                                                                                    |
-| ----- | ------------------------------------------------------------------------------------------------------ |
-| 10    | `intent` on the party in the snapshot and as an event                                                  |
-| 20    | Score-and-commit choice (flag, lair, explore, shop, rest) with distance and the additive switch margin |
-| 25    | Discovery: `lair.discovered`, explored cells, snapshot and save (version bump), unit intent overrides  |
-| 30    | Party retreat; coward solo flee keeps the bond cost                                                    |
-| 40    | Trait behaviours: brave charge, coward hang back, proud biggest foe, curious fog, loyal guard          |
-| 50    | Defend tied to buildings; `defend` event                                                               |
-| 60    | TraitDef as data; optional god trait weights                                                           |
+| Order | Row                                                                                                         |
+| ----- | ----------------------------------------------------------------------------------------------------------- |
+| 10    | `intent` on the party in the snapshot and as an event                                                       |
+| 20    | Score-and-commit choice (flag, lair, explore, shop, rest) with distance and the additive switch margin      |
+| 25    | Discovery: `lair.discovered`, explored cells, snapshot and save (version bump), unit intent overrides       |
+| 30    | Party retreat; coward solo flee keeps the bond cost                                                         |
+| 40    | Trait behaviours: brave charge, coward hang back, proud biggest foe, curious fog, loyal guard               |
+| 50    | Defend tied to buildings; `defend` event                                                                    |
+| 60    | TraitDef as data; optional god trait weights                                                                |
+| 70    | Fix 5.1: hunt bounties (attach, follow, pay the killer, drop on a non-hero kill); ground flags claim at 100 |
+| 80    | Fix 5.2: re-score on place and raise; fresh flag breaks a commit for 10 s; `considering` event              |
 
 ### Scene
 
-| Order | Row                                                                                 |
-| ----- | ----------------------------------------------------------------------------------- |
-| 10    | Intent icon over the party banner; dotted line to the target for a tapped party     |
-| 20    | Speech and effects for argue, revenge, avenged, partyFormed, bountyClaimed, retreat |
-| 30    | Arrival line naming the trait; trait icon on the hero card                          |
+| Order | Row                                                                                    |
+| ----- | -------------------------------------------------------------------------------------- |
+| 10    | Intent icon over the party banner; dotted line to the target for a tapped party        |
+| 20    | Speech and effects for argue, revenge, avenged, partyFormed, bountyClaimed, retreat    |
+| 30    | Arrival line naming the trait; trait icon on the hero card                             |
+| 40    | Fix 5: hunt flag drawn over its monster; "?" over a considering party's banner for 2 s |
+
+### Balance
+
+| Order | Row                                                                                  |
+| ----- | ------------------------------------------------------------------------------------ |
+| 10    | Fix 5.3: `costPerDanger` about 8, the 25 gold flag pulls within about 600; then wins |
 
 ### Art
 
