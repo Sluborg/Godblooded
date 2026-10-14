@@ -10,6 +10,7 @@ import {
   createWorld,
   runReport,
   loadWorld,
+  playData,
   saveWorld,
   SaveError,
   snapshot,
@@ -28,6 +29,7 @@ import { getSettings, updateSettings } from '../ui/settings';
 import { FpsGuard } from '../ui/fpsGuard';
 import { heroLabel, partyColor } from '../ui/partyLook';
 import { artCandidates } from '../ui/unitLook';
+import { readMeta } from '../ui/metaStore';
 import { UnitViews } from '../ui/unitViews';
 import { iconScale } from '../ui/icons';
 import { releaseSets } from '../ui/parts/bake';
@@ -138,7 +140,7 @@ export class MapScene extends Phaser.Scene {
           // A newer game wrote it: play a fresh run here. The storage layer never clears or
           // overwrites that save (storedIsNewer), so the newer client can still continue it.
           this.registry.set('notice', 'This save is from a newer version. Reload to update.');
-          return createWorld(newSeed(), GRAYBOX);
+          return createWorld(newSeed(), this.playData());
         }
         clearSave();
       }
@@ -146,7 +148,19 @@ export class MapScene extends Phaser.Scene {
     // Every fresh run (Play, Play again, Restart) drops the old checkpoint at once, so a reload
     // before the first autosave cannot bring the abandoned run back.
     clearSave();
-    return createWorld(newSeed(), GRAYBOX);
+    return createWorld(newSeed(), this.playData());
+  }
+
+  // The data a fresh run is played on: the content the player has unlocked, the Altar's ranks, the
+  // chosen Trials and the lean (sim/meta.ts playData), from the meta save.
+  private playData() {
+    const trials = (this.registry.get('runTrials') as string[] | undefined) ?? [];
+    return playData(GRAYBOX, readMeta(), trials);
+  }
+
+  // The Trials this run was started with (an End screen needs them for the Essence).
+  get playTrials(): readonly string[] {
+    return this.world.data.play?.trials ?? [];
   }
 
   // Writes the run to storage (autosave, and when the player quits to the title).
