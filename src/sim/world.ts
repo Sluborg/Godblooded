@@ -209,6 +209,8 @@ export interface UnitRuntime {
   boss?: BossRuntime;
   // The fight this unit is in runs until here (see engage.ts).
   fightUntilMs?: number;
+  // A brave hero's charge runs until here (engage.ts).
+  chargeUntilMs?: number;
   // Heroes with a path skill: cooldown and the cast in progress (see skills.ts).
   skill?: SkillRuntime;
   // Shield, mark, taunt and buffs from skills (see effects.ts).
@@ -793,7 +795,9 @@ function pickTarget(world: World, unit: UnitState, stats: Stats, home?: Vec2): U
     const d = dist(unit.pos, other.pos);
     if (d > reach) continue;
     // A harrier picks the weakest hero in reach, anything else the nearest.
-    const score = weakest ? other.hp : d;
+    // A proud hero picks the biggest foe in reach, a harrier the weakest hero, anything else the
+    // nearest.
+    const score = weakest ? other.hp : unit.trait === 'proud' ? -other.maxHp : d;
     if (score >= bestD) continue;
     if (home && dist(home, other.pos) > world.tuning.monster.leash) continue;
     best = other;
@@ -839,11 +843,28 @@ function heal(world: World, unit: UnitState, rt: UnitRuntime, stats: Stats, ally
   });
 }
 
+// A coward in a party stops cowardHangBack behind the party's front member (the one nearest the foe)
+// instead of closing in.
+function cowardHangsBack(world: World, unit: UnitState, foe: UnitState, d: number): boolean {
+  if (unit.trait !== 'coward') return false;
+  const party = world.parties.get(unit.party);
+  let front = Infinity;
+  for (const id of party?.members ?? []) {
+    if (id === unit.id) continue;
+    const m = world.units.find((u) => u.id === id);
+    if (m && !m.ko && m.hp > 0) front = Math.min(front, dist(m.pos, foe.pos));
+  }
+  return front < Infinity && d <= front + world.tuning.trait.cowardHangBack;
+}
+
 function fight(world: World, unit: UnitState, rt: UnitRuntime, stats: Stats, foe: UnitState): void {
   const d = dist(unit.pos, foe.pos);
   if (d > stats.weapon.range) {
     rt.swing = undefined;
-    const dir = stepToward(unit.pos, foe.pos, (speedOf(stats) * TICK_MS) / 1000);
+    if (cowardHangsBack(world, unit, foe, d)) return;
+    const charge =
+      world.timeMs < (rt.chargeUntilMs ?? 0) ? 1 + world.tuning.trait.braveChargeSpeed : 1;
+    const dir = stepToward(unit.pos, foe.pos, (speedOf(stats) * charge * TICK_MS) / 1000);
     if (dir.x !== 0 || dir.y !== 0) unit.facing = dir;
     return;
   }

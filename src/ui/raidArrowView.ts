@@ -58,10 +58,10 @@ export class RaidArrowView {
     this.zones.forEach((z) => z.setVisible(false).disableInteractive());
     const pulse = 0.8 + 0.2 * Math.sin(this.scene.time.now / 160);
     this.notes.slice(0, MAX_ARROWS).forEach((note, i) => {
-      const lair = snap.lairs.find((l) => l.id === note.lair);
-      if (!lair) return;
-      const a = edgeArrow(worldToHud(cam, lair.pos), AREA);
-      this.lairPos[i] = lair.pos;
+      const target = note.at ?? snap.lairs.find((l) => l.id === note.lair)?.pos;
+      if (!target) return;
+      const a = edgeArrow(worldToHud(cam, target), AREA);
+      this.lairPos[i] = target;
       if (a.onScreen) return;
       this.screenPos[i] = { x: a.x, y: a.y };
       // The arrow head points outwards, at the lair; the icon disc sits just inside it.

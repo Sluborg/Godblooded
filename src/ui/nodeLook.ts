@@ -31,3 +31,34 @@ export function poolLine(pool: number, max: number): string {
 export function gatherersAt(workers: readonly { node: number | null }[], node: number): number {
   return workers.filter((w) => w.node === node).length;
 }
+
+// Defaults of tuning.nodes (defileCountdownMs, cleanseMs, sproutWarnMs); the views get the world's.
+export const THREAT_MS = 10_000;
+export const CLEANSE_MS = 10_000;
+export const SPROUT_WARN_MS = 30_000;
+
+// Share of the 10 s defile countdown still left (1 = just started, 0 = defiled), or null.
+export function threatLeft(
+  threatSinceMs: number | undefined,
+  timeMs: number,
+  countdownMs = THREAT_MS,
+): number | null {
+  if (threatSinceMs === undefined) return null;
+  return Math.min(1, Math.max(0, 1 - (timeMs - threatSinceMs) / countdownMs));
+}
+
+// Share of the cleanse done, 0 to 1, or null when none runs.
+export function cleanseDone(cleanseMs: number | undefined, needMs = CLEANSE_MS): number | null {
+  if (!cleanseMs || cleanseMs <= 0) return null;
+  return Math.min(1, cleanseMs / needMs);
+}
+
+// How far the red cracks of a sprouting lair have spread, 0 to 1 (30 s from the warning), or null.
+export function sproutProgress(
+  sproutAtMs: number | undefined,
+  timeMs: number,
+  warnMs = SPROUT_WARN_MS,
+): number | null {
+  if (sproutAtMs === undefined) return null;
+  return Math.min(1, Math.max(0, 1 - (sproutAtMs - timeMs) / warnMs));
+}

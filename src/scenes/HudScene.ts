@@ -64,7 +64,7 @@ export class HudScene extends Phaser.Scene {
   private rosterRect: Phaser.Geom.Rectangle | null = null;
   private rosterNextAt = 0;
   private menu: Phaser.GameObjects.GameObject[] = [];
-  private menuButtons: { button: Button; cost: number }[] = [];
+  private menuButtons: { button: Button; cost: number; ambrosia?: number }[] = [];
   private menuRect: Phaser.Geom.Rectangle | null = null;
   private hints: HintDirector | null = null;
   private buildMenuOpen = false;
@@ -212,8 +212,10 @@ export class HudScene extends Phaser.Scene {
     if ((status === 'won' || status === 'lost') && !this.ended) this.showEnd();
     this.panel.update((this.scene.get('Map') as MapScene).snapshot);
     const gold = (this.registry.get('gold') as number) ?? 0;
-    for (const { button, cost } of this.menuButtons) button.setEnabled(gold >= cost);
     const map = this.scene.get('Map') as MapScene;
+    const stock = map.snapshot.ambrosia;
+    for (const { button, cost, ambrosia } of this.menuButtons)
+      button.setEnabled(gold >= cost && (ambrosia === undefined || stock >= ambrosia));
     this.hints?.update(map.snapshot, gold, map.hintTuning);
   }
 
@@ -257,6 +259,17 @@ export class HudScene extends Phaser.Scene {
     for (const e of events) {
       if (e.kind === 'levelUp') levels.set(e.party, e.level);
       if (e.kind === 'jarHome') this.pulseAmbrosia();
+      // A lair will sprout on a node: an edge arrow to it for the warning.
+      if (e.kind === 'lairSprouting') {
+        const node = snap.nodes.find((n) => n.id === e.node);
+        if (node)
+          this.raidArrows.add({
+            raid: -1000 - e.node,
+            lair: 0,
+            at: node.pos,
+            untilMs: snap.timeMs + e.inMs,
+          });
+      }
       if (e.kind === 'raidWarning')
         this.raidArrows.add({ raid: e.raid, lair: e.lair, untilMs: snap.timeMs + e.inMs });
       if (e.kind === 'raid') {
@@ -265,6 +278,10 @@ export class HudScene extends Phaser.Scene {
           `RAID! ${e.size} ${lair?.type ?? 'monsters'} march on the town`,
           '#8a1c2bdd',
         );
+      } else if (e.kind === 'nodeDefiled') {
+        this.showBanner('A NODE IS DEFILED! Kill the defilers', '#8a1c2bdd');
+      } else if (e.kind === 'lairSprouting') {
+        this.showBanner('A LAIR IS SPROUTING ON A NODE', '#8a1c2bdd');
       } else if (e.kind === 'bossEmerged') {
         this.showBanner('THE BOSS EMERGES!', '#8a1c2bdd');
       } else if (e.kind === 'enraged') {
@@ -765,7 +782,18 @@ export class HudScene extends Phaser.Scene {
     const snap = map.snapshot;
     const nodesOn = snap.gathererCap > 0 || snap.nodes.length > 0;
     const nodeTuning = map.nodeTuning;
-    const specs: { label: string; cost: number; icon?: string; pick: () => void }[] = [];
+    // `ambrosia`: the Ambrosia price, to grey the button while the stock is short.
+    const specs: {
+      label: string;
+      cost: number;
+      ambrosia?: number;
+      icon?: string;
+      pick: () => void;
+    }[] = [];
+    // A temple card has up to five buttons of about 150 px: "Ambrosia" is shortened there.
+    const amb = (price: number, five: boolean) => `${price} ${five ? 'Amb.' : 'Ambrosia'}`;
+    const pantheon = b.type.replace(/^temple_?/, '');
+    const hasMiracle = snap.favour.some((f) => f.pantheon === pantheon);
     const said = (res: CommandResult, ok: string) => {
       if (res.ok) this.showToast(ok);
       else this.showToast(res.reason);
@@ -792,26 +820,33 @@ export class HudScene extends Phaser.Scene {
         cost: nodeTuning.gathererCost,
         pick: () => said(map.tryHireGatherer(), 'A gatherer joins the town'),
       });
-    // Temples (M3): what Ambrosia buys.
+    // Temples (M3): what Ambrosia buys. Offering needs a pantheon with a miracle to ask.
     if (nodesOn && b.type.startsWith('temple')) {
-      if (b.tier < maxTier)
+      const five = b.tier < maxTier && hasMiracle;
+      if (b.tier < maxTier) {
+        const price = templeAmbrosiaCost(nodeTuning.templeCost, b.tier);
         specs.push({
-          label: `Upgrade\n${templeAmbrosiaCost(nodeTuning.templeCost, b.tier)} Ambrosia`,
+          label: `Upgrade\n${amb(price, five)}`,
           cost: 0,
+          ambrosia: price,
           pick: () => {
             const res = map.tryAmbrosiaUpgrade(b.id);
             if (res.ok) this.closeMenu();
             said(res, `${buildingName(b.type)} upgraded with Ambrosia`);
           },
         });
+      }
+      if (hasMiracle)
+        specs.push({
+          label: `Offering\n${amb(nodeTuning.offeringCost, five)}`,
+          cost: 0,
+          ambrosia: nodeTuning.offeringCost,
+          pick: () => said(map.tryOffering(b.id), 'The gods accept the offering'),
+        });
       specs.push({
-        label: `Offering\n${nodeTuning.offeringCost} Ambrosia`,
+        label: `Recall\n${amb(nodeTuning.recallCost, five)}`,
         cost: 0,
-        pick: () => said(map.tryOffering(b.id), 'The gods accept the offering'),
-      });
-      specs.push({
-        label: `Recall\n${nodeTuning.recallCost} Ambrosia`,
-        cost: 0,
+        ambrosia: nodeTuning.recallCost,
         pick: () => this.openRecallList(map, b),
       });
     }
@@ -852,7 +887,7 @@ export class HudScene extends Phaser.Scene {
         sp.icon ? { icon: sp.icon } : {},
       );
       this.menu.push(btn.container);
-      this.menuButtons.push({ button: btn, cost: sp.cost });
+      this.menuButtons.push({ button: btn, cost: sp.cost, ambrosia: sp.ambrosia });
     });
   }
 

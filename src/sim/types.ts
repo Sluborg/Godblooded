@@ -425,6 +425,17 @@ export interface LairSite {
   firstTierUpMs?: number;
 }
 
+// Trait behaviours (docs/systems/hero-ai.md section 4).
+export interface TraitTuning {
+  // Brave: moves faster for braveChargeMs after taking a foe it was not fighting before.
+  braveChargeMs: number;
+  braveChargeSpeed: number;
+  // Coward: in a party fight it stops this far behind the party's front member.
+  cowardHangBack: number;
+  // Loyal: it walks to a knocked out party mate and stands within this range of it.
+  loyalGuardRange: number;
+}
+
 export interface HeroTuning {
   firstRecruitMs: number;
   recruitMs: number;
@@ -1030,6 +1041,7 @@ export interface Tuning {
   role: RoleTuning;
   favour: FavourTuning;
   town: TownTuning;
+  trait: TraitTuning;
   collector: CollectorTuning;
   nodes: NodesTuning;
   bounty: BountyTuning;
@@ -1073,6 +1085,7 @@ export interface GameData {
     favour?: Partial<FavourTuning>;
     town?: Partial<TownTuning>;
     collector?: Partial<CollectorTuning>;
+    trait?: Partial<TraitTuning>;
     nodes?: Partial<NodesTuning>;
     bounty?: Partial<BountyTuning>;
   };

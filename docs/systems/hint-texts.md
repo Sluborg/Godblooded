@@ -8,9 +8,9 @@ first-time hints, and the few fixed lines around them.
 
 - **Plain hints, no narrator** (Stefan, 2026-10-13): short, clear sentences in a hint bubble.
   They say what happened and what the player can do. No Skald, no portrait.
-- **35 lines in all:** 10 beats (1 for the tax collector's tills), 20 first-time hints (10 from
+- **36 lines in all:** 10 beats (1 for the tax collector's tills), 21 first-time hints (10 from
   `onboarding.md`, 5 for M2 features: skills, gear, potions, fleeing, quarrels, 1 for
-  permadeath, 1 for hunt flags, 1 for a fallen tax collector, 1 nudge to flag a lair and 1 nudge to build a smithy), 5
+  permadeath, 1 for hunt flags, 1 for a fallen tax collector, 1 nudge to flag a lair, 1 nudge to build a smithy and 1 for the boss lair's vanguard), 5
   fixed lines.
 - **Phone-sized:** at most 2 lines of at most 40 characters each, broken by hand (the `line 1`
   and `line 2` columns), so the bubble never wraps on its own at 26 px.
@@ -62,6 +62,7 @@ first-time hints, and the few fixed lines around them.
 | 135   | h-hunt      | first `bountyPlaced` with a `target` (hunt flag, `hero-ai.md` 5b; Sim puts `target` on the event)                                      | the flag                               | M2  | This bounty follows its monster.     | The hero who kills it gets the gold.  |
 | 137   | h-nudge     | 3:00 or later, no flag placed in the last 120 s, and a lair below max tier untouched (hp unchanged) for 120 s                          | the untouched lair nearest its tier-up | M2  | Heroes stay near town.               | A bounty on a lair sends them out.    |
 | 138   | h-smithy    | a market stands, no smithy yet, and the heroes carry 100+ gold between them (Scene condition `idleGold`; Lead and Balance, 2026-10-14) | a free plot                            | M2  | Heroes have gold and nothing to buy. | A smithy sells weapons and armour.    |
+| 139   | h-vanguard  | first `raidWarning` from the boss lair (vanguard, `events.md` section 1)                                                               | the arrow                              | M2  | The boss lair is open.               | Its vanguard marches on the town.     |
 | 140   | h-ruin      | first `buildingDestroyed`                                                                                                              | the ruin                               | M3  | A building was destroyed.            | Tap the ruin to rebuild at half cost. |
 | 150   | h-omen      | first `omen`                                                                                                                           | the banner                             | M3  | An omen: something is coming.        | Watch the banner.                     |
 | 160   | h-favour    | first full favour bar                                                                                                                  | the favour bar                         | M3  | A god's favour is full.              | The god acts when heroes need it.     |
