@@ -97,7 +97,11 @@ export function runEscorts(world: World): void {
       delete flag.escortBy;
     }
     const hero = world.units.find(
-      (u) => u.kind === 'hero' && !u.ko && dist(u.pos, g.pos) <= world.tuning.bounty.claimRadius,
+      (u) =>
+        u.kind === 'hero' &&
+        !u.ko &&
+        u.mode === 'explore' &&
+        dist(u.pos, g.pos) <= world.tuning.bounty.claimRadius,
     );
     if (!hero) continue;
     flag.escortBy = hero.id;
