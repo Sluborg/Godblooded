@@ -482,7 +482,7 @@ export const MONSTERS: readonly MonsterDef[] = [
     armour: 7,
     tags: ['boss'],
     boss: {},
-    hp: 1100,
+    hp: 900,
     types: { fire: 1.5, frost: 0.5 },
   },
   {
@@ -538,7 +538,7 @@ export const MONSTERS: readonly MonsterDef[] = [
     armour: 7,
     tags: ['boss', 'demon'],
     boss: {},
-    hp: 1150,
+    hp: 950,
     types: { holy: 1.5, fire: 0.5 },
   },
   {
@@ -580,7 +580,9 @@ export const LAIRS: readonly LairDef[] = [
   // The swarm role doubles maxAlive: 10 scarabs at tier 1; 60% hp like the other small lairs.
   { id: 'scarab-pit', monster: 'scarab', spawnS: 6, maxAlive: 5, hp: 1800 },
   { id: 'wyrm-nest', monster: 'wyrm', spawnS: 30, maxAlive: 3, hp: 8000, escort: 'draugr' },
-  // The other boss lairs at the nest's 8000 (spec 16000); guards per section 4 until their pass.
+  // The other boss lairs at the nest's 8000 (spec 16000). The Greek boss lairs are guarded by harpies
+  // (minotaur guards plus Cerberus's howl calls made them a wall: 11 of 30 wins forced, the others
+  // 18-19); with Hydra 900 hp and Cerberus 950 they win 18 and 17 of 30, as Fafnir does.
   {
     id: 'serpent-shore',
     monster: 'jormungandr',
@@ -589,14 +591,14 @@ export const LAIRS: readonly LairDef[] = [
     hp: 8000,
     escort: 'draugr',
   },
-  { id: 'hydra-marsh', monster: 'hydra', spawnS: 30, maxAlive: 3, hp: 8000, escort: 'minotaur' },
+  { id: 'hydra-marsh', monster: 'hydra', spawnS: 30, maxAlive: 3, hp: 8000, escort: 'harpy' },
   {
     id: 'gate-of-hades',
     monster: 'cerberus',
     spawnS: 30,
     maxAlive: 3,
     hp: 8000,
-    escort: 'minotaur',
+    escort: 'harpy',
   },
   { id: 'apep-tomb', monster: 'apep', spawnS: 30, maxAlive: 3, hp: 8000, escort: 'jackal-man' },
   {
