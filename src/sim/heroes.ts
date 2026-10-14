@@ -12,6 +12,7 @@ import { emptyItems } from './items';
 import { buyItem, hasItemRows, nearestShop, planShopping, type ShopStop } from './shopping';
 import { clearBossStatuses, curePoison, isBound } from './effects';
 import {
+  hasLoyalStays,
   passiveFlagMult,
   passiveGoldMult,
   passiveKoMult,
@@ -143,7 +144,8 @@ export function runHeroes(world: World): void {
     } else if (
       unit.mode === 'explore' &&
       unit.hp < unit.maxHp * fleeThreshold(world, unit) &&
-      !drinksInsteadOfFleeing(world, unit)
+      !drinksInsteadOfFleeing(world, unit) &&
+      !loyalStays(world, unit)
     ) {
       unit.mode = 'return';
       unit.target = null;
@@ -193,6 +195,15 @@ function retreatParties(world: World): void {
       world.events.push({ kind: 'partyRetreat', party: party.id, units: going });
     }
   }
+}
+
+// Oath-Brothers: a loyal hero stays in the fight while a mate stands beside it.
+function loyalStays(world: World, unit: UnitState): boolean {
+  if (unit.trait !== 'loyal' || !hasLoyalStays(world, unit)) return false;
+  return (world.parties.get(unit.party)?.members ?? []).some((id) => {
+    const m = id === unit.id ? undefined : world.units.find((u) => u.id === id);
+    return !!m && !m.ko && m.hp > 0;
+  });
 }
 
 // A hero in a fight with a potion (or already drinking one) drinks rather than runs: the drink
