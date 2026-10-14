@@ -65,9 +65,21 @@ with Scene); Scene combines and animates; Balance and Lead write the item rows. 
   daggers, Freyja wand; Wanderer and Valkyrie spear, Stormcaller and Seidkona staff).
 - **Armour** stays one item (one level) that fills torso and legs; plain at level 1, finer at 2
   and 3, each level its own chest piece.
-- **Headgear and off-hand are new item slots** (Sim and Balance; section 4). Start effects for
-  Balance: headgear gives about a third of the armour row's armour or Wp by kit; a shield gives
-  armour, a second blade crit, a focus spell power; prices about half of the armour row.
+- **Headgear and off-hand are new item slots** (Sim and Balance; section 4). Balance's rows
+  (`balance/hero-kit` 446bc1f): the off-hand follows the kit (heavy shield, light second blade,
+  robe focus).
+
+| Item       | Price | Heavy: armour / Wp | Light          | Robe           | Worn (heavy / light / robe)    |
+| ---------- | ----- | ------------------ | -------------- | -------------- | ------------------------------ |
+| Headgear 1 | 10    | +1 / 0             | +1 / 0         | 0 / +1         | helm, hood, hat (level 1)      |
+| Headgear 2 | 65    | +3 / 0             | +1 / +1        | 0 / +1         | helm, hood, hat (level 2)      |
+| Headgear 3 | 140   | +4 / +1            | +2 / +1        | +1 / +2        | helm, hood, hat (level 3)      |
+| Off-hand 1 | 10    | shield +1 armour   | blade +3% crit | focus +1 power | shield, blade, focus (level 1) |
+| Off-hand 2 | 65    | shield +3 armour   | blade +5% crit | focus +2 power | shield, blade, focus (level 2) |
+| Off-hand 3 | 140   | shield +4 armour   | blade +8% crit | focus +3 power | shield, blade, focus (level 3) |
+
+- **Ids:** icon `item_<id>` (`item_headgear-2`), worn `part_<socket>_<name>_<level>`
+  (`part_headgear_helm_2`, `part_offhand_blade_1`), Design's proposal until Art fixes them.
 - **Flame in both hands** (Loki Flamebinder) and **ravens** stay code effects.
 
 ## 3. Builds
@@ -93,7 +105,7 @@ Builds are rows of per-segment scale factors and socket offsets in Scene's data 
 | PathDef   | `cloak` and `weapon` (family) for tier 2                                                                                                       |
 | ItemDef   | `slot` gains `headgear` and `offhand`; weapon rows get a `family`; every row gets `icon` and `worn` (part ids per kit for armour and headgear) |
 | UnitState | `build`; `items` gains `headgear` and `offhand` levels                                                                                         |
-| Manifest  | Art proposes the ids (`asset-spec.md` is Art's); Design suggests `part_<socket>_<name>` and `item_<id>`                                        |
+| Manifest  | Art proposes the ids (`asset-spec.md` is Art's); Design suggests `part_<socket>_<name>_<level>` and `item_<id>` (Balance's rows use them)      |
 
 ### Paste-ready look rows (Aesir; Lead approved 2026-10-14)
 
