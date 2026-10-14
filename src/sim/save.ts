@@ -72,7 +72,11 @@ const MIGRATIONS: Record<number, (save: SaveGame) => SaveGame> = {
   // buildings to where the game data puts them (relocateTown).
   4: (save) => ({ ...save, version: 5 }),
   // 5 to 6 (celestial nodes, M3): the world has nodes and an Ambrosia count. An old run has none.
-  5: (save) => ({ ...save, version: 6, world: { ...save.world, nodes: [], ambrosia: 0 } }),
+  5: (save) => ({
+    ...save,
+    version: 6,
+    world: { ...save.world, nodes: [], ambrosia: 0, jars: [], guardQueue: [] },
+  }),
 };
 
 export function saveWorld(world: World): SaveGame {
@@ -204,7 +208,7 @@ function check(world: World, data: GameData): void {
       if (!u.summon || !data.summons?.some((d) => d.id === u.summon?.def)) {
         bad('summon', u.summon?.def ?? u.type);
       }
-    } else if (u.kind !== 'collector' && u.kind !== 'worker') {
+    } else if (u.kind !== 'collector' && u.kind !== 'worker' && u.kind !== 'guard') {
       const known =
         u.kind === 'hero'
           ? data.classes?.some((c) => c.id === u.type)
