@@ -31,3 +31,25 @@ export function poolLine(pool: number, max: number): string {
 export function gatherersAt(workers: readonly { node: number | null }[], node: number): number {
   return workers.filter((w) => w.node === node).length;
 }
+
+export const THREAT_MS = 10_000;
+export const CLEANSE_MS = 10_000;
+export const SPROUT_WARN_MS = 30_000;
+
+// Share of the 10 s defile countdown still left (1 = just started, 0 = defiled), or null.
+export function threatLeft(threatSinceMs: number | undefined, timeMs: number): number | null {
+  if (threatSinceMs === undefined) return null;
+  return Math.min(1, Math.max(0, 1 - (timeMs - threatSinceMs) / THREAT_MS));
+}
+
+// Share of the cleanse done, 0 to 1, or null when none runs.
+export function cleanseDone(cleanseMs: number | undefined): number | null {
+  if (!cleanseMs || cleanseMs <= 0) return null;
+  return Math.min(1, cleanseMs / CLEANSE_MS);
+}
+
+// How far the red cracks of a sprouting lair have spread, 0 to 1 (30 s from the warning), or null.
+export function sproutProgress(sproutAtMs: number | undefined, timeMs: number): number | null {
+  if (sproutAtMs === undefined) return null;
+  return Math.min(1, Math.max(0, 1 - (sproutAtMs - timeMs) / SPROUT_WARN_MS));
+}
