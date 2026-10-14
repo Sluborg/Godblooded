@@ -373,3 +373,10 @@ batches are drafted by Art and need Stefan's go each.
 - Go for the redo batches B19, B20, B21, B22, B23 and V2, plus a grimmer barrow (dead grass,
   spookier). B18 is Void: town hall t1 stays (rated 5, a reference). All pass Art's QA before
   they reach the Art Verdicts page.
+
+## 2026-10-14 Tax collector redo: G3 go (Stefan)
+
+"We really need to fix the tax collector." G3 is Ready, the tax reeve first: a painted parts kit
+on the G1 contract so he walks animated, a sober town official with ledger and coin chest or
+sack, no hood, no axe, nothing red, plus a portrait. Gatherer and guard follow. Scene draws an
+interim collector with the hero rig at hero proportions until the kit lands.
