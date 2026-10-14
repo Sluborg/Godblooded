@@ -14,25 +14,24 @@ Lead keeps this to one screen. Read it first when resuming.
 - PRs are scarce (Codex auto-review spends Stefan's quota). Workers push `<role>/<topic>`
   branches; Review reviews by message; Integrator lands batch PRs. See `CLAUDE.md` "Git".
 
-## Now (2026-10-14 evening)
+## Now (2026-10-15 night)
 
-- **On main (batch 42, f48a80b):** collision, player-picked level-up cards, hall tiers and
-  ruins on, Vanguard rule (off), boss call, playtest trim, hero kit slots and builds (save v7),
-  monster strike types, painted parts rig (floating or bent limbs per kit), PWA update check.
-- **Bot:** human-hints 60-65%, median run about 15 min, quiet gap p90 80-100 s (accepted until
-  Stefan's next run judges it; fallback rule specced).
-- **Next batch:** Sim r2 stack (omens, elites, replay, fun-stats, Hearth Hall, meta/Essence),
-  Balance bosses/omens/first-run, Scene omens and meta screens (Altar, run setup, Hall).
-- **On branches:** card keys, late recruits, hero names, hero-kit item rows.
-- **Art:** one painted style (STYLE.md, hero anchor Grim). Heroes are a painted parts kit with
-  icons and worn layers; G1 test (Grim, both limb modes) and B13 (flag, plot) Ready. Art QA
-  gate (art-tasks/QA.md): nothing reaches Stefan unchecked. U1B void, U1C Draft.
-- **Art verdicts page:** https://claude.ai/artifact/TNTyhAUSmpoduTGwjZDryP (Stefan rates 1-5,
-  Lead reads the `items` store).
+- **On main (batch 55, 6424d77):** everything from the 2026-10-14 work queue: collision, player
+  card picks, hall tiers, ruins, Vanguard (off), boss call, omens and elites, bosses by lean,
+  Hearth Hall, late recruits, hero names, meta (Essence, Altar, Trials, run setup, Hall), cards
+  (god cards beat stat cards), half miracles, elite monster skills, build time and shrine tiers
+  (defaults off), discovery (off), long shadows, lair look, hall flagstones, closer camera with
+  pinch, icon top bar, full phone width, interim tax collector, painted flag and axe icon.
+- **Bot:** human-hints 65-75%, runs 12-15 min. Queue empty; Sim and Balance resting.
+- **Hero look:** compact parts rig with small floating hands and feet, painted grim gear
+  (decisions "Correction: keep the small rig"). G7 look test (8 heroes) runs in ChatGPT at
+  02:30 when quota returns.
+- **Art automation:** Art orders the ChatGPT chats via files (follow system); Art QA gate; Stefan
+  rates on https://claude.ai/artifact/TNTyhAUSmpoduTGwjZDryP.
 
-## Waiting on Stefan
+## Waiting on Stefan (morning)
 
-- Grim test: floating or bent limbs (Scene sends the side-by-side).
-- Playtest run 3 on main: level-up picks, hall tiers, ruins, collision, the late lull.
-- Fafnir: still held (code stand-in vs painted).
-- U1C logo after it passes QA.
+- Rate G7 and any overnight art on the Art Verdicts page.
+- Paste the one-time ChatGPT project stub; type "follow system" in each chat if they stalled.
+- Playtest run 3 on main (new bar, full width, card picks, hall tiers, ruins, the late lull).
+- Fog of war (built, off): decide after the playtest.
