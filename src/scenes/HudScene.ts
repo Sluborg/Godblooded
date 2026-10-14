@@ -64,7 +64,8 @@ export class HudScene extends Phaser.Scene {
   private rosterRect: Phaser.Geom.Rectangle | null = null;
   private rosterNextAt = 0;
   private menu: Phaser.GameObjects.GameObject[] = [];
-  private menuButtons: { button: Button; cost: number; ambrosia?: number }[] = [];
+  private menuButtons: { button: Button; cost: number; ambrosia?: number; blocked?: boolean }[] =
+    [];
   private menuRect: Phaser.Geom.Rectangle | null = null;
   private hints: HintDirector | null = null;
   private buildMenuOpen = false;
@@ -214,8 +215,8 @@ export class HudScene extends Phaser.Scene {
     const gold = (this.registry.get('gold') as number) ?? 0;
     const map = this.scene.get('Map') as MapScene;
     const stock = map.snapshot.ambrosia;
-    for (const { button, cost, ambrosia } of this.menuButtons)
-      button.setEnabled(gold >= cost && (ambrosia === undefined || stock >= ambrosia));
+    for (const { button, cost, ambrosia, blocked } of this.menuButtons)
+      button.setEnabled(!blocked && gold >= cost && (ambrosia === undefined || stock >= ambrosia));
     this.hints?.update(map.snapshot, gold, map.hintTuning);
   }
 
@@ -560,7 +561,10 @@ export class HudScene extends Phaser.Scene {
       return;
     }
     if (tap.plot !== null) {
-      this.openBuildMenu(map, tap.plot, null);
+      const plot = map.snapshot.plots.find((x) => x.id === tap.plot);
+      if (plot?.locked) this.showToast(`Needs town hall tier ${plot.unlockTier}`, 1800);
+      else if (plot && plot.ruin !== null) this.openRuinMenu(map, plot.ruin);
+      else this.openBuildMenu(map, tap.plot, null);
     } else if (tap.target) {
       const { pos, label } = tap.target;
       this.openMenu(
@@ -650,6 +654,21 @@ export class HudScene extends Phaser.Scene {
 
   // Build menu: the first tap on an item shows what it does, the same item tapped again builds it,
   // another item switches the info, a tap outside cancels. Never builds on a single tap.
+  // A ruin on a plot: rebuild the building at tier 1 for part of its cost, or clear the plot.
+  private openRuinMenu(map: MapScene, ruinId: number): void {
+    const ruin = map.snapshot.ruins.find((r) => r.id === ruinId);
+    if (!ruin) return;
+    const cost = map.ruinCost(ruin.type);
+    this.openMenu(`Ruins of the ${buildingName(ruin.type)}`, [
+      {
+        label: `Rebuild\n${cost} gold`,
+        cost,
+        pick: () => this.run(map.tryRebuildRuin(ruinId)),
+      },
+      { label: 'Clear\nthe plot', cost: 0, pick: () => this.run(map.tryClearRuin(ruinId)) },
+    ]);
+  }
+
   private openBuildMenu(map: MapScene, plot: number, selected: string | null): void {
     if (selected === null) this.hints?.fire('buildMenu');
     const gold = (this.registry.get('gold') as number | undefined) ?? 0;
@@ -783,11 +802,13 @@ export class HudScene extends Phaser.Scene {
     const snap = map.snapshot;
     const nodesOn = snap.gathererCap > 0 || snap.nodes.length > 0;
     const nodeTuning = map.nodeTuning;
-    // `ambrosia`: the Ambrosia price, to grey the button while the stock is short.
+    // `ambrosia`: the Ambrosia price, to grey the button while the stock is short. `blocked`: greyed
+    // because something else must come first (the town hall tier).
     const specs: {
       label: string;
       cost: number;
       ambrosia?: number;
+      blocked?: boolean;
       icon?: string;
       pick: () => void;
     }[] = [];
@@ -801,9 +822,11 @@ export class HudScene extends Phaser.Scene {
     };
     if (b.upgradeCost !== null) {
       const cost = b.upgradeCost;
+      const gate = b.upgradeGate;
       specs.push({
-        label: `Upgrade\n${cost} gold`,
+        label: gate === null ? `Upgrade\n${cost} gold` : `Upgrade\nneeds hall tier ${gate}`,
         cost,
+        blocked: gate !== null,
         icon: 'ui_icon_upgrade',
         pick: () => {
           const res = map.tryUpgrade(b.id);
@@ -888,7 +911,12 @@ export class HudScene extends Phaser.Scene {
         sp.icon ? { icon: sp.icon } : {},
       );
       this.menu.push(btn.container);
-      this.menuButtons.push({ button: btn, cost: sp.cost, ambrosia: sp.ambrosia });
+      this.menuButtons.push({
+        button: btn,
+        cost: sp.cost,
+        ambrosia: sp.ambrosia,
+        blocked: sp.blocked,
+      });
     });
   }
 

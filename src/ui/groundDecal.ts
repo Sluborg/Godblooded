@@ -125,3 +125,24 @@ export function lairPlate(scene: Phaser.Scene, type: string): Phaser.GameObjects
   const plate = scene.add.container(0, 46, [text, skull]);
   return plate;
 }
+
+// What a destroyed building leaves on its plot (tuning.town.ruins): a scorched patch, a heap of
+// broken stone and two charred posts. Baked once (bake.ts), shown in place of the empty plot square.
+export function ruinMark(scene: Phaser.Scene): Phaser.GameObjects.Image {
+  return bake(scene, 'ruin', 70, 64, (g) => {
+    g.fillStyle(0x140a08, 0.45).fillEllipse(0, -6, 120, 46);
+    const rocks: [number, number, number, number, number][] = [
+      [-30, -6, 26, 16, 0x6f6a60],
+      [-6, -2, 32, 20, 0x857f72],
+      [22, -8, 24, 15, 0x5d584f],
+      [4, -14, 20, 12, 0x77716a],
+      [-20, -16, 16, 10, 0x4f4a43],
+    ];
+    for (const [x, y, w, h, c] of rocks) {
+      g.fillStyle(c, 1).fillEllipse(x, y, w, h);
+      g.lineStyle(2, 0x1a140f, 0.7).strokeEllipse(x, y, w, h);
+    }
+    g.fillStyle(0x2a1a10, 1).fillRect(-36, -40, 6, 30).fillRect(30, -34, 6, 24);
+    g.lineStyle(2, 0x0e0806, 0.8).strokeRect(-36, -40, 6, 30).strokeRect(30, -34, 6, 24);
+  });
+}

@@ -34,7 +34,14 @@ import { releaseSets } from '../ui/parts/bake';
 import { effectiveSpeed } from '../ui/pathSpeed';
 import { STYLE } from '../ui/style';
 import { LAIR_UI_DEPTH, LairIndicators, groundScale, plateColor } from '../ui/lairRings';
-import { footprintRing, groundShadow, lairDecal, lairPlate, townPatch } from '../ui/groundDecal';
+import {
+  footprintRing,
+  groundShadow,
+  lairDecal,
+  lairPlate,
+  ruinMark,
+  townPatch,
+} from '../ui/groundDecal';
 import { HALL_STYLE, drawBanners, isTownHall, plazaDecal } from '../ui/townHallLook';
 import {
   buildingArtCandidates,
@@ -98,6 +105,7 @@ export class MapScene extends Phaser.Scene {
   private world!: World;
   private snap!: Snapshot;
   private plotViews = new Map<number, Phaser.GameObjects.Rectangle>();
+  private plotLocks = new Map<number, Phaser.GameObjects.Container>();
   private unitViews!: UnitViews;
   // Lines from the selected hero's party to the flags it is heading for.
   private links!: Phaser.GameObjects.Graphics;
@@ -105,6 +113,7 @@ export class MapScene extends Phaser.Scene {
   // Lairs with a raid on the way: the run time the warning ends (a dotted trail to the town).
   private raidTrails = new Map<number, number>();
   private selectRing: Phaser.GameObjects.Image | null = null;
+  private ruinMarks = new Map<number, Phaser.GameObjects.Image>();
   private selectRingFor = 0;
   private nodeViews!: NodeViews;
   // Party whose level-up cards are open (the sim is frozen until it is picked), or null.
@@ -393,6 +402,21 @@ export class MapScene extends Phaser.Scene {
   // Sim command entry for the HUD. The sim decides; the result carries the refusal reason.
   tryBuild(type: string, plot: number): CommandResult {
     return command(this.world, { kind: 'build', type, plot });
+  }
+
+  // Ruins (tuning.town.ruins): rebuild at tier 1 for part of the cost, or clear the plot.
+  tryRebuildRuin(ruin: number): CommandResult {
+    return command(this.world, { kind: 'rebuildRuin', ruin });
+  }
+
+  tryClearRuin(ruin: number): CommandResult {
+    return command(this.world, { kind: 'clearRuin', ruin });
+  }
+
+  // What rebuilding a ruin of this building type costs now.
+  ruinCost(type: string): number {
+    const def = this.world.data.buildings.find((d) => d.id === type);
+    return Math.round((def?.cost ?? 0) * this.world.tuning.town.rebuildCostMult);
   }
 
   tryPickPath(party: number, path: string): CommandResult {
@@ -1104,7 +1128,42 @@ export class MapScene extends Phaser.Scene {
           .setStrokeStyle(3, 0xffffff, 0.35);
         this.plotViews.set(p.id, view);
       }
-      view.setVisible(!p.occupied);
+      view.setVisible(!p.occupied && p.ruin === null);
+      // A ruin stands on its plot until it is rebuilt or cleared.
+      const mark = this.ruinMarks.get(p.id);
+      if (p.ruin !== null && !mark)
+        this.ruinMarks.set(p.id, ruinMark(this).setPosition(p.pos.x, p.pos.y).setDepth(p.pos.y));
+      else if (p.ruin === null && mark) {
+        mark.destroy();
+        this.ruinMarks.delete(p.id);
+      }
+      // A plot closed until the town hall reaches a tier: faint, with a padlock and the tier.
+      view
+        .setFillStyle(0xffffff, p.locked ? 0.02 : 0.08)
+        .setStrokeStyle(3, 0xffffff, p.locked ? 0.15 : 0.35);
+      let lock = this.plotLocks.get(p.id);
+      if (!lock && p.locked) {
+        lock = this.add.container(p.pos.x, p.pos.y, [
+          this.add
+            .graphics()
+            .fillStyle(0xd9c9a8, 0.75)
+            .fillRoundedRect(-14, -4, 28, 22, 4)
+            .lineStyle(5, 0xd9c9a8, 0.75)
+            .strokeCircle(0, -8, 9),
+          this.add
+            .text(0, 30, `Hall tier ${p.unlockTier}`, {
+              fontFamily: 'Georgia, serif',
+              fontSize: '20px',
+              color: '#d9c9a8',
+              stroke: '#000000',
+              strokeThickness: 4,
+            })
+            .setOrigin(0.5),
+        ]);
+        lock.setDepth(p.pos.y);
+        this.plotLocks.set(p.id, lock);
+      }
+      lock?.setVisible(p.locked && !p.occupied);
     }
   }
 
