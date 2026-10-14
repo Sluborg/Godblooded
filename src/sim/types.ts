@@ -1225,6 +1225,9 @@ export interface GraveState {
   tier: number;
   pos: Vec2;
   timeMs: number;
+  // The party's level when it fell, and whether it has been recalled (once each). Old saves: 1.
+  level?: number;
+  recalled?: true;
 }
 
 // A celestial node (nodes.ts, docs/systems/nodes.md): under every non-boss lair. Locked while the
@@ -1271,6 +1274,10 @@ export interface NodesTuning {
   // Guards a tower lends (guards.ts): gold per trip, how many at a time by tower tier, body, a
   // spear of guardDamage x a level 1 hero's strength, how far it strays from its gatherer, how
   // long before the tower lends a replacement, and how long a dropped jar lies.
+  // Ambrosia prices: the next temple tier (by the tier it has now), an Offering, a Recall.
+  templeCost: readonly number[];
+  offeringCost: number;
+  recallCost: number;
   escortGold: readonly number[];
   guardCost: number;
   guardPerTower: readonly number[];
@@ -1464,6 +1471,13 @@ export type SimEvent =
   | { kind: 'gathererHired'; unit: number }
   | { kind: 'workerHit'; unit: number }
   | { kind: 'jarHome'; unit: number; node: number | null; amount: number; total: number }
+  | {
+      kind: 'ambrosiaSpent';
+      what: 'temple' | 'offering' | 'recall';
+      building: number;
+      cost: number;
+    }
+  | { kind: 'recalled'; unit: number; grave: number; building: number }
   | { kind: 'escortTaken'; bounty: number; unit: number; gatherer: number }
   | { kind: 'guardOut'; unit: number; escort: number; tower: number }
   | { kind: 'guardHome'; unit: number }
@@ -1550,6 +1564,11 @@ export type Command =
   | { kind: 'sendGuard'; unit: number }
   // Post an escort bounty on a gatherer: a moving flag heroes may take (25 or 50 gold).
   | { kind: 'placeEscort'; unit: number; gold: number }
+  // Ambrosia buys (M3): a temple's next tier, an Offering that fills its pantheon's favour bar,
+  // and the Recall of a slain hero of its pantheon at the temple.
+  | { kind: 'upgradeWithAmbrosia'; building: number }
+  | { kind: 'offering'; building: number }
+  | { kind: 'recallFallen'; building: number; grave: number }
   | { kind: 'recallGatherers'; node?: number }
   | { kind: 'placeBounty'; pos: Vec2; gold: number }
   // Take a flag down and get cancelRefund (50%) of its gold back.
