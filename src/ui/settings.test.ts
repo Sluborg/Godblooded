@@ -18,6 +18,7 @@ describe('parseSettings', () => {
       heroNames: false,
       effectsVolume: DEFAULT_SETTINGS.effectsVolume,
       hintsOn: true,
+      sharp: true,
     });
     expect(parseSettings({ speed: 3, reducedMotion: 'yes', palette: 'neon' })).toEqual(
       DEFAULT_SETTINGS,
@@ -36,6 +37,8 @@ describe('music settings', () => {
     expect(DEFAULT_SETTINGS.effectsVolume).toBe(0.8);
     expect(parseSettings({ effectsVolume: 0.33 }).effectsVolume).toBe(0.35);
     expect(parseSettings({ effectsVolume: 'x' }).effectsVolume).toBe(0.8);
+    expect(DEFAULT_SETTINGS.sharp).toBe(true);
+    expect(parseSettings({ sharp: false }).sharp).toBe(false);
     expect(DEFAULT_SETTINGS.hintsOn).toBe(true);
     expect(parseSettings({ hintsOn: false }).hintsOn).toBe(false);
     expect(parseSettings({ heroNames: true }).heroNames).toBe(true);

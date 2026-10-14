@@ -3,6 +3,7 @@ import { HINTS } from '../data/hints';
 import { GRAYBOX } from '../data/graybox';
 import type { SimEvent, Snapshot, Vec2 } from '../sim/api';
 import { GAME_WIDTH } from '../config';
+import { worldToHud } from './camMath';
 import { HintEngine, hintLines, hintsFromEvent, type ShownHint } from './hints';
 import { loadSeen, saveSeen } from './hintStore';
 import { hintTargetPos, monsterSeenBy, upgradeAffordable } from './hintTarget';
@@ -155,8 +156,6 @@ export class HintDirector {
   }
 
   private toScreen(p: Vec2): Vec2 {
-    const cam = this.camera();
-    const v = cam.worldView;
-    return { x: (p.x - v.x) * cam.zoom, y: (p.y - v.y) * cam.zoom };
+    return worldToHud(this.camera(), p);
   }
 }

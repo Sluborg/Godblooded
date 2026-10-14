@@ -3,7 +3,7 @@ import { makeGround, releaseGround } from '../ui/ground';
 import { flagAt } from '../ui/flagCard';
 import { getMusic } from '../ui/musicPlayer';
 import Phaser from 'phaser';
-import { COLORS, GAME_HEIGHT, GAME_WIDTH } from '../config';
+import { COLORS, GAME_HEIGHT, GAME_WIDTH, RENDER_SCALE } from '../config';
 import { GRAYBOX } from '../data/graybox';
 import {
   command,
@@ -16,13 +16,16 @@ import {
   step,
   type CommandResult,
   type RunReport,
+  type SimEvent,
   type Snapshot,
   type UnitState,
   type Vec2,
   type World,
 } from '../sim/api';
+import { TAX_STYLE, drawCoin, drawPile, popText, tillShown } from '../ui/taxLook';
 import { clearSave, isNewerSave, newSeed, readSave, writeSave } from '../ui/saveStore';
-import { getSettings } from '../ui/settings';
+import { getSettings, updateSettings } from '../ui/settings';
+import { FpsGuard } from '../ui/fpsGuard';
 import { heroLabel, partyColor } from '../ui/partyLook';
 import { artCandidates } from '../ui/unitLook';
 import { UnitViews } from '../ui/unitViews';
@@ -65,6 +68,10 @@ const PLOT_SIZE = 120;
 const INTEREST_MAX = 8;
 const PLOT_RADIUS = 110;
 
+// The camera's start zoom: 0.7 shows 1830 x 1030 world units on a 1280 x 720 screen, enough for the
+// plot ring (about 1040 x 760) with the buildings on it.
+const DEFAULT_ZOOM = 0.7;
+
 export interface MapTap {
   // Sim plot id of a free plot, or null.
   plot: number | null;
@@ -95,6 +102,7 @@ export class MapScene extends Phaser.Scene {
   private resumeWatch = false;
   // Camera mode: by hand, watching the best fight, or following one hero (until it is gone).
   private cam: 'off' | 'watch' | 'unit' = 'off';
+  private fpsGuard: FpsGuard | null = null;
   private followId = 0;
   private director = new WatchDirector();
   private readonly sfxFeed = new SfxFeed();
@@ -139,16 +147,18 @@ export class MapScene extends Phaser.Scene {
     // The title theme plays on Boot, Title and the hall only; there is no run music yet.
     getMusic(this).stop(800);
     this.sfxFeed.reset();
+    this.fpsGuard = new FpsGuard();
     this.world = this.startWorld();
     this.registry.set('speed', getSettings().speed);
     const cam = this.cameras.main;
     const minZoom = Math.max(GAME_WIDTH / width, GAME_HEIGHT / height);
-    cam.setBounds(0, 0, width, height).setZoom(Math.max(minZoom, 0.8));
+    cam.setBounds(0, 0, width, height).setZoom(Math.max(minZoom, DEFAULT_ZOOM) * RENDER_SCALE);
     cam.centerOn(GRAYBOX.townHall.x, GRAYBOX.townHall.y);
     cam.setBackgroundColor(COLORS.background);
     makeGround(this, width, height);
     attachCameraControls(this, {
       minZoom,
+      scale: RENDER_SCALE,
       onTap: (w) => this.events.emit('mapTapped', this.resolveTap(w)),
       onManual: () => this.setWatch(false),
       blocked: (x, y) => this.registry.get('modal') === true || (this.hud()?.blocks(x, y) ?? false),
@@ -176,6 +186,7 @@ export class MapScene extends Phaser.Scene {
   }
 
   update(time: number, deltaMs: number): void {
+    this.watchFrameRate(time);
     const button = (this.registry.get('speed') as number) ?? 1;
     // A path offer open (as of the last snapshot) slows the run to 0.3x, absolute.
     const speed = effectiveSpeed(
@@ -380,6 +391,11 @@ export class MapScene extends Phaser.Scene {
     return command(this.world, { kind: 'upgrade', building });
   }
 
+  // The seed of this run (createWorld(seed, GRAYBOX) replays its map).
+  get seed(): number {
+    return this.world.seed;
+  }
+
   // The end-screen numbers for the run as it stands (Quit from Pause shows them as abandoned).
   abandonReport(): RunReport {
     return runReport(this.world);
@@ -441,6 +457,15 @@ export class MapScene extends Phaser.Scene {
     return this.snap;
   }
 
+  // Sharp rendering that runs too slow in the first minute is switched off for the next start.
+  private watchFrameRate(time: number): void {
+    if (RENDER_SCALE <= 1 || this.fpsGuard === null) return;
+    if (!this.fpsGuard.frame(time, !document.hidden)) return;
+    this.fpsGuard = null;
+    updateSettings({ sharp: false });
+    this.hud()?.showToast('Sharp mode off for speed; Settings to change', 4500);
+  }
+
   private hud(): HudScene | null {
     return this.scene.get('Hud') as HudScene | null;
   }
@@ -489,6 +514,7 @@ export class MapScene extends Phaser.Scene {
         -top - 14,
         hall,
       );
+      this.updateTill(this.views.get(key), b.till, -top - 52);
     }
     for (const l of this.snap.lairs) {
       const key = `l${l.id}`;
@@ -516,12 +542,19 @@ export class MapScene extends Phaser.Scene {
         this.snap.units.filter((u) => u.bounty === b.id),
       );
     }
+    for (const p of this.snap.piles) {
+      const key = `g${p.id}`;
+      seen.add(key);
+      if (!this.views.has(key)) this.views.set(key, this.makePile(p.gold, p.pos));
+      else this.refreshPile(this.views.get(key), p.gold);
+    }
     for (const [key, view] of this.views) {
       if (!seen.has(key)) {
         view.destroy();
         this.views.delete(key);
       }
     }
+    this.unitViews.carryCap = this.world.tuning.collector.carryCap;
     this.unitViews.sync(
       this.snap.units,
       this.snap.events,
@@ -540,6 +573,7 @@ export class MapScene extends Phaser.Scene {
       if (e.kind === 'lairTierUp') this.lairGrows(e.lair, e.tier);
       if (e.kind === 'considering') this.flagGlint(e.bounty);
       if (e.kind === 'raidWarning') this.raidTrails.set(e.lair, this.snap.timeMs + e.inMs);
+      this.taxEvent(e);
       if (e.kind !== 'hit') continue;
       const view = this.views.get(`b${e.target}`) ?? this.views.get(`l${e.target}`);
       if (view && !e.dodged)
@@ -671,6 +705,145 @@ export class MapScene extends Phaser.Scene {
       this.links
         .lineStyle(4, u.party > 0 ? partyColor(u.party) : 0xffffff, 0.85)
         .lineBetween(u.pos.x, u.pos.y - 40, flag.pos.x, flag.pos.y - 40);
+    }
+  }
+
+  // The coin and number over a building whose till holds at least minTill (hidden below).
+  private updateTill(
+    view: Phaser.GameObjects.GameObject | undefined,
+    till: number | undefined,
+    y: number,
+  ): void {
+    if (!(view instanceof Phaser.GameObjects.Container)) return;
+    const show = tillShown(till, this.world.tuning.collector.minTill);
+    let tag = view.getData('till') as Phaser.GameObjects.Container | undefined;
+    if (!tag) {
+      if (!show) return;
+      const label = this.add
+        .text(14, 0, '', {
+          fontFamily: 'Georgia, serif',
+          fontSize: '24px',
+          color: TAX_STYLE.text,
+          stroke: '#000000',
+          strokeThickness: 4,
+        })
+        .setOrigin(0, 0.5);
+      const coin = this.add.graphics();
+      drawCoin(coin, -12, 0, 11);
+      tag = this.add.container(0, y, [coin, label]);
+      tag.setData('label', label);
+      view.add(tag);
+      view.setData('till', tag);
+    }
+    tag.setVisible(show);
+    if (!show) return;
+    const label = tag.getData('label') as Phaser.GameObjects.Text;
+    const text = `${till}`;
+    if (label.text !== text) label.setText(text);
+    // Centre the coin and the number as one.
+    tag.setX(-label.width / 2 + 2);
+  }
+
+  private makePile(gold: number, pos: Vec2): Phaser.GameObjects.Container {
+    const g = this.add.graphics();
+    drawPile(g, gold);
+    const label = this.add
+      .text(0, 8, `${gold}`, {
+        fontFamily: 'Georgia, serif',
+        fontSize: '26px',
+        color: '#f2c14e',
+        stroke: '#000000',
+        strokeThickness: 5,
+      })
+      .setOrigin(0.5, 0);
+    const c = this.add.container(pos.x, pos.y, [g, label]).setDepth(pos.y);
+    c.setData('g', g).setData('label', label).setData('gold', gold);
+    // It pulses once when it lands.
+    this.tweens.add({
+      targets: c,
+      scale: { from: 1.5, to: 1 },
+      duration: 350,
+      ease: 'Back.easeOut',
+    });
+    return c;
+  }
+
+  private refreshPile(view: Phaser.GameObjects.GameObject | undefined, gold: number): void {
+    if (!(view instanceof Phaser.GameObjects.Container) || view.getData('gold') === gold) return;
+    view.setData('gold', gold);
+    drawPile(view.getData('g') as Phaser.GameObjects.Graphics, gold);
+    (view.getData('label') as Phaser.GameObjects.Text).setText(`${gold}`);
+  }
+
+  // The two "+N" pops of the tax collector, one style each: a till pop (tax or tithe lands in a
+  // building, small, light gold) and a delivery pop (the collector banks gold at the hall, large,
+  // bright gold, with a coin).
+  private coinPop(pos: Vec2, gold: number, kind: 'till' | 'deliver'): void {
+    const big = kind === 'deliver';
+    const t = this.add
+      .text(pos.x + (big ? 12 : 0), pos.y - (big ? 150 : 100), popText(gold), {
+        fontFamily: 'Georgia, serif',
+        fontSize: big ? '40px' : '26px',
+        color: big ? '#ffd35e' : '#ffe9a0',
+        stroke: '#000000',
+        strokeThickness: big ? 6 : 4,
+      })
+      .setOrigin(0.5)
+      .setDepth(1_000_000);
+    const parts: Phaser.GameObjects.GameObject[] = [t];
+    if (big) {
+      const coin = this.add.graphics().setDepth(1_000_000);
+      drawCoin(coin, 0, 0, 14);
+      coin.setPosition(t.x - t.width / 2 - 16, t.y);
+      parts.push(coin);
+    }
+    this.tweens.add({
+      targets: parts,
+      y: `-=${big ? 60 : 44}`,
+      alpha: 0,
+      duration: big ? 1400 : 1000,
+      ease: 'Cubic.easeOut',
+      onComplete: () => parts.forEach((o) => o.destroy()),
+    });
+  }
+
+  // A coin that flies from a spot to a unit (the collector's sack) and vanishes.
+  private flyCoin(from: Vec2, unitId: number): void {
+    const to = this.snap.units.find((u) => u.id === unitId)?.pos;
+    if (!to) return;
+    const g = this.add.graphics().setDepth(1_000_000);
+    drawCoin(g, 0, 0, 11);
+    g.setPosition(from.x, from.y - 90);
+    this.tweens.add({
+      targets: g,
+      x: to.x,
+      y: to.y - 50,
+      scale: 0.6,
+      duration: 450,
+      ease: 'Sine.easeIn',
+      onComplete: () => g.destroy(),
+    });
+  }
+
+  // The tax collector's events as pictures (tax-collector.md section 2).
+  private taxEvent(e: Readonly<SimEvent>): void {
+    const hall = this.snap.buildings.find((b) => b.type === 'townhall')?.pos;
+    const at = (id: number): Vec2 | undefined =>
+      this.snap.buildings.find((b) => b.id === id)?.pos ?? undefined;
+    if (e.kind === 'till') {
+      const p = at(e.building);
+      if (p) this.coinPop(p, e.gold, 'till');
+    } else if (e.kind === 'tithe') {
+      // A tithe into a temple's till also fires `till` (that pops); only the hall case, banked at
+      // once (building 0 or the hall itself), pops here.
+      const b = this.snap.buildings.find((x) => x.id === e.building);
+      if ((e.building === 0 || b?.type === 'townhall') && hall) this.coinPop(hall, e.gold, 'till');
+    } else if (e.kind === 'tillEmptied') {
+      const from = e.source === 'till' ? at(e.id) : this.snap.piles.find((q) => q.id === e.id)?.pos;
+      if (from) this.flyCoin(from, e.unit);
+    } else if (e.kind === 'collected') {
+      if (hall) this.coinPop(hall, e.gold, 'deliver');
+      this.hud()?.pulseGold();
     }
   }
 

@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import type { Snapshot, Vec2 } from '../sim/api';
-import { GAME_HEIGHT, GAME_WIDTH } from '../config';
+import { GAME_HEIGHT, GAME_WIDTH, TAP_SLOP } from '../config';
 import { worldToHud } from './camMath';
 import { activeWarnings, edgeArrow, type RaidWarningNote } from './raidArrow';
 
@@ -25,7 +25,7 @@ export class RaidArrowView {
     for (let i = 0; i < MAX_ARROWS; i++) {
       const z = scene.add.zone(0, 0, 100, 100).setDepth(46).setInteractive();
       z.on('pointerup', (p: Phaser.Input.Pointer) => {
-        if (p.getDistance() >= 10) return;
+        if (p.getDistance() >= TAP_SLOP) return;
         const pos = this.target(i);
         if (pos) this.jumpTo(pos);
       });

@@ -20,7 +20,7 @@ import { drawGlyph } from './itemGlyph';
 import { drawIntentIcon, isIntentKind, type PartyIntent } from './intentIcon';
 import { ensureHeroSet, sweepSets, type BakedSet } from './parts/bake';
 import { attackFrame, idleFrame, koFrame, walkFrame, type PoseName } from './parts/frames';
-import type { RiderId, SimEvent, UnitState, Vec2 } from '../sim/api';
+import { DEFAULT_TUNING, type RiderId, type SimEvent, type UnitState, type Vec2 } from '../sim/api';
 import { ASSETS_KEY, type ManifestAsset } from './assets';
 import {
   FALL_S,
@@ -42,6 +42,7 @@ import { pickVariant, rotateHue, sizeJitter, tierStyle } from './monsterLook';
 import { RIDER_LOOK, riderDurationMs } from './riderLook';
 import { damageLook, MAX_FLOATS, typeTint, type FloatLook, type HitInfo } from './damageLook';
 import { getSettings } from './settings';
+import { sackSize, drawCollector } from './taxLook';
 import { heroLabel, partyColor, partyRole, type PartyRole } from './partyLook';
 import { SpeechLimit } from './speechLimit';
 import { cardColor } from './levelUpLook';
@@ -117,6 +118,8 @@ interface FrameCtx {
   namesHero: number;
   fx: FxLayer;
   shake: () => void;
+  // The collector's carry cap (the world's tuning), for its sack size.
+  carryCap: number;
   // Chest of a unit, building or lair by sim id, if it is on the map.
   chestOf: (id: number) => Vec | undefined;
   // Receives the visual side of a landed strike (flash, knockback, number).
@@ -208,6 +211,9 @@ export class UnitView {
   private readonly statusG: Phaser.GameObjects.Graphics;
   private statusDrawn = false;
   private readonly intentG: Phaser.GameObjects.Graphics;
+  private sackG: Phaser.GameObjects.Graphics | null = null;
+  private collector = false;
+  private sackDrawn = -1;
   private intentDrawn = false;
   private hiddenNow = false;
   private stoneNow = false;
@@ -250,7 +256,7 @@ export class UnitView {
       .text(
         0,
         -UNIT_HEIGHT * this.look.scale - 6,
-        u.kind === 'hero' ? heroLabel(u) : summonName(u),
+        u.kind === 'hero' ? heroLabel(u) : u.kind === 'collector' ? 'Tax collector' : summonName(u),
         {
           fontFamily: 'Georgia, serif',
           fontSize: '16px',
@@ -259,6 +265,17 @@ export class UnitView {
       )
       .setOrigin(0.5, 1);
     this.body = scene.add.container(0, 0, [this.capsule, this.nose]);
+    if (u.kind === 'collector') {
+      this.collector = true;
+      // A hooded figure with a sack on its back in 3 sizes by what it carries (tax-collector.md
+      // section 2), instead of the capsule.
+      this.capsule.setVisible(false);
+      this.nose.setVisible(false);
+      this.sackG = scene.add.graphics().setScale(0.78);
+      this.body.add(this.sackG);
+      this.label.setFontSize(20).setColor('#f2c14e').setStroke('#000000', 4);
+      this.drawSackFor(u.gold ?? 0);
+    }
     this.bar = scene.add.graphics();
     this.riderIcon = scene.add.graphics();
     this.statusG = scene.add.graphics();
@@ -574,6 +591,14 @@ export class UnitView {
     }
   }
 
+  private drawSackFor(carried: number, cap = DEFAULT_TUNING.collector.carryCap): void {
+    if (!this.sackG) return;
+    const size = sackSize(carried, cap);
+    if (size === this.sackDrawn) return;
+    this.sackDrawn = size;
+    drawCollector(this.sackG, size);
+  }
+
   // A short sign over the head for a moment: a "?" or "!" a boss move puts on its target.
   cue(text: string, color: string, ms: number): void {
     const t = this.scene.add
@@ -756,6 +781,7 @@ export class UnitView {
 
   update(u: UnitState, ctx: FrameCtx, role: PartyRole = 'solo'): void {
     this.tierNow = u.tier;
+    if (u.kind === 'collector') this.drawSackFor(u.gold ?? 0, ctx.carryCap);
     if (!this.applyParts(u)) this.applyArt(u);
     if (u.kind === 'hero') {
       this.label.setText(heroLabel(u));
@@ -847,7 +873,8 @@ export class UnitView {
       pose = NO_POSE;
     }
     this.applyPose(pose, alpha * this.fade);
-    this.container.setPosition(this.x, this.y).setDepth(this.y);
+    // The tax collector is drawn over the buildings it walks behind: it must always be findable.
+    this.container.setPosition(this.x, this.y).setDepth(this.collector ? 900_000 + this.y : this.y);
   }
 
   // Distance from the feet anchor to either foot: it grows with the unit's footprint.
@@ -1000,6 +1027,15 @@ export class UnitView {
       if (selected) this.ring.lineStyle(3, 0xffffff, 0.95).strokeEllipse(0, -4, rw + 14, rh + 8);
       this.label.setVisible(selected || this.boss);
       this.badge.setVisible(false);
+      return;
+    }
+    if (u.kind === 'collector') {
+      // A gold-ringed base disc, so it never reads as a hero, and its name always shown.
+      this.ring.fillStyle(0x24140a, 0.45).fillEllipse(0, -4, 78, 30);
+      this.ring.lineStyle(4, 0xf2c14e, 0.95).strokeEllipse(0, -4, 78, 30);
+      if (selected) this.ring.lineStyle(3, 0xffffff, 0.95).strokeEllipse(0, -4, 94, 38);
+      this.badge.setVisible(false);
+      this.label.setVisible(true);
       return;
     }
     if (u.kind === 'summon') {
@@ -1160,6 +1196,8 @@ export class UnitViews {
   private readonly skillFx: SkillFx;
   // What each hero strikes with, for the colour of a skill with an untyped damage effect.
   private readonly strikeType = new Map<number, string>();
+  // The world's tuning of the collector (MapScene sets it each frame), for the sack sizes.
+  carryCap = DEFAULT_TUNING.collector.carryCap;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -1189,6 +1227,7 @@ export class UnitViews {
       dtS,
       intents,
       timeMs,
+      carryCap: this.carryCap,
       namesParty: sel && sel.party > 0 ? sel.party : 0,
       namesHero: sel?.id ?? 0,
       fx: this.fx,
@@ -1233,6 +1272,7 @@ export class UnitViews {
       } else if (e.kind === 'upgradePicked' && e.auto) this.onAutoPick(e, parties);
       else if (e.kind === 'built') this.onBuilt(e, others);
       else if (e.kind === 'rider') this.views.get(e.target)?.setRider(e.rider);
+      else if (e.kind === 'collectorHit') this.views.get(e.unit)?.cue('!', '#ff9a8a', 700);
       else if (e.kind === 'drank') this.onDrank(e, ctx);
       else if (e.kind === 'riddle' && e.answered)
         this.views.get(e.target)?.cue('!', '#f2c14e', 1200);

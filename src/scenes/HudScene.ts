@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { COLORS, GAME_WIDTH, MIN_TOUCH } from '../config';
+import { COLORS, GAME_WIDTH, MIN_TOUCH, TAP_SLOP } from '../config';
 import { GRAYBOX, UPGRADES } from '../data/graybox';
 import { DEFAULT_TUNING, type BuildingState, type CommandResult } from '../sim/api';
 import { buildingEffect, buildingName, nextTierEffect } from '../ui/buildingInfo';
@@ -19,6 +19,7 @@ import type { SimEvent, Vec2 } from '../sim/api';
 import { describeEvent, EventFeed, type FeedWorld } from '../ui/eventFeed';
 import type { MapScene, MapTap } from './MapScene';
 import { RaidArrowView } from '../ui/raidArrowView';
+import { fitDesignCamera } from '../ui/designCamera';
 
 const ROSTER_PER_PAGE = 5;
 const ROSTER_W = 470;
@@ -74,6 +75,7 @@ export class HudScene extends Phaser.Scene {
   }
 
   create(): void {
+    fitDesignCamera(this);
     // Scene instances are reused on restart: drop state that pointed at the old display list.
     this.panel = new PartyPanel(this);
     this.ended = false;
@@ -297,7 +299,7 @@ export class HudScene extends Phaser.Scene {
         .text(x + 14, y + H / 2, t.text, { ...TEXT, fontSize: '22px', wordWrap: { width: W - 28 } })
         .setOrigin(0, 0.5);
       bg.on('pointerup', (p: Phaser.Input.Pointer) => {
-        if (p.getDistance() >= 10) return;
+        if (p.getDistance() >= TAP_SLOP) return;
         if (t.pos) map.jumpTo(t.pos);
         this.feed.dismiss(t.id);
       });
@@ -396,7 +398,7 @@ export class HudScene extends Phaser.Scene {
           .setInteractive({ useHandCursor: true }),
       );
       bg.on('pointerup', (p: Phaser.Input.Pointer) => {
-        if (p.getDistance() >= 10) return;
+        if (p.getDistance() >= TAP_SLOP) return;
         map.followUnit(r.unit);
         this.panel.show(r.unit);
         this.rosterKey = '';
@@ -739,8 +741,16 @@ export class HudScene extends Phaser.Scene {
     else this.showToast(res.reason);
   }
 
-  private showToast(text: string): void {
+  // The top bar gold ticks: a quick pop in size when the collector brings gold home.
+  pulseGold(): void {
+    this.tweens.killTweensOf(this.goldText);
+    this.goldText.setScale(1);
+    this.tweens.add({ targets: this.goldText, scale: 1.3, duration: 140, yoyo: true });
+  }
+
+  showToast(text: string, holdMs = 1200): void {
     this.toast.setText(text).setAlpha(1);
-    this.tweens.add({ targets: this.toast, alpha: 0, delay: 1200, duration: 400 });
+    this.tweens.killTweensOf(this.toast);
+    this.tweens.add({ targets: this.toast, alpha: 0, delay: holdMs, duration: 400 });
   }
 }

@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { COLORS, MIN_TOUCH } from '../config';
+import { COLORS, MIN_TOUCH, TAP_SLOP } from '../config';
 import { ASSETS_KEY, type ManifestAsset } from './assets';
 import { buttonState, type ButtonState } from './buttonStyle';
 import { UI_STYLE, WOOD_BUTTON } from './uiStyle';
@@ -143,7 +143,7 @@ export function makeButton(
     .on('pointerup', (p: Phaser.Input.Pointer) => {
       const wasPressed = pressed;
       press(false);
-      const tapped = p.getDistance() < 10;
+      const tapped = p.getDistance() < TAP_SLOP;
       if (tapped && (wasPressed || !enabled))
         getSfx(scene).play({ id: enabled ? (opts.sfx ?? 'sfx_ui_tap') : 'sfx_ui_off' });
       if (enabled && wasPressed && tapped) onTap();
