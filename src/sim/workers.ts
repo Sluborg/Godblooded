@@ -152,12 +152,14 @@ export function runWorkers(world: World): void {
           kind: 'jarHome',
           unit: u.id,
           node: w.node,
-          gold: w.carry,
+          amount: w.carry,
           total: world.ambrosia,
         });
         w.carry = 0;
       }
       w.fleeing = false;
+      // Hurt below returnAtHp: waits at the hall to heal first.
+      if (node && u.hp < u.maxHp * t.returnAtHp) continue;
       // Carry on with the trip unless it was called off or the node is gone or dry.
       w.phase = node && node.state === 'freed' && node.pool > 0 ? 'out' : 'idle';
       if (w.phase === 'idle') w.node = null;
