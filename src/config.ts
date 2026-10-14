@@ -34,10 +34,22 @@ export function computeRenderScale(
   return Math.min(max, Math.max(1, Math.round(raw * 4) / 4));
 }
 
+// The "Sharp graphics" setting read straight from storage (config must not import the settings
+// module); anything unreadable counts as on.
+function sharpOff(): boolean {
+  try {
+    const raw = window.localStorage.getItem('godblooded.settings.v1');
+    return raw !== null && (JSON.parse(raw) as { sharp?: unknown }).sharp === false;
+  } catch {
+    return false;
+  }
+}
+
 function detectRenderScale(): number {
   if (typeof window === 'undefined') return 1;
   const forced = Number(new URLSearchParams(window.location.search).get('scale'));
   if (forced >= 1 && forced <= 4) return forced;
+  if (sharpOff()) return 1;
   return computeRenderScale(window.devicePixelRatio || 1, window.innerWidth, window.innerHeight);
 }
 

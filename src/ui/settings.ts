@@ -15,6 +15,9 @@ export interface Settings {
   heroNames: boolean;
   // Hints: the first-time teaching bubbles (docs/systems/onboarding.md); on by default.
   hintsOn: boolean;
+  // Render at the screen's pixel density (config RENDER_SCALE); off draws 1280 x 720 and stretches
+  // it, for a slow phone. Read at start-up, so a change needs a reload.
+  sharp: boolean;
 }
 
 export const DEFAULT_MUSIC_VOLUME = 0.6;
@@ -29,6 +32,7 @@ export const DEFAULT_SETTINGS: Settings = {
   effectsVolume: DEFAULT_EFFECTS_VOLUME,
   heroNames: false,
   hintsOn: true,
+  sharp: true,
 };
 
 export const SETTINGS_KEY = 'godblooded.settings.v1';
@@ -59,6 +63,7 @@ export function parseSettings(raw: unknown): Settings {
     effectsVolume: parseVolume(o.effectsVolume, DEFAULT_EFFECTS_VOLUME),
     heroNames: o.heroNames === true,
     hintsOn: o.hintsOn !== false,
+    sharp: o.sharp !== false,
   };
 }
 
