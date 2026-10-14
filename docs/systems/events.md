@@ -80,17 +80,33 @@ a rule: once open, it sends raiders down the same road the heroes walk.
 
 ### The deck (8 to start)
 
-| Order | Omen               | Pantheon | Lasts        | Effect                                                                                            | Heroes chase it because         |
-| ----- | ------------------ | -------- | ------------ | ------------------------------------------------------------------------------------------------- | ------------------------------- |
-| 10    | Fallen Star        | any      | 60 s         | a star falls in the fog; the first party to reach it gets 60 XP and the spot is revealed          | XP, curious heroes x2 appetite  |
-| 20    | Wandering Champion | any      | until killed | an elite of the strongest monster roams near town; the gods place a 150 gold bounty on it (free)  | the bounty                      |
-| 30    | Merchant Caravan   | any      | 60 s         | a caravan stands by the market: potions and charms 30% cheaper, tax still on full price           | cheap gear, greedy heroes go    |
-| 40    | Red Sky            | any      | 60 s         | monsters deal +20% damage; every bounty pays double                                               | double bounties                 |
-| 50    | Fimbul Frost       | aesir    | 60 s         | everyone moves 15% slower; frost damage +25%                                                      | Aesir frost heroes shine        |
-| 60    | Games of Olympia   | greek    | 45 s         | heroes in town compete: the party with most kills in 45 s gets a bonus card (picked by the party) | glory, proud heroes x2 appetite |
-| 70    | Plague of Scarabs  | egyptian | 45 s         | a scarab swarm bursts from the ground at a random plot near town                                  | defend the town                 |
-| 80    | Eclipse of Ra      | egyptian | 45 s         | undead +25% damage, holy damage +50%                                                              | holy heroes shine               |
+| Order | Omen               | Pantheon | Lasts                       | Effect                                                                                            | Heroes chase it because         |
+| ----- | ------------------ | -------- | --------------------------- | ------------------------------------------------------------------------------------------------- | ------------------------------- |
+| 10    | Fallen Star        | any      | 60 s                        | a star falls in the fog; the first party to reach it gets 60 XP and the spot is revealed          | XP, curious heroes x2 appetite  |
+| 20    | Wandering Champion | any      | until killed, at most 240 s | an elite of the strongest monster roams near town; the gods place a 150 gold bounty on it (free)  | the bounty                      |
+| 30    | Merchant Caravan   | any      | 60 s                        | a caravan stands by the market: potions and charms 30% cheaper, tax still on full price           | cheap gear, greedy heroes go    |
+| 40    | Red Sky            | any      | 60 s                        | monsters deal +20% damage; every bounty pays double                                               | double bounties                 |
+| 50    | Fimbul Frost       | aesir    | 60 s                        | everyone moves 15% slower; frost damage +25%                                                      | Aesir frost heroes shine        |
+| 60    | Games of Olympia   | greek    | 45 s                        | heroes in town compete: the party with most kills in 45 s gets a bonus card (picked by the party) | glory, proud heroes x2 appetite |
+| 70    | Plague of Scarabs  | egyptian | 45 s                        | 6 scarabs burst from the ground at a random plot near town and march on it                        | defend the town                 |
+| 80    | Eclipse of Ra      | egyptian | 45 s                        | undead +25% damage, holy damage +50%                                                              | holy heroes shine               |
 
+**Banner lines** (Balance's data, `balance/omens`, 2026-10-14; one line under the omen's name):
+
+| Omen               | Banner line                                  |
+| ------------------ | -------------------------------------------- |
+| Fallen Star        | A star falls beyond the fog.                 |
+| Wandering Champion | A champion walks near the town.              |
+| Merchant Caravan   | A caravan sells potions and charms cheap.    |
+| Red Sky            | Monsters strike harder; bounties pay double. |
+| Fimbul Frost       | The winter of the gods slows every step.     |
+| Games of Olympia   | The most kills wins the favour of Olympus.   |
+| Plague of Scarabs  | Scarabs burst from the ground near town.     |
+| Eclipse of Ra      | The dead grow strong; holy light burns.      |
+
+- **Balance's omen pass:** the 8 rows as specced, plus the Champion's 240 s cap and the
+  Plague's 6 scarabs; elites as in `progression.md` (`eliteShare` 0 / 0.25 / 0.35, x1.5 hp,
+  x1.2 Str, double reward). The bot wins 57-68% with omens on, 68-83% without.
 - Omens never command heroes: they place gold, XP or danger where heroes already go, and
   traits decide who bites (the bounty appetite rules from 2026-10-04).
 - Speech bubbles on omen start: a hero of the omen's pantheon says one line ("The All-Father's
