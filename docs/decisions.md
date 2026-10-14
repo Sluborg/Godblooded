@@ -295,3 +295,11 @@ want static heroes." Heroes keep the animated parts rig; each part becomes a pai
 one style (art-tasks/STYLE.md), replacing the code-drawn shapes. G1 is reworked from four stills
 into part sheets, test sheet first (Grim son of Odin), and goes back to Draft until then. Painted
 stills are for portraits and UI only. B13 stays Ready.
+
+## 2026-10-14 Hero look approved; heroes are built from a painted parts kit (Stefan)
+
+Stefan approved the ChatGPT test of Grim son of Odin (docs/playtest/hero-look-approved-grim.jpg:
+hooded, bearded, weathered cloak with raven feathers, carved staff) as the hero look: "This."
+Heroes are made like the cartoon parts were, as a kit: a few interchangeable painted heads, a
+few bodies, legs, cloaks, weapons and off-hands, combined per hero and animated by the rig. Art
+writes the kit batch (part list, grid, pivots agreed with Scene); Scene combines and animates.
