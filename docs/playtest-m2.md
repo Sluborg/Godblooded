@@ -89,6 +89,9 @@ Lead turns the answers into backlog rows; Design changes the specs the answers m
 | Buildings lost  | 1                                |
 | Seed            | not shown (end screen row, Sim)  |
 
+**How he played:** effectively run 1 (Watch): no flags. "Heroes were always fighting so I didn't
+feel a need to move them."
+
 **Stefan's feedback:**
 
 - Buildings need shadows.
@@ -117,3 +120,14 @@ human-like bot).
   Sim confirms (tax root cause).
 - **Lairs:** the bot kills 3.6 a run, even with no tax (3.3), so "lairs too hard" is not the tax
   alone. Stefan's run sits in the bot's worst 2 to 6%.
+- **No felt need to steer:** heroes fought the monsters that wander and raid near town all run
+  and never pushed a lair, and nothing told Stefan a flag would help. Design's proposals to
+  Lead: `hero-ai.md` follow-up.
+
+**Follow-ups (decided by Lead and Stefan, 2026-10-14):**
+
+- **Town income:** a Majesty-style tax collector (decisions 2026-10-14; `docs/systems/tax-collector.md`).
+- **Sim's human-like bot** (branch `sim/human-bot`): wins 50%, first lair falls at 5.4 min
+  (median). Stefan's run was the slow tail.
+- **Spacing, option B** (branch `balance/spacing`): map 3000 x 2000, lairs at least 800 from
+  town and 500 apart.
