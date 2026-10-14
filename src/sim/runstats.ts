@@ -78,6 +78,7 @@ export function runReport(world: World): RunReport {
     if (u.kind !== 'hero' || !rec) continue;
     heroes.push({
       unit: u.id,
+      ...(u.name ? { name: u.name } : {}),
       type: u.type,
       god: u.god,
       path: u.path,
@@ -92,6 +93,7 @@ export function runReport(world: World): RunReport {
     if (!rec) continue;
     heroes.push({
       unit: g.id,
+      ...(g.name ? { name: g.name } : {}),
       type: g.type,
       god: g.god,
       path: g.path,
