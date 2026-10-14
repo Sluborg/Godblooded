@@ -153,20 +153,35 @@ describe('lair growth', () => {
   });
 });
 
-describe('lair snapshot: nextTierMs', () => {
-  it('counts down to the next tier-up and is null at the top tier', () => {
+describe('lair snapshot: growth clock and guards', () => {
+  it('nextTierMs counts down, tierSpanMs is the length of the wait, both null at the top tier', () => {
     const w = createWorld(1, {
       ...base,
       tuning: {
         ...base.tuning,
-        lair: { tierUpEveryMs: 20_000, firstTierUpMs: 20_000, maxTier: 2, tierUpStaggerMs: 0 },
+        lair: { tierUpEveryMs: 20_000, firstTierUpMs: 20_000, maxTier: 3, tierUpStaggerMs: 0 },
       },
     });
-    expect(lair(w).nextTierMs).toBe(20_000);
+    expect(lair(w)).toMatchObject({ nextTierMs: 20_000, tierSpanMs: 20_000 });
     step(w, 5_000);
-    expect(lair(w).nextTierMs).toBe(15_000);
+    expect(lair(w)).toMatchObject({ nextTierMs: 15_000, tierSpanMs: 20_000 });
+    // a timed tier-up keeps its rhythm: the next wait is a full tierUpEveryMs from the last
     step(w, 16_000);
     expect(lair(w).tier).toBe(2);
+    expect(lair(w)).toMatchObject({ nextTierMs: 19_000, tierSpanMs: 20_000 });
+    step(w, 20_000);
+    expect(lair(w).tier).toBe(3);
     expect(lair(w).nextTierMs).toBeNull();
+    expect(lair(w).tierSpanMs).toBeNull();
+  });
+
+  it('alive, maxAlive and nextSpawnMs follow the guards; nextSpawnMs is null when full', () => {
+    const w = createWorld(1, base);
+    expect(lair(w)).toMatchObject({ alive: 0, maxAlive: 2, nextSpawnMs: 10_000 });
+    step(w, 11_000);
+    expect(lair(w).alive).toBe(1);
+    expect(lair(w).nextSpawnMs).toBeGreaterThan(0);
+    step(w, 10_000);
+    expect(lair(w)).toMatchObject({ alive: 2, maxAlive: 2, nextSpawnMs: null });
   });
 });

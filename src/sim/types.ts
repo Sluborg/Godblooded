@@ -1088,9 +1088,16 @@ export interface LairState {
   pos: Vec2;
   hp: number;
   maxHp: number;
-  // Snapshot only: ms until the next tier-up (the lair growth ring); null at the top tier or with
-  // no tier clock.
+  // Snapshot only. The growth ring: ms until the next tier-up and the length of the current wait
+  // (fill = 1 - nextTierMs / tierSpanMs); null at the top tier or with no tier clock.
   nextTierMs?: number | null;
+  tierSpanMs?: number | null;
+  // Snapshot only. The guards: living monsters of this lair wherever they are, how many it keeps
+  // (after tier and swarm adds; 0 for a boss lair without an escort) and ms until its next spawn
+  // (null when full).
+  alive?: number;
+  maxAlive?: number;
+  nextSpawnMs?: number | null;
 }
 
 export interface UnitState {
