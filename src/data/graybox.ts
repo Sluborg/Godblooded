@@ -882,8 +882,8 @@ export const ITEMS: readonly ItemDef[] = [
 
 export const GRAYBOX: GameData = {
   startGold: 480,
-  map: { width: 2400, height: 1600 },
-  townHall: { x: 1200, y: 800 },
+  map: { width: 3000, height: 2000 },
+  townHall: { x: 1500, y: 1000 },
   // Balance pass (flag pricing on top of gear before the first potion, roles and quirks, Fafnir's
   // breath, raids after a lair tier-up, shop trips, Aesir, item, card and pacing rows; 300 runs,
   // seeds 1 and 1001): 68-71% wins with the lair-flag bot and 62-66% with a flag a minute
@@ -934,19 +934,19 @@ export const GRAYBOX: GameData = {
     leanCount: 1,
     leanWeight: 3,
     margin: 150,
-    minTownDist: 600,
-    minLairDist: 350,
+    minTownDist: 800,
+    minLairDist: 500,
   },
-  // 8 build plots in a ring around the town hall (plot id = index).
+  // 8 build plots on a 520 x 380 ring around the town hall (plot id = index): room to read the town.
   plots: [
-    { x: 1590, y: 800 },
-    { x: 1476, y: 1012 },
-    { x: 1200, y: 1100 },
-    { x: 924, y: 1012 },
-    { x: 810, y: 800 },
-    { x: 924, y: 588 },
-    { x: 1200, y: 500 },
-    { x: 1476, y: 588 },
+    { x: 2020, y: 1000 },
+    { x: 1868, y: 1269 },
+    { x: 1500, y: 1380 },
+    { x: 1132, y: 1269 },
+    { x: 980, y: 1000 },
+    { x: 1132, y: 731 },
+    { x: 1500, y: 620 },
+    { x: 1868, y: 731 },
   ],
   buildings: [
     // `text`: one plain line for the build menu (docs/systems/buildings.md section 4).
