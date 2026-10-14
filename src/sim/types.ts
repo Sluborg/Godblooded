@@ -1099,6 +1099,9 @@ export interface Tuning {
 }
 
 export interface GameData {
+  // Overrides for a player's first run (docs/systems/onboarding.md section 4): gentler numbers,
+  // merged group by group over `tuning` when createWorld gets { firstRun: true }.
+  firstRun?: NonNullable<GameData['tuning']>;
   buildings: readonly BuildingDef[];
   // Building plots; a plot id is its index. Optional until Lead's rows land.
   plots?: readonly Vec2[];
@@ -1750,6 +1753,8 @@ export interface RunReport {
 }
 
 export interface Snapshot {
+  // A first run with no temple yet: the clock is stopped until one stands (docs/systems/onboarding.md).
+  readonly waiting: boolean;
   readonly timeMs: number;
   readonly tick: number;
   readonly gold: number;
