@@ -13,14 +13,15 @@ import {
   REFUND_HOLD_MS,
   type AltarRow,
 } from '../ui/altarLook';
-import { makeButton } from '../ui/button';
+import { makeButton, type Button } from '../ui/button';
+import { sagaRows, unlockRows, type HallRow } from '../ui/hallLook';
 import { fitDesignCamera } from '../ui/designCamera';
 import { readMeta, writeMeta } from '../ui/metaStore';
 
 const FONT = 'Georgia, serif';
 const ROW_H = 92;
-const ROWS_Y = 190;
-const ROWS_H = 460;
+const ROWS_Y = 262;
+const ROWS_H = 390;
 const ROW_W = 1160;
 const BTN = 84;
 
@@ -46,6 +47,8 @@ export class AltarScene extends Phaser.Scene {
   private scroll = 0;
   private maxScroll = 0;
   private hold: Hold | null = null;
+  private tab: 'altar' | 'saga' | 'unlocks' = 'altar';
+  private tabButtons: Button[] = [];
   private dragFrom: { y: number; scroll: number } | null = null;
 
   constructor() {
@@ -66,7 +69,7 @@ export class AltarScene extends Phaser.Scene {
       .rectangle(cx, GAME_HEIGHT / 2, GAME_WIDTH - 48, GAME_HEIGHT - 48, 0x1a140f, 0.95)
       .setStrokeStyle(4, COLORS.gold, 0.6);
     this.add
-      .text(cx, 52, 'THE ALTAR', { fontFamily: FONT, fontSize: '44px', color: '#f2c14e' })
+      .text(cx, 52, 'THE HALL', { fontFamily: FONT, fontSize: '44px', color: '#f2c14e' })
       .setOrigin(0.5);
     this.essenceText = this.add
       .text(GAME_WIDTH - 52, 52, '', { fontFamily: FONT, fontSize: '32px', color: '#f2c14e' })
@@ -99,6 +102,18 @@ export class AltarScene extends Phaser.Scene {
       this.setScroll(this.dragFrom.scroll - (p.y - this.dragFrom.y) / this.cameras.main.zoom);
     });
     this.input.on('pointerup', () => (this.dragFrom = null));
+    const tabs: ['altar' | 'saga' | 'unlocks', string][] = [
+      ['altar', 'Altar'],
+      ['saga', 'Saga'],
+      ['unlocks', 'Unlocks'],
+    ];
+    this.tabButtons = tabs.map(([id, label], i) =>
+      makeButton(this, cx - 320 + i * 320, 140, 300, MIN_TOUCH, label, () => {
+        this.tab = id;
+        this.scroll = 0;
+        this.renderAll();
+      }),
+    );
     this.renderAll();
   }
 
@@ -122,8 +137,78 @@ export class AltarScene extends Phaser.Scene {
 
   private renderAll(): void {
     this.essenceText.setText(`Essence ${this.meta.essence}`);
-    this.drawStrip();
-    this.drawRows();
+    const ids = ['altar', 'saga', 'unlocks'];
+    this.tabButtons.forEach((b, i) => b.setActive(ids[i] === this.tab));
+    this.strip.forEach((o) => o.destroy());
+    this.strip = [];
+    if (this.tab === 'altar') {
+      this.drawStrip();
+      this.drawRows();
+    } else {
+      this.drawHallRows(
+        this.tab === 'saga' ? sagaRows(GRAYBOX, this.meta) : unlockRows(GRAYBOX, this.meta),
+      );
+    }
+  }
+
+  // The Saga and Unlocks tabs: plain rows, a short drag shows the rest.
+  private drawHallRows(rows: HallRow[]): void {
+    this.rowsLayer.removeAll(true);
+    const x0 = GAME_WIDTH / 2 - ROW_W / 2;
+    if (rows.length === 0) {
+      this.rowsLayer.add(
+        this.add
+          .text(
+            GAME_WIDTH / 2,
+            ROWS_Y + 80,
+            this.tab === 'saga' ? 'No hero has been written into the Saga yet.' : '',
+            {
+              fontFamily: FONT,
+              fontSize: '28px',
+              color: COLORS.textMuted,
+            },
+          )
+          .setOrigin(0.5),
+      );
+    }
+    rows.forEach((r, i) => {
+      const y = ROWS_Y + i * ROW_H + ROW_H / 2;
+      const L = this.rowsLayer;
+      L.add(
+        this.add
+          .rectangle(GAME_WIDTH / 2, y, ROW_W, ROW_H - 8, r.dim ? 0x2a2420 : 0x3a2b1c, 0.95)
+          .setStrokeStyle(2, COLORS.gold, r.dim ? 0.2 : 0.5),
+      );
+      L.add(
+        this.add
+          .text(x0 + 24, y - 20, r.title, {
+            fontFamily: FONT,
+            fontSize: '28px',
+            color: r.dim ? COLORS.textMuted : '#f2c14e',
+          })
+          .setOrigin(0, 0.5),
+      );
+      L.add(
+        this.add
+          .text(x0 + 24, y + 18, r.sub, {
+            fontFamily: FONT,
+            fontSize: '22px',
+            color: r.dim ? COLORS.textMuted : COLORS.text,
+          })
+          .setOrigin(0, 0.5),
+      );
+      L.add(
+        this.add
+          .text(x0 + ROW_W - 24, y, r.note, {
+            fontFamily: FONT,
+            fontSize: '26px',
+            color: r.dim ? COLORS.textMuted : '#9fd49f',
+          })
+          .setOrigin(1, 0.5),
+      );
+    });
+    this.maxScroll = Math.max(0, rows.length * ROW_H - ROWS_H + 10);
+    this.setScroll(this.scroll);
   }
 
   // The portent strip: one button per pantheon, the open ones pick the next run's lean.
@@ -141,7 +226,7 @@ export class AltarScene extends Phaser.Scene {
       const b = makeButton(
         this,
         x0 + i * (w + gap),
-        140,
+        216,
         w,
         MIN_TOUCH,
         isOpen ? (PORTENT[p] ?? pantheonName(p)) : `${pantheonName(p)} (locked)`,
