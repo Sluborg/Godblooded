@@ -9,6 +9,7 @@ import { PauseScene } from './scenes/PauseScene';
 import { SettingsScene } from './scenes/SettingsScene';
 import { TitleScene } from './scenes/TitleScene';
 import { LevelUpScene } from './scenes/LevelUpScene';
+import { AltarScene } from './scenes/AltarScene';
 import { MapScene } from './scenes/MapScene';
 import { SkillGalleryScene } from './scenes/SkillGalleryScene';
 import { PartsGalleryScene } from './scenes/PartsGalleryScene';
@@ -71,6 +72,7 @@ const game = new Phaser.Game({
     MapScene,
     HudScene,
     LevelUpScene,
+    AltarScene,
     EndScene,
     PauseScene,
     SettingsScene,

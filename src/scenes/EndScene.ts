@@ -81,44 +81,58 @@ export class EndScene extends Phaser.Scene {
     this.totals(snap.stats);
     if (report) addSeedLabel(this, report.seed, 16, 112);
 
-    // A third button copies the replay code when the run has one (Sim: RunReport.replay).
+    // A button copies the replay code when the run has one (Sim: RunReport.replay).
     const replay = report?.replay ?? null;
-    const three = replayButtonLabel(replay, false) !== null;
-    const left = three ? cx - 330 : cx - 200;
-    const right = three ? cx + 330 : cx + 200;
-    if (three && replay) {
-      const copy = makeButton(
-        this,
-        cx,
-        668,
-        300,
-        80,
-        replayButtonLabel(replay, false) ?? '',
-        () =>
-          void copyReplay(replay).then((ok) => {
-            // The browser may refuse the clipboard (no permission, an insecure page): say so.
-            copy.setLabel(replayButtonLabel(replay, ok ? true : 'failed') ?? '');
-          }),
-      );
-    }
+    const hasCode = replayButtonLabel(replay, false) !== null;
     if (abandoned) {
+      const left = hasCode ? cx - 330 : cx - 200;
+      const right = hasCode ? cx + 330 : cx + 200;
+      this.codeButton(replay, cx);
       makeButton(this, left, 668, 300, 80, 'Back to run', () => this.backToRun());
       makeButton(this, right, 668, 300, 80, 'Title', () => this.leaveRun());
       return;
     }
-    makeButton(this, left, 668, 300, 80, 'Play again', () => this.playAgain());
-    makeButton(this, right, 668, 300, 80, 'Title', () => this.toTitle());
+    // Title, Altar, (Copy code), Play again in one row.
+    const labels = hasCode ? 4 : 3;
+    const w = hasCode ? 290 : 300;
+    const gap = hasCode ? 20 : 30;
+    const x0 = cx - ((labels - 1) * (w + gap)) / 2;
+    let i = 0;
+    const at = () => x0 + i++ * (w + gap);
+    makeButton(this, at(), 668, w, 80, 'Title', () => this.toTitle());
+    makeButton(this, at(), 668, w, 80, 'Altar', () => this.openAltar());
+    if (hasCode) this.codeButton(replay, at());
+    makeButton(this, at(), 668, w, 80, 'Play again', () => this.playAgain());
+  }
+
+  private codeButton(replay: RunReport['replay'] | null, x: number): void {
+    if (!replay || replayButtonLabel(replay, false) === null) return;
+    const copy = makeButton(
+      this,
+      x,
+      668,
+      290,
+      80,
+      replayButtonLabel(replay, false) ?? '',
+      () =>
+        void copyReplay(replay).then((ok) => {
+          // The browser may refuse the clipboard (no permission, an insecure page): say so.
+          copy.setLabel(replayButtonLabel(replay, ok ? true : 'failed') ?? '');
+        }),
+    );
   }
 
   // Folds the finished run into the meta save once (the End screen can be built again for the same
-  // run) and returns what it paid; null when this run was already counted.
+  // run) and returns what it paid (the same again when the screen is rebuilt, e.g. back from the Altar).
   private foldRun(report: RunReport): RunOutcome | null {
     const key = `${report.seed}:${report.timeMs}`;
-    if (this.registry.get('metaApplied') === key) return null;
+    if (this.registry.get('metaApplied') === key)
+      return (this.registry.get('metaOutcome') as RunOutcome | undefined) ?? null;
     this.registry.set('metaApplied', key);
     const trials = (this.scene.get('Map') as MapScene).playTrials;
     const out = applyRun(GRAYBOX, readMeta(), report, trials);
     writeMeta(out.meta);
+    this.registry.set('metaOutcome', out);
     return out;
   }
 
@@ -154,7 +168,7 @@ export class EndScene extends Phaser.Scene {
       .text(X + 16, totalY + 4, '', { fontFamily: FONT, fontSize: '30px', color: '#f2c14e' })
       .setOrigin(0, 0.5);
     this.add
-      .text(X + W - 16, totalY + 4, `Essence ${out.meta.essence}`, {
+      .text(X + W - 16, totalY + 4, `Essence ${readMeta().essence}`, {
         fontFamily: FONT,
         fontSize: '22px',
         color: COLORS.textMuted,
@@ -319,6 +333,12 @@ export class EndScene extends Phaser.Scene {
     this.scene.sleep('Hud');
     this.scene.stop();
     this.scene.launch('Title');
+  }
+
+  private openAltar(): void {
+    this.registry.set('altarReturn', 'End');
+    this.scene.stop();
+    this.scene.launch('Altar');
   }
 
   private playAgain(): void {
