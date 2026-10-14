@@ -193,6 +193,7 @@ try {
     }
     snap = sim.snapshot(w);
     watch(snap);
+    const fun = sim.runReport(w).fun;
     results.push({
       seed: seed0 + r,
       outcome: timeout ? 'timeout' : snap.status,
@@ -207,6 +208,13 @@ try {
       huntPlaced: flagRun.huntPlaced,
       huntClaimed: flagRun.huntClaimed,
       probes: [...flagRun.probes.values()],
+      castShare: fun.castShareAfter6,
+      typesShare: fun.typesShareTier2,
+      decisionsPerMin: fun.decisionsPerMin,
+      decisionMinuteShare: fun.decisionMinuteShare,
+      quietS: fun.longestQuietMs / 1000,
+      quietAtS: fun.longestQuietAtMs / 1000,
+      fights: fun.fights,
       gold3: goldAt[180_000],
       gold5: goldAt[300_000],
       weapon8: gear8?.weapon ?? null,
@@ -425,6 +433,23 @@ function summarize(results) {
       geared8: meanOf(results, 'geared8'),
       carried8: meanOf(results, 'carried8'),
     },
+    fun: {
+      fights: mean(results, 'fights'),
+      castShare: meanOf(results, 'castShare'),
+      typesShare: meanOf(results, 'typesShare'),
+      decisionsPerMin: mean(results, 'decisionsPerMin'),
+      decisionMinuteShare: meanOf(results, 'decisionMinuteShare'),
+      quiet: (() => {
+        const v = results.map((r) => r.quietS).sort((a, b) => a - b);
+        const at = results.map((r) => r.quietAtS).sort((a, b) => a - b);
+        return {
+          p50: pct(v, 0.5),
+          p90: pct(v, 0.9),
+          max: v[v.length - 1] ?? 0,
+          atP50: pct(at, 0.5),
+        };
+      })(),
+    },
     probes: results.flatMap((r) => r.probes ?? []),
     flags: {
       placed: meanOf(results, 'flagsPlaced'),
@@ -478,6 +503,13 @@ function print(rep) {
   console.log(
     `  town gold: 3:00 ${n(rep.pacing.gold3)}  5:00 ${n(rep.pacing.gold5)}   hero gear level at 8:00: weapon ${n(rep.pacing.weapon8)}  armour ${n(rep.pacing.armour8)}  with any gear ${rep.pacing.geared8 === null ? '-' : `${(rep.pacing.geared8 * 100).toFixed(0)}%`}  gold carried by heroes at 8:00 ${n(rep.pacing.carried8)}`,
   );
+  {
+    const u = rep.fun;
+    const p = (x) => (x === null ? '-' : `${(x * 100).toFixed(0)}%`);
+    console.log(
+      `  fun checks: skill cast in ${p(u.castShare)} of fights after 6:00 (target 60%), 2+ damage types in ${p(u.typesShare)} of tier 2 fights; ${f(u.fights)} fights a run; decisions ${f(u.decisionsPerMin)} per min, one in ${p(u.decisionMinuteShare)} of minutes; longest quiet gap p50 ${f(u.quiet.p50)} s, p90 ${f(u.quiet.p90)} s, max ${f(u.quiet.max)} s (target under 60); the longest ends at about ${f(u.quiet.atP50 / 60)} min (median)`,
+    );
+  }
   if (FLAGS) {
     const share = rep.flags.placed > 0 ? rep.flags.claimed / rep.flags.placed : 0;
     const hp = rep.flags.huntPlaced;

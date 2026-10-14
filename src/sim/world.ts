@@ -51,6 +51,7 @@ import {
 } from './boss';
 import { buildReport, sampleGold, tally, type HeroRecord } from './runstats';
 import { collectorFell, runCollector } from './collector';
+import { trackFightStats } from './funstats';
 import { raiderHeld } from './corrupt';
 import { offering, recallFallen, upgradeWithAmbrosia } from './ambrosia';
 import { placeEscort, runEscorts } from './escort';
@@ -118,6 +119,7 @@ import type {
   BountyState,
   JarState,
   NodeState,
+  FightRecord,
   PileState,
   ConeArea,
   SkillEffect,
@@ -283,6 +285,10 @@ export interface World {
   // (collector.ts).
   piles: PileState[];
   collectorQueue: number[];
+  // The fun checks (funstats.ts): fights, the times of player decisions, the quiet gap.
+  fights: FightRecord[];
+  decisionsAt: number[];
+  quiet: { lastMs: number; longestMs: number; atMs: number };
   // Celestial nodes and the Ambrosia the town holds (nodes.ts).
   nodes: NodeState[];
   ambrosia: number;
@@ -351,6 +357,9 @@ export function createWorld(seed: number, data: GameData): World {
     bounties: [],
     piles: [],
     collectorQueue: [],
+    fights: [],
+    decisionsAt: [],
+    quiet: { lastMs: -1, longestMs: 0, atMs: 0 },
     nodes: [],
     ambrosia: 0,
     jars: [],
@@ -472,6 +481,7 @@ function runTick(world: World): void {
   runParties(world);
   runUnits(world);
   syncIntent(world);
+  trackFightStats(world);
   // Combat, heroes and the economy hook in here (Sim backlog 30 and up).
 }
 
@@ -1077,6 +1087,12 @@ function wanderPoint(world: World, center: Vec2): Vec2 {
 export { spawnHero } from './heroes';
 
 export function command(world: World, cmd: Command): CommandResult {
+  const result = runCommand(world, cmd);
+  if (result.ok) world.decisionsAt.push(world.timeMs);
+  return result;
+}
+
+function runCommand(world: World, cmd: Command): CommandResult {
   if (world.status !== 'running') return { ok: false, reason: 'run over' };
   switch (cmd.kind) {
     case 'build': {

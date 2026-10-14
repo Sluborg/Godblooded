@@ -1660,6 +1660,38 @@ export interface RunReport {
   lairsCleared: { lair: number; type: string; timeMs: number; by: number }[];
   // Town gold over the run, sampled every tuning.stats.goldSampleMs plus the final value.
   goldHistory: { timeMs: number; gold: number }[];
+  fun: FunStats;
+}
+
+// One fight of a party, for the fun checks (funstats.ts): from the first blow to 5 s after the last
+// (combat.md section 1), with whether any member cast a skill and which damage types its heroes
+// and summons dealt.
+export interface FightRecord {
+  party: number;
+  startMs: number;
+  endMs: number;
+  open?: true;
+  cast: boolean;
+  types: string[];
+  // A member had reached tier 2 (a path) when the fight began.
+  tier2: boolean;
+}
+
+// The numbers behind M2's fun checks (docs/systems/content-roadmap.md section 2).
+export interface FunStats {
+  fights: number;
+  // Share of fights that began after 6:00 with a skill cast (null: none began).
+  castShareAfter6: number | null;
+  // Share of fights with a tier 2 hero in the party that dealt 2 or more damage types (null: none).
+  typesShareTier2: number | null;
+  // Player decisions (build, upgrade, bounty, card, ...): in all, per minute, and the share of the
+  // run's whole minutes with at least one.
+  decisions: number;
+  decisionsPerMin: number;
+  decisionMinuteShare: number | null;
+  // The longest stretch, from the first hero's arrival, with no fight, level-up or raid, and when it ended.
+  longestQuietMs: number;
+  longestQuietAtMs: number;
 }
 
 export interface Snapshot {
