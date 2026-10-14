@@ -30,6 +30,7 @@ import { getSettings, updateSettings } from '../ui/settings';
 import { FpsGuard } from '../ui/fpsGuard';
 import { heroLabel, partyColor } from '../ui/partyLook';
 import { readMeta } from '../ui/metaStore';
+import { chosenLean } from '../ui/setupLook';
 import { UnitViews } from '../ui/unitViews';
 import { iconScale } from '../ui/icons';
 import { releaseSets } from '../ui/parts/bake';
@@ -182,7 +183,10 @@ export class MapScene extends Phaser.Scene {
   // chosen Trials and the lean (sim/meta.ts playData), from the meta save.
   private playData() {
     const trials = (this.registry.get('runTrials') as string[] | undefined) ?? [];
-    return playData(GRAYBOX, readMeta(), trials);
+    const meta = readMeta();
+    // The run leans on the pantheon the setup screen showed (the chosen one, else the first open),
+    // not on a random pick: playData only forces a lean that is set in the meta.
+    return playData(GRAYBOX, { ...meta, lean: chosenLean(GRAYBOX, meta) }, trials);
   }
 
   // The Trials this run was started with (an End screen needs them for the Essence).
