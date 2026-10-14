@@ -116,7 +116,7 @@ Builds are rows of per-segment scale factors and socket offsets in Scene's data 
 | Role  | Order | Row                                                                                                        |
 | ----- | ----- | ---------------------------------------------------------------------------------------------------------- |
 | Art   | 10    | Kit batch for the Aesir: the 46 layers of section 5 on the agreed grid and pivots                          |
-| Art   | 20    | Item icons: the 10 of section 5                                                                            |
+| Art   | 20    | Item icons (10) and face portraits (8) of section 5                                                        |
 | Scene | 10    | Combine a hero from build (scale rows), face, headgear, cloak, path pieces and items; fall back per socket |
 | Scene | 20    | Inventory and shop show item icons; a hero tap shows its worn items                                        |
 | Sim   | 10    | `build` on the hero (seeded pick from the god's two), in the snapshot; save bump                           |
