@@ -1,3 +1,4 @@
+import { curePoison } from './effects';
 import { armourBonus } from './items';
 import { autoPickCard, leaderOf, offerCards } from './cards';
 import { addFavour } from './favour';
@@ -333,6 +334,7 @@ function applyUpgrade(
     refreshMaxHp(world, u);
     if (def?.effect.healPct && !u.ko) {
       u.hp = Math.min(u.maxHp, u.hp + (u.maxHp * def.effect.healPct) / 100);
+      curePoison(world, u.id);
     }
   }
   world.events.push({
