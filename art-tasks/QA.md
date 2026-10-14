@@ -19,7 +19,12 @@ still fails, do not upload it: report the item and the fault instead.
    stray marks, no letters or text unless asked.
 5. **Matches `STYLE.md`:** the anchors' painted pixel look, thin dark-brown outline, earthy
    palette, no cartoon faces, no blur, no grain or noise texture.
-6. **Matches the batch:** every listed feature is there, the framing and size are as asked, the
-   key colour is flat and exact (#FF00FF, or as the batch says), nothing touches the canvas edge.
+6. **Matches the batch:** every listed feature is there, the right number of things, nothing
+   touches the canvas edge.
 7. **Reads at target size:** shrink it to the size the batch names (units 30-40 px, icons 32-48
    px): the silhouette and the main shapes still read.
+
+**Not faults** (Art fixes these in the pipeline; never redo or withhold an image for them, just
+note them in the log): a background that is near the key colour instead of exact (it must be
+flat and even, e.g. RGB 240,13,242 is fine); framing or size a few percent off the batch (within
+about 10 percentage points, e.g. 93% instead of 85%); the canvas size.
