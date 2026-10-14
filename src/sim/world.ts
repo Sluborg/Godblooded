@@ -139,6 +139,7 @@ import type {
   FightRecord,
   PileState,
   RuinState,
+  ShopTally,
   ConeArea,
   SkillEffect,
   GraveState,
@@ -341,6 +342,9 @@ export interface World {
   fights: FightRecord[];
   decisionsAt: number[];
   quiet: { lastMs: number; longestMs: number; atMs: number };
+  // Shop sales and the run's first moments, for the end report (runstats.ts).
+  shopTally: Record<'smithy' | 'market', ShopTally>;
+  beats: { firstPartyMs: number | null; firstTier2Ms: number | null; firstTier3Ms: number | null };
   // Celestial nodes and the Ambrosia the town holds (nodes.ts).
   nodes: NodeState[];
   ambrosia: number;
@@ -427,6 +431,11 @@ export function createWorld(seed: number, data: GameData, opts: WorldOptions = {
     fights: [],
     decisionsAt: [],
     quiet: { lastMs: -1, longestMs: 0, atMs: 0 },
+    shopTally: {
+      smithy: { items: 0, spent: 0, tax: 0 },
+      market: { items: 0, spent: 0, tax: 0 },
+    },
+    beats: { firstPartyMs: null, firstTier2Ms: null, firstTier3Ms: null },
     nodes: [],
     ambrosia: 0,
     jars: [],

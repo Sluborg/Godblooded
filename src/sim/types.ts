@@ -1874,6 +1874,18 @@ export interface RunReport {
   // null when the run was loaded from a save that has no command log.
   replay: string | null;
   fun: FunStats;
+  // Mean gear levels of the heroes standing at the end.
+  gear: { weapon: number; armour: number; headgear: number; offhand: number };
+  // What the shops sold: items (a plain market spend counts no item), gold spent, and the tax.
+  shops: Record<'smithy' | 'market', ShopTally>;
+  // When the run's first moments came (ms, null: never): a party of two or more, a hero at tier 2,
+  // the first lair to fall, a hero at tier 3.
+  beats: {
+    firstPartyMs: number | null;
+    firstTier2Ms: number | null;
+    firstLairFallMs: number | null;
+    firstTier3Ms: number | null;
+  };
 }
 
 // What an omen changes while it lasts (omens.ts, docs/systems/events.md section 2). Every field is
@@ -1965,6 +1977,12 @@ export interface FunStats {
   // The longest stretch, from the first hero's arrival, with no fight, level-up or raid, and when it ended.
   longestQuietMs: number;
   longestQuietAtMs: number;
+}
+
+export interface ShopTally {
+  items: number;
+  spent: number;
+  tax: number;
 }
 
 export interface Snapshot {

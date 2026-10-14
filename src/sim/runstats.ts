@@ -121,6 +121,17 @@ export function runReport(world: World): RunReport {
     goldHistory: goldHistory(world),
     replay: world.replayable ? encodeReplay(world) : null,
     fun: funStats(world),
+    gear: gearLevels(world),
+    shops: {
+      smithy: { ...world.shopTally.smithy },
+      market: { ...world.shopTally.market },
+    },
+    beats: {
+      firstPartyMs: world.beats.firstPartyMs,
+      firstTier2Ms: world.beats.firstTier2Ms,
+      firstLairFallMs: world.lairLog[0]?.timeMs ?? null,
+      firstTier3Ms: world.beats.firstTier3Ms,
+    },
   };
 }
 
@@ -132,4 +143,35 @@ function goldHistory(world: World): { timeMs: number; gold: number }[] {
   if (last && last.timeMs === world.timeMs) last.gold = world.gold;
   else out.push({ timeMs: world.timeMs, gold: world.gold });
   return out;
+}
+
+// A shop sold something (items 0: a plain market spend with no item rows).
+export function noteSale(
+  world: World,
+  shop: 'smithy' | 'market',
+  items: number,
+  spent: number,
+  tax: number,
+): void {
+  const tally = world.shopTally[shop];
+  tally.items += items;
+  tally.spent += spent;
+  tally.tax += tax;
+}
+
+// The first time something happens in the run, for the curve beats.
+export function noteBeat(world: World, beat: keyof World['beats']): void {
+  world.beats[beat] ??= world.timeMs;
+}
+
+function gearLevels(world: World): RunReport['gear'] {
+  const heroes = world.units.filter((u) => u.kind === 'hero');
+  const mean = (key: 'weapon' | 'armour' | 'headgear' | 'offhand') =>
+    heroes.length === 0 ? 0 : heroes.reduce((a, u) => a + (u.items?.[key] ?? 0), 0) / heroes.length;
+  return {
+    weapon: mean('weapon'),
+    armour: mean('armour'),
+    headgear: mean('headgear'),
+    offhand: mean('offhand'),
+  };
 }

@@ -1,5 +1,6 @@
 import { hearthOf } from './hearth';
 import { isWorking } from './town';
+import { noteBeat } from './runstats';
 import { curePoison } from './effects';
 import { armourBonus } from './items';
 import { autoPickCard, leaderOf, offerCards } from './cards';
@@ -241,6 +242,8 @@ function retier(world: World, party: Party): void {
     u.tier = tier;
     u.type = template;
     refreshMaxHp(world, u);
+    if (tier >= 2) noteBeat(world, 'firstTier2Ms');
+    if (tier >= 3) noteBeat(world, 'firstTier3Ms');
     world.events.push({ kind: 'tierUp', unit: u.id, tier, path: u.path });
   }
 }
@@ -522,5 +525,6 @@ function merge(world: World, into: Party, from: Party): void {
     if (u) u.party = into.id;
   }
   world.parties.delete(from.id);
+  noteBeat(world, 'firstPartyMs');
   world.events.push({ kind: 'partyFormed', party: into.id, members: [...into.members] });
 }
