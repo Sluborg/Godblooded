@@ -1196,8 +1196,9 @@ export const OMENS: readonly OmenDef[] = [
 // One miracle per pantheon (docs/systems/events.md section 3): a full favour bar (or an Offering)
 // makes the god act where its children are in the most danger. Balance pass: at the spec's
 // strength they added about 15 points of wins to the full bot, so they ship at about half
-// (Storm 6 x 35, Aegis a 25% shield, Dawn a 20% heal and 50 holy on undead). Human bot with the
-// god cards on main, 40 runs, cap 35: 65% and 60% on seeds 1 and 1001 (63% and 57% without).
+// (Storm 6 x 35, Aegis a 25% shield, Dawn a 20% heal and 50 holy on undead). Human bot, 40 runs,
+// cap 35, seeds 1 and 1001: with balance/cards (god cards) on main 65% and 60% (63% and 57%
+// without miracles); on main alone 48% and 63%, so the miracles land with or after the cards.
 export const MIRACLES: readonly MiracleDef[] = [
   {
     id: 'storm',
