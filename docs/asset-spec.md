@@ -11,6 +11,7 @@ concept sheets in `docs/concept/`); this is the technical contract.
 | Monster  | `mon_<type>[-v2\|-v3]_t1_front`    | `mon_draugr-v2_t1_front`          |
 | Summon   | `sum_<type>_t<1-3>_front`          | `sum_falcon_t1_front`             |
 | Npc      | `npc_<type>_t<1-3>_front`          | `npc_collector_t1_front`          |
+| Portrait | `por_<face>`                       | `por_grim`                        |
 | Building | `bld_<type>[_t<1-3>]`              | `bld_temple_aesir_t3`, `bld_ruin` |
 | Terrain  | `ter_<name>`                       | `ter_grass_a`                     |
 | UI       | `ui_<name>`                        | `ui_flag_bounty`                  |
@@ -101,40 +102,57 @@ feet as anchor for both, and on the arm row `pivotX`/`pivotY` (0..1 of the image
 shoulder, found as the top of the band where the arm touches the body. Rotate the arm sprite
 around that point.
 
-## Parts sheets (units from parts, agreed with Scene 2026-10-13; not shipping yet)
+## Parts kit (heroes from painted segments, Scene's rig, 2026-10-14)
 
-Heroes and monsters are drawn by code from parts (Scene, `src/ui/parts/`). Art can replace a
-vector part with a picture; the vector part stays the fallback. Effects (lightning, fire, glow,
-ravens, trails) stay in code, never in the images. No back view: one side, facing right,
-mirrored by code.
+Heroes are built by code from painted **segments** with real limbs (2-bone arms and legs, the
+code solves elbow and knee) and animated (Scene, `src/data/heroKits.ts`, `src/ui/parts/`). A
+missing part falls back to the code shape. Effects (glow, aura, trail, ravens, lightning) stay in
+code. Everything faces right, 3/4 front, light upper left; limbs are drawn straight; one picture
+serves the near and far side (code darkens the far one about 20%; an optional `_b` variant may
+replace it).
 
-**Upload:** one square **parts sheet** per look (a god child at tier 1, each path at tier 2 and
-3, each monster tier), a **5 x 2 grid**, flat magenta between the cells, every part tightly
-inside its own cell, all parts at **the same scale**. Cell order, left to right, top row first:
+**Segments:** torso (with hips), head (a beard is part of the head), headgear (hood, helmet or
+hair over the head; optional), cloak (behind; code sways it), upperarm, forearm, hand, thigh,
+shin, boot, weapon (main hand), offhand (shield or a second weapon). Hands and boots are their
+own parts, so the same art serves both rigs (bending limbs, or floating hands and feet).
 
-| Row | Cells                                                                                                                   |
-| --- | ----------------------------------------------------------------------------------------------------------------------- |
-| 1   | body (torso with clothing) · head (face; a beard is part of the head) · headgear (hair, hood or helmet) · cape · weapon |
-| 2   | front foot · back foot · front hand · back hand · shield (empty if none)                                                |
+**Pivots** are `[fx, fy]` fractions of the part's rectangle (x right, y down), on the segment's
+centre line. Bone lengths come from the pictures (joint to next joint).
 
-**Ship:** the sheet is keyed to alpha and shipped as one image with a rectangle per cell (each
-cell up to about 192 px, the assembled unit at most about 350 px tall) and these **pivots**, as
-fractions (0..1, x right, y down) of the part's rectangle, in its manifest row:
+| Part     | Pivots                                                               |
+| -------- | -------------------------------------------------------------------- |
+| torso    | `neck`, `hip`, `shoulder_f`, `shoulder_b`, `hip_f`, `hip_b`, `clasp` |
+| head     | `neck` (base of the skull), `brow`                                   |
+| headgear | `brow`                                                               |
+| cloak    | `clasp` (top; the hem is free)                                       |
+| upperarm | `shoulder` (top), `elbow` (bottom)                                   |
+| forearm  | `elbow` (top), `wrist` (bottom)                                      |
+| hand     | `wrist`, `grip` (inside the fist)                                    |
+| thigh    | `hip` (top), `knee` (bottom)                                         |
+| shin     | `knee` (top), `ankle` (bottom)                                       |
+| boot     | `ankle`, `ground` (the sole under the ankle)                         |
+| weapon   | `grip`; drawn pointing straight up, tip at the top                   |
+| offhand  | `strap` (shield) or `grip` (second weapon)                           |
 
-| Part     | Pivots                                                           |
-| -------- | ---------------------------------------------------------------- |
-| body     | neck, hip, shoulder_front, shoulder_back                         |
-| head     | neck (bottom of the skull)                                       |
-| headgear | brow (where it sits on the head)                                 |
-| cape     | shoulder (the hem end is free; code sways it)                    |
-| foot     | ground point under the ankle (one image per foot, so it strides) |
-| hand     | wrist                                                            |
-| weapon   | grip, plus the tip direction at rest as an angle in degrees      |
-| shield   | strap (held in the back hand)                                    |
+**Scale:** the standard build is 44 drawing units from sole to the top of the head (head about 7
+units). One `pxPerUnit` per sheet (target 8). **Builds** (lean, broad, tall, short) are not
+separate art: per-segment scale factors and socket offsets in Scene's data, applied to every
+layer of that segment.
 
-The row also states `pxPerUnit`: picture pixels per drawing unit (a standard hero is 44 units
-from head to feet; 6 to 8 px per unit). The id scheme, the manifest fields and the pipeline step
-land with the first parts batch, after Stefan's style verdict.
+**Worn items:** an item's worn part is a **layer** with the same cell size and the same pivots as
+the base segment it covers (chest = torso, bracer = forearm, glove = hand, boots = boot, trousers =
+thigh, helm = headgear, cloak = cloak, weapon = weapon), drawn over it with the same transform.
+Magenta stays the only key colour. Each item also gets an icon still `ui_item_<item>`.
+
+**Upload (ChatGPT):** a square sheet in a grid of equal cells (the batch gives the order), flat
+magenta between cells, every part inside its own cell, all at the same scale.
+
+**Ship:** keyed to alpha, one packed PNG per sheet and **one manifest row** `kit_<name>`
+(`kit_grim_test`, later `kit_heads`, `kit_torsos`, ...) with `pxPerUnit` and `cells`:
+`{ "<partId>": { x, y, w, h, pivots: { <name>: [fx, fy] } } }` (px rectangle in the PNG).
+`partId` is `<slot>_<variant>` (`head_hooded`, `torso_grim`, `forearm_grim`, `weapon_staff`,
+`offhand_shield_round`) or `layer_<slot>_<item>` (`layer_torso_leather`). A hero is a data row
+in Scene's `src/data/heroKits.ts` naming one part per slot.
 
 ## Opaque pictures: key art and ground tiles
 
