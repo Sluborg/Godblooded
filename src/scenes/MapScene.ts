@@ -187,7 +187,13 @@ export class MapScene extends Phaser.Scene {
     this.registry.set('speed', getSettings().speed);
     const cam = this.cameras.main;
     const minZoom = Math.min(GAME_WIDTH / width, GAME_HEIGHT / height);
-    cam.setBounds(0, 0, width, height).setZoom(Math.max(minZoom, DEFAULT_ZOOM) * RENDER_SCALE);
+    // Zoomed right out the view can be wider or taller than the map: pad the bounds so the map
+    // sits in the middle of the view, not against one edge.
+    const padX = Math.max(0, (GAME_WIDTH / minZoom - width) / 2);
+    const padY = Math.max(0, (GAME_HEIGHT / minZoom - height) / 2);
+    cam
+      .setBounds(-padX, -padY, width + 2 * padX, height + 2 * padY)
+      .setZoom(Math.max(minZoom, DEFAULT_ZOOM) * RENDER_SCALE);
     cam.centerOn(GRAYBOX.townHall.x, GRAYBOX.townHall.y);
     cam.setBackgroundColor(COLORS.background);
     makeGround(this, width, height);
