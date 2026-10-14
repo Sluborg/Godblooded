@@ -5,6 +5,7 @@ import {
   applyMark,
   applyShield,
   applyTaunt,
+  curePoison,
   refreshFrom,
 } from './effects';
 import { passiveCooldownMult, passiveRangeMult } from './passives';
@@ -578,6 +579,7 @@ export function supportEffect(
       if (amount <= 0) return;
       unit.hp += amount;
       tally(world, hero.id, 'healing', amount);
+      curePoison(world, unit.id);
       world.events.push({ kind: 'heal', healer: hero.id, target: unit.id, amount });
       return;
     }
