@@ -905,8 +905,9 @@ export const GRAYBOX: GameData = {
     ai: { bossCallBonus: 80 },
     // Raids after a lair tier-up are on (Stefan): one raider on every tier-up.
     // Playtest trim (main + collision + live verbs + vanguard, human bot, seeds 1 and 1001, 40 runs
-    // each): the first raid at 7:00 and one every 3.5 min instead of 6:00 and 3 min, with the 70%
-    // lairs: wins 63% and 70% (53% and 68% with raids as before); omens take about 11-15 more.
+    // each, 35-min cap): the first raid at 7:00 and one every 3.5 min instead of 6:00 and 3 min,
+    // with the 70% lairs: wins 63% and 70% (57% and 63% at the bot's default 30-min cap); main
+    // without the trim 50% and 63% (48% and 53% at 30 min).
     town: {
       raidFirstMs: 420_000,
       raidEveryMs: 210_000,
