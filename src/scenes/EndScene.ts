@@ -3,7 +3,7 @@ import { COLORS, GAME_HEIGHT, GAME_WIDTH } from '../config';
 import { makeButton } from '../ui/button';
 import { formatClock, sparkline, visibleHeroes } from '../ui/endReport';
 import { heroLabel } from '../ui/partyLook';
-import type { HeroReport } from '../sim/api';
+import type { HeroReport, RunReport } from '../sim/api';
 import type { MapScene } from './MapScene';
 
 const FONT = 'Georgia, serif';
@@ -18,17 +18,20 @@ export class EndScene extends Phaser.Scene {
 
   create(): void {
     const snap = (this.scene.get('Map') as MapScene).snapshot;
-    const report = snap.report;
+    // Quit from Pause: the report of the unfinished run, marked as abandoned.
+    const abandoned = (this.registry.get('abandonReport') as RunReport | undefined) ?? null;
+    this.registry.remove('abandonReport');
+    const report = abandoned ?? snap.report;
     const won = (report?.outcome ?? snap.status) === 'won';
     const cx = GAME_WIDTH / 2;
     this.add
       .rectangle(cx, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x0e0b08, 0.94)
       .setInteractive();
     this.add
-      .text(cx, 50, won ? 'VICTORY' : 'TOWN LOST', {
+      .text(cx, 50, abandoned ? 'RUN ABANDONED' : won ? 'VICTORY' : 'TOWN LOST', {
         fontFamily: FONT,
         fontSize: '62px',
-        color: won ? '#f2c14e' : '#d9534f',
+        color: abandoned ? '#c9b48a' : won ? '#f2c14e' : '#d9534f',
       })
       .setOrigin(0.5);
     this.add
@@ -44,6 +47,11 @@ export class EndScene extends Phaser.Scene {
     this.goldChart(report?.goldHistory ?? []);
     this.totals(snap.stats);
 
+    if (abandoned) {
+      makeButton(this, cx - 200, 668, 300, 80, 'Back to run', () => this.backToRun());
+      makeButton(this, cx + 200, 668, 300, 80, 'Title', () => this.leaveRun());
+      return;
+    }
     makeButton(this, cx - 200, 668, 300, 80, 'Play again', () => this.playAgain());
     makeButton(this, cx + 200, 668, 300, 80, 'Title', () => this.toTitle());
   }
@@ -144,6 +152,21 @@ export class EndScene extends Phaser.Scene {
         color: COLORS.textMuted,
       })
       .setOrigin(0.5);
+  }
+
+  // An abandoned run: back to the paused map, or out to the title with the run kept for Continue.
+  private backToRun(): void {
+    this.scene.stop();
+    this.scene.launch('Pause');
+  }
+
+  private leaveRun(): void {
+    (this.scene.get('Map') as MapScene).saveNow();
+    this.scene.resume('Map');
+    this.scene.sleep('Map');
+    this.scene.sleep('Hud');
+    this.scene.stop();
+    this.scene.launch('Title');
   }
 
   private playAgain(): void {
