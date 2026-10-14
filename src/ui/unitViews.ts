@@ -17,6 +17,7 @@ import {
 import { SkillFx } from './skillFx';
 import { armourOutline, glyphOf, hasGear, potionPips, weaponGlow } from './gearLook';
 import { drawGlyph } from './itemGlyph';
+import { drawIntentIcon, isIntentKind, type PartyIntent } from './intentIcon';
 import { ensureHeroSet, sweepSets, type BakedSet } from './parts/bake';
 import { attackFrame, idleFrame, koFrame, walkFrame, type PoseName } from './parts/frames';
 import type { RiderId, SimEvent, UnitState, Vec2 } from '../sim/api';
@@ -107,6 +108,8 @@ interface Attack {
 // What a view needs from the world around it each frame.
 interface FrameCtx {
   dtS: number;
+  // What each party is doing (its leader's intent), by party id, for the icon over its head.
+  intents: ReadonlyMap<number, PartyIntent>;
   // Run time of the snapshot in ms (statuses end at a run time).
   timeMs: number;
   // Hero names show for this party (the selected hero's), or for this one hero when solo.
@@ -204,6 +207,8 @@ export class UnitView {
   private statusSeq = 0;
   private readonly statusG: Phaser.GameObjects.Graphics;
   private statusDrawn = false;
+  private readonly intentG: Phaser.GameObjects.Graphics;
+  private intentDrawn = false;
   // Carried gear: armour outline, weapon shimmer or glow, flask pips.
   private readonly gearG: Phaser.GameObjects.Graphics;
   private gearDrawn = false;
@@ -254,6 +259,7 @@ export class UnitView {
     this.riderIcon = scene.add.graphics();
     this.statusG = scene.add.graphics();
     this.gearG = scene.add.graphics();
+    this.intentG = scene.add.graphics();
     // Ring at the feet in the party colour (white and thicker when selected), badge with the
     // party number beside the name.
     this.ring = scene.add.graphics();
@@ -277,6 +283,7 @@ export class UnitView {
       this.label,
       this.badge,
       this.pennant,
+      this.intentG,
     ]);
   }
 
@@ -723,6 +730,7 @@ export class UnitView {
       (u.party > 0 && u.party === ctx.namesParty);
     this.drawParty(u, role);
     this.drawPennant(u, role);
+    this.drawIntent(u, ctx, role);
   }
 
   // A unit that left the snapshot: it stays where it fell and keeps going down and fading.
@@ -973,6 +981,23 @@ export class UnitView {
     if (selected) this.ring.lineStyle(3, 0xffffff, 0.95).strokeEllipse(0, -4, 86, 34);
   }
 
+  // The party's intent over its leader's head (a party of one counts: its hero leads it).
+  private drawIntent(u: UnitState, ctx: FrameCtx, role: PartyRole): void {
+    const g = this.intentG;
+    const intent =
+      u.kind === 'hero' && u.party > 0 && role !== 'member' && !u.ko
+        ? ctx.intents.get(u.party)
+        : undefined;
+    if (!intent || !isIntentKind(intent.kind)) {
+      if (this.intentDrawn) g.clear();
+      this.intentDrawn = false;
+      return;
+    }
+    this.intentDrawn = true;
+    g.clear();
+    drawIntentIcon(g, intent.kind, 0, -this.h - 40 + Math.sin(this.phase * 3) * 1.5, this.phase);
+  }
+
   private drawPennant(u: UnitState, role: PartyRole): void {
     this.pennant.clear();
     if (role !== 'leader' || !this.showNames) return;
@@ -1097,14 +1122,17 @@ export class UnitViews {
     timeMs: number,
     dtMs: number,
     others: (id: number) => Vec2 | undefined = () => undefined,
-    parties: readonly { id: number; members: readonly number[] }[] = [],
+    parties: readonly { id: number; members: readonly number[]; intent?: PartyIntent }[] = [],
     paths: readonly { id: string; name: string }[] = [],
   ): void {
+    const intents = new Map<number, PartyIntent>();
+    for (const p of parties) if (p.intent) intents.set(p.id, p.intent);
     const dtS = Math.min(MAX_DT_S, dtMs / 1000);
     // Names are off unless the player taps a hero: then every hero of its party shows one.
     const sel = units.find((u) => u.id === this.scene.registry.get('selectedUnit'));
     const ctx: FrameCtx = {
       dtS,
+      intents,
       timeMs,
       namesParty: sel && sel.party > 0 ? sel.party : 0,
       namesHero: sel?.id ?? 0,
