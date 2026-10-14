@@ -75,7 +75,8 @@ painted in; busy piles of props; a temple that is only a gate.
   Grip like a real fighter (axe and hammer at the lower end of the handle). The whole weapon is
   inside the picture, never cut off.
 
-- **Light** from the top left. No cast shadow, no shadow ellipse, no glow outside the object
+- **Light** from the upper left, a low warm sun (the game draws long soft shadows falling to
+  the lower right, mostly sideways; never paint a shadow in). No cast shadow, no shadow ellipse, no glow outside the object
   unless the batch asks for a tier-3 aura.
 - **Background:** flat magenta #FF00FF unless the batch says green.
 - No text, no logos, no watermark, no frame, no ground, no scenery: only the object on the flat
