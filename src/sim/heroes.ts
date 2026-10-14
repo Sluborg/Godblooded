@@ -2,6 +2,7 @@ import { isWorking } from './town';
 import { visitPoint } from './collision';
 import { omenBounty, omenMods } from './omens';
 import { noteHeroArrived } from './facts';
+import { nameHero } from './names';
 import { payIntoTill, payTithe } from './collector';
 import { hearthBuff, hearthOf, partyHurt } from './hearth';
 import { escortHeldBy, escortOpenTo } from './escort';
@@ -65,6 +66,7 @@ export function spawnHero(world: World, godId: string, pos: Vec2, temple = 0): n
   const hp = maxHp(cls.attrs);
   // A god with two builds: one of them, 50/50 from the run's seed, kept for life.
   const build = god?.builds ? god.builds[world.rng() < 0.5 ? 0 : 1] : undefined;
+  const name = nameHero(world, id, god);
   world.units.push({
     id,
     kind: 'hero',
@@ -73,6 +75,7 @@ export function spawnHero(world: World, godId: string, pos: Vec2, temple = 0): n
     god: god?.id ?? null,
     path: null,
     ...(build ? { build } : {}),
+    ...(name ? { name } : {}),
     pos: { ...pos },
     facing: { x: 0, y: 1 },
     hp,
