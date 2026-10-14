@@ -886,7 +886,8 @@ export const GRAYBOX: GameData = {
   townHall: { x: 1200, y: 800 },
   // Balance pass (gear before the first potion, roles and quirks, Fafnir's breath, raids after a
   // lair tier-up, shop trips, on top of the Aesir, item, card and pacing rows; 300 runs, seeds 1
-  // and 1001): RESULT. Town income is item tax only: start gold 480 builds a temple, market and
+  // and 1001): 68-69% wins, median 15.6 min, boss out at about 12.5-13 min, no timeouts, 88% of
+  // heroes with gear by 8:00. Town income is item tax only: start gold 480 builds a temple, market and
   // smithy, and tax is 50% of an item's price. Unset keys use DEFAULT_TUNING.
   tuning: {
     hero: { maxPerTemple: 7, recruitMs: 22_000, taxRate: 0.5, shopTripGold: 0 },
