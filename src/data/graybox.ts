@@ -472,8 +472,8 @@ export const MONSTERS: readonly MonsterDef[] = [
   // The other five bosses (monsters-and-bosses.md section 3), scaled like Fafnir: about half the
   // draft hp and a little less armour. Bot pass (each boss forced, human bot, seeds 1-30): every
   // boss is beaten in 9 of 10 runs that reach it (wins 60-63%, Fafnir 60%), first hit to the end
-  // of the run 2.8-3.5 min (Fafnir 3.9). Their moves replace the cleave; strike damage types other
-  // than physical wait for a MonsterDef field.
+  // of the run 2.8-3.5 min (Fafnir 3.9). Their moves replace the cleave. Apep and Jormungandr strike
+  // with death, Cerberus with fire (strikeType).
   {
     id: 'hydra',
     move: {
@@ -486,11 +486,12 @@ export const MONSTERS: readonly MonsterDef[] = [
     armour: 7,
     tags: ['boss'],
     boss: {},
-    hp: 1100,
+    hp: 900,
     types: { fire: 1.5, frost: 0.5 },
   },
   {
     id: 'apep',
+    strikeType: 'death',
     move: {
       swallow: { everyS: 15, enragedEveryS: 10, windupMs: 1000, s: 4, dotPct: 0.08, freePct: 0.25 },
     },
@@ -506,6 +507,7 @@ export const MONSTERS: readonly MonsterDef[] = [
   },
   {
     id: 'jormungandr',
+    strikeType: 'death',
     move: {
       venom: { everyS: 12, enragedEveryS: 8, windupMs: 1000, radius: 60, dotPct: 0.03, s: 8 },
     },
@@ -521,6 +523,7 @@ export const MONSTERS: readonly MonsterDef[] = [
   },
   {
     id: 'cerberus',
+    strikeType: 'fire',
     move: {
       howl: {
         everyS: 15,
@@ -539,7 +542,7 @@ export const MONSTERS: readonly MonsterDef[] = [
     armour: 7,
     tags: ['boss', 'demon'],
     boss: {},
-    hp: 1150,
+    hp: 950,
     types: { holy: 1.5, fire: 0.5 },
   },
   {
@@ -581,7 +584,9 @@ export const LAIRS: readonly LairDef[] = [
   // The swarm role doubles maxAlive: 10 scarabs at tier 1; 60% hp like the other small lairs.
   { id: 'scarab-pit', monster: 'scarab', spawnS: 6, maxAlive: 5, hp: 1800 },
   { id: 'wyrm-nest', monster: 'wyrm', spawnS: 30, maxAlive: 3, hp: 8000, escort: 'draugr' },
-  // The other boss lairs at the nest's 8000 (spec 16000); guards per section 4 until their pass.
+  // The other boss lairs at the nest's 8000 (spec 16000). The Greek boss lairs are guarded by harpies
+  // (minotaur guards plus Cerberus's howl calls made them a wall: 11 of 30 wins forced, the others
+  // 18-19); with Hydra 900 hp and Cerberus 950 they win 18 and 17 of 30, as Fafnir does.
   {
     id: 'serpent-shore',
     monster: 'jormungandr',
@@ -590,14 +595,14 @@ export const LAIRS: readonly LairDef[] = [
     hp: 8000,
     escort: 'draugr',
   },
-  { id: 'hydra-marsh', monster: 'hydra', spawnS: 30, maxAlive: 3, hp: 8000, escort: 'minotaur' },
+  { id: 'hydra-marsh', monster: 'hydra', spawnS: 30, maxAlive: 3, hp: 8000, escort: 'harpy' },
   {
     id: 'gate-of-hades',
     monster: 'cerberus',
     spawnS: 30,
     maxAlive: 3,
     hp: 8000,
-    escort: 'minotaur',
+    escort: 'harpy',
   },
   { id: 'apep-tomb', monster: 'apep', spawnS: 30, maxAlive: 3, hp: 8000, escort: 'jackal-man' },
   {
