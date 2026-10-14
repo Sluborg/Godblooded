@@ -221,7 +221,7 @@ lair is winning. Guard pips show it. This is a look only: no rule changes.
 ### How monsters look (tier 1, 2, 3)
 
 **Style (taste test, decision 2026-10-14): grim and scary**, in the one painted style of the
-buildings (`docs/decisions.md` 2026-10-14 "Playtest run 2"; Art's style rules). Thin colour-matched outlines as the heroes, but gaunt faces, sunken glowing eyes, scars, rot and
+buildings (`docs/decisions.md` 2026-10-14 "Playtest run 2"; Art's style rules, which also set the outlines). Gaunt faces, sunken glowing eyes, scars, rot and
 rags, in earthy colours only slightly muted; menace from shape and posture, not gore.
 
 Same rule as the heroes (`paths-and-skills.md` section 6, units from parts): a monster

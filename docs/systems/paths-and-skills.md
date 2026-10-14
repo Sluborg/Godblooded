@@ -178,8 +178,8 @@ cooldown in seconds. Radius and range in world units (melee reach is about 40, a
 
 **Style:** one painted style with the buildings (Stefan, `docs/decisions.md` 2026-10-14 "Playtest run 2"): grim, mythic,
 Norse-carved, **no cartoon faces**; Art's style rules lead and replace the earlier big-head
-cartoon proportions. From the taste test (2026-10-14) still: **thin
-outlines in a darker shade of the part's own colour** (no thick black ink), painterly shading,
+cartoon proportions; outlines and shading follow Art's rules too. From the taste test
+(2026-10-14) still:
 a **warm, earthy palette, only slightly muted** (most of the saturation stays), smooth and
 weighty motion. Units are small next to buildings (a hall is about 5 heroes wide). **Effects grow
 with progression** (Lead 2026-10-14): tier 1 subtle, tier 2 stronger, tier 3 clearly effectful;

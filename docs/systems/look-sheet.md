@@ -32,18 +32,18 @@ buildings in `buildings.md`); this sheet is the common frame.
 
 ## 1. Global rules
 
-| Rule        | Value                                                                                                                             |
-| ----------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| Outline     | thin (about 1.5 px at 1x), a darker shade of the part's own colour; no black ink. Signs and labels keep their own coloured border |
-| Shading     | painterly: soft gradient per part, a light rim on the lit edge, a few brush strokes on cloth, fur and wood                        |
-| Palette     | warm and earthy, about 93% saturation and a slight warm grade (`PARTS_STYLE` in #228); one bright accent per unit at most         |
-| Light       | from the top left; a soft cast shadow under everything that stands                                                                |
-| Footprint   | a building stands on a ground patch shaped to its footprint, no round plate; a thin ring only when tapped or being placed         |
-| Collision   | units keep a minimum distance from each other and walk around footprints; draw order by ground y                                  |
-| Scale       | hero 1.0; hall about 5 heroes wide; temple about 4; lair about 4 to 5; troll 1.7; Fafnir about 2.5 heroes tall                    |
-| Camera      | top-down 3/4 from the lower right; units face left or right (mirrored), buildings never mirror                                    |
-| Motion      | smooth and weighty: eased wind-ups, a heavy strike, a small settle; idle breathing on everything alive                            |
-| Phone check | every item must read at 0.7x zoom on a 6 inch phone: silhouette first, colour second, detail last                                 |
+| Rule        | Value                                                                                                                                                                            |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Outline     | per Art's painted style rules (run 2); until they say otherwise, thin and a darker shade of the part's own colour, no black ink. Signs and labels keep their own coloured border |
+| Shading     | painterly: soft gradient per part, a light rim on the lit edge, a few brush strokes on cloth, fur and wood                                                                       |
+| Palette     | warm and earthy, about 93% saturation and a slight warm grade (`PARTS_STYLE` in #228); one bright accent per unit at most                                                        |
+| Light       | from the top left; a soft cast shadow under everything that stands                                                                                                               |
+| Footprint   | a building stands on a ground patch shaped to its footprint, no round plate; a thin ring only when tapped or being placed                                                        |
+| Collision   | units keep a minimum distance from each other and walk around footprints; draw order by ground y                                                                                 |
+| Scale       | hero 1.0; hall about 5 heroes wide; temple about 4; lair about 4 to 5; troll 1.7; Fafnir about 2.5 heroes tall                                                                   |
+| Camera      | top-down 3/4 from the lower right; units face left or right (mirrored), buildings never mirror                                                                                   |
+| Motion      | smooth and weighty: eased wind-ups, a heavy strike, a small settle; idle breathing on everything alive                                                                           |
+| Phone check | every item must read at 0.7x zoom on a 6 inch phone: silhouette first, colour second, detail last                                                                                |
 
 ## 2. Heroes
 
