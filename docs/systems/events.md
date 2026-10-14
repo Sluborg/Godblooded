@@ -42,6 +42,31 @@ events.
 Guard towers already shoot raiders (Sim 130). A tower tier 2 or 3 gets the warning 5 s earlier
 (shown as a longer arrow), the only change to towers here.
 
+### Vanguard (the boss lair marches; Balance and Lead, 2026-10-14)
+
+Sim's fun-check stats fail the "no 60 s quiet" gate: the longest quiet gap (p90 about 125 s) comes
+at 12-16 min, after the boss lair unseals, while parties walk the long way to it. Balance's data
+knobs (boss placement, wider monster roaming, late raids) did not close it, so the boss lair gets
+a rule: once open, it sends raiders down the same road the heroes walk.
+
+1. **Start:** when the boss lair unseals (`bossLairUnsealed`), it plans a vanguard raid of
+   `vanguardSize` of its escort monster (`LairDef.escort`), with the normal raid warning
+   (`raidWarning`, `vanguardWarnMs` 15000 ahead, the boss lair as its lair).
+2. **Repeat:** every `vanguardEveryMs` (90000) after that, a smaller one: half of
+   `vanguardSize`, at least 1.
+3. **Stop:** when the boss emerges or the boss lair falls. A vanguard already walking keeps going.
+4. **Like any raid otherwise:** it walks toward the town by its role's shape, raiders pay their
+   bounty and XP, and a vanguard fully beaten pays `raidBeatenGold`. It does not count toward
+   `raidLairs`, and the timed raids carry on as before.
+5. **No escort, no vanguard:** a boss lair without `escort` sends none.
+
+- **Why it works:** the vanguard walks the line between the boss lair and the town, the same line
+  the parties walk out, so they meet it halfway. A party left at home defends instead.
+- **Cost:** it adds pressure on the town late in the run; Balance retunes raids around it once Sim
+  has built it.
+- **Seen:** the raid source arrow (section 4) carries the boss lair's icon, and the first one gets
+  the hint `h-vanguard` (`hint-texts.md`).
+
 ## 2. Omens
 
 ### The clock
@@ -119,6 +144,7 @@ spell (no dodge, resisted by Wp).
 | OmenDef       | `id`, `name`, `text`, `pantheon?`, `weight`, `leadMs` 20000, `durationMs`, `effects` (tuning overrides, a spawn, a free bounty, a reward spot) |
 | tuning.events | `omenFirstMs` 180000, `omenEveryMs` [100000, 140000], `omenNoRepeat` 3, `leanWeight` 2                                                         |
 | tuning.town   | `raidWarnMs` 15000, `raidBeatenGold` 20, `towerWarnAddMs` 5000                                                                                 |
+| tuning.boss   | `vanguardSize` (Balance; start at `raidSize`), `vanguardEveryMs` 90000, `vanguardWarnMs` 15000                                                 |
 | MonsterDef    | raid shape comes from `role` (`monsters-and-bosses.md`), no new field                                                                          |
 | MiracleDef    | `id`, `pantheon`, `radius` 250, `effects` (skill effect ids), `visual`                                                                         |
 | tuning.favour | `perTempleTierS` 4, `tierUpGain` 10, `lairGain` 15, `max` 100, `dangerHp` 0.5, `tellMs` 1500                                                   |
@@ -128,11 +154,12 @@ spell (no dodge, resisted by Wp).
 
 ### Sim
 
-| Order | Row                                                                                  |
-| ----- | ------------------------------------------------------------------------------------ |
-| 10    | Raid warning event, raid after lair tier-up, raid shapes by role, town cheer gold    |
-| 20    | Omen clock and deck (OmenDef rows, effects as tuning overrides, spawns, free bounty) |
-| 30    | Favour bars per pantheon; the god picks its spot and casts; `miracle` event          |
+| Order | Row                                                                                                                                                                                         |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 10    | Raid warning event, raid after lair tier-up, raid shapes by role, town cheer gold                                                                                                           |
+| 20    | Omen clock and deck (OmenDef rows, effects as tuning overrides, spawns, free bounty)                                                                                                        |
+| 30    | Favour bars per pantheon; the god picks its spot and casts; `miracle` event                                                                                                                 |
+| 40    | Vanguard: the unsealed boss lair raids with its escort, first `vanguardSize`, then half every `vanguardEveryMs`, until the boss emerges or the lair falls; `raidWarning` with the boss lair |
 
 ### Scene
 
@@ -140,6 +167,7 @@ spell (no dodge, resisted by Wp).
 | ----- | ------------------------------------------------------------------------------------------------- |
 | 10    | Raid warning arrow and horn                                                                       |
 | 15    | Raid source: lair icon on the arrow, dotted trail from the lair, tap the arrow to pan to the lair |
+| 17    | Hint `h-vanguard` on the first vanguard warning (no other new visuals: the raid arrow covers it)  |
 | 20    | Omen banner, sky tint, map marker, top icon                                                       |
 | 30    | Favour bars, the miracle tell and visuals                                                         |
 
