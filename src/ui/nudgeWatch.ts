@@ -9,7 +9,7 @@ export interface NudgeLair {
   tier: number;
   hp: number;
   // Time to the next tier-up, when the sim says (lair snapshot nextTierMs).
-  nextTierMs?: number;
+  nextTierMs?: number | null;
 }
 
 export class NudgeWatch {
