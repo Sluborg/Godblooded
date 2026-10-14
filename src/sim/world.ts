@@ -469,15 +469,21 @@ export function createWorld(seed: number, data: GameData, opts: WorldOptions = {
   return world;
 }
 
+// A first run's clock starts with its first temple (and a normal run's always runs). False while
+// it waits. step() and the replay both start the clock here.
+export function startClock(world: World): boolean {
+  if (!world.started && world.buildings.some((b) => b.type.startsWith('temple'))) {
+    world.started = true;
+  }
+  return world.started;
+}
+
 export function step(world: World, dtMs: number): void {
   if (world.status !== 'running' || dtMs <= 0) return;
   // A first run waits for its first temple: no time passes until one stands (then never again).
-  if (!world.started) {
-    if (!world.buildings.some((b) => b.type.startsWith('temple'))) {
-      world.accumulatorMs = 0;
-      return;
-    }
-    world.started = true;
+  if (!startClock(world)) {
+    world.accumulatorMs = 0;
+    return;
   }
   world.accumulatorMs += dtMs;
   let ticks = 0;

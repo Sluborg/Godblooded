@@ -3,6 +3,7 @@ import {
   command,
   createWorld,
   snapshot,
+  startClock,
   type World,
   type WorldOptions,
 } from './world';
@@ -128,10 +129,7 @@ export function runReplay(
       command(world, rc.log[next].cmd);
       next++;
     }
-    // (step() starts a first run's clock; replaying ticks directly, it does the same.)
-    if (!world.started && world.buildings.some((b) => b.type.startsWith('temple'))) {
-      world.started = true;
-    }
+    startClock(world);
     advanceTick(world);
     if (onTick) onTick(world, snapshot(world).events as SimEvent[]);
   }
