@@ -1,3 +1,4 @@
+import { visitPoint } from './collision';
 import { swing } from './swing';
 import { attackStrike, landStrike } from './strike';
 import { dist, speed, stepToward, TICK_MS, type Stats } from './units';
@@ -106,7 +107,8 @@ export function runGuard(world: World, unit: UnitState, rt: UnitRuntime, stats: 
   const ert = escort && world.unitRuntime.get(escort.id)?.worker;
   const tower = world.buildings.find((b) => b.id === g.tower);
   const done = !escort || !ert || (ert.node === null && ert.phase === 'idle');
-  const walk = (to: { x: number; y: number }, mult = 1) => {
+  const walk = (target: { x: number; y: number }, mult = 1) => {
+    const to = visitPoint(world, target, unit.pos);
     const dir = stepToward(unit.pos, to, step * mult);
     if (dir.x !== 0 || dir.y !== 0) unit.facing = dir;
   };
@@ -136,7 +138,7 @@ export function runGuard(world: World, unit: UnitState, rt: UnitRuntime, stats: 
   } else if (done) {
     // Home: to the tower (the town hall when it is gone), then off the books.
     const home = tower?.pos ?? world.buildings.find((b) => b.type === 'townhall')?.pos;
-    if (!home || dist(unit.pos, home) <= t.reach) {
+    if (!home || dist(unit.pos, visitPoint(world, home, unit.pos)) <= t.reach) {
       unit.hp = 0;
       world.events.push({ kind: 'guardHome', unit: unit.id });
       world.pendingDeaths = world.pendingDeaths.filter((d) => d.victim !== unit.id);

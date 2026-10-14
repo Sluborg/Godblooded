@@ -87,7 +87,9 @@ describe('hero life', () => {
     expect(w.events.some((e) => e.kind === 'fled')).toBe(true);
     for (let i = 0; i < 2400 && hero.hp < hero.maxHp; i++) step(w, 50);
     expect(hero.hp).toBe(hero.maxHp);
-    expect(Math.hypot(hero.pos.x - 600, hero.pos.y - 500)).toBeLessThan(60);
+    // at the town hall's edge (its footprint is 64 x 48 around 600,500)
+    expect(Math.abs(hero.pos.x - 600)).toBeLessThan(64 + 45);
+    expect(Math.abs(hero.pos.y - 500)).toBeLessThan(48 + 45);
   });
 
   it('a shrine heals faster than the town hall', () => {

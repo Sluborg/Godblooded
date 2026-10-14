@@ -15,6 +15,8 @@ export interface BuildingDef {
   // Gold for tier 2 and tier 3 (index = current tier - 1). Missing: the building's cost times
   // tuning.building.upgradeCostMult.
   upgradeCost?: readonly number[];
+  // Half width and half height of the building's footprint: units walk around it.
+  footprint?: readonly [number, number];
   // One plain line for the build menu and tooltips (Design, buildings.md). Display only.
   text?: string;
 }
@@ -124,6 +126,8 @@ export interface Attributes {
 
 export interface MonsterDef {
   id: string;
+  // Body radius for keeping apart (default tuning.collision.monsterRadius or bossRadius).
+  radius?: number;
   attrs: Attributes;
   // Seconds between attacks before dex; range in world units.
   weapon: { baseAttackS: number; range: number };
@@ -290,6 +294,8 @@ export interface LairDef {
 
 export interface ClassDef {
   id: string;
+  // Body radius for keeping apart (default tuning.collision.heroRadius).
+  radius?: number;
   attrs: Attributes;
   // Seconds between attacks before dex; range in world units (melee about 40).
   weapon: { baseAttackS: number; range: number };
@@ -434,6 +440,29 @@ export interface TraitTuning {
   cowardHangBack: number;
   // Loyal: it walks to a knocked out party mate and stands within this range of it.
   loyalGuardRange: number;
+}
+
+// Units keep apart and walk around buildings (collision.ts). Radii are world units; two melee
+// units must still reach each other, so a pair of radii stays under a weapon's range (about 40).
+export interface CollisionTuning {
+  enabled: boolean;
+  heroRadius: number;
+  monsterRadius: number;
+  bossRadius: number;
+  // Town workers: gatherers, guards, the tax collector and summons.
+  smallRadius: number;
+  // Building footprints (half width and half height) unless the BuildingDef has its own.
+  buildingHalf: readonly [number, number];
+  hallHalf: readonly [number, number];
+  // Heroes strike a lair from this far from its middle on top of their range (monsters stand around it).
+  lairRadius: number;
+  // How close to a footprint's edge a unit goes to visit a building.
+  visitMargin: number;
+  // Share of an overlap undone each tick, and the most one unit is moved by it.
+  relax: number;
+  maxPush: number;
+  // Cell size of the neighbour grid.
+  cell: number;
 }
 
 export interface HeroTuning {
@@ -1058,6 +1087,7 @@ export interface Tuning {
   town: TownTuning;
   trait: TraitTuning;
   collector: CollectorTuning;
+  collision: CollisionTuning;
   nodes: NodesTuning;
   bounty: BountyTuning;
 }
@@ -1100,6 +1130,7 @@ export interface GameData {
     favour?: Partial<FavourTuning>;
     town?: Partial<TownTuning>;
     collector?: Partial<CollectorTuning>;
+    collision?: Partial<CollisionTuning>;
     trait?: Partial<TraitTuning>;
     nodes?: Partial<NodesTuning>;
     bounty?: Partial<BountyTuning>;
