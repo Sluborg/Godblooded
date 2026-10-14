@@ -393,3 +393,19 @@ image still passes Art's QA before it reaches the Art Verdicts page.
 Wide phones (about 20:9) showed dark side bars with Scale.FIT 1280x720. Stefan chose to fill the
 screen: the design height stays 720, the width grows with the screen's aspect, the map shows
 more to the sides, and the HUD anchors to the screen edges and safe areas.
+
+## 2026-10-15 Heroes in the RimWorld manner, dark and pretty (Stefan)
+
+Ratings: bounty flag 4 and axe icon 5 (ship both). Grim assembled 1: "I don't want full size,
+movement can't be good. I want the RimWorld, but dark and pretty." Grim portrait 1: "I don't want
+portraits, I want game graphics as portraits. Multiple faces, and headwear and type of body."
+
+- **Heroes are built like RimWorld pawns:** a body sprite (a few body types: lean, average,
+  broad, heavy; male and female) with a head sprite on top (many faces, hair, beards), worn
+  layers on the body (armour, cloaks), headgear on the head, a held weapon and off-hand drawn
+  separately. No limbs to animate; movement is a slide with a small bob, attacks are a weapon
+  swing or lunge, all in code. Three facings: front, side (mirrored) and back.
+- **Painted dark and pretty** in the one style (STYLE.md), not RimWorld's flat cartoon.
+- **No separate portraits:** a portrait is the same in-game head and body drawn larger.
+- The full-size Grim parts test, the floating-vs-bent question and the por_ portraits are
+  dropped. The approved Grim still stays the look reference for colour, cloth and mood.
