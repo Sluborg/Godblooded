@@ -41,7 +41,7 @@ with Scene); Scene combines and animates; Balance and Lead write the item rows. 
 - **The keeps rule, revised:** face, hair and the god's cloak, colours and emblem never change
   for a god's child; what the hero wears on head, body and hands is its gear.
 - **The god's read** without fixed headgear: the cloak's shape and the god's two colours (Odin
-  grey and blue, Thor red and cream, Loki green and gold, Freyja rose and cream; from
+  blue-grey and pale gold, Thor red and gold, Loki green and lime, Freyja rose and cream; from
   `paths-and-skills.md` section 6), and the **emblem** on the clasp: Odin a raven, Thor a hammer,
   Loki a serpent, Freyja a falcon feather. Scene can show the emblem bigger on the Party panel.
 - **The path's read:** its tier 2 cloak, its accent colour on trim and effects; tier 3 adds code
@@ -94,6 +94,40 @@ Builds are rows of per-segment scale factors and socket offsets in Scene's data 
 | ItemDef   | `slot` gains `headgear` and `offhand`; weapon rows get a `family`; every row gets `icon` and `worn` (part ids per kit for armour and headgear) |
 | UnitState | `build`; `items` gains `headgear` and `offhand` levels                                                                                         |
 | Manifest  | Art proposes the ids (`asset-spec.md` is Art's); Design suggests `part_<socket>_<name>` and `item_<id>`                                        |
+
+### Paste-ready look rows (Aesir; Lead approved 2026-10-14)
+
+Part ids are Design's proposal until Art fixes them in `asset-spec.md`; colours are the god's
+cloak and trim from today's parts data (`src/data/heroParts.gen.ts`), so the look carries over.
+
+```ts
+// GodDef look fields (with the existing id, pantheon, name, template, damageType)
+{ id: 'odin',   builds: ['tall', 'lean'],  faces: ['part_face_odin_a', 'part_face_odin_b'],
+  cloak: 'part_cloak_odin',   colours: ['#41507a', '#c8b27a'], emblem: 'part_emblem_raven' },
+{ id: 'thor',   builds: ['broad', 'short'], faces: ['part_face_thor_a', 'part_face_thor_b'],
+  cloak: 'part_cloak_thor',   colours: ['#a8392c', '#d9a441'], emblem: 'part_emblem_hammer' },
+{ id: 'loki',   builds: ['lean', 'short'], faces: ['part_face_loki_a', 'part_face_loki_b'],
+  cloak: 'part_cloak_loki',   colours: ['#4f8a3a', '#8fbf4a'], emblem: 'part_emblem_serpent' },
+{ id: 'freyja', builds: ['lean', 'broad'], faces: ['part_face_freyja_a', 'part_face_freyja_b'],
+  cloak: 'part_cloak_freyja', colours: ['#9d4f6a', '#f1e8d4'], emblem: 'part_emblem_feather' },
+
+// PathDef look fields (tier 2 on): the path's cloak and its weapon family
+{ id: 'odin-seer',          cloak: 'part_cloak_odin_seer',          weapon: 'staff' },
+{ id: 'odin-wanderer',      cloak: 'part_cloak_odin_wanderer',      weapon: 'spear' },
+{ id: 'thor-hammerborn',    cloak: 'part_cloak_thor_hammerborn',    weapon: 'hammer' },
+{ id: 'thor-stormcaller',   cloak: 'part_cloak_thor_stormcaller',   weapon: 'staff' },
+{ id: 'loki-trickster',     cloak: 'part_cloak_loki_trickster',     weapon: 'daggers' },
+{ id: 'loki-flamebinder',   cloak: 'part_cloak_loki_flamebinder',   weapon: 'daggers' },
+{ id: 'freyja-valkyrie',    cloak: 'part_cloak_freyja_valkyrie',    weapon: 'spear' },
+{ id: 'freyja-seidkona',    cloak: 'part_cloak_freyja_seidkona',    weapon: 'staff' },
+```
+
+- **Tier 1 weapon family** comes from the god: Odin staff, Thor hammer, Loki daggers, Freyja
+  wand (`weapon` on GodDef too: `'staff' | 'hammer' | 'daggers' | 'wand'`).
+- **Flamebinder** keeps the daggers family for its item rows; its look is flame in both hands
+  (code effect over the weapon socket).
+- **Base body may shrink:** Stefan is testing floating against bent limbs with Grim; if floating
+  wins, the base body has fewer segments and section 5's first batch drops by the same number.
 
 - **Fallbacks:** a missing worn piece shows the base part (or nothing for headgear and
   off-hand), a missing icon a plain slot icon.
