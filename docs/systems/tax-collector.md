@@ -30,33 +30,38 @@ tax collector", in M2). Sim builds it, Scene draws it, Balance sets the numbers.
    tithe (as in Sim's knob).
    - The hero pays `titheOwed` into the till of its **home temple** when it starts to rest (at the
      town hall or a shrine). There is no extra walk: the coin pops over the temple.
+   - No guilds exist in M2, so the decision's "temple or guild" means the temple for now; a
+     guild gets a till when one ships.
    - Home temple: the nearest built temple of the pantheon of the hero's god. If none stands, the
      tithe goes into the town hall, which counts as banked at once.
    - A knocked-out hero keeps `titheOwed`, and the knockout gold loss does not touch it. A slain
      hero's `titheOwed` is lost.
-4. **A destroyed building** drops its till as a gold pile at its spot (rule 9).
+4. **A destroyed building** drops its till as a gold pile at its spot (rule 10).
 
 ### The collector
 
-5. **Count:** 1 per town hall tier (1, 2, 3; `buildings.md`). Until the hall tiers ship, there
-   is 1. Collectors appear at the hall at the run start, so the first one is walking by about 0:05.
+5. **Count:** 1 per town hall tier (1, 2, 3; `buildings.md`). Until the hall tiers ship: 1, and
+   a 2nd once 6 buildings stand besides the hall (`secondAtBuildings` 6; Lead 2026-10-14). Collectors appear at the hall at the run start, so the first one is walking by about 0:05.
 6. **Route:** a collector at the hall picks a target when a till holds at least `minTill` (10).
-   - It walks to the target with the highest `till - distance x 0.02`.
+   - It walks to the target with the highest `till - distance x 0.02`, distance measured from
+     the collector (at the hall, that is from the hall).
    - At a building it stops for `collectMs` (1000) and takes the whole till.
    - It then visits the next building within 400 of it that holds `minTill`, until it carries
      `carryCap` (150) or none is left. Then it walks home and banks the gold: `world.gold` goes
      up and a `collected` event fires.
-   - Two collectors never target the same building.
-7. **Body:** `hp` 40, no armour, speed 0.7 of a level-1 hero's walk. It does not fight and
+   - Two collectors never target the same building or the same pile.
+7. **Towers cover it:** a tower shoots a monster that attacks a collector within the tower's
+   range, as it does for the town (Lead 2026-10-14).
+8. **Body:** `hp` 40, no armour, speed 0.7 of a level-1 hero's walk. It does not fight and
    never heals on the way. Monsters treat it as a hero when they pick a target, so raiders and
    wandering monsters go for it.
-8. **Hit:** when it takes damage, it drops its route and walks home. If it reaches the hall with
+9. **Hit:** when it takes damage, it drops its route and walks home. If it reaches the hall with
    gold, that gold banks as usual.
-9. **Falls:** it drops what it carries as a **gold pile** where it fell (no pile when it carries
-   0). The pile stays until a collector picks it up, and every collector treats a pile like a
-   till. Heroes ignore piles; their gold is their own, the pile is the town's. A new collector
-   appears at the hall after `respawnMs` (20000).
-10. **End of run:** gold still in tills, piles or sacks is lost. The end screen shows it as
+10. **Falls:** it drops what it carries as a **gold pile** where it fell (no pile when it carries
+    0). The pile stays until a collector picks it up, and every collector treats a pile like a
+    till. Heroes ignore piles; their gold is their own, the pile is the town's. A new collector
+    appears at the hall after `respawnMs` (20000).
+11. **End of run:** gold still in tills, piles or sacks is lost. The end screen shows it as
     "Left uncollected" (the run stats row in Data rows, section 4).
 
 ### Why these numbers (Design's start, Balance owns them)
@@ -81,7 +86,7 @@ tax collector", in M2). Sim builds it, Scene draws it, Balance sets the numbers.
 | 70    | Gold pile         | A coin pile with its number where the collector fell; it pulses once.                                                                               |
 | 80    | Tap the collector | Info strip: "Tax collector: carrying 45 gold".                                                                                                      |
 
-- **Art:** manifest id `npc_collector_t1_<view>`. This is a new `npc_` prefix, and Lead adds it
+- **Art:** manifest id `npc_collector_t1_<view>`. This is a new `npc_` prefix, and Art adds it
   to `asset-spec.md`. Until the art exists, the placeholder is a small tan circle with a darker
   sack dot.
 
@@ -97,17 +102,18 @@ tax collector", in M2). Sim builds it, Scene draws it, Balance sets the numbers.
 
 ## 4. Data rows (proposed; Balance sets numbers)
 
-| Order | Row                            | Value (start)                          | Note                                          |
-| ----- | ------------------------------ | -------------------------------------- | --------------------------------------------- |
-| 10    | `tuning.collector.perHallTier` | 1                                      | collectors = hall tier x this                 |
-| 20    | `tuning.collector.minTill`     | 10                                     | smallest till worth a trip; also the HUD      |
-| 30    | `tuning.collector.carryCap`    | 150                                    |                                               |
-| 40    | `tuning.collector.collectMs`   | 1000                                   | stop per building                             |
-| 50    | `tuning.collector.speedMult`   | 0.7                                    | of a level-1 hero's walk                      |
-| 60    | `tuning.collector.hp`          | 40                                     |                                               |
-| 70    | `tuning.collector.respawnMs`   | 20000                                  |                                               |
-| 80    | `tuning.hero.tithe`            | 0.3                                    | Sim's knob; now paid on rest, not at the kill |
-| 90    | Run stats                      | banked, lost (falls), left uncollected | end screen and the bot report                 |
+| Order | Row                                  | Value (start)                          | Note                                          |
+| ----- | ------------------------------------ | -------------------------------------- | --------------------------------------------- |
+| 10    | `tuning.collector.perHallTier`       | 1                                      | collectors = hall tier x this                 |
+| 15    | `tuning.collector.secondAtBuildings` | 6                                      | a 2nd collector until hall tiers ship         |
+| 20    | `tuning.collector.minTill`           | 10                                     | smallest till worth a trip; also the HUD      |
+| 30    | `tuning.collector.carryCap`          | 150                                    |                                               |
+| 40    | `tuning.collector.collectMs`         | 1000                                   | stop per building                             |
+| 50    | `tuning.collector.speedMult`         | 0.7                                    | of a level-1 hero's walk                      |
+| 60    | `tuning.collector.hp`                | 40                                     |                                               |
+| 70    | `tuning.collector.respawnMs`         | 20000                                  |                                               |
+| 80    | `tuning.hero.tithe`                  | 0.3                                    | Sim's knob; now paid on rest, not at the kill |
+| 90    | Run stats                            | banked, lost (falls), left uncollected | end screen and the bot report                 |
 
 - **Saves:** tills, `titheOwed`, collectors and piles join the run state. Bump the save
   version and add a migration: old saves get empty tills and one collector at the hall.
@@ -116,13 +122,13 @@ tax collector", in M2). Sim builds it, Scene draws it, Balance sets the numbers.
 
 ### Sim
 
-| Order | Row                                                                                                                                                                                         |
-| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 10    | Tills on buildings. Shop tax goes into the till; `titheOwed` is paid into the home temple's till on rest (moves Sim's tithe from the kill to rest). Events: `tithe` (unit, building, gold). |
-| 20    | Collector unit (`kind: 'collector'`): count per hall tier, route rule 6, flee on hit, falls into a pile, respawn. Events: `collected` (gold), `collectorHit`, `collectorFell` (pos, gold).  |
-| 30    | Monster targeting counts collectors as heroes.                                                                                                                                              |
-| 40    | Run stats: tax banked, gold lost in falls, left uncollected. The bot report prints tax per run and its p10 (playtest 1 lesson).                                                             |
-| 50    | Save version bump plus migration.                                                                                                                                                           |
+| Order | Row                                                                                                                                                                                                                                         |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 10    | Tills on buildings. Shop tax goes into the till; `titheOwed` is paid into the home temple's till on rest (moves Sim's tithe from the kill to rest). Events: `tithe` (unit, building, gold).                                                 |
+| 20    | Collector unit (`kind: 'collector'`): count per hall tier (2nd at 6 buildings), route rule 6, towers shoot its attackers, flee on hit, falls into a pile, respawn. Events: `collected` (gold), `collectorHit`, `collectorFell` (pos, gold). |
+| 30    | Monster targeting counts collectors as heroes.                                                                                                                                                                                              |
+| 40    | Run stats: tax banked, gold lost in falls, left uncollected. The bot report prints tax per run and its p10 (playtest 1 lesson).                                                                                                             |
+| 50    | Save version bump plus migration.                                                                                                                                                                                                           |
 
 ### Scene
 
@@ -138,10 +144,8 @@ tax collector", in M2). Sim builds it, Scene draws it, Balance sets the numbers.
 | ----- | ------------------------------------------------------------------------------------------------------------------------------------------ |
 | 10    | Tune `tithe`, `minTill`, `carryCap` and collector hp against the human-like bot. Target: a temple-only town still earns 150+ gold by 5:00. |
 
-## OPEN
+## Decided (Lead, 2026-10-14)
 
-1. **Can heroes pick up a gold pile?** Design's start is no, to keep income the town's. Yes
-   would be Majesty-like greed, but the town loses that gold to the hero's purse.
-2. **A second collector before the hall tiers ship?** Option: from 6 built buildings.
-3. **Do towers escort?** Option: a tower shoots at monsters within its range of a collector, as
-   it does for the town. This needs no new rule if tower range already covers the route.
+1. **Heroes cannot pick up a gold pile.** Only collectors do; the pile is the town's.
+2. **A second collector at 6 buildings** until the town hall tiers ship.
+3. **Towers shoot what attacks a collector** within their range.

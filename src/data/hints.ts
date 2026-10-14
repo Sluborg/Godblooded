@@ -102,6 +102,19 @@ export const HINTS: readonly HintDef[] = [
     line2: 'and chose its own upgrade.',
   },
   // First-time hints.
+  // Scene condition `noFlagIdle` (hint-texts.md row 137): 3:00 or later, no flag placed in the
+  // last 120 s, and a lair below max tier untouched (hp unchanged) for 120 s; it fires with that
+  // lair's id (the untouched lair nearest its tier-up).
+  {
+    id: 'h-nudge',
+    order: 137,
+    group: 'first',
+    trigger: 'noFlagIdle',
+    milestone: 2,
+    target: { kind: 'lair' },
+    line1: 'Heroes stay near town.',
+    line2: 'A bounty on a lair sends them out.',
+  },
   {
     id: 'h-raid',
     order: 10,
