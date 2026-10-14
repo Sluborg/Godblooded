@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { COLORS, GAME_WIDTH, MIN_TOUCH } from '../config';
+import { COLORS, GAME_WIDTH, MIN_TOUCH, TAP_SLOP } from '../config';
 import { GRAYBOX, UPGRADES } from '../data/graybox';
 import { DEFAULT_TUNING, type BuildingState, type CommandResult } from '../sim/api';
 import { buildingEffect, buildingName, nextTierEffect } from '../ui/buildingInfo';
@@ -291,7 +291,7 @@ export class HudScene extends Phaser.Scene {
         .text(x + 14, y + H / 2, t.text, { ...TEXT, fontSize: '22px', wordWrap: { width: W - 28 } })
         .setOrigin(0, 0.5);
       bg.on('pointerup', (p: Phaser.Input.Pointer) => {
-        if (p.getDistance() >= 10) return;
+        if (p.getDistance() >= TAP_SLOP) return;
         if (t.pos) map.jumpTo(t.pos);
         this.feed.dismiss(t.id);
       });
@@ -390,7 +390,7 @@ export class HudScene extends Phaser.Scene {
           .setInteractive({ useHandCursor: true }),
       );
       bg.on('pointerup', (p: Phaser.Input.Pointer) => {
-        if (p.getDistance() >= 10) return;
+        if (p.getDistance() >= TAP_SLOP) return;
         map.followUnit(r.unit);
         this.panel.show(r.unit);
         this.rosterKey = '';

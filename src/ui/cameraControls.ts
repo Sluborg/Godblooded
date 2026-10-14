@@ -1,11 +1,10 @@
 import Phaser from 'phaser';
+import { TAP_SLOP } from '../config';
 
 const MAX_ZOOM = 2;
-// Pointer travel (screen px) before a press counts as a drag instead of a tap.
-const DRAG_THRESHOLD = 10;
 
 // One-finger drag pans, two-finger pinch zooms, wheel zooms. A press that never travels
-// DRAG_THRESHOLD is a tap: `onTap` gets the world position.
+// TAP_SLOP is a tap: `onTap` gets the world position.
 export interface CameraControlOptions {
   // Smallest zoom allowed (callers pass the zoom at which the map fills the screen), in design
   // units: the camera's own zoom is this times `scale`.
@@ -49,7 +48,7 @@ export function attachCameraControls(scene: Phaser.Scene, opts: CameraControlOpt
       return;
     }
     if (!p.isDown) return;
-    if (!dragging && p.getDistance() < DRAG_THRESHOLD) return;
+    if (!dragging && p.getDistance() < TAP_SLOP) return;
     dragging = true;
     onManual?.();
     cam.scrollX -= (p.x - p.prevPosition.x) / cam.zoom;
@@ -62,7 +61,7 @@ export function attachCameraControls(scene: Phaser.Scene, opts: CameraControlOpt
       ignored = false;
       return;
     }
-    if (!dragging && p.getDistance() < DRAG_THRESHOLD && onTap) {
+    if (!dragging && p.getDistance() < TAP_SLOP && onTap) {
       onTap(cam.getWorldPoint(p.x, p.y));
     }
     if (!input.pointer1.isDown && !input.pointer2.isDown) dragging = false;

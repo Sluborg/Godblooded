@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { COLORS, GAME_HEIGHT, GAME_WIDTH } from '../config';
+import { COLORS, GAME_HEIGHT, GAME_WIDTH, TAP_SLOP } from '../config';
 import { GRAYBOX, UPGRADES } from '../data/graybox';
 import { godName } from '../ui/partyLook';
 import { partyHeader, partySubtitle, pathHeader, readableOn } from '../ui/levelUpLook';
@@ -218,7 +218,7 @@ export class LevelUpScene extends Phaser.Scene {
       bg.setFillStyle(0x2b1d14),
     );
     bg.on('pointerup', (pt: Phaser.Input.Pointer) => {
-      if (pt.getDistance() > 10) return;
+      if (pt.getDistance() > TAP_SLOP) return;
       const res = (this.scene.get('Map') as MapScene).tryPickPath(offer.party, p.id);
       if (!res.ok) this.showToast(res.reason);
     });
@@ -259,7 +259,7 @@ export class LevelUpScene extends Phaser.Scene {
       bg.setFillStyle(0x2b1d14),
     );
     bg.on('pointerup', (p: Phaser.Input.Pointer) => {
-      if (p.getDistance() > 10) return;
+      if (p.getDistance() > TAP_SLOP) return;
       const res = (this.scene.get('Map') as MapScene).tryPick(offer.party, id);
       if (!res.ok) this.showToast(res.reason);
     });

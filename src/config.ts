@@ -54,3 +54,7 @@ function detectRenderScale(): number {
 }
 
 export const RENDER_SCALE = detectRenderScale();
+
+// How far a press may travel and still be a tap: 10 design pixels, which are RENDER_SCALE times as
+// many canvas pixels (Phaser pointers report canvas pixels).
+export const TAP_SLOP = 10 * RENDER_SCALE;
