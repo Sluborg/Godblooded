@@ -30,16 +30,16 @@ sits on a celestial node; clearing the lair frees the node; town gatherers walk 
 
 ## 1. Nodes
 
-| Rule         | Value                                                                                                                               |
-| ------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
-| Where        | one under every lair except the boss lair, at the lair's position (mapgen places lairs as today: 600+ from town, 350+ apart)        |
-| Locked       | while the lair stands: a dim, red-veined glow under the lair (part of the corrupted-ground cue, `look-sheet.md`)                    |
-| Freed        | when the lair is destroyed: event `nodeFreed {node, lair, pos}`; the lair leaves a broken ruin beside the node                      |
-| Pool         | opens with `nodeStart` 40 Ambrosia; refills `nodeRegenPerMin` 8 up to `nodeMax` 80                                                  |
-| Distance     | `nodeStart` and `nodeMax` x (1 + 0.25 per full 400 beyond 600 from the town hall): a far node at 1400 opens with 60, holds 120      |
-| Lair tier    | a node freed from a tier 2 lair holds x1.25, tier 3 x1.5 (the harder lair pays more)                                                |
-| Stays free   | until it is defiled by a raid or a new lair sprouts on it (section 1b); a cleared lair itself never comes back (`progression.md` 3) |
-| Not a target | nodes take no damage; monsters do not seek them out, only raiders passing near one defile it (section 1b)                           |
+| Rule         | Value                                                                                                                                                     |
+| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Where        | one under every lair except the boss lair, at the lair's position (mapgen places lairs as today: 800+ from town, 500+ apart, spacing option B)            |
+| Locked       | while the lair stands: a dim, red-veined glow under the lair (part of the corrupted-ground cue, `look-sheet.md`)                                          |
+| Freed        | when the lair is destroyed: event `nodeFreed {node, lair, pos}`; the lair leaves a broken ruin beside the node                                            |
+| Pool         | opens with `nodeStart` 40 Ambrosia; refills `nodeRegenPerMin` 8 up to `nodeMax` 80                                                                        |
+| Distance     | `nodeStart` and `nodeMax` x (1 + 0.25 per full 400 beyond 800 from the town hall, the nearest a lair can be): a far node at 1600 opens with 60, holds 120 |
+| Lair tier    | a node freed from a tier 2 lair holds x1.25, tier 3 x1.5 (the harder lair pays more)                                                                      |
+| Stays free   | until it is defiled by a raid or a new lair sprouts on it (section 1b); a cleared lair itself never comes back (`progression.md` 3)                       |
+| Not a target | nodes take no damage; monsters do not seek them out, only raiders passing near one defile it (section 1b)                                                 |
 
 - **Expected yield:** 4 to 6 lairs a run, the first falls about 7:00, runs end 15 to 18 min:
   about 3 to 4 freed nodes, worked for 4 to 8 minutes each, so **200 to 300 Ambrosia a run**
@@ -59,7 +59,7 @@ sits on a celestial node; clearing the lair frees the node; town gatherers walk 
   the player has to answer it with guards (sent) or a bounty (heroes may take it).
 - **Raid timing:** raiders that stop at a node reach the town later than `events.md` assumes;
   Balance checks raid arrival in the M3 bot pass.
-- **Sprouted lairs** sit on existing nodes, so mapgen's 600 from town and 350 apart already hold.
+- **Sprouted lairs** sit on existing nodes, so mapgen's 800 from town and 500 apart already hold.
   They tier up and raid like any lair, but do not count toward lair-count rules (`mapRules.lairs`,
   the boss seal's `sealLairs`) or the Essence "lair cleared" line, so they cannot be farmed.
 - **Raids pick no node on purpose:** raiders keep their target (`events.md` 1); a node on
@@ -216,5 +216,5 @@ the town hall card. **M3 ships T, A and B** (Stefan); C to F stay as ideas for l
 6. **Freed nodes can be re-corrupted:** a raid that reaches one (2 defilers stay until cleansed),
    or a new lair sprouting on one; both warned, both won back (section 1b).
 7. **Escort bounty** pays on a safe return, half back on a death.
-8. **Far nodes hold more** (+25% per 400 beyond 600).
+8. **Far nodes hold more** (+25% per 400 beyond 800).
 9. **Essence** is the Altar's currency.
