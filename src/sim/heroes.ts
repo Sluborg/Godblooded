@@ -532,13 +532,14 @@ function releaseFlag(flag: BountyState): void {
 }
 
 // A monster died: a hunt flag on it is paid to the hero that landed the kill (a summon's kill
-// pays its owner). A tower's or a miracle's kill (`via`) pays nobody: the flag stays on the ground.
-export function claimHunt(world: World, victim: number, by: number, via?: 'miracle'): void {
+// pays its owner, a miracle's kill the hero it is credited to). A kill with no hero credited (a
+// tower) pays nobody: the flag stays on the ground.
+export function claimHunt(world: World, victim: number, by: number): void {
   const killer = world.units.find((u) => u.id === by);
   const heroId = killer?.kind === 'summon' ? killer.summon?.owner : by;
   const hero = world.units.find((u) => u.id === heroId && u.kind === 'hero');
   for (const flag of world.bounties.filter((b) => b.target === victim)) {
-    if (!hero || via) {
+    if (!hero) {
       releaseFlag(flag);
       continue;
     }

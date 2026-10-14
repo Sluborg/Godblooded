@@ -206,7 +206,7 @@ export interface World {
   tuning: Tuning;
   parties: Map<number, Party>;
   bonds: Map<string, number>;
-  pendingDeaths: { victim: number; by: number; via?: 'miracle' }[];
+  pendingDeaths: { victim: number; by: number }[];
   // Where heroes were slain.
   graves: GraveState[];
   // Monster and lair types a hero has already seen (the `discovered` event fires once each).
@@ -836,7 +836,7 @@ function fight(world: World, unit: UnitState, rt: UnitRuntime, stats: Stats, foe
 function settleDeaths(world: World): void {
   const settled = new Set<number>();
   const slainIds = new Set<number>();
-  for (const { victim, by, via } of world.pendingDeaths) {
+  for (const { victim, by } of world.pendingDeaths) {
     const unit = world.units.find((u) => u.id === victim);
     if (!unit || unit.ko || settled.has(victim)) continue;
     settled.add(victim);
@@ -907,7 +907,7 @@ function settleDeaths(world: World): void {
       if (krt?.fight) krt.fight.kills++;
       healOnKill(world, by);
       payBounty(world, by, bounty + stolenBy(world, unit.id));
-      claimHunt(world, unit.id, by, via);
+      claimHunt(world, unit.id, by);
       shareXp(world, by, xp);
       splitSwarm(world, unit, mrt);
     }
