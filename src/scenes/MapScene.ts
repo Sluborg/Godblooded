@@ -33,6 +33,7 @@ import { iconScale } from '../ui/icons';
 import { releaseSets } from '../ui/parts/bake';
 import { effectiveSpeed } from '../ui/pathSpeed';
 import { STYLE } from '../ui/style';
+import { LAIR_UI_DEPTH, LairIndicators, groundScale, plateColor } from '../ui/lairRings';
 import { groundShadow, lairDecal, lairPlate, townPatch } from '../ui/groundDecal';
 import { HALL_STYLE, drawBanners, isTownHall, plazaDecal } from '../ui/townHallLook';
 import {
@@ -77,6 +78,8 @@ export interface MapTap {
   plot: number | null;
   // Id of a tapped hero (opens the party panel), or null.
   hero?: number | null;
+  // Id of the tapped tax collector (shows its info strip), or null.
+  collector?: number | null;
   // Id of a tapped building (opens the building panel), or null.
   building?: number | null;
   // Id of a tapped bounty flag (opens the flag card), or null.
@@ -93,6 +96,7 @@ export class MapScene extends Phaser.Scene {
   private unitViews!: UnitViews;
   // Lines from the selected hero's party to the flags it is heading for.
   private links!: Phaser.GameObjects.Graphics;
+  private lairInd!: LairIndicators;
   // Lairs with a raid on the way: the run time the warning ends (a dotted trail to the town).
   private raidTrails = new Map<number, number>();
   // Party whose level-up cards are open (the sim is frozen until it is picked), or null.
@@ -180,6 +184,7 @@ export class MapScene extends Phaser.Scene {
       if (STYLE.screenShake && !getSettings().reducedMotion) this.cameras.main.shake(130, 0.004);
     });
     this.links = this.add.graphics().setDepth(1_000_000);
+    this.lairInd = new LairIndicators(this);
     this.snap = snapshot(this.world);
     this.sync();
     this.scene.launch('Hud');
@@ -397,6 +402,11 @@ export class MapScene extends Phaser.Scene {
   }
 
   // The end-screen numbers for the run as it stands (Quit from Pause shows them as abandoned).
+  get hintTuning(): { minTill: number; maxTier: number } {
+    const t = this.world.tuning;
+    return { minTill: t.collector.minTill, maxTier: t.lair.maxTier };
+  }
+
   abandonReport(): RunReport {
     return runReport(this.world);
   }
@@ -426,6 +436,13 @@ export class MapScene extends Phaser.Scene {
   private resolveTap(w: Phaser.Math.Vector2): MapTap {
     const plot = this.plotAt(w);
     if (plot !== null) return { plot, target: null };
+    // The tax collector: its own tap (an info strip), found before heroes so a crowd does not hide it.
+    const collector = this.snap.units
+      .filter((u) => u.kind === 'collector')
+      .map((u) => ({ u, d: Math.hypot(u.pos.x - w.x, u.pos.y - 40 - w.y) }))
+      .filter(({ d }) => d < TARGET_RADIUS + 20)
+      .sort((a, b) => a.d - b.d)[0];
+    if (collector) return { plot: null, collector: collector.u.id, target: null };
     const hero = this.snap.units
       .filter((u) => u.kind === 'hero')
       .map((u) => ({ u, d: Math.hypot(u.pos.x - w.x, u.pos.y - w.y) }))
@@ -569,9 +586,16 @@ export class MapScene extends Phaser.Scene {
       this.snap.paths,
     );
     this.drawLinks();
+    this.lairInd.update(this.snap, dtMs, this.world.tuning.monster.lairAggro);
+    // The plate pulses with its ring in the last 15 s before a tier-up.
+    for (const l of this.snap.lairs)
+      (
+        this.views.get(`l${l.id}`)?.getData('plate') as Phaser.GameObjects.Container | undefined
+      )?.setScale(1 + 0.1 * this.lairInd.beatOf(l.id));
     for (const e of this.snap.events) {
       if (e.kind === 'lairTierUp') this.lairGrows(e.lair, e.tier);
       if (e.kind === 'considering') this.flagGlint(e.bounty);
+      if (e.kind === 'raidWarning') this.lairInd.flashRed(e.lair);
       if (e.kind === 'raidWarning') this.raidTrails.set(e.lair, this.snap.timeMs + e.inMs);
       this.taxEvent(e);
       if (e.kind !== 'hit') continue;
@@ -959,12 +983,30 @@ export class MapScene extends Phaser.Scene {
   // boss lair larger; the dark dot with its name when Art has none.
   private makeLair(l: { type: string; tier: number; pos: Vec2; boss: boolean }) {
     const c = this.makeMarker(l.type, l.pos, 44, 0x2b1d33);
-    this.groundUnder(c, lairDecal(this, l.boss), l.pos);
+    const decal = lairDecal(this, l.boss);
+    this.groundUnder(c, decal, l.pos);
+    c.setData('decal', decal);
+    // The plate is UI: it sits above the guards that stand around the lair, not in its picture.
     const plate = lairPlate(this, l.type).setVisible(false);
-    c.add(plate);
+    plate.setPosition(l.pos.x, l.pos.y + 46).setDepth(LAIR_UI_DEPTH);
+    c.once(Phaser.GameObjects.Events.DESTROY, () => plate.destroy());
     c.setData('plate', plate);
     this.refreshLair(c, l.type, l.tier, l.boss);
     return c;
+  }
+
+  // The lair tier in code (monsters-and-bosses.md section 4): the corrupted ground grows, the plate
+  // takes the tier colour, and a tier 3 plate pulses slowly (heroes can die here).
+  private styleLairTier(view: Phaser.GameObjects.Container, tier: number): void {
+    (view.getData('decal') as Phaser.GameObjects.Graphics | undefined)?.setScale(groundScale(tier));
+    const plate = view.getData('plate') as Phaser.GameObjects.Container | undefined;
+    if (!plate) return;
+    const label = plate.list[0] as Phaser.GameObjects.Text;
+    label.setBackgroundColor(`${plateColor(tier)}ee`);
+    this.tweens.killTweensOf(plate);
+    plate.setAlpha(1);
+    if (tier >= 3 && !getSettings().reducedMotion)
+      this.tweens.add({ targets: plate, alpha: 0.65, duration: 900, yoyo: true, repeat: -1 });
   }
 
   // Swaps in the picture for the lair's current tier when there is one (a tier-up changes it).
@@ -976,6 +1018,7 @@ export class MapScene extends Phaser.Scene {
   ): void {
     if (!(view instanceof Phaser.GameObjects.Container) || view.getData('tier') === tier) return;
     view.setData('tier', tier);
+    this.styleLairTier(view, tier);
     const art = lairArtCandidates(type, tier).find((id) => this.textures.exists(id));
     if (!art) return;
     let img = view.getData('img') as Phaser.GameObjects.Image | undefined;

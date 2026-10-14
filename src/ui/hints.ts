@@ -190,6 +190,8 @@ export function hintsFromEvent(
       return f(e.kind, e.unit);
     case 'slain':
       return { fire: [{ trigger: 'slain', unit: n(e.unit), ...atOf(e.pos) }], skip: [] };
+    case 'collectorFell':
+      return { fire: [{ trigger: 'collectorFell', unit: null, ...atOf(e.pos) }], skip: [] };
     case 'raidWarning':
       return { fire: [{ trigger: 'raidWarning', unit: null, ...atOf(e.from) }], skip: [] };
     case 'partyFormed':
