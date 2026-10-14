@@ -214,6 +214,36 @@ export interface BossMove {
     rider?: RiderId;
     windupMs: number;
   };
+  // Venom (Jormungandr): every everyS seconds it spits on the hero with the most hp in reach; that
+  // hero and every hero within radius of it are poisoned, dotPct of max hp per second as death for
+  // s seconds. Any heal on a hero ends its poison.
+  venom?: TimedMove & { radius: number; dotPct: number; s: number };
+  // Howl (Cerberus): heroes within radius below belowHp break and flee for fleeS (brave and proud
+  // heroes ignore it); it calls `calls` guards from its lair.
+  howl?: TimedMove & { radius: number; belowHp: number; fleeS: number; calls: number };
+  // Riddle (Sphinx): asks the hero in reach with the lowest Int: intAtLeast or more answers (+buff
+  // damage for buffS), less is turned to stone for stoneS (no actions, half damage taken).
+  riddle?: TimedMove & { intAtLeast: number; buff: number; buffS: number; stoneS: number };
+  // Swallow (Apep): the hero with the most hp in reach is swallowed for s seconds (out of the
+  // fight, dotPct of max hp per second as death); freePct of the boss's max hp in damage frees it.
+  swallow?: TimedMove & { s: number; dotPct: number; freePct: number };
+  // Three Heads (Hydra): every strike hits up to `heads` heroes in reach; at each hp share of
+  // cutAt a head is cut and regrows after regrowS (enragedRegrowS) unless a hit of stopType lands
+  // on the boss meanwhile (then it stays cut).
+  heads?: {
+    count: number;
+    cutAt: number[];
+    regrowS: number;
+    enragedRegrowS: number;
+    stopType: DamageType;
+  };
+}
+
+// A move on a timer: every everyS seconds (enragedEveryS once enraged), announced windupMs ahead.
+export interface TimedMove {
+  everyS: number;
+  enragedEveryS: number;
+  windupMs: number;
 }
 
 // A cone on the ground a strike hits, fixed when the windup starts.
@@ -849,6 +879,10 @@ export interface TownTuning {
   towerWarnAddMs: number;
   // A lair that tiers up sends one raid of its own (announced raidWarnMs ahead).
   raidOnTierUp: boolean;
+  // The size of a tier-up raid: 0 follows the clock raid (raidSize + growth), else this flat size.
+  tierRaidSize: number;
+  // Only every n-th tier-up (counted across all lairs) sends a raid; 1 is every one.
+  tierRaidEvery: number;
   // Gold the town gets when every raider of a raid is dead ("the town cheers").
   raidBeatenGold: number;
 }
@@ -1144,8 +1178,14 @@ export type SimEvent =
       area?: { x: number; y: number; r: number };
       // A breath: the cone Scene draws until the strike lands.
       cone?: ConeArea;
+      // A timed boss move being announced (venom, howl, riddle, swallow).
+      move?: 'venom' | 'howl' | 'riddle' | 'swallow';
     }
   | { kind: 'bossEmerged'; unit: number; lair: number }
+  // The Sphinx asked `target`; `answered` is true when it knew the answer.
+  | { kind: 'riddle'; boss: number; target: number; answered: boolean }
+  // The Hydra lost or regrew a head; `heads` is how many it has now.
+  | { kind: 'bossHeads'; unit: number; heads: number }
   | { kind: 'enraged'; unit: number }
   // `source: 'miracle'`: a god's doing; `healer` is 0 (no unit swings or casts).
   | { kind: 'heal'; healer: number; target: number; amount: number; source?: 'miracle' }
@@ -1241,7 +1281,17 @@ export type SimEvent =
   | {
       kind: 'status';
       unit: number;
-      status: 'shield' | 'mark' | 'buff' | 'taunt' | 'bind' | 'hot';
+      status:
+        | 'shield'
+        | 'mark'
+        | 'buff'
+        | 'taunt'
+        | 'bind'
+        | 'hot'
+        | 'poison'
+        | 'fear'
+        | 'stone'
+        | 'swallowed';
       until: number;
     }
   | { kind: 'argue'; a: number; b: number }

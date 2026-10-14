@@ -1,3 +1,4 @@
+import { curePoison } from './effects';
 import { fleeThreshold } from './parties';
 import { TICK_MS } from './units';
 import type { UnitRuntime, World } from './world';
@@ -64,5 +65,6 @@ function drink(world: World, unit: UnitState): void {
   items.potions--;
   if (pick.index >= 0) items.flasks?.splice(pick.index, 1);
   unit.hp += amount;
+  curePoison(world, unit.id);
   world.events.push({ kind: 'drank', unit: unit.id, amount, left: items.potions });
 }

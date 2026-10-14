@@ -187,8 +187,11 @@ export function planTierRaid(world: World, lair: LairState, pressure = false): v
   const t = world.tuning.town;
   // A pressure tier-up (heroes put down at the lair) does not also send a raid.
   if (!t.raidOnTierUp || lair.boss || pressure) return;
+  if (++world.tierUps % Math.max(1, t.tierRaidEvery) !== 0) return;
   const at = world.timeMs + t.raidWarnMs;
-  announceRaid(world, lair, at, t.raidSize + Math.floor(at / t.raidGrowEveryMs), false);
+  const size =
+    t.tierRaidSize > 0 ? t.tierRaidSize : t.raidSize + Math.floor(at / t.raidGrowEveryMs);
+  announceRaid(world, lair, at, size, false);
 }
 
 function announceRaid(
