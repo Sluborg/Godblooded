@@ -3,6 +3,7 @@ import { GRAYBOX } from '../data/graybox';
 import { lookOf, type UnitLook } from '../data/looks';
 import { bossState } from './bossLook';
 import { bakeRings, type RingSpec } from './bake';
+import { RENDER_SCALE } from '../config';
 import { heroPartsLook } from '../data/heroParts';
 import {
   STATUS_LOOK,
@@ -65,6 +66,9 @@ import {
 // Heroes drawn from parts (src/ui/parts/) instead of a picture; `?noparts` in the URL turns it off.
 const USE_PARTS =
   typeof location === 'undefined' || !new URLSearchParams(location.search).has('noparts');
+// A painted still of the hero (`hero_<god>_t1_front`, `hero_<god>-<path>_t2_front`) beats the parts
+// look: one art style (Stefan, playtest run 2). Parts stay only for heroes with no picture.
+const ART_BEATS_PARTS = true;
 // A standard hero is about this tall in the parts drawing units (head to feet).
 const PARTS_HERO_H = 44;
 const NO_POSE: Pose = { rot: 0, dx: 0, dy: 0, sx: 1, sy: 1 };
@@ -156,7 +160,7 @@ interface FrameCtx {
 export class UnitView {
   readonly container: Phaser.GameObjects.Container;
   private readonly body: Phaser.GameObjects.Container;
-  private readonly shadow: Phaser.GameObjects.Graphics;
+  private readonly shadow: Phaser.GameObjects.Image;
   private readonly capsule: Phaser.GameObjects.Ellipse;
   private readonly nose: Phaser.GameObjects.Triangle;
   private sprite: Phaser.GameObjects.Image | null = null;
@@ -261,7 +265,9 @@ export class UnitView {
     const h = PLACEHOLDER.h * this.look.scale;
     this.w = w;
     this.h = h;
-    this.shadow = scene.add.graphics();
+    // One baked black ellipse (bake.ts) scaled and faded per frame: a Graphics ellipse was
+    // re-triangulated 30 times a frame.
+    this.shadow = bakeRings(scene, [{ w: 100, h: 50, fill: [0x000000, 1] }]);
     this.capsule = scene.add
       .ellipse(0, -h / 2, w, h, this.look.color)
       .setStrokeStyle(3, 0x000000, 0.6);
@@ -345,6 +351,13 @@ export class UnitView {
   // A hero with a parts row is drawn from baked parts frames; false when it has none.
   private applyParts(u: UnitState): boolean {
     if (!USE_PARTS || u.kind !== 'hero' || !u.god) return this.leaveParts();
+    if (
+      ART_BEATS_PARTS &&
+      artCandidates(u.kind, u.type, u.tier, u.path, u.god).some((c) =>
+        this.scene.textures.exists(c),
+      )
+    )
+      return this.leaveParts();
     const look = heroPartsLook(u.god, u.path, u.tier);
     if (!look) return this.leaveParts();
     const id = look.id;
@@ -1010,9 +1023,12 @@ export class UnitView {
     const fall = this.koK > 0 ? this.koDir * this.h * 0.3 * Math.min(1, this.koK) : 0;
     const rx = UNIT_HEIGHT * this.look.footprint * 0.85 * (1 - lift);
     this.shadow
-      .clear()
-      .fillStyle(0x000000, 0.32 - lift)
-      .fillEllipse(fall, 0, rx * 2, UNIT_HEIGHT * this.look.footprint * 0.48);
+      .setPosition(fall, 0)
+      .setScale(
+        (rx * 2) / 100 / RENDER_SCALE,
+        (UNIT_HEIGHT * this.look.footprint * 0.48) / 50 / RENDER_SCALE,
+      )
+      .setAlpha(Math.max(0, 0.32 - lift));
     // hurt flash: white, then red, on the picture (or the placeholder body)
     const f =
       hurtFlash(this.hit) ??

@@ -17,6 +17,19 @@ export function bake(
   halfH: number,
   draw: (g: Phaser.GameObjects.Graphics) => void,
 ): Phaser.GameObjects.Image {
+  return scene.add
+    .image(0, 0, bakeTexture(scene, key, halfW, halfH, draw))
+    .setScale(1 / RENDER_SCALE);
+}
+
+// Just the texture id (baked once per key), for a caller that swaps the texture of its own image.
+export function bakeTexture(
+  scene: Phaser.Scene,
+  key: string,
+  halfW: number,
+  halfH: number,
+  draw: (g: Phaser.GameObjects.Graphics) => void,
+): string {
   const r = RENDER_SCALE;
   const id = `bake:${key}:${r}`;
   if (!scene.textures.exists(id)) {
@@ -28,7 +41,7 @@ export function bake(
     g.generateTexture(id, Math.ceil(2 * halfW * r), Math.ceil(2 * halfH * r));
     g.destroy();
   }
-  return scene.add.image(0, 0, id).setScale(1 / r);
+  return id;
 }
 
 // A ground ellipse: optional fill, optional outline.
