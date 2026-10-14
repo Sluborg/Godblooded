@@ -107,7 +107,8 @@ try {
     timeout: 15_000,
   });
   await page.waitForFunction(() => window.__game?.scene.isActive('Title'), null, {
-    timeout: 15_000,
+    // Software GL is slow at a high render scale (SMOKE_SCALE): the boot takes several times longer.
+    timeout: process.env.SMOKE_SCALE ? 60_000 : 15_000,
   });
   await sleep(500);
   // Title: Play is the first button (design y 420 when there is no run to continue).
