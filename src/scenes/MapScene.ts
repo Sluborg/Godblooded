@@ -201,11 +201,13 @@ export class MapScene extends Phaser.Scene {
     const onHide = () => {
       if (document.visibilityState === 'hidden') this.saveNow();
     };
+    // pagehide can fire while the page still reads 'visible' (iOS Safari): save without asking.
+    const onPageHide = () => this.saveNow();
     document.addEventListener('visibilitychange', onHide);
-    window.addEventListener('pagehide', onHide);
+    window.addEventListener('pagehide', onPageHide);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       document.removeEventListener('visibilitychange', onHide);
-      window.removeEventListener('pagehide', onHide);
+      window.removeEventListener('pagehide', onPageHide);
       releaseSets(this);
       releaseGround(this);
     });
