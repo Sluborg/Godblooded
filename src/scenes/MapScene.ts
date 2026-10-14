@@ -159,6 +159,9 @@ export class MapScene extends Phaser.Scene {
     // The title theme plays on Boot, Title and the hall only; there is no run music yet.
     getMusic(this).stop(800);
     this.sfxFeed.reset();
+    this.registry.set('selectedBuilding', 0);
+    this.selectRing = null;
+    this.selectRingFor = 0;
     this.fpsGuard = new FpsGuard();
     this.world = this.startWorld();
     this.registry.set('speed', getSettings().speed);
