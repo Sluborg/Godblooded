@@ -3,7 +3,7 @@
 // screenshots to smoke-out/ (gitignored) and fails on console errors or page errors.
 //   npm run smoke            (needs Chromium: PLAYWRIGHT_BROWSERS_PATH or SMOKE_CHROMIUM)
 import { spawn } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, rmSync } from 'node:fs';
 import { chromium } from 'playwright-core';
 
 const PORT = 5198;
@@ -119,9 +119,10 @@ try {
   await page.screenshot({ path: `${OUT}/00-start.png` });
 
   // Build: tap a free plot, then the menu button at the building's index in the data file.
-  const ids = [
-    ...readFileSync('src/data/graybox.ts', 'utf8').matchAll(/\{ id: '([a-z_]+)', cost: \d+ \}/g),
-  ].map((m) => m[1]);
+  // The build menu lists the data rows in order: ask the running game for them.
+  const ids = await page.evaluate(async () =>
+    (await import('/src/data/graybox.ts')).GRAYBOX.buildings.map((d) => d.id),
+  );
   for (const [n, type] of BUILD.entries()) {
     const index = ids.indexOf(type);
     if (index < 0) throw new Error(`building ${type} not in src/data/graybox.ts`);

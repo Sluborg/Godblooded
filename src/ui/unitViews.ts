@@ -1488,6 +1488,21 @@ export class UnitViews {
           life: e.inMs / 1000,
         },
       ]);
+    // A breath shows its cone on the ground for the whole windup.
+    if (e.cone)
+      this.fx.add([
+        {
+          type: 'cone',
+          owner: e.attacker,
+          x: e.cone.from.x,
+          y: e.cone.from.y,
+          ang: Math.atan2(e.cone.dir.y, e.cone.dir.x),
+          half: (e.cone.angleDeg * Math.PI) / 360,
+          r: e.cone.range,
+          age: 0,
+          life: e.inMs / 1000,
+        },
+      ]);
     this.views.get(e.attacker)?.beginWindup(e.target, e.inMs / 1000);
   }
 
