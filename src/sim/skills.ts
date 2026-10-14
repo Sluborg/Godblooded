@@ -655,6 +655,16 @@ export function supportEffect(
   }
 }
 
+export function damageEffect(
+  world: World,
+  hero: UnitState,
+  stats: Stats,
+  effect: DamageEffect,
+  foe: UnitState,
+): void {
+  damage(world, hero, stats, effect, foe, 1);
+}
+
 function damage(
   world: World,
   hero: UnitState,

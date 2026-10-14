@@ -44,7 +44,14 @@ import { removeSummon, runSummon, runSummonUpkeep, summonStats } from './summons
 import { runStatuses, slowOf, healMult, type UnitStatus } from './riders';
 import { attackStrike, landStrike } from './strike';
 import { cancelDrink, runDrink } from './potions';
-import { cancelCast, runSkill, supportEffect, tickSkill, type SkillRuntime } from './skills';
+import {
+  cancelCast,
+  damageEffect,
+  runSkill,
+  supportEffect,
+  tickSkill,
+  type SkillRuntime,
+} from './skills';
 import { swing, type Area } from './swing';
 import {
   bossNumbers,
@@ -1045,11 +1052,18 @@ function fight(world: World, unit: UnitState, rt: UnitRuntime, stats: Stats, foe
     foe.id,
     (area, hitCone) => {
       if (boss) boss.rt.strikes++;
+      // A passive that changes or adds to every nth strike (counted before the strike lands).
+      const nth = everyNthOf(world, unit);
+      const fightState = nth ? (rt.fight ??= { kills: 0, missUsed: false, strikes: 0 }) : undefined;
+      const nthNow = !!nth && !!fightState && (fightState.strikes + 1) % nth.n === 0;
       if (hitCone && breath) breathStrike(world, unit, stats, hitCone, breath);
       else if (cleave && area) cleaveStrike(world, unit, foe, stats, area);
       else {
         const input = attackStrike(stats, targetOf(world, foe));
-        const rider = unit.kind === 'hero' ? passiveRider(world, unit) : undefined;
+        const nthStrike = nthNow ? nth?.strike : undefined;
+        if (nthStrike?.type) input.type = nthStrike.type;
+        const rider =
+          nthStrike?.rider ?? (unit.kind === 'hero' ? passiveRider(world, unit) : undefined);
         const pack = unit.kind === 'monster' ? packMult(world, unit) : 1;
         landStrike(world, unit, foe, {
           ...input,
@@ -1076,12 +1090,13 @@ function fight(world: World, unit: UnitState, rt: UnitRuntime, stats: Stats, foe
           }
         }
       }
-      // A passive that adds effects to every nth strike.
-      const nth = everyNthOf(world, unit);
-      if (nth && foe.hp > 0) {
-        const fightState = (rt.fight ??= { kills: 0, missUsed: false, strikes: 0 });
-        if (++fightState.strikes % nth.n === 0) {
-          for (const effect of nth.effects) supportEffect(world, unit, stats, effect, foe);
+      if (nth && fightState) {
+        fightState.strikes++;
+        if (nthNow && foe.hp > 0) {
+          for (const effect of nth.effects) {
+            if (effect.kind === 'damage') damageEffect(world, unit, stats, effect, foe);
+            else supportEffect(world, unit, stats, effect, foe);
+          }
         }
       }
     },
