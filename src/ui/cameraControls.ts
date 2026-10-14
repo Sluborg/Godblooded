@@ -8,7 +8,7 @@ const MAX_ZOOM = 2;
 export interface CameraControlOptions {
   // Smallest zoom allowed (callers pass the zoom at which the map fills the screen), in design
   // units: the camera's own zoom is this times `scale`.
-  minZoom: number;
+  minZoom: number | (() => number);
   // The canvas's render scale (config RENDER_SCALE): pointer positions arrive in canvas pixels.
   scale?: number;
   onTap?: (world: Phaser.Math.Vector2) => void;
@@ -19,7 +19,8 @@ export interface CameraControlOptions {
 }
 
 export function attachCameraControls(scene: Phaser.Scene, opts: CameraControlOptions): void {
-  const { minZoom, onTap, blocked, onManual } = opts;
+  const { onTap, blocked, onManual } = opts;
+  const minZoom = () => (typeof opts.minZoom === 'function' ? opts.minZoom() : opts.minZoom);
   const scale = opts.scale ?? 1;
   const cam = scene.cameras.main;
   const input = scene.input;
@@ -28,7 +29,7 @@ export function attachCameraControls(scene: Phaser.Scene, opts: CameraControlOpt
   let dragging = false;
   let ignored = false;
 
-  const clampZoom = (z: number) => Phaser.Math.Clamp(z, minZoom * scale, MAX_ZOOM * scale);
+  const clampZoom = (z: number) => Phaser.Math.Clamp(z, minZoom() * scale, MAX_ZOOM * scale);
   // Zooms keeping the world point under the screen point (x, y) where it is: pinching out from a
   // spot zooms about that spot, not about the middle of the screen.
   const zoomAt = (zoom: number, x: number, y: number) => {

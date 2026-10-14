@@ -13,7 +13,7 @@ export class PartsGalleryScene extends Phaser.Scene {
   }
 
   create(): void {
-    fitDesignCamera(this);
+    fitDesignCamera(this, 'centre');
     this.cameras.main.setBackgroundColor(0x3d5a2e);
     const q = new URLSearchParams(location.search).get('gallery') || 'thor';
     const all = partsGods();
