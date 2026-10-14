@@ -42,7 +42,7 @@ import { pickVariant, rotateHue, sizeJitter, tierStyle } from './monsterLook';
 import { RIDER_LOOK, riderDurationMs } from './riderLook';
 import { damageLook, MAX_FLOATS, typeTint, type FloatLook, type HitInfo } from './damageLook';
 import { getSettings } from './settings';
-import { sackSize, drawSack } from './taxLook';
+import { sackSize, drawCollector } from './taxLook';
 import { heroLabel, partyColor, partyRole, type PartyRole } from './partyLook';
 import { SpeechLimit } from './speechLimit';
 import { cardColor } from './levelUpLook';
@@ -210,6 +210,7 @@ export class UnitView {
   private statusDrawn = false;
   private readonly intentG: Phaser.GameObjects.Graphics;
   private sackG: Phaser.GameObjects.Graphics | null = null;
+  private collector = false;
   private sackDrawn = -1;
   private intentDrawn = false;
   private hiddenNow = false;
@@ -263,9 +264,14 @@ export class UnitView {
       .setOrigin(0.5, 1);
     this.body = scene.add.container(0, 0, [this.capsule, this.nose]);
     if (u.kind === 'collector') {
-      // The sack on its back: 3 sizes by what it carries (tax-collector.md section 2).
-      this.sackG = scene.add.graphics();
+      this.collector = true;
+      // A hooded figure with a sack on its back in 3 sizes by what it carries (tax-collector.md
+      // section 2), instead of the capsule.
+      this.capsule.setVisible(false);
+      this.nose.setVisible(false);
+      this.sackG = scene.add.graphics().setScale(1.3);
       this.body.add(this.sackG);
+      this.label.setFontSize(20).setColor('#f2c14e').setStroke('#000000', 4);
       this.drawSackFor(u.gold ?? 0);
     }
     this.bar = scene.add.graphics();
@@ -588,7 +594,7 @@ export class UnitView {
     const size = sackSize(carried, DEFAULT_TUNING.collector.carryCap);
     if (size === this.sackDrawn) return;
     this.sackDrawn = size;
-    drawSack(this.sackG, size, -this.w * 0.55, -this.h * 0.5);
+    drawCollector(this.sackG, size);
   }
 
   // A short sign over the head for a moment: a "?" or "!" a boss move puts on its target.
@@ -865,7 +871,8 @@ export class UnitView {
       pose = NO_POSE;
     }
     this.applyPose(pose, alpha * this.fade);
-    this.container.setPosition(this.x, this.y).setDepth(this.y);
+    // The tax collector is drawn over the buildings it walks behind: it must always be findable.
+    this.container.setPosition(this.x, this.y).setDepth(this.collector ? 900_000 + this.y : this.y);
   }
 
   // Distance from the feet anchor to either foot: it grows with the unit's footprint.
@@ -1018,6 +1025,15 @@ export class UnitView {
       if (selected) this.ring.lineStyle(3, 0xffffff, 0.95).strokeEllipse(0, -4, rw + 14, rh + 8);
       this.label.setVisible(selected || this.boss);
       this.badge.setVisible(false);
+      return;
+    }
+    if (u.kind === 'collector') {
+      // A gold-ringed base disc, so it never reads as a hero, and its name always shown.
+      this.ring.fillStyle(0x24140a, 0.45).fillEllipse(0, -4, 78, 30);
+      this.ring.lineStyle(4, 0xf2c14e, 0.95).strokeEllipse(0, -4, 78, 30);
+      if (selected) this.ring.lineStyle(3, 0xffffff, 0.95).strokeEllipse(0, -4, 94, 38);
+      this.badge.setVisible(false);
+      this.label.setVisible(true);
       return;
     }
     if (u.kind === 'summon') {

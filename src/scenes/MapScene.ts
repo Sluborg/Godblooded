@@ -721,25 +721,35 @@ export class MapScene extends Phaser.Scene {
     (view.getData('label') as Phaser.GameObjects.Text).setText(`${gold}`);
   }
 
-  // A small "+N" that rises over a spot and fades.
-  private coinPop(pos: Vec2, text: string, color = '#f2c14e'): void {
+  // The two "+N" pops of the tax collector, one style each: a till pop (tax or tithe lands in a
+  // building, small, light gold) and a delivery pop (the collector banks gold at the hall, large,
+  // bright gold, with a coin).
+  private coinPop(pos: Vec2, gold: number, kind: 'till' | 'deliver'): void {
+    const big = kind === 'deliver';
     const t = this.add
-      .text(pos.x, pos.y - 90, text, {
+      .text(pos.x + (big ? 12 : 0), pos.y - (big ? 150 : 100), popText(gold), {
         fontFamily: 'Georgia, serif',
-        fontSize: '30px',
-        color,
+        fontSize: big ? '40px' : '26px',
+        color: big ? '#ffd35e' : '#ffe9a0',
         stroke: '#000000',
-        strokeThickness: 5,
+        strokeThickness: big ? 6 : 4,
       })
       .setOrigin(0.5)
       .setDepth(1_000_000);
+    const parts: Phaser.GameObjects.GameObject[] = [t];
+    if (big) {
+      const coin = this.add.graphics().setDepth(1_000_000);
+      drawCoin(coin, 0, 0, 14);
+      coin.setPosition(t.x - t.width / 2 - 16, t.y);
+      parts.push(coin);
+    }
     this.tweens.add({
-      targets: t,
-      y: t.y - 50,
+      targets: parts,
+      y: `-=${big ? 60 : 44}`,
       alpha: 0,
-      duration: 1000,
+      duration: big ? 1400 : 1000,
       ease: 'Cubic.easeOut',
-      onComplete: () => t.destroy(),
+      onComplete: () => parts.forEach((o) => o.destroy()),
     });
   }
 
@@ -768,15 +778,15 @@ export class MapScene extends Phaser.Scene {
       this.snap.buildings.find((b) => b.id === id)?.pos ?? undefined;
     if (e.kind === 'till') {
       const p = at(e.building);
-      if (p) this.coinPop(p, popText(e.gold));
+      if (p) this.coinPop(p, e.gold, 'till');
     } else if (e.kind === 'tithe') {
       const p = at(e.building) ?? hall;
-      if (p) this.coinPop(p, popText(e.gold), '#ffe9a0');
+      if (p) this.coinPop(p, e.gold, 'till');
     } else if (e.kind === 'tillEmptied') {
       const from = e.source === 'till' ? at(e.id) : this.snap.piles.find((q) => q.id === e.id)?.pos;
       if (from) this.flyCoin(from, e.unit);
     } else if (e.kind === 'collected') {
-      if (hall) this.coinPop(hall, popText(e.gold), '#ffd35e');
+      if (hall) this.coinPop(hall, e.gold, 'deliver');
       this.hud()?.pulseGold();
     }
   }
