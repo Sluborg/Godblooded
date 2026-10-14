@@ -95,18 +95,20 @@ export class SettingsScene extends Phaser.Scene {
       .text(670, 535, '', { fontFamily: FONT, fontSize: '32px', color: COLORS.text })
       .setOrigin(0.5);
     makeButton(this, 780, 535, 90, 80, '+', () => this.nudgeEffects(1));
-    this.hintsBtn = makeButton(this, 925, 535, 170, 80, '', () => {
+    this.hintsBtn = makeButton(this, 902, 535, 150, 80, '', () => {
       updateSettings({ hintsOn: !getSettings().hintsOn });
       this.refresh();
       (this.scene.get('Hud') as HudScene | undefined)?.refreshHints();
     });
-    makeButton(this, 1115, 535, 170, 80, 'Show again', () => {
+    makeButton(this, 1110, 535, 230, 80, 'Show hints again', () => {
       clearSeen();
+      // The running director keeps its own copy and would write it back over the cleared list.
+      (this.scene.get('Hud') as HudScene | undefined)?.refreshHints();
       this.hintsAgain.setAlpha(1);
       this.tweens.add({ targets: this.hintsAgain, alpha: 0, delay: 1200, duration: 400 });
     });
     this.hintsAgain = this.add
-      .text(1020, 485, 'Hints will show again', {
+      .text(1100, 485, 'Hints will show again', {
         fontFamily: FONT,
         fontSize: '20px',
         color: COLORS.textMuted,

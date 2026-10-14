@@ -7,6 +7,7 @@ export function hintTargetPos(
   target: HintTarget,
   snap: Pick<Snapshot, 'plots' | 'buildings' | 'units' | 'lairs' | 'bounties'>,
   unit: number | null,
+  at: Vec2 | null = null,
 ): Vec2 | null {
   switch (target.kind) {
     case 'plot':
@@ -25,6 +26,8 @@ export function hintTargetPos(
       return (snap.lairs.find((l) => l.id === unit) ?? snap.lairs[0])?.pos ?? null;
     case 'flag':
       return snap.bounties[snap.bounties.length - 1]?.pos ?? null;
+    case 'spot':
+      return at;
     default:
       return null;
   }

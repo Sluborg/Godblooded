@@ -12,6 +12,8 @@ export class PauseScene extends Phaser.Scene {
   }
 
   create(): void {
+    // A report left by an abandoned Quit that never reached the End screen is stale.
+    this.registry.remove('abandonReport');
     const cx = GAME_WIDTH / 2;
     this.add
       .rectangle(cx, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x000000, 0.7)
