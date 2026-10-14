@@ -24,7 +24,7 @@ const page = await ctx.newPage();
 page.on('pageerror', (e) => console.log('pageerror', e.message));
 await page.goto(`http://localhost:${PORT}/?debug`);
 await page.waitForFunction(() => window.__game?.scene.isActive('Title'), null, { timeout: 20000 });
-await sleep(500);
+await sleep(2000);
 await page.screenshot({ path: `smoke-out/${name}-title.png` });
 await page.evaluate(() => window.__game.scene.getScene('Title').scene.start('Map'));
 await page.waitForFunction(() => window.__game.scene.isActive('Map'), null, { timeout: 10000 });

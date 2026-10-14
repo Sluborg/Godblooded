@@ -6,12 +6,62 @@ export function coverScale(picW: number, picH: number, w = GAME_WIDTH, h = GAME_
   return Math.max(w / picW, h / picH);
 }
 
+// How much the key art is pushed: the title read muted and grainy on a phone, so the picture gets
+// more contrast and saturation (still the warm palette) and a lighter veil.
+export const BACKDROP_STYLE = {
+  contrast: 1.12,
+  saturation: 1.18,
+  veilTop: 0,
+  veilBottom: 0.32,
+} as const;
+
+// Contrast about mid grey, then saturation, on RGBA pixels in place.
+export function punchPixels(
+  data: Uint8ClampedArray,
+  contrast: number = BACKDROP_STYLE.contrast,
+  saturation: number = BACKDROP_STYLE.saturation,
+): void {
+  for (let i = 0; i < data.length; i += 4) {
+    let r = (data[i] - 128) * contrast + 128;
+    let g = (data[i + 1] - 128) * contrast + 128;
+    let b = (data[i + 2] - 128) * contrast + 128;
+    const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+    r = lum + (r - lum) * saturation;
+    g = lum + (g - lum) * saturation;
+    b = lum + (b - lum) * saturation;
+    data[i] = r;
+    data[i + 1] = g;
+    data[i + 2] = b;
+  }
+}
+
+// The key art with the punch applied, baked once into its own texture; the plain art when a canvas
+// cannot be made (then the veil is all there is).
+function punchedSplash(scene: Phaser.Scene): string {
+  const key = 'art_splash_punch';
+  if (scene.textures.exists(key)) return key;
+  try {
+    const src = scene.textures.get('art_splash').getSourceImage() as HTMLImageElement;
+    const tex = scene.textures.createCanvas(key, src.width, src.height);
+    const ctx = tex?.getContext();
+    if (!tex || !ctx) return 'art_splash';
+    ctx.drawImage(src, 0, 0);
+    const img = ctx.getImageData(0, 0, src.width, src.height);
+    punchPixels(img.data);
+    ctx.putImageData(img, 0, 0);
+    tex.refresh();
+    return key;
+  } catch {
+    return 'art_splash';
+  }
+}
+
 // The splash and title backdrop: the key art (`art_splash`) when it has loaded, else a code-drawn
 // dusk (purple sky, orange horizon glow, dark hills). A dark veil keeps text readable on top.
 export function drawBackdrop(scene: Phaser.Scene): Phaser.GameObjects.GameObject[] {
   const out: Phaser.GameObjects.GameObject[] = [];
   if (scene.textures.exists('art_splash')) {
-    const img = scene.add.image(GAME_WIDTH / 2, GAME_HEIGHT / 2, 'art_splash');
+    const img = scene.add.image(GAME_WIDTH / 2, GAME_HEIGHT / 2, punchedSplash(scene));
     img.setScale(coverScale(img.width, img.height));
     out.push(img);
   } else {
@@ -30,7 +80,17 @@ export function drawBackdrop(scene: Phaser.Scene): Phaser.GameObjects.GameObject
     out.push(sky);
   }
   const veil = scene.add.graphics();
-  veil.fillGradientStyle(0x000000, 0x000000, 0x000000, 0x000000, 0.1, 0.1, 0.65, 0.65);
+  const { veilTop, veilBottom } = BACKDROP_STYLE;
+  veil.fillGradientStyle(
+    0x000000,
+    0x000000,
+    0x000000,
+    0x000000,
+    veilTop,
+    veilTop,
+    veilBottom,
+    veilBottom,
+  );
   veil.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
   out.push(veil);
   return out;
