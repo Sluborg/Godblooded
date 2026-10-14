@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { GRAYBOX } from '../data/graybox';
 import { lookOf, type UnitLook } from '../data/looks';
 import { bossState } from './bossLook';
+import { bakeRings, type RingSpec } from './bake';
 import { heroPartsLook } from '../data/heroParts';
 import {
   STATUS_LOOK,
@@ -161,7 +162,8 @@ export class UnitView {
   private sprite: Phaser.GameObjects.Image | null = null;
   private flash: Phaser.GameObjects.Image | null = null;
   private readonly bar: Phaser.GameObjects.Graphics;
-  private readonly ring: Phaser.GameObjects.Graphics;
+  // The ring at the feet: one baked image (bake.ts), swapped when the ring's look changes.
+  private readonly ring: Phaser.GameObjects.Container;
   private readonly badge: Phaser.GameObjects.Text;
   private readonly pennant: Phaser.GameObjects.Graphics;
   private readonly label: Phaser.GameObjects.Text;
@@ -295,7 +297,7 @@ export class UnitView {
     this.intentG = scene.add.graphics();
     // Ring at the feet in the party colour (white and thicker when selected), badge with the
     // party number beside the name.
-    this.ring = scene.add.graphics();
+    this.ring = scene.add.container(0, 0);
     this.pennant = scene.add.graphics();
     this.badge = scene.add
       .text(-this.label.width / 2 - 4, this.label.y, '', {
@@ -1039,7 +1041,11 @@ export class UnitView {
     const key = `${role}:${u.party}:${selected}:${getSettings().palette}:${u.kind}:${u.tier}:${this.boss}:${this.showNames}`;
     if (key === this.ringKey) return;
     this.ringKey = key;
-    this.ring.clear();
+    const rings: RingSpec[] = [];
+    const setRing = () => {
+      this.ring.removeAll(true);
+      this.ring.add(bakeRings(this.scene, rings).setPosition(0, -4));
+    };
     if (u.kind === 'monster') {
       // A red ring on the ground, wider for tier 2 and tier 3, widest for a boss. The name only
       // shows when the monster is selected (a boss keeps it).
@@ -1047,38 +1053,42 @@ export class UnitView {
       const k = this.boss ? 1.9 : 1 + 0.18 * (u.tier - 1);
       const rw = base * k;
       const rh = rw * 0.38;
-      this.ring.fillStyle(0xc4281e, this.boss ? 0.3 : 0.2).fillEllipse(0, -4, rw, rh);
-      this.ring.lineStyle(this.boss ? 6 : 4, 0xe04a3a, 0.95).strokeEllipse(0, -4, rw, rh);
-      if (selected) this.ring.lineStyle(3, 0xffffff, 0.95).strokeEllipse(0, -4, rw + 14, rh + 8);
+      rings.push({ w: rw, h: rh, fill: [0xc4281e, this.boss ? 0.3 : 0.2] });
+      rings.push({ w: rw, h: rh, line: [this.boss ? 6 : 4, 0xe04a3a, 0.95] });
+      if (selected) rings.push({ w: rw + 14, h: rh + 8, line: [3, 0xffffff, 0.95] });
       this.label.setVisible(selected || this.boss);
       this.badge.setVisible(false);
+      setRing();
       return;
     }
     if (u.kind === 'collector') {
       // A gold-ringed base disc, so it never reads as a hero, and its name always shown.
-      this.ring.fillStyle(0x24140a, 0.45).fillEllipse(0, -4, 78, 30);
-      this.ring.lineStyle(4, 0xf2c14e, 0.95).strokeEllipse(0, -4, 78, 30);
-      if (selected) this.ring.lineStyle(3, 0xffffff, 0.95).strokeEllipse(0, -4, 94, 38);
+      rings.push({ w: 78, h: 30, fill: [0x24140a, 0.45] });
+      rings.push({ w: 78, h: 30, line: [4, 0xf2c14e, 0.95] });
+      if (selected) rings.push({ w: 94, h: 38, line: [3, 0xffffff, 0.95] });
       this.badge.setVisible(false);
       this.label.setVisible(true);
+      setRing();
       return;
     }
     if (townLabel(u.kind)) {
       // A gatherer or a guard (M3): a small neutral ring, its name, no party badge.
-      this.ring.fillStyle(0x24140a, 0.35).fillEllipse(0, -4, 60, 23);
-      this.ring.lineStyle(3, 0xd9c9a8, 0.95).strokeEllipse(0, -4, 60, 23);
-      if (selected) this.ring.lineStyle(3, 0xffffff, 0.95).strokeEllipse(0, -4, 74, 30);
+      rings.push({ w: 60, h: 23, fill: [0x24140a, 0.35] });
+      rings.push({ w: 60, h: 23, line: [3, 0xd9c9a8, 0.95] });
+      if (selected) rings.push({ w: 74, h: 30, line: [3, 0xffffff, 0.95] });
       this.badge.setVisible(false);
       this.label.setVisible(true);
+      setRing();
       return;
     }
     if (u.kind === 'summon') {
       // A summon fights for the party: a small friendly teal ring, its name, no party badge.
-      this.ring.fillStyle(0x7fe0b0, 0.2).fillEllipse(0, -4, 56, 21);
-      this.ring.lineStyle(3, 0x7fe0b0, 0.95).strokeEllipse(0, -4, 56, 21);
-      if (selected) this.ring.lineStyle(3, 0xffffff, 0.95).strokeEllipse(0, -4, 70, 28);
+      rings.push({ w: 56, h: 21, fill: [0x7fe0b0, 0.2] });
+      rings.push({ w: 56, h: 21, line: [3, 0x7fe0b0, 0.95] });
+      if (selected) rings.push({ w: 70, h: 28, line: [3, 0xffffff, 0.95] });
       this.badge.setVisible(false);
       this.label.setVisible(true);
+      setRing();
       return;
     }
     const inParty = role !== 'solo';
@@ -1087,13 +1097,14 @@ export class UnitView {
     if (inParty) {
       const c = partyColor(u.party);
       this.badge.setText(`${u.party}`).setBackgroundColor(`#${c.toString(16).padStart(6, '0')}`);
-      this.ring.fillStyle(c, 0.22).fillEllipse(0, -4, 74, 28);
-      this.ring.lineStyle(5, c, 0.98).strokeEllipse(0, -4, 74, 28);
+      rings.push({ w: 74, h: 28, fill: [c, 0.22] });
+      rings.push({ w: 74, h: 28, line: [5, c, 0.98] });
     } else {
       // A hero on their own: a thin pale ring, so every hero stands on one.
-      this.ring.lineStyle(3, 0xcfe4ff, 0.8).strokeEllipse(0, -4, 66, 24);
+      rings.push({ w: 66, h: 24, line: [3, 0xcfe4ff, 0.8] });
     }
-    if (selected) this.ring.lineStyle(3, 0xffffff, 0.95).strokeEllipse(0, -4, 86, 34);
+    if (selected) rings.push({ w: 86, h: 34, line: [3, 0xffffff, 0.95] });
+    setRing();
   }
 
   // The party's intent over its leader's head (a party of one counts: its hero leads it).

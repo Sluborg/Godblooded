@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { bake } from './bake';
 
 // The town hall has to read as THE main building, in code until Art draws a great hall (Stefan,
 // playtest 2026-10-14): larger than any other building, on a stone plaza with a gold rim, two tall
@@ -17,26 +18,26 @@ export function isTownHall(type: string): boolean {
 }
 
 // A stone plaza disc with paving joints and a gold trim ring, on the ground layer.
-export function plazaDecal(scene: Phaser.Scene): Phaser.GameObjects.Graphics {
+export function plazaDecal(scene: Phaser.Scene): Phaser.GameObjects.Image {
   const { w, h, stone, light, joint, trim } = HALL_STYLE.plaza;
-  const g = scene.add.graphics();
-  g.fillStyle(0x24140a, 0.28).fillEllipse(8, 0, w + 24, h + 14);
-  g.fillStyle(stone, 1).fillEllipse(0, -6, w, h);
-  g.fillStyle(light, 0.55).fillEllipse(0, -10, w * 0.72, h * 0.66);
-  // Paving: radial joints and one inner ring.
-  g.lineStyle(2, joint, 0.55).strokeEllipse(0, -6, w * 0.74, h * 0.74);
-  for (let i = 0; i < 14; i++) {
-    const a = (i / 14) * Math.PI * 2;
-    g.lineBetween(
-      Math.cos(a) * w * 0.37,
-      -6 + Math.sin(a) * h * 0.37,
-      Math.cos(a) * w * 0.5,
-      -6 + Math.sin(a) * h * 0.5,
-    );
-  }
-  g.lineStyle(6, trim, 0.95).strokeEllipse(0, -6, w, h);
-  g.lineStyle(2, 0x3b2a10, 0.8).strokeEllipse(0, -6, w + 8, h + 6);
-  return g;
+  return bake(scene, 'plaza', (w + 24) / 2 + 12, (h + 14) / 2 + 12, (g) => {
+    g.fillStyle(0x24140a, 0.28).fillEllipse(8, 0, w + 24, h + 14);
+    g.fillStyle(stone, 1).fillEllipse(0, -6, w, h);
+    g.fillStyle(light, 0.55).fillEllipse(0, -10, w * 0.72, h * 0.66);
+    // Paving: radial joints and one inner ring.
+    g.lineStyle(2, joint, 0.55).strokeEllipse(0, -6, w * 0.74, h * 0.74);
+    for (let i = 0; i < 14; i++) {
+      const a = (i / 14) * Math.PI * 2;
+      g.lineBetween(
+        Math.cos(a) * w * 0.37,
+        -6 + Math.sin(a) * h * 0.37,
+        Math.cos(a) * w * 0.5,
+        -6 + Math.sin(a) * h * 0.5,
+      );
+    }
+    g.lineStyle(6, trim, 0.95).strokeEllipse(0, -6, w, h);
+    g.lineStyle(2, 0x3b2a10, 0.8).strokeEllipse(0, -6, w + 8, h + 6);
+  });
 }
 
 // The polygon of a waving cloth hanging from a pole top at (0, 0) towards `dir` (1 right, -1 left):

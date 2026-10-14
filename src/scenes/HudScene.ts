@@ -754,6 +754,7 @@ export class HudScene extends Phaser.Scene {
   // an Upgrade button with its cost (the sim refuses when it cannot, and says why).
   private openBuildingPanel(map: MapScene, b: BuildingState): void {
     this.closeMenu();
+    this.registry.set('selectedBuilding', b.id);
     this.closeRoster();
     const cx = GAME_WIDTH / 2;
     const w = 860;
@@ -912,6 +913,7 @@ export class HudScene extends Phaser.Scene {
   }
 
   private closeMenu(): void {
+    this.registry.set('selectedBuilding', 0);
     this.buildMenuOpen = false;
     this.menu.forEach((o) => o.destroy());
     this.menu = [];
