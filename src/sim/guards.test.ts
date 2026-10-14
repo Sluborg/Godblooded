@@ -145,6 +145,19 @@ describe('guards', () => {
     expect(ev.some((e) => e.kind === 'died' && e.unit === foe.id)).toBe(true);
   });
 
+  it('keep striking: a long fight lands many hits, not one', () => {
+    const { w, node, gatherer } = setup();
+    command(w, { kind: 'sendGatherer', node });
+    const g = (command(w, { kind: 'sendGuard', unit: gatherer }) as { id: number }).id;
+    run(w, 9_000);
+    const at = get(w, gatherer).pos;
+    // a foe that cannot be killed, standing still beside the gatherer
+    const foe = monster(w, at.x + 30, at.y, 1e9);
+    const ev = run(w, 10_000);
+    const hits = ev.filter((e) => e.kind === 'hit' && e.attacker === g && e.target === foe.id);
+    expect(hits.length).toBeGreaterThanOrEqual(3);
+  });
+
   it('are replaced by the tower a minute after they fall', () => {
     const { w, node, gatherer } = setup();
     command(w, { kind: 'sendGatherer', node });
