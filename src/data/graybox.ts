@@ -978,6 +978,13 @@ export const GRAYBOX: GameData = {
   // 67-74%, gears 88-90% of its heroes by 8:00 and kills its first lair at about 5.8 min; the full
   // bot 62%. Town income is the collector's tithe plus shop tax (55%): start gold 480. Unset keys
   // use DEFAULT_TUNING.
+  // A player's first run (docs/systems/onboarding.md section 4): the first raid at 8:00 instead of
+  // 6:00, every lair's first tier-up 2 minutes later (the stagger is unchanged). The omen delay
+  // waits for omens.
+  firstRun: {
+    town: { raidFirstMs: 480_000 },
+    lair: { firstTierUpMs: 480_000 },
+  },
   tuning: {
     hero: { maxPerTemple: 7, recruitMs: 22_000, taxRate: 0.55, shopTripGold: 0, tithe: 0.3 },
     // Town income besides shop tax (docs/systems/tax-collector.md): the collector walks the tills.
