@@ -8,6 +8,11 @@
 // --hunt (implies --flags, 50 gold unless --flag-gold): the probe flag goes on a living monster
 // 350 to 900 from the nearest hero instead (skipped while there is none, no other probe flag
 // open), and the report adds how soon a party headed for it and how many were paid. --no-lair-flag turns the bot's own 50 gold lair flag off.
+// --m3 turns the celestial nodes on (tuning.nodes.enabled) and lets the bot play them: it hires
+// gatherers at the town hall when a node is free, sends them out (the richest node first), lends
+// them a tower guard, posts a 25 gold escort bounty with --m3-escort, and spends Ambrosia on a
+// Recall of the fallen, then a temple tier, then an Offering. The report adds Ambrosia gathered
+// and spent, nodes freed, defiled and sprouted, and the gatherers and guards lost.
 // --data takes a JSON file that overrides GRAYBOX fields (top level; `tuning` groups are
 // merged one by one), so data passes can be tried without editing src/data.
 import { readFileSync } from 'node:fs';
@@ -43,6 +48,8 @@ const HUNT = args.includes('--hunt');
 const FLAGS = args.includes('--flags') || HUNT;
 const FLAG_GOLD = opt('flag-gold', HUNT ? 50 : 40);
 const LAIR_FLAG = !args.includes('--no-lair-flag') && !HUMAN;
+const M3 = args.includes('--m3');
+const M3_ESCORT = args.includes('--m3-escort');
 const dataIdx = args.indexOf('--data');
 const dataFile = dataIdx >= 0 ? args[dataIdx + 1] : undefined;
 
@@ -56,7 +63,8 @@ const server = await createServer({
 try {
   const sim = await server.ssrLoadModule('/src/sim/api.ts');
   const { GRAYBOX: base } = await server.ssrLoadModule('/src/data/graybox.ts');
-  const GRAYBOX = dataFile ? withOverride(base, JSON.parse(readFileSync(dataFile, 'utf8'))) : base;
+  const data0 = dataFile ? withOverride(base, JSON.parse(readFileSync(dataFile, 'utf8'))) : base;
+  const GRAYBOX = M3 ? withOverride(data0, { tuning: { nodes: { enabled: true } } }) : data0;
   // The smithy joins the order once the data has one (heroes then buy weapons and armour).
   const BUILD_ORDER = ['temple_aesir', 'market', 'shrine', 'tower'];
   if (GRAYBOX.buildings.some((b) => b.id === 'smithy')) BUILD_ORDER.splice(2, 0, 'smithy');
@@ -96,6 +104,23 @@ try {
       rngState = (rngState * 1103515245 + 12345) % 2147483648;
       return rngState / 2147483648;
     };
+    const m3 = {
+      ambrosiaGathered: 0,
+      ambrosiaSpent: 0,
+      gatherersHired: 0,
+      gatherersLost: 0,
+      guardsSent: 0,
+      guardsLost: 0,
+      escortsPaid: 0,
+      nodesFreed: 0,
+      nodesDefiled: 0,
+      nodesCleansed: 0,
+      lairsSprouted: 0,
+      recalls: 0,
+      templeTiers: 0,
+      offerings: 0,
+    };
+    const defiledOnce = new Set();
     let lairsBy10 = 0;
     let bossFightMin = null;
     const bossIds = new Set();
@@ -116,6 +141,27 @@ try {
           p.headedS ??= (sn.timeMs - p.at) / 1000;
         }
         if (e.kind === 'bountyClaimed' && probe(e.bounty)) probe(e.bounty).paid = !!e.hunt;
+        if (e.kind === 'jarHome') m3.ambrosiaGathered += e.amount;
+        if (e.kind === 'ambrosiaSpent') {
+          m3.ambrosiaSpent += e.cost;
+          if (e.what === 'recall') m3.recalls++;
+          else if (e.what === 'temple') m3.templeTiers++;
+          else m3.offerings++;
+        }
+        if (e.kind === 'gathererHired') m3.gatherersHired++;
+        if (e.kind === 'workerFell') m3.gatherersLost++;
+        if (e.kind === 'guardFell') m3.guardsLost++;
+        if (e.kind === 'guardOut') m3.guardsSent++;
+        if (e.kind === 'bountyClaimed' && e.escort) m3.escortsPaid++;
+        if (e.kind === 'nodeDefiled') {
+          m3.nodesDefiled++;
+          defiledOnce.add(e.node);
+        }
+        if (e.kind === 'nodeFreed') {
+          if (defiledOnce.delete(e.node)) m3.nodesCleansed++;
+          else m3.nodesFreed++;
+        }
+        if (e.kind === 'lairSprouted') m3.lairsSprouted++;
         if (e.kind === 'lairDestroyed') firstLairMin ??= sn.timeMs / 60_000;
         if (e.kind === 'arrived') seen.arrivedMs ??= sn.timeMs;
         if (e.kind === 'fled' || e.kind === 'knockout') seen.hurtMs ??= sn.timeMs;
@@ -189,7 +235,10 @@ try {
           sim.command(w, { kind: 'pickUpgrade', party: p.id, upgrade: p.offer[0] });
         }
       }
-      if (t % 5000 === 0) botTurn(w, snap);
+      if (t % 5000 === 0) {
+        botTurn(w, snap);
+        if (M3) m3Turn(w, snap);
+      }
     }
     snap = sim.snapshot(w);
     watch(snap);
@@ -207,6 +256,7 @@ try {
       huntPlaced: flagRun.huntPlaced,
       huntClaimed: flagRun.huntClaimed,
       probes: [...flagRun.probes.values()],
+      ...(M3 ? { ...m3, ambrosiaLeft: Math.round(snap.ambrosia) } : {}),
       gold3: goldAt[180_000],
       gold5: goldAt[300_000],
       weapon8: gear8?.weapon ?? null,
@@ -233,6 +283,42 @@ try {
     if (s.hurtMs !== null) out.push('shrine');
     if (s.raidMs !== null || snap.timeMs >= 360_000) out.push('tower');
     return out;
+  }
+
+  // The M3 bot: gatherers out to the richest free node, a guard beside each, Ambrosia spent as
+  // it comes (a recall, then a temple tier, then an Offering).
+  function m3Turn(w, snap) {
+    const nodes = w.tuning.nodes;
+    const free = snap.nodes.filter((n) => n.state === 'freed' && n.pool >= nodes.carry);
+    const cmd = (c) => sim.command(w, c);
+    if (
+      free.length > 0 &&
+      snap.workers.length < snap.gathererCap &&
+      snap.gold >= nodes.gathererCost + 50
+    ) {
+      cmd({ kind: 'hireGatherer' });
+    }
+    const richest = [...free].sort((a, b) => b.pool - a.pool)[0];
+    for (const wk of snap.workers) {
+      if (wk.node === null && wk.phase === 'idle' && richest)
+        cmd({ kind: 'sendGatherer', node: richest.id });
+    }
+    for (const wk of snap.workers) {
+      if (wk.node === null) continue;
+      if (snap.gold >= nodes.guardCost + 80) cmd({ kind: 'sendGuard', unit: wk.unit });
+      if (M3_ESCORT && snap.gold >= 25 + 120) cmd({ kind: 'placeEscort', unit: wk.unit, gold: 25 });
+    }
+    const temples = snap.buildings.filter((b) => b.type.startsWith('temple'));
+    const pantheonOf = (type) => type.slice(type.indexOf('_') + 1);
+    const godPantheon = (god) => GRAYBOX.gods?.find((g) => g.id === god)?.pantheon;
+    for (const g of snap.graves ?? []) {
+      if (g.recalled || snap.ambrosia < nodes.recallCost) continue;
+      const t = temples.find((b) => pantheonOf(b.type) === godPantheon(g.god));
+      if (t && cmd({ kind: 'recallFallen', building: t.id, grave: g.id }).ok) return;
+    }
+    const low = [...temples].sort((a, b) => a.tier - b.tier)[0];
+    if (low && cmd({ kind: 'upgradeWithAmbrosia', building: low.id }).ok) return;
+    if (temples[0]) cmd({ kind: 'offering', building: temples[0].id });
   }
 
   function botTurn(w, snap) {
@@ -425,6 +511,27 @@ function summarize(results) {
       geared8: meanOf(results, 'geared8'),
       carried8: meanOf(results, 'carried8'),
     },
+    m3: M3
+      ? Object.fromEntries(
+          [
+            'ambrosiaGathered',
+            'ambrosiaSpent',
+            'ambrosiaLeft',
+            'gatherersHired',
+            'gatherersLost',
+            'guardsSent',
+            'guardsLost',
+            'escortsPaid',
+            'nodesFreed',
+            'nodesDefiled',
+            'nodesCleansed',
+            'lairsSprouted',
+            'recalls',
+            'templeTiers',
+            'offerings',
+          ].map((k) => [k, mean(results, k)]),
+        )
+      : null,
     probes: results.flatMap((r) => r.probes ?? []),
     flags: {
       placed: meanOf(results, 'flagsPlaced'),
@@ -478,6 +585,15 @@ function print(rep) {
   console.log(
     `  town gold: 3:00 ${n(rep.pacing.gold3)}  5:00 ${n(rep.pacing.gold5)}   hero gear level at 8:00: weapon ${n(rep.pacing.weapon8)}  armour ${n(rep.pacing.armour8)}  with any gear ${rep.pacing.geared8 === null ? '-' : `${(rep.pacing.geared8 * 100).toFixed(0)}%`}  gold carried by heroes at 8:00 ${n(rep.pacing.carried8)}`,
   );
+  if (rep.m3) {
+    const m = rep.m3;
+    console.log(
+      `  M3 per run: Ambrosia gathered ${f(m.ambrosiaGathered)}, spent ${f(m.ambrosiaSpent)}, left ${f(m.ambrosiaLeft)}; buys: recalls ${f(m.recalls)}, temple tiers ${f(m.templeTiers)}, offerings ${f(m.offerings)}`,
+    );
+    console.log(
+      `    nodes freed ${f(m.nodesFreed)}, defiled ${f(m.nodesDefiled)}, cleansed ${f(m.nodesCleansed)}, lairs sprouted ${f(m.lairsSprouted)}; gatherers hired ${f(m.gatherersHired)} lost ${f(m.gatherersLost)}; guards sent ${f(m.guardsSent)} lost ${f(m.guardsLost)}; escorts paid ${f(m.escortsPaid)}`,
+    );
+  }
   if (FLAGS) {
     const share = rep.flags.placed > 0 ? rep.flags.claimed / rep.flags.placed : 0;
     const hp = rep.flags.huntPlaced;
