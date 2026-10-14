@@ -616,6 +616,7 @@ function unitStats(world: World, unit: UnitState): Stats | undefined {
       armour: Math.round((mon.armour ?? 0) * mult),
       tags: isBoss(mon) ? [...(mon.tags ?? []), 'boss'] : mon.tags,
       types: mon.types,
+      ...(mon.strikeType ? { damageType: mon.strikeType } : {}),
       slow: slowOf(world, unit.id),
       attackMult: bossRt?.enraged ? bossNumbers(world, mon).enrageAttackMult : undefined,
     }

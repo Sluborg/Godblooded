@@ -126,6 +126,9 @@ export interface Attributes {
 
 export interface MonsterDef {
   id: string;
+  // The damage type of its plain strike (default physical: dodged and armoured). Death and fire
+  // strikes are cut by Willpower instead, and a hero's resist rows apply.
+  strikeType?: DamageType;
   // Body radius for keeping apart (default tuning.collision.monsterRadius or bossRadius).
   radius?: number;
   attrs: Attributes;
