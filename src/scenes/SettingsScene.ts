@@ -2,6 +2,8 @@ import Phaser from 'phaser';
 import { COLORS, GAME_HEIGHT, GAME_WIDTH } from '../config';
 import { makeButton, type Button } from '../ui/button';
 import { stepVolume } from '../ui/musicPlan';
+import { clearSeen } from '../ui/hintStore';
+import type { HudScene } from './HudScene';
 import { makePanel } from '../ui/panel';
 import { PARTY_COLORS, PARTY_COLORS_CB } from '../ui/partyLook';
 import { getSettings, updateSettings, type PaletteId, type Speed } from '../ui/settings';
@@ -20,6 +22,8 @@ export class SettingsScene extends Phaser.Scene {
   private paletteButtons: Button[] = [];
   private motion!: Button;
   private names!: Button;
+  private hintsBtn!: Button;
+  private hintsAgain!: Phaser.GameObjects.Text;
   private musicText!: Phaser.GameObjects.Text;
   private effectsText!: Phaser.GameObjects.Text;
   private muteButton!: Button;
@@ -91,6 +95,24 @@ export class SettingsScene extends Phaser.Scene {
       .text(670, 535, '', { fontFamily: FONT, fontSize: '32px', color: COLORS.text })
       .setOrigin(0.5);
     makeButton(this, 780, 535, 90, 80, '+', () => this.nudgeEffects(1));
+    this.hintsBtn = makeButton(this, 925, 535, 170, 80, '', () => {
+      updateSettings({ hintsOn: !getSettings().hintsOn });
+      this.refresh();
+      (this.scene.get('Hud') as HudScene | undefined)?.refreshHints();
+    });
+    makeButton(this, 1115, 535, 170, 80, 'Show again', () => {
+      clearSeen();
+      this.hintsAgain.setAlpha(1);
+      this.tweens.add({ targets: this.hintsAgain, alpha: 0, delay: 1200, duration: 400 });
+    });
+    this.hintsAgain = this.add
+      .text(1020, 485, 'Hints will show again', {
+        fontFamily: FONT,
+        fontSize: '20px',
+        color: COLORS.textMuted,
+      })
+      .setOrigin(0.5)
+      .setAlpha(0);
 
     makeButton(this, cx, 630, 300, 80, 'Back', () => this.scene.stop(), { sfx: 'sfx_ui_back' });
     this.refresh();
@@ -123,6 +145,8 @@ export class SettingsScene extends Phaser.Scene {
     this.motion.setActive(s.reducedMotion);
     this.names.setLabel(s.heroNames ? 'Always' : 'On tap');
     this.names.setActive(s.heroNames);
+    this.hintsBtn.setLabel(s.hintsOn ? 'Hints on' : 'Hints off');
+    this.hintsBtn.setActive(s.hintsOn);
     this.paletteButtons.forEach((b, i) => b.setActive(PALETTES[i].id === s.palette));
     const colors = s.palette === 'colourblind' ? PARTY_COLORS_CB : PARTY_COLORS;
     this.swatches.clear();

@@ -13,6 +13,8 @@ export interface Settings {
   effectsVolume: number;
   // Names over heroes' heads: off by default; a tap on a hero shows its party's names.
   heroNames: boolean;
+  // Hints: the first-time teaching bubbles (docs/systems/onboarding.md); on by default.
+  hintsOn: boolean;
 }
 
 export const DEFAULT_MUSIC_VOLUME = 0.6;
@@ -26,6 +28,7 @@ export const DEFAULT_SETTINGS: Settings = {
   musicMuted: false,
   effectsVolume: DEFAULT_EFFECTS_VOLUME,
   heroNames: false,
+  hintsOn: true,
 };
 
 export const SETTINGS_KEY = 'godblooded.settings.v1';
@@ -55,6 +58,7 @@ export function parseSettings(raw: unknown): Settings {
     musicMuted: o.musicMuted === true,
     effectsVolume: parseVolume(o.effectsVolume, DEFAULT_EFFECTS_VOLUME),
     heroNames: o.heroNames === true,
+    hintsOn: o.hintsOn !== false,
   };
 }
 
