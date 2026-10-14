@@ -20,6 +20,7 @@ import { describeEvent, EventFeed, type FeedWorld } from '../ui/eventFeed';
 import type { MapScene, MapTap } from './MapScene';
 import { RaidArrowView } from '../ui/raidArrowView';
 import { fitDesignCamera } from '../ui/designCamera';
+import { getSettings } from '../ui/settings';
 
 const ROSTER_PER_PAGE = 5;
 const ROSTER_W = 470;
@@ -32,6 +33,8 @@ interface MenuOption {
   pick: () => void;
   // Highlighted (the build menu's selected item).
   active?: boolean;
+  // Pulses to be found (the first temple while the clock waits for it).
+  pulse?: boolean;
 }
 const TEXT = { fontFamily: 'Georgia, serif', fontSize: '30px', color: COLORS.text };
 
@@ -190,7 +193,11 @@ export class HudScene extends Phaser.Scene {
     if (!this.scene.isPaused('Map')) this.feed.update(deltaMs);
     this.drawFeed(this.scene.get('Map') as MapScene);
     this.goldText.setText(`${this.goldIcon ? '' : 'Gold '}${this.registry.get('gold') ?? 0}`);
-    this.clockText.setText(formatClock((this.registry.get('timeMs') as number) ?? 0));
+    // On a first run the clock stands still until the first temple: say so instead of 0:00.
+    const waiting = (this.scene.get('Map') as MapScene).snapshot.waiting;
+    this.clockText.setText(
+      waiting ? 'Build a temple' : formatClock((this.registry.get('timeMs') as number) ?? 0),
+    );
     const status = this.registry.get('status') as string | undefined;
     if ((status === 'won' || status === 'lost') && !this.ended) this.showEnd();
     this.panel.update((this.scene.get('Map') as MapScene).snapshot);
@@ -585,6 +592,8 @@ export class HudScene extends Phaser.Scene {
         // Cost 0: an item the town cannot afford stays tappable, it still shows its info.
         cost: 0,
         active: d.id === selected,
+        // On a first run the clock waits for a temple: the temple button pulses.
+        pulse: map.snapshot.waiting && d.id.startsWith('temple'),
         pick: () => {
           const now = (this.registry.get('gold') as number | undefined) ?? 0;
           const r = buildTap(selected, d.id, now, d.cost);
@@ -626,6 +635,15 @@ export class HudScene extends Phaser.Scene {
       const button = makeButton(this, x, cy + 20, bw, bh, opt.label, opt.pick);
       this.menu.push(button.container);
       if (opt.active) button.setActive(true);
+      if (opt.pulse && !getSettings().reducedMotion)
+        this.tweens.add({
+          targets: button.container,
+          scale: 1.07,
+          duration: 450,
+          yoyo: true,
+          repeat: -1,
+          ease: 'Sine.easeInOut',
+        });
       this.menuButtons.push({ button, cost: opt.cost });
     });
   }
