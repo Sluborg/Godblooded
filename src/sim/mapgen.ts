@@ -17,7 +17,7 @@ export interface GeneratedMap {
 const PLACE_TRIES = 300;
 const BOSS_CANDIDATES = 40;
 
-export function generateMap(seed: number, data: GameData): GeneratedMap {
+export function generateMap(seed: number, data: GameData, avoidBoss?: string): GeneratedMap {
   const rules = data.mapRules;
   if (!rules) throw new Error('no mapRules');
   const known = (id: string, what: string) => {
@@ -29,6 +29,9 @@ export function generateMap(seed: number, data: GameData): GeneratedMap {
   };
   for (const e of rules.pool) known(e.lair, 'map pool');
   known(rules.boss, 'map boss');
+  for (const ids of Object.values(rules.bossesByPantheon ?? {})) {
+    for (const id of ids) known(id, 'map boss');
+  }
   const rng = makeRng((seed ^ 0x5bd1e995) >>> 0);
   for (let i = 0; i < 4; i++) rng();
 
@@ -37,6 +40,7 @@ export function generateMap(seed: number, data: GameData): GeneratedMap {
     rules.lairs[0] + Math.floor(rng() * (rules.lairs[1] - rules.lairs[0] + 1)),
   );
   const lean = pickLean(rng, rules);
+  const bossLair = pickBoss(rng, rules, lean, avoidBoss);
   const placed: { x: number; y: number }[] = [];
 
   // The boss goes where it is farthest from the town.
@@ -63,8 +67,19 @@ export function generateMap(seed: number, data: GameData): GeneratedMap {
     placed.push(pos);
     sites.push({ lair: entry.lair, pos });
   }
-  sites.push({ lair: rules.boss, pos: boss });
+  sites.push({ lair: bossLair, pos: boss });
   return { sites, bossIndex: sites.length - 1, lean };
+}
+
+// The boss lair of a run: the lean's own pair (a seeded pick, not the one `avoid` names), else the
+// single `boss` row. Draws from the stream only when there is a pair to choose from.
+function pickBoss(rng: Rng, rules: MapRules, lean: string[], avoid?: string): string {
+  const pantheon = lean.find((p) => (rules.bossesByPantheon?.[p] ?? []).length > 0);
+  const options = pantheon ? (rules.bossesByPantheon?.[pantheon] ?? []) : [];
+  if (options.length === 0) return rules.boss;
+  const fresh = options.filter((id) => id !== avoid);
+  const from = fresh.length > 0 ? fresh : options;
+  return from[Math.floor(rng() * from.length)];
 }
 
 function pickLean(rng: Rng, rules: MapRules): string[] {

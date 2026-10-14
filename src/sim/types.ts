@@ -419,6 +419,10 @@ export interface MapRules {
   pool: readonly { lair: string; pantheon: string; weight?: number }[];
   // LairDef id of the boss lair: always placed, and the run is won when it falls.
   boss: string;
+  // The boss follows the run's lean: its first leaning pantheon with a row here picks one of the
+  // listed boss lairs (seeded), never the one the previous run had (createWorld's `avoidBoss`).
+  // Without a row for the lean, `boss` is used.
+  bossesByPantheon?: Readonly<Record<string, readonly string[]>>;
   // Each run leans on this many pantheons; pool lairs of those pantheons weigh leanWeight times more.
   leanCount: number;
   leanWeight: number;

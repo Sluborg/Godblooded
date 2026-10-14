@@ -322,6 +322,8 @@ export interface World {
 export interface WorldOptions {
   // The player's first run: data.firstRun overrides apply and the clock waits for the first temple.
   firstRun?: boolean;
+  // The boss lair of the player's previous run: this run's boss is not that one (when the lean has a pair).
+  avoidBoss?: string;
 }
 
 export function createWorld(seed: number, data: GameData, opts: WorldOptions = {}): World {
@@ -403,7 +405,7 @@ export function createWorld(seed: number, data: GameData, opts: WorldOptions = {
   let sites: readonly LairSite[] = data.lairSites ?? [];
   let bossIndex = -1;
   if (sites.length === 0 && data.mapRules) {
-    const map = generateMap(seed, data);
+    const map = generateMap(seed, data, opts.avoidBoss);
     sites = map.sites;
     bossIndex = map.bossIndex;
     world.mapLean = map.lean;
