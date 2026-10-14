@@ -879,6 +879,10 @@ export interface TownTuning {
   towerWarnAddMs: number;
   // A lair that tiers up sends one raid of its own (announced raidWarnMs ahead).
   raidOnTierUp: boolean;
+  // The size of a tier-up raid: 0 follows the clock raid (raidSize + growth), else this flat size.
+  tierRaidSize: number;
+  // Only every n-th tier-up (counted across all lairs) sends a raid; 1 is every one.
+  tierRaidEvery: number;
   // Gold the town gets when every raider of a raid is dead ("the town cheers").
   raidBeatenGold: number;
 }
