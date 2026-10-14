@@ -50,6 +50,7 @@ import {
   type BossRuntime,
 } from './boss';
 import { buildReport, sampleGold, tally, type HeroRecord } from './runstats';
+import { collectorFell, runCollector } from './collector';
 import {
   attackBuilding,
   attackLair,
@@ -100,6 +101,7 @@ import {
 } from './units';
 import type {
   BountyState,
+  PileState,
   ConeArea,
   SkillEffect,
   GraveState,
@@ -157,6 +159,14 @@ export interface UnitRuntime {
   cooldownMs: number;
   target: Vec2 | null;
   idleMs: number;
+  // The tax collector's route (collector.ts): hp last seen (a drop means it was hit), running home,
+  // the stop it walks to and the time its stop at it ends.
+  collector?: {
+    hpSeen: number;
+    fleeing: boolean;
+    stop?: { kind: 'till' | 'pile'; id: number; pos: Vec2; gold: number };
+    waitUntilMs?: number;
+  };
   // Active riders on this unit (burn, chill, wither).
   status?: UnitStatus;
   // Set on a boss unit.
@@ -233,6 +243,10 @@ export interface World {
   tierUps: number;
   stats: RunStats;
   bounties: BountyState[];
+  // Gold piles on the ground, and when replacements for fallen tax collectors may appear
+  // (collector.ts).
+  piles: PileState[];
+  collectorQueue: number[];
   // Generated map: the boss lair that wins the run and the pantheons the map leans on.
   bossLair: number | null;
   // The seal on the boss lairs has broken (runBossSeal).
@@ -288,8 +302,11 @@ export function createWorld(seed: number, data: GameData): World {
       knockouts: 0,
       buildingsLost: 0,
       taxCollected: 0,
+      taxLost: 0,
     },
     bounties: [],
+    piles: [],
+    collectorQueue: [],
     bossLair: null,
     bossUnsealed: false,
     mapLean: [],
@@ -396,6 +413,7 @@ function runTick(world: World): void {
   runHeroes(world);
   runSummonUpkeep(world);
   runBounties(world);
+  runCollector(world);
   runQuirks(world);
   runFavour(world);
   runParties(world);
@@ -477,6 +495,11 @@ export function statsOf(world: World, unit: UnitState): Stats | undefined {
 
 function unitStats(world: World, unit: UnitState): Stats | undefined {
   if (unit.kind === 'summon') return summonStats(world, unit);
+  // The tax collector does not fight (collector.ts moves it).
+  if (unit.kind === 'collector') {
+    const none = { str: 0, dex: 0, sta: 0, cha: 0, per: 0, int: 0, wp: 0 };
+    return { attrs: none, weapon: { baseAttackS: 99, range: 0 } };
+  }
   if (unit.kind === 'hero') {
     const cls = world.data.classes?.find((c) => c.id === unit.type);
     return (
@@ -575,6 +598,7 @@ function runUnits(world: World): void {
       cancelDrink(rt);
       continue;
     }
+    if (unit.kind === 'collector') continue;
     rt.cooldownMs = Math.max(0, rt.cooldownMs - TICK_MS);
     tickSkill(rt);
     if (unit.kind === 'summon') {
@@ -842,6 +866,8 @@ function settleDeaths(world: World): void {
     settled.add(victim);
     if (unit.kind === 'summon') {
       removeSummon(world, unit, 'died');
+    } else if (unit.kind === 'collector') {
+      collectorFell(world, unit);
     } else if (unit.kind === 'hero') {
       unit.target = null;
       world.stats.knockouts++;
@@ -1105,6 +1131,7 @@ export function snapshot(world: World): Snapshot {
       ...(u.summon ? { summon: { ...u.summon } } : {}),
     })),
     bounties: world.bounties.map((b) => ({ ...b, pos: { ...b.pos } })),
+    piles: world.piles.map((d) => ({ ...d, pos: { ...d.pos } })),
     favour: (world.data.miracles ?? []).map((m) => ({
       pantheon: m.pantheon,
       value: world.favour[m.pantheon] ?? 0,

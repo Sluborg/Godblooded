@@ -356,3 +356,38 @@ describe('flag score knobs', () => {
     expect(goalAfter({ flagDistanceCost: 0.01 }, 25)).not.toBe('flag');
   });
 });
+
+describe('tithe', () => {
+  it('the town takes its share of a monster bounty before the hero gets the rest, but not of a flag', () => {
+    const w = createWorld(1, {
+      ...base,
+      startGold: 0,
+      tuning: { ...base.tuning, hero: { ...base.tuning?.hero, tithe: 0.25 } },
+    });
+    const h = hero(w, 700, 500);
+    const m = monster(w, 740, 500);
+    m.hp = 0;
+    w.pendingDeaths.push({ victim: m.id, by: h.id });
+    const ev = run(w, 100);
+    // bounty 12: the town takes 3, the hero keeps 9
+    expect(h.gold).toBe(9);
+    expect(w.gold).toBe(3);
+    expect(w.stats.taxCollected).toBe(3);
+    // the hero's record counts the 9 that reached the purse
+    expect(w.heroRecords.get(h.id)?.goldEarned).toBe(9);
+    expect(ev.filter((e) => e.kind === 'tithe')).toEqual([
+      { kind: 'tithe', unit: h.id, building: 0, gold: 3 },
+    ]);
+  });
+
+  it('is off by default', () => {
+    const w = createWorld(1, { ...base, startGold: 0 });
+    const h = hero(w, 700, 500);
+    const m = monster(w, 740, 500);
+    m.hp = 0;
+    w.pendingDeaths.push({ victim: m.id, by: h.id });
+    run(w, 100);
+    expect(h.gold).toBe(12);
+    expect(w.gold).toBe(0);
+  });
+});

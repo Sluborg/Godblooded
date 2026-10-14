@@ -193,3 +193,14 @@ Shares are of the runs that placed a flag (one or two flags a run).
   Balance's part 3 lowers the danger cost; a 100 gold flag draws a party after about a minute.
 - **The base pacing holds** with the flag bot (100 seeds, flags 150 from a hero): wins 68%,
   run 15.9 min, boss 13.0, gear gate 100% median.
+
+## 8. Playtest 1 against the bot (2026-10-14)
+
+- **Stefan's run was the bot's tail:** lost at 9:39 with 0 lairs, tax 0 and no flags. In the
+  default bot, a loss by 9:39 is 10 runs in 100 and 0 lairs is 2 to 6 in 100 (`playtest-m2.md`,
+  section 6). Sim's human-like bot wins 50%, and its first lair falls at 5.4 min (median).
+- **Lesson for this review:** report the tails (p10, p90, runs with 0 lairs by 10:00, tax per
+  run) next to medians.
+- **Fixes in flight:** the tax collector (`tax-collector.md`), spacing option B, and the felt need
+  for flags (`hero-ai.md` 5b part 4, ship first). Lair regen and near-town patrol are held
+  candidates until Stefan's next run.

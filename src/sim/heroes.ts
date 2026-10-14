@@ -1,3 +1,4 @@
+import { payIntoTill, payTithe } from './collector';
 import { lairSealed, nearSealedLair } from './boss';
 import { earn, newRecord } from './runstats';
 import { baseFleeOf, fledParty, fleeThreshold, newParty, pantheonOf, TRAITS } from './parties';
@@ -18,6 +19,8 @@ import type { BountyState, LairState, PartyIntent, Vec2, UnitState } from './typ
 
 export interface HeroRuntime {
   dest: Vec2 | null;
+  // Tithe set aside from bounties, paid into the home temple's till when the hero starts to rest.
+  titheOwed?: number;
   // The bounty flag this hero is heading for.
   bounty?: number;
   // The flags its party already weighed against its goal (event `considering`): said once each.
@@ -240,8 +243,7 @@ function visitShops(
     const price = buyItem(world, unit, id, shop.tier);
     if (price === 0) continue;
     const tax = Math.floor(price * tune(world).taxRate * tierValue(bt.shopTaxMult, shop.tier, 1));
-    world.gold += tax;
-    world.stats.taxCollected += tax;
+    payIntoTill(world, shop.id, tax);
     world.events.push({ kind: 'shopped', unit: unit.id, spent: price, tax, item: id });
   }
   rt.shop = rt.shop?.slice(1);
@@ -273,11 +275,20 @@ function defend(world: World, unit: UnitState, rt: HeroRuntime): void {
   world.events.push({ kind: 'defend', unit: unit.id });
 }
 
+// Pays what the hero set aside from its bounties (collector.ts).
+function payOwedTithe(world: World, unit: UnitState, rt: HeroRuntime): void {
+  const owed = rt.titheOwed ?? 0;
+  if (owed <= 0) return;
+  rt.titheOwed = 0;
+  payTithe(world, unit, owed);
+}
+
 function revive(world: World, unit: UnitState, rt: HeroRuntime): void {
   unit.ko = false;
   unit.hp = Math.ceil(unit.maxHp * tune(world).reviveHp);
   unit.pos = { ...world.data.townHall };
   unit.mode = 'rest';
+  payOwedTithe(world, unit, rt);
   rt.dest = null;
   world.events.push({ kind: 'revived', unit: unit.id });
 }
@@ -294,7 +305,7 @@ export function heroKnockedOut(world: World, unit: UnitState, by?: number): void
 
 export function payBounty(world: World, killer: number, gold: number): void {
   const hero = world.units.find((u) => u.id === killer && u.kind === 'hero');
-  if (hero) earn(world, hero, gold);
+  if (hero) earn(world, hero, gold, true);
 }
 
 // Moves a hero that is not fighting: explore, walk home, rest, shop.
@@ -339,7 +350,10 @@ export function heroMove(world: World, unit: UnitState): void {
       break;
     }
     case 'return': {
-      if (step(restSpot(world, unit.pos).pos)) unit.mode = 'rest';
+      if (step(restSpot(world, unit.pos).pos)) {
+        unit.mode = 'rest';
+        payOwedTithe(world, unit, rt);
+      }
       break;
     }
     case 'rest': {
@@ -375,8 +389,7 @@ export function heroMove(world: World, unit: UnitState): void {
           spent * tune(world).taxRate * tierValue(bt.marketTaxMult, market.tier, 1),
         );
         unit.gold -= spent;
-        world.gold += tax;
-        world.stats.taxCollected += tax;
+        payIntoTill(world, market.id, tax);
         world.events.push({ kind: 'shopped', unit: unit.id, spent, tax });
         unit.mode = 'explore';
         rt.dest = null;

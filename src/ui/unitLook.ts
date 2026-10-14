@@ -10,8 +10,13 @@ export const ART_NOMINAL_PX = 256;
 // right and is mirrored by direction, so facing up or down never picks another picture.
 // Any unit kind: a summon (decoy, falcon, thrall) has `sum_<def>_t1_front`, and without that picture
 // it falls back to a placeholder shape like every other unit.
-export type ArtKind = 'hero' | 'monster' | 'summon';
-const ART_PREFIX: Record<ArtKind, string> = { hero: 'hero', monster: 'mon', summon: 'sum' };
+export type ArtKind = 'hero' | 'monster' | 'summon' | 'collector';
+const ART_PREFIX: Record<ArtKind, string> = {
+  hero: 'hero',
+  monster: 'mon',
+  summon: 'sum',
+  collector: 'npc',
+};
 
 export function unitArtId(kind: ArtKind, type: string, tier: number): string {
   return `${ART_PREFIX[kind]}_${type}_t${tier}_front`;
@@ -61,6 +66,16 @@ export const BUILDING_FIT = { w: 190, h: 280 };
 
 export function buildingScale(picW: number, picH: number): number {
   return Math.min(BUILDING_FIT.w / picW, BUILDING_FIT.h / picH);
+}
+
+// Isometric building and lair pictures stand on a diamond footprint: the footprint's centre sits
+// half its depth above the picture's bottom edge, about this share of the picture width (a 2:1
+// iso diamond that fills the picture). Anchoring there puts the footprint centre on the ring or
+// plot centre, where the bottom edge used to be, which pushed the picture up and aside.
+export const FOOT_DEPTH = 0.2;
+
+export function footOrigin(picW: number, picH: number): { x: number; y: number } {
+  return { x: 0.5, y: Math.max(0.6, Math.min(1, 1 - (FOOT_DEPTH * picW) / picH)) };
 }
 
 // Skin variants of one unit share its look: `draugr-v2` is a draugr. Strips a trailing `-v<n>`.

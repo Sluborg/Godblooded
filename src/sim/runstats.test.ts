@@ -62,6 +62,8 @@ describe('run report', () => {
     expect(w.status).toBe('running');
     const report = runReport(w);
     expect(report.outcome).toBe('abandoned');
+    // the seed rides along so a run can be replayed from its end screen
+    expect(report.seed).toBe(1);
     expect(report.timeMs).toBe(w.timeMs);
     expect(report.heroes.map((h) => h.unit)).toContain(id);
     expect(report.goldHistory.length).toBeGreaterThan(0);

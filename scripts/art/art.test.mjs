@@ -123,6 +123,16 @@ describe('processImage', () => {
     expect(r.anchorY).toBeCloseTo(1 - 2 / r.image.height, 2);
   });
 
+  it('anchors a building at its iso footprint centre, not its lowest corner', () => {
+    // Off-centre base: the lowest band sits right of the middle, as on an iso front corner.
+    const raw = canvas(1024, GREEN, { x: 100, y: 300, w: 800, h: 500 });
+    for (let y = 800; y < 840; y++)
+      for (let x = 700; x < 800; x++) raw.data.set([150, 60, 40, 255], (y * 1024 + x) * 4);
+    const r = processImage(raw, 'bld_townhall_t1');
+    expect(r.anchorX).toBe(0.5);
+    expect(r.anchorY).toBeCloseTo(1 - (0.2 * r.image.width) / r.image.height, 2);
+  });
+
   it('keeps a bigger tier-3 silhouette bigger', () => {
     const big = { x: 362, y: 80, w: 300, h: 821 };
     const r = processImage(canvas(1024, MAGENTA, big), 'mon_troll_t3_front');
@@ -301,6 +311,38 @@ describe('strike fields', () => {
     expect(errorsFor({ strike: 'chop', weaponX: 0.1 }).join()).toMatch(/go together/);
     expect(errorsFor({ strike: 'double', weaponX: 0.1, weaponY: 0.2 }).join()).toMatch(/needs/);
     expect(errorsFor({ weaponX: 1.5, weaponY: 0.2 }).join()).toMatch(/0\.\.1/);
+  });
+});
+
+describe('building anchor', () => {
+  // A temp repo with one shipped building row at the given anchor.
+  function errorsFor(anchor) {
+    const root = mkdtempSync(join(tmpdir(), 'art-'));
+    mkdirSync(join(root, 'public/assets/buildings'), { recursive: true });
+    const r = processImage(
+      canvas(1024, MAGENTA, { x: 100, y: 300, w: 800, h: 500 }),
+      'bld_smithy_t1',
+    );
+    writePng(join(root, 'public/assets/buildings/bld_smithy_t1.png'), r.image);
+    const row = {
+      id: 'bld_smithy_t1',
+      kind: 'bld',
+      tier: 1,
+      view: null,
+      file: 'buildings/bld_smithy_t1.png',
+      anchorX: r.anchorX,
+      anchorY: r.anchorY,
+      license: 'own',
+      source: 'T1',
+      ...anchor,
+    };
+    writeFileSync(join(root, 'public/assets/manifest.json'), JSON.stringify({ assets: [row] }));
+    return validateAssets(root).errors;
+  }
+
+  it('accepts the footprint origin and rejects a base-band anchor', () => {
+    expect(errorsFor({})).toEqual([]);
+    expect(errorsFor({ anchorX: 0.62, anchorY: 0.996 }).join()).toMatch(/footprint origin/);
   });
 });
 

@@ -1,3 +1,4 @@
+import { uncollected } from './collector';
 import type { World } from './world';
 import type { HeroReport, RunReport, UnitState } from './types';
 
@@ -30,9 +31,25 @@ export function tally(world: World, id: number, field: keyof HeroRecord, n = 1):
 
 // Gold a hero earns from the town side (monster bounty, lair bounty, bounty flags): in its
 // purse and on the end screen. Shop spending is not income.
-export function earn(world: World, hero: UnitState, gold: number): void {
-  hero.gold += gold;
-  tally(world, hero.id, 'goldEarned', gold);
+// `tithe`: the town takes tuning.hero.tithe of it first (monster and lair bounties; a flag is the
+// town's own gold and is not taxed).
+export function earn(world: World, hero: UnitState, gold: number, tithe = false): void {
+  const cut = tithe ? Math.floor(gold * world.tuning.hero.tithe) : 0;
+  hero.gold += gold - cut;
+  // The end screen counts what reached the purse, not the gross bounty.
+  tally(world, hero.id, 'goldEarned', gold - cut);
+  if (cut > 0) {
+    const rt = world.heroRuntime.get(hero.id);
+    if (world.tuning.collector.enabled && rt) {
+      // Set aside: the hero pays it into its home temple's till when it starts to rest.
+      rt.titheOwed = (rt.titheOwed ?? 0) + cut;
+    } else {
+      // No collector: straight to the treasury, as before.
+      world.gold += cut;
+      world.stats.taxCollected += cut;
+      world.events.push({ kind: 'tithe', unit: hero.id, building: 0, gold: cut });
+    }
+  }
 }
 
 // What makes a hero the MVP: kills plus five per lair destroyed. Ties go to damage, then gold
@@ -90,6 +107,10 @@ export function runReport(world: World): RunReport {
   );
   if (heroes.length > 0 && score(heroes[0]) > 0) heroes[0].mvp = true;
   return {
+    seed: world.seed,
+    taxBanked: world.stats.taxCollected,
+    taxLost: world.stats.taxLost,
+    uncollected: uncollected(world),
     outcome: world.status === 'running' ? 'abandoned' : world.status,
     timeMs: world.timeMs,
     mvp: heroes.find((h) => h.mvp)?.unit ?? null,
