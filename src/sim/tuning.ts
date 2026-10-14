@@ -161,6 +161,8 @@ export const DEFAULT_TUNING: Tuning = {
     switchMin: 10,
     exploreValue: 20,
     lairXpWeight: 0.5,
+    freshFlagMs: 10_000,
+    consideringShare: 0.7,
   },
   role: {
     harrierFleeHp: 0.3,
@@ -215,6 +217,8 @@ export const DEFAULT_TUNING: Tuning = {
     lairDanger: 3,
     costPerDanger: 15,
     claimRadius: 100,
+    claimClearRadius: 100,
+    huntRadius: 60,
     greedyGoldMult: 1.5,
     curiousGoldMult: 1.2,
     braveFearMult: 0.5,

@@ -77,6 +77,8 @@ import {
   heroKnockedOut,
   heroMove,
   payBounty,
+  claimHunt,
+  rescoreForFlag,
   runBounties,
   syncFlagView,
   syncIntent,
@@ -905,6 +907,7 @@ function settleDeaths(world: World): void {
       if (krt?.fight) krt.fight.kills++;
       healOnKill(world, by);
       payBounty(world, by, bounty + stolenBy(world, unit.id));
+      claimHunt(world, unit.id, by);
       shareXp(world, by, xp);
       splitSwarm(world, unit, mrt);
     }
@@ -1000,8 +1003,27 @@ export function command(world: World, cmd: Command): CommandResult {
       if (world.gold < cmd.gold) return { ok: false, reason: 'not enough gold' };
       world.gold -= cmd.gold;
       const id = world.nextId++;
-      world.bounties.push({ id, pos: { ...cmd.pos }, gold: cmd.gold });
-      world.events.push({ kind: 'bountyPlaced', bounty: id, gold: cmd.gold });
+      // On a monster (within huntRadius): a hunt flag bound to the nearest one.
+      let prey: UnitState | undefined;
+      for (const u of world.units) {
+        if (u.kind !== 'monster' || u.hp <= 0) continue;
+        const d = dist(u.pos, cmd.pos);
+        if (d <= world.tuning.bounty.huntRadius && (!prey || d < dist(prey.pos, cmd.pos))) prey = u;
+      }
+      world.bounties.push({
+        id,
+        pos: prey ? { ...prey.pos } : { ...cmd.pos },
+        gold: cmd.gold,
+        placedMs: world.timeMs,
+        ...(prey ? { target: prey.id } : {}),
+      });
+      world.events.push({
+        kind: 'bountyPlaced',
+        bounty: id,
+        gold: cmd.gold,
+        ...(prey ? { target: prey.id } : {}),
+      });
+      rescoreForFlag(world);
       return { ok: true, id };
     }
     case 'cancelBounty': {

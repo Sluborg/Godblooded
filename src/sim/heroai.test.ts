@@ -88,21 +88,21 @@ describe('score and commit', () => {
     expect(w.heroRuntime.get(h.id)?.goal?.id).toBe(first?.id);
   });
 
-  it('switches to a much better flag once the hold is over', () => {
+  it('a much better new flag breaks the hold at once; a slightly better one does not', () => {
     const w = createWorld(1, { ...base, startGold: 1000 });
     const h = hero(w);
     flag(w, 1500, 500, 90);
     run(w, 1_100);
     const first = w.heroRuntime.get(h.id)?.goal;
     expect(first?.kind).toBe('flag');
-    flag(w, 1500, 520, 200);
-    // within the hold nothing changes
-    run(w, 3_000);
+    // 95 is no clear improvement: inside the hold and the margin nothing changes
+    flag(w, 1500, 520, 95);
+    run(w, 2_000);
     expect(w.heroRuntime.get(h.id)?.goal?.id).toBe(first?.id);
-    run(w, 4_000);
-    const now = w.heroRuntime.get(h.id)?.goal;
-    expect(now?.kind).toBe('flag');
-    expect(now?.id).not.toBe(first?.id);
+    // 250 beats the goal by the margin: the party switches the second it is placed
+    const big = flag(w, 1500, 540, 250);
+    expect(big.ok).toBe(true);
+    expect(w.heroRuntime.get(h.id)?.goal?.id).toBe((big as { id: number }).id);
   });
 
   it('a lair is a goal when it pays: the hero heads for it', () => {

@@ -906,6 +906,10 @@ export interface AiTuning {
   exploreValue: number;
   // A lair's xp counts this much next to its gold.
   lairXpWeight: number;
+  // A flag this young may break a party's commitment, and the flag score that makes a party
+  // "consider" it is this share of its current goal's score (event `considering`).
+  freshFlagMs: number;
+  consideringShare: number;
 }
 
 export interface BountyTuning {
@@ -917,6 +921,10 @@ export interface BountyTuning {
   costPerDanger: number;
   // A hero standing this close to a cleared flag claims it.
   claimRadius: number;
+  // A flag with no monster within this of it is clear (a hunt flag is claimed by the kill).
+  claimClearRadius: number;
+  // A flag placed within this of a monster is a hunt flag bound to it.
+  huntRadius: number;
   greedyGoldMult: number;
   curiousGoldMult: number;
   braveFearMult: number;
@@ -1168,6 +1176,11 @@ export interface BountyState {
   id: number;
   pos: Vec2;
   gold: number;
+  // A hunt flag: bound to the monster it was placed on (pos follows it), paid to the hero that
+  // lands the kill. Missing: a flag on open ground, claimed by standing on it once it is clear.
+  target?: number;
+  // When it was placed (a new flag may break a party's commitment for a while). Missing: old.
+  placedMs?: number;
 }
 
 export type SimEvent =
@@ -1337,7 +1350,10 @@ export type SimEvent =
   | { kind: 'miracle'; id: string; pantheon: string; pos: Vec2; tellMs: number }
   // A party leader got a charm from a lair that fell.
   | { kind: 'relic'; unit: number; item: string; lair: number }
-  | { kind: 'bountyPlaced'; bounty: number; gold: number }
+  | { kind: 'bountyPlaced'; bounty: number; gold: number; target?: number }
+  // A party's score for a flag is at least consideringShare of its current goal's: Scene can
+  // show it weighing the flag (it did not switch yet).
+  | { kind: 'considering'; party: number; bounty: number }
   // `gold`: what the flag held; `refund`: what the town got back.
   | { kind: 'bountyCancelled'; bounty: number; gold: number; refund: number }
   | { kind: 'bountyRaised'; bounty: number; gold: number; total: number };
