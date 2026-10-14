@@ -257,6 +257,17 @@ export class HudScene extends Phaser.Scene {
     for (const e of events) {
       if (e.kind === 'levelUp') levels.set(e.party, e.level);
       if (e.kind === 'jarHome') this.pulseAmbrosia();
+      // A lair will sprout on a node: an edge arrow to it for the warning.
+      if (e.kind === 'lairSprouting') {
+        const node = snap.nodes.find((n) => n.id === e.node);
+        if (node)
+          this.raidArrows.add({
+            raid: -1000 - e.node,
+            lair: 0,
+            at: node.pos,
+            untilMs: snap.timeMs + e.inMs,
+          });
+      }
       if (e.kind === 'raidWarning')
         this.raidArrows.add({ raid: e.raid, lair: e.lair, untilMs: snap.timeMs + e.inMs });
       if (e.kind === 'raid') {
@@ -265,6 +276,10 @@ export class HudScene extends Phaser.Scene {
           `RAID! ${e.size} ${lair?.type ?? 'monsters'} march on the town`,
           '#8a1c2bdd',
         );
+      } else if (e.kind === 'nodeDefiled') {
+        this.showBanner('A NODE IS DEFILED! Kill the defilers', '#8a1c2bdd');
+      } else if (e.kind === 'lairSprouting') {
+        this.showBanner('A LAIR IS SPROUTING ON A NODE', '#8a1c2bdd');
       } else if (e.kind === 'bossEmerged') {
         this.showBanner('THE BOSS EMERGES!', '#8a1c2bdd');
       } else if (e.kind === 'enraged') {
