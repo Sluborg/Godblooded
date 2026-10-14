@@ -380,3 +380,10 @@ batches are drafted by Art and need Stefan's go each.
 on the G1 contract so he walks animated, a sober town official with ledger and coin chest or
 sack, no hood, no axe, nothing red, plus a portrait. Gatherer and guard follow. Scene draws an
 interim collector with the hero rig at hero proportions until the kit lands.
+
+## 2026-10-14 Go for all Draft art batches (Stefan)
+
+"Go with all": every Draft art batch is Ready (U8 UI kit, G4 ground patches, G5 title art, U1C
+logo, U5-U7 icons and frames, the rest of G3). G2 (paths t2, rewritten as kit parts) and the
+Fafnir kit follow once the G1 Grim kit test passes QA and Stefan has seen it animated. Every
+image still passes Art's QA before it reaches the Art Verdicts page.

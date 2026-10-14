@@ -1,4 +1,4 @@
-import { hasPassive } from './passives';
+import { hasPassive, hasSkillsReady } from './passives';
 import { attackMs, type Stats } from './units';
 import type { UnitRuntime, World } from './world';
 import type { UnitState } from './types';
@@ -21,7 +21,11 @@ export function noteFight(
   const starting = fresh(rt);
   const foeFresh = fresh(foeRt);
   // A fresh fight resets what passives count per fight.
-  if (starting) rt.fight = { kills: 0, missUsed: false, strikes: 0 };
+  if (starting) {
+    rt.fight = { kills: 0, missUsed: false, strikes: 0 };
+    // Opening Gambit: skills start every fight ready.
+    if (rt.skill && hasSkillsReady(world, unit)) rt.skill.cdMs = 0;
+  }
   if (foeRt && foeFresh) foeRt.fight = { kills: 0, missUsed: false, strikes: 0 };
   // A brave hero charges into a fight it was not in (hero-ai.md section 4).
   if (starting && unit.trait === 'brave') {

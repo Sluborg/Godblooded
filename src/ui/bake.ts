@@ -48,6 +48,8 @@ export function bakeTexture(
 export interface RingSpec {
   w: number;
   h: number;
+  // The ellipse's centre, from the image centre.
+  cx?: number;
   cy?: number;
   fill?: [color: number, alpha: number];
   line?: [width: number, color: number, alpha: number];
@@ -62,16 +64,17 @@ export function bakeRings(
   let hh = 1;
   for (const s of specs) {
     const lw = s.line?.[0] ?? 0;
-    hw = Math.max(hw, s.w / 2 + lw);
+    hw = Math.max(hw, Math.abs(s.cx ?? 0) + s.w / 2 + lw);
     hh = Math.max(hh, Math.abs(s.cy ?? 0) + s.h / 2 + lw);
   }
   hw = Math.ceil(hw) + 1;
   hh = Math.ceil(hh) + 1;
   return bake(scene, `rings:${hw}x${hh}:${JSON.stringify(specs)}`, hw, hh, (g) => {
     for (const s of specs) {
+      const cx = s.cx ?? 0;
       const cy = s.cy ?? 0;
-      if (s.fill) g.fillStyle(s.fill[0], s.fill[1]).fillEllipse(0, cy, s.w, s.h);
-      if (s.line) g.lineStyle(s.line[0], s.line[1], s.line[2]).strokeEllipse(0, cy, s.w, s.h);
+      if (s.fill) g.fillStyle(s.fill[0], s.fill[1]).fillEllipse(cx, cy, s.w, s.h);
+      if (s.line) g.lineStyle(s.line[0], s.line[1], s.line[2]).strokeEllipse(cx, cy, s.w, s.h);
     }
   });
 }

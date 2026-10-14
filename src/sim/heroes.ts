@@ -1,18 +1,30 @@
+import { isWorking } from './town';
 import { visitPoint } from './collision';
 import { omenBounty, omenMods } from './omens';
+import { noteHeroArrived } from './facts';
+import { fogLeft, isDiscovered, nearestFog } from './discovery';
 import { payIntoTill, payTithe } from './collector';
 import { hearthBuff, hearthOf, partyHurt } from './hearth';
 import { escortHeldBy, escortOpenTo } from './escort';
 import { bossLair, lairSealed, nearSealedLair } from './boss';
 import { earn, newRecord } from './runstats';
 import { baseFleeOf, fledParty, fleeThreshold, newParty, pantheonOf, TRAITS } from './parties';
+import { nameHero } from './names';
 import { slowOf } from './riders';
 import { revengeTarget } from './rivalry';
 import { emptyItems } from './items';
 import { buyItem, hasItemRows, nearestShop, planShopping, type ShopStop } from './shopping';
 import { clearBossStatuses, curePoison, isBound } from './effects';
-import { passiveKoMult, passiveRestMult } from './passives';
+import {
+  hasLoyalStays,
+  passiveFlagMult,
+  passiveGoldMult,
+  passiveKoMult,
+  passiveRestMult,
+  passiveReviveHp,
+} from './passives';
 import { koTimeMult } from './quirks';
+import { noteSale } from './runstats';
 import { dist, maxHp, speed, stepToward, tierValue, TICK_MS } from './units';
 import type { World } from './world';
 import type { BountyState, LairState, PartyIntent, Vec2, UnitState } from './types';
@@ -55,6 +67,7 @@ export function spawnHero(world: World, godId: string, pos: Vec2, temple = 0): n
   const hp = maxHp(cls.attrs);
   // A god with two builds: one of them, 50/50 from the run's seed, kept for life.
   const build = god?.builds ? god.builds[world.rng() < 0.5 ? 0 : 1] : undefined;
+  const name = nameHero(world, id, god);
   world.units.push({
     id,
     kind: 'hero',
@@ -63,6 +76,7 @@ export function spawnHero(world: World, godId: string, pos: Vec2, temple = 0): n
     god: god?.id ?? null,
     path: null,
     ...(build ? { build } : {}),
+    ...(name ? { name } : {}),
     pos: { ...pos },
     facing: { x: 0, y: 1 },
     hp,
@@ -82,6 +96,12 @@ export function spawnHero(world: World, godId: string, pos: Vec2, temple = 0): n
   const hero = world.units[world.units.length - 1];
   hero.party = newParty(world, id);
   world.stats.heroesArrived++;
+  // The Altar's Seasoned Blood: the first party of the run starts with some XP.
+  if (world.stats.heroesArrived === 1) {
+    const party = world.parties.get(hero.party);
+    if (party) party.xp += world.tuning.party.firstPartyXp;
+  }
+  noteHeroArrived(world, god?.pantheon);
   world.events.push({ kind: 'arrived', unit: id, type: cls.id, god: god?.id ?? null });
   return id;
 }
@@ -91,14 +111,17 @@ export function runTemples(world: World): void {
   const gods = world.data.gods ?? [];
   if (gods.length === 0) return;
   for (const b of world.buildings) {
-    if (!isTemple(b.type)) continue;
+    if (!isTemple(b.type) || !isWorking(b)) continue;
     const next = world.templeNextMs.get(b.id) ?? world.timeMs + tune(world).firstRecruitMs;
     world.templeNextMs.set(b.id, next);
     if (world.timeMs < next) continue;
     const bt = world.tuning.building;
     world.templeNextMs.set(
       b.id,
-      world.timeMs + tune(world).recruitMs * tierValue(bt.templeRecruitMult, b.tier, 1),
+      world.timeMs +
+        tune(world).recruitMs *
+          tierValue(bt.templeRecruitMult, b.tier, 1) *
+          (tune(world).pantheonRecruitMult[pantheonOf(world, b.type) ?? ''] ?? 1),
     );
     let alive = 0;
     for (const rt of world.heroRuntime.values()) if (rt.temple === b.id) alive++;
@@ -137,7 +160,8 @@ export function runHeroes(world: World): void {
     } else if (
       unit.mode === 'explore' &&
       unit.hp < unit.maxHp * fleeThreshold(world, unit) &&
-      !drinksInsteadOfFleeing(world, unit)
+      !drinksInsteadOfFleeing(world, unit) &&
+      !loyalStays(world, unit)
     ) {
       unit.mode = 'return';
       unit.target = null;
@@ -187,6 +211,15 @@ function retreatParties(world: World): void {
       world.events.push({ kind: 'partyRetreat', party: party.id, units: going });
     }
   }
+}
+
+// Oath-Brothers: a loyal hero stays in the fight while any living party mate stands, wherever it is.
+function loyalStays(world: World, unit: UnitState): boolean {
+  if (unit.trait !== 'loyal' || !hasLoyalStays(world, unit)) return false;
+  return (world.parties.get(unit.party)?.members ?? []).some((id) => {
+    const m = id === unit.id ? undefined : world.units.find((u) => u.id === id);
+    return !!m && !m.ko && m.hp > 0;
+  });
 }
 
 // A hero in a fight with a potion (or already drinking one) drinks rather than runs: the drink
@@ -253,6 +286,7 @@ function visitShops(
     if (price === 0) continue;
     const tax = Math.floor(price * tune(world).taxRate * tierValue(bt.shopTaxMult, shop.tier, 1));
     payIntoTill(world, shop.id, tax);
+    noteSale(world, shop.type === 'smithy' ? 'smithy' : 'market', 1, price, tax);
     world.events.push({ kind: 'shopped', unit: unit.id, spent: price, tax, item: id });
   }
   rt.shop = rt.shop?.slice(1);
@@ -294,7 +328,7 @@ function payOwedTithe(world: World, unit: UnitState, rt: HeroRuntime): void {
 
 function revive(world: World, unit: UnitState, rt: HeroRuntime): void {
   unit.ko = false;
-  unit.hp = Math.ceil(unit.maxHp * tune(world).reviveHp);
+  unit.hp = Math.ceil(unit.maxHp * Math.max(tune(world).reviveHp, passiveReviveHp(world, unit)));
   unit.pos = { ...world.data.townHall };
   unit.mode = 'rest';
   payOwedTithe(world, unit, rt);
@@ -375,7 +409,7 @@ export function heroMove(world: World, unit: UnitState): void {
       } else if (flag) {
         rt.dest = flag.pos;
       } else if (!rt.dest || dist(unit.pos, rt.dest) <= tune(world).arrive) {
-        rt.dest = exploreDest(world);
+        rt.dest = exploreDest(world, unit.pos);
       }
       step(rt.dest);
       break;
@@ -393,7 +427,7 @@ export function heroMove(world: World, unit: UnitState): void {
       const spot = restSpot(world, unit.pos, unit);
       const rate =
         tune(world).restPerS *
-        (spot.shrine ? tune(world).shrineMult : 1) *
+        (spot.shrine ? shrineRestMult(world, spot.shrineTier ?? 1) : 1) *
         (spot.hearth ? world.tuning.building.hallRestMult : 1) *
         passiveRestMult(world, unit);
       curePoison(world, unit.id);
@@ -424,6 +458,7 @@ export function heroMove(world: World, unit: UnitState): void {
         );
         unit.gold -= spent;
         payIntoTill(world, market.id, tax);
+        noteSale(world, 'market', 0, spent, tax);
         world.events.push({ kind: 'shopped', unit: unit.id, spent, tax });
         unit.mode = 'explore';
         rt.dest = null;
@@ -444,10 +479,17 @@ function leaderOf(world: World, unit: UnitState): UnitState | undefined {
   return undefined;
 }
 
+// What exploring is worth: the fog while a cell is unexplored (discovery on), else plain exploring.
+const exploreBase = (world: World): number =>
+  fogLeft(world) ? world.tuning.ai.fogValue : world.tuning.ai.exploreValue;
+
 // Mostly toward a lair (that is where the monsters are), sometimes anywhere.
-function exploreDest(world: World): Vec2 {
+function exploreDest(world: World, from: Vec2): Vec2 {
   const { width, height } = world.data.map;
-  const sites = world.lairs;
+  // With discovery on, the fog first: the nearest cell no hero has passed.
+  const fog = fogLeft(world) ? nearestFog(world, from) : undefined;
+  if (fog) return fog;
+  const sites = world.lairs.filter((l) => isDiscovered(world, l));
   let x: number;
   let y: number;
   if (sites.length > 0 && world.rng() < tune(world).lairSearchShare) {
@@ -479,18 +521,25 @@ function nearest<T extends { pos: Vec2 }>(from: Vec2, list: readonly T[]): T | u
 function findMarket(world: World, from: Vec2) {
   return nearest(
     from,
-    world.buildings.filter((b) => b.type === 'market'),
+    world.buildings.filter((b) => b.type === 'market' && isWorking(b)),
   );
+}
+
+// Resting at a shrine: tier 1 heals shrineMult times faster, higher tiers the row's multiplier.
+function shrineRestMult(world: World, tier: number): number {
+  return tier >= 2
+    ? tierValue(world.tuning.building.shrineRestMult, tier, tune(world).shrineMult)
+    : tune(world).shrineMult;
 }
 
 function restSpot(
   world: World,
   from: Vec2,
   unit?: UnitState,
-): { pos: Vec2; shrine: boolean; hearth: boolean } {
+): { pos: Vec2; shrine: boolean; hearth: boolean; shrineTier?: number } {
   const shrine = nearest(
     from,
-    world.buildings.filter((b) => b.type === 'shrine'),
+    world.buildings.filter((b) => b.type === 'shrine' && isWorking(b)),
   );
   const hearth = hearthOf(world, from);
   // With both, the closer one; a party below half its hp takes the shrine (hearth.ts).
@@ -501,7 +550,7 @@ function restSpot(
   } else if (hearth && !shrine) {
     return { pos: hearth.pos, shrine: false, hearth: true };
   }
-  if (shrine) return { pos: shrine.pos, shrine: true, hearth: false };
+  if (shrine) return { pos: shrine.pos, shrine: true, hearth: false, shrineTier: shrine.tier };
   return { pos: world.data.townHall, shrine: false, hearth: false };
 }
 
@@ -539,7 +588,7 @@ function flagScore(world: World, unit: UnitState, flag: BountyState): number | n
   if (unit.trait === 'proud' && flag.gold < t.proudMinGold) return null;
   const walk = t.flagDistanceCost >= 0 ? t.flagDistanceCost : world.tuning.ai.distanceCost;
   const score =
-    flag.gold * goldMult(world, unit) +
+    flag.gold * goldMult(world, unit) * passiveFlagMult(world, unit) +
     t.flagBonus -
     flagDanger(world, flag.pos, flag.target) * t.costPerDanger * fearMult(world, unit) -
     dist(unit.pos, flag.pos) * walk;
@@ -609,7 +658,7 @@ export function runBounties(world: World): void {
     );
     if (!hero || monsterNear(world, flag.pos, t.claimClearRadius) || lairNear(world, flag.pos))
       continue;
-    earn(world, hero, omenBounty(world, flag.gold));
+    earn(world, hero, Math.round(omenBounty(world, flag.gold) * passiveGoldMult(world, hero)));
     world.bounties = world.bounties.filter((b) => b.id !== flag.id);
     world.events.push({ kind: 'bountyClaimed', bounty: flag.id, unit: hero.id, gold: flag.gold });
   }
@@ -641,7 +690,7 @@ export function claimHunt(world: World, victim: number, by: number): void {
       releaseFlag(flag);
       continue;
     }
-    earn(world, hero, omenBounty(world, flag.gold));
+    earn(world, hero, Math.round(omenBounty(world, flag.gold) * passiveGoldMult(world, hero)));
     world.bounties = world.bounties.filter((b) => b.id !== flag.id);
     world.events.push({
       kind: 'bountyClaimed',
@@ -692,7 +741,7 @@ function chooseGoals(world: World): void {
     } else if (cur?.kind === 'explore') {
       curScore = Math.max(
         1,
-        ai.exploreValue - (rt.dest ? dist(unit.pos, rt.dest) * ai.exploreDistanceCost : 0),
+        exploreBase(world) - (rt.dest ? dist(unit.pos, rt.dest) * ai.exploreDistanceCost : 0),
       );
     }
     // A lair goal stays while the party walks to that lair, and while it is at the lair (within
@@ -705,7 +754,7 @@ function chooseGoals(world: World): void {
     const atLair = !!goalLair && dist(unit.pos, goalLair.pos) <= world.tuning.monster.lairAggro;
     const walkingToLair = !!goalLair && rt.dest !== null && dist(rt.dest, goalLair.pos) <= 1;
     if (goalLair && ((atLair && midFight) || (walkingToLair && !atLair))) {
-      curScore = Math.max(curScore ?? 0, ai.exploreValue + ai.switchMin);
+      curScore = Math.max(curScore ?? 0, exploreBase(world) + ai.switchMin);
     }
     const isFresh = (b: BountyState): boolean =>
       b.placedMs !== undefined && world.timeMs - b.placedMs < world.tuning.bounty.freshFlagMs;
@@ -730,7 +779,7 @@ function chooseGoals(world: World): void {
     // The best option now; explore is always there (score at least 1).
     let best: NonNullable<HeroRuntime['goal']> = {
       kind: 'explore',
-      score: Math.max(1, ai.exploreValue),
+      score: Math.max(1, exploreBase(world)),
       sinceMs: world.timeMs,
     };
     for (const flag of world.bounties) {
@@ -744,7 +793,7 @@ function chooseGoals(world: World): void {
     }
     for (const lair of world.lairs) {
       // A sealed boss lair cannot be attacked yet.
-      if (lairSealed(world, lair.id)) continue;
+      if (lairSealed(world, lair.id) || !isDiscovered(world, lair)) continue;
       const score = lairScore(world, unit, lair);
       if (score !== null && score > best.score) {
         best = { kind: 'lair', id: lair.id, score, sinceMs: world.timeMs };

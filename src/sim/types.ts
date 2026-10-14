@@ -6,6 +6,8 @@ export interface Vec2 {
 }
 
 // Content row shapes the sim reads. Lead owns the rows in src/data/ and imports these types.
+import type { MetaRules } from './meta';
+
 export interface BuildingDef {
   id: string;
   cost: number;
@@ -21,6 +23,15 @@ export interface BuildingDef {
   hall?: true;
   // One plain line for the build menu and tooltips (Design, buildings.md). Display only.
   text?: string;
+}
+
+// Given names, epithets and the way parentage reads, for one pantheon (names.ts).
+export interface NameSet {
+  male: readonly string[];
+  female: readonly string[];
+  epithets: readonly string[];
+  // 'suffix': Eirik Thorsson / Astrid Thorsdottir. 'of': Kallias son of Ares.
+  patronym: 'suffix' | 'of';
 }
 
 // A god: heroes are children of a god, called by a temple of its pantheon. `template` is the
@@ -90,6 +101,36 @@ export interface PassiveKeys {
   rangeMult?: number;
   // Basic strikes carry this rider.
   rider?: RiderId;
+  // Card keys (progression.md section 2), summed or multiplied over the cards taken:
+  // Knocked out members wake at this share of max hp (Einherjar 0.5; the larger of it and the base).
+  koReviveHp?: number;
+  // Armour while at least `members` party members (self included) stand within `within` (Phalanx).
+  phalanx?: { armour: number; within: number; members: number };
+  // Gold from flags and lairs x this (Kleos 1.5).
+  goldMult?: number;
+  // A crit staggers its target (Metis).
+  critStagger?: boolean;
+  // Heals this share of max hp per kill (Scarab 0.03).
+  healOnKill?: number;
+  // Heals this share of max hp each second while in a fight (Apollo's favour).
+  regen?: number;
+  // Chance a skill casts twice (Twin Cast 0.25).
+  twinCast?: number;
+  // Skills start every fight ready (Opening Gambit).
+  skillsReady?: boolean;
+  // A healer's heal also touches the most hurt second ally for this share (Mending Bond 0.5).
+  healSplash?: number;
+  // Once per fight a member at 0 hp stays up at 1 hp for this many ms (Last Stand 3000).
+  lastStand?: number;
+  // Bonds between party mates grow this many times faster (Oath-Brothers 2).
+  bondMult?: number;
+  // Bounty flags look this many times richer to the party (Bounty Hunters 1.5).
+  flagMult?: number;
+  // A loyal member does not flee alone while a party mate stands (Oath-Brothers); the party's
+  // retreat still takes it.
+  loyalStays?: boolean;
+  // Odin's favour: the party sees this many times as far when discovering lairs and cells.
+  discoverMult?: number;
 }
 
 // One effect of a passive: a set of keys and who gets them. `scope` 'self' is the owner only,
@@ -459,6 +500,8 @@ export interface MapRules {
   margin: number;
   minTownDist: number;
   minLairDist: number;
+  // The pantheon the player chose to lean on at the Altar: first in the lean list (meta.ts).
+  forceLean?: string;
 }
 
 // Where a lair stands on the map.
@@ -515,6 +558,8 @@ export interface EventsTuning {
 }
 
 export interface HeroTuning {
+  // A pantheon's temples recruit in this share of the usual time (the Altar's Favoured: 0.85).
+  pantheonRecruitMult: Record<string, number>;
   firstRecruitMs: number;
   recruitMs: number;
   maxPerTemple: number;
@@ -556,6 +601,8 @@ export interface HeroTuning {
 }
 
 export interface PartyTuning {
+  // XP the first party of a run starts with (the Altar's Seasoned Blood: 15).
+  firstPartyXp: number;
   maxParty: number;
   // A new hero (a level 1 party with no cards) may join a party below this level that has a free
   // slot, when they meet; it takes the party's cards at once. 1 turns late joins off.
@@ -614,6 +661,8 @@ export interface MonsterTuning {
 // Lair growth: every tierUpEveryMs a lair goes up one tier (to maxTier). The arrays are indexed
 // by tier - 1 (the last entry holds for higher tiers).
 export interface LairTuning {
+  // The tier lairs begin at (the Trial Restless Dead: 2).
+  startTier: number;
   // 0 turns growth off.
   tierUpEveryMs: number;
   // First tier-up of the nearest lair (0: the same as tierUpEveryMs), and how much later each
@@ -654,6 +703,8 @@ export interface BuildingTuning {
   // From tier 2 late recruits join parties below this level (tuning.party.joinBelowLevel otherwise).
   hallJoinBelowLevel: number;
   hallHpBuff: number;
+  // Resting at a shrine heals this many times faster by shrine tier (tier 1 keeps hero.shrineMult).
+  shrineRestMult: number[];
   // Cost of the next tier as a multiple of the building's cost (index = current tier - 1).
   upgradeCostMult: number[];
   // Multiplies the building's hp (an upgrade adds the difference to its current hp).
@@ -921,8 +972,12 @@ export type SkillEffect =
 
 export interface SkillDef {
   id: string;
-  // PathDef id.
+  // PathDef id ('' for a monster skill).
   path: string;
+  // 'monster': an elite monster's skill, run by the same engine against the heroes (docs/systems/
+  // monsters-and-bosses.md). `monster` is the MonsterDef id that carries it.
+  owner?: 'monster';
+  monster?: string;
   name: string;
   trigger: SkillTrigger;
   cooldownS: number;
@@ -1017,6 +1072,9 @@ export interface TownTuning {
   rebuildCostMult: number;
   repairPerS: number;
   repairSafeRange: number;
+  // Building and upgrading take this long (a scaffold; an upgrading building works at its old tier).
+  // 0: instant, as before.
+  buildMs: number;
   buildingHp: number;
   // Raids: monsters from every lair march on the town.
   raidFirstMs: number;
@@ -1067,9 +1125,24 @@ export interface AiTuning {
   // exploreValue + switchMin. 0 turns it off.
   bossCallBonus: number;
   bossCallHp: number;
+  // Discovery (hero-ai.md section 3): lairs start in the fog and only discovered ones are scored;
+  // explore heads for unexplored cells. Off: every lair is known, as before.
+  discovery: boolean;
+  // What exploring the fog is worth while a cell is unexplored (else exploreValue).
+  fogValue: number;
+  // A lair becomes discovered when a hero comes within this; lairs within startDiscovered of the
+  // town hall start discovered.
+  discoverRange: number;
+  startDiscovered: number;
+  // The map is split into square cells of this size; a hero within exploreRange of a cell's
+  // centre explores it.
+  cellSize: number;
+  exploreRange: number;
 }
 
 export interface BountyTuning {
+  // What a flag costs in gold as a share of the gold it holds (the Altar's Bounty Ledger: 0.9).
+  flagCostMult: number;
   // Monsters within this radius of a flag count as its danger.
   dangerRadius: number;
   // A lair near the flag adds this much danger.
@@ -1169,11 +1242,15 @@ export interface GameData {
   // Overrides for a player's first run (docs/systems/onboarding.md section 4): gentler numbers,
   // merged group by group over `tuning` when createWorld gets { firstRun: true }.
   firstRun?: NonNullable<GameData['tuning']>;
+  // Set by playData: how the data was shaped for this run (saved with the run).
+  play?: PlayInputs;
   buildings: readonly BuildingDef[];
   // Building plots; a plot id is its index. Optional until Lead's rows land.
   plots?: readonly Vec2[];
   // The omen deck (events.md section 2). Empty or missing: no omens.
   omens?: readonly OmenDef[];
+  // The meta layer's rows (Essence, the Altar, unlocks, Trials); missing: meta.ts's defaults.
+  meta?: MetaRules;
   // Optional until src/data and Scene's stub carry rows; missing means no lairs.
   classes?: readonly ClassDef[];
   // Gods a temple calls children of. Classes are hidden templates the gods and paths point at.
@@ -1184,6 +1261,8 @@ export interface GameData {
   paths?: readonly PathDef[];
   // Item rows the smithy and market sell.
   items?: readonly ItemDef[];
+  // Hero names by pantheon (src/data/names.ts). Without them heroes have none.
+  names?: Readonly<Record<string, NameSet>>;
   // Path skills, one per path (tier 2, upgraded at tier 3).
   skills?: readonly SkillDef[];
   // One miracle per pantheon (docs/systems/events.md section 3). Without rows no bar fills.
@@ -1249,6 +1328,10 @@ export interface BuildingState {
   upgradeGate: number | null;
   // Gold waiting in the building for the tax collector (shop tax, tithe). Missing: none.
   till?: number;
+  // Under construction (tuning.town.buildMs): it does not work until this time. Missing: standing.
+  buildUntilMs?: number;
+  // Being upgraded: it works at its old tier until `upgradeUntilMs`, then goes up a tier.
+  upgradeUntilMs?: number;
 }
 
 // A building as the sim keeps it; the snapshot adds the upgrade cost.
@@ -1276,6 +1359,8 @@ export interface LairState {
   pos: Vec2;
   hp: number;
   maxHp: number;
+  // False while the lair is in the fog (tuning.ai.discovery); missing means discovered.
+  discovered?: boolean;
   // Grew on a node late in the run (corrupt.ts): it does not count toward lair-count rules.
   sprouted?: true;
   // Snapshot only. The growth ring: ms until the next tier-up and the length of the current wait
@@ -1312,6 +1397,8 @@ export interface UnitState {
   facing: Vec2;
   hp: number;
   maxHp: number;
+  // Heroes: the name given on arrival from GameData.names (absent without name rows).
+  name?: string;
   // Heroes: gear carried (absent: nothing). Monsters never have any.
   items?: HeroItems;
   // Summons: who called it, from which row, and when it ends (null: until it dies).
@@ -1379,6 +1466,7 @@ export interface PathState {
 export interface GraveState {
   // The slain hero's unit id.
   id: number;
+  name?: string;
   type: string;
   god: string | null;
   path: string | null;
@@ -1520,6 +1608,8 @@ export interface BountyState {
 export type SimEvent =
   | { kind: 'built'; building: number; type: string }
   | { kind: 'upgraded'; building: number; type: string; tier: number }
+  // A new building's construction finished (tuning.town.buildMs).
+  | { kind: 'finished'; building: number; type: string }
   | { kind: 'spawned'; unit: number; type: string; lair: number; elite?: true }
   | {
       kind: 'windup';
@@ -1591,6 +1681,8 @@ export type SimEvent =
   | { kind: 'pathOffer'; party: number; hero: number; options: string[] }
   // A hero saw a kind of monster or lair for the first time this run (hints, barks).
   | { kind: 'discovered'; what: 'monster' | 'lair'; type: string; unit: number; pos: Vec2 }
+  // A lair came out of the fog (tuning.ai.discovery).
+  | { kind: 'lairFound'; lair: number; unit: number; pos: Vec2 }
   // A charger starts its charge toward `to`.
   | { kind: 'charge'; unit: number; to: Vec2 }
   // A swarm splits into two halves.
@@ -1783,6 +1875,29 @@ export type Command =
 
 export type CommandResult = { ok: true; id: number } | { ok: false; reason: string };
 
+// What a run did that the meta unlock conditions read (meta.ts).
+// What a run was played with (meta.ts playData): kept in the save so a continued run gets the
+// same Altar ranks, Trials, unlock filter and lean back.
+export interface PlayInputs {
+  unlocks: string[];
+  altar: Record<string, number>;
+  lean: string;
+  trials: string[];
+  devUnlockAll?: boolean;
+}
+
+export interface RunFacts {
+  // The highest party level reached by a party with a hero of each pantheon.
+  peakLevel: Record<string, number>;
+  // Pantheons whose heroes arrived, and whose temples were built.
+  heroPantheons: string[];
+  templePantheons: string[];
+  // A hero bought level 2 gear.
+  gear2: boolean;
+  // The type of the run's boss lair (the next run's boss differs).
+  boss: string | null;
+}
+
 export interface RunStats {
   monstersKilled: number;
   lairsDestroyed: number;
@@ -1798,6 +1913,8 @@ export interface RunStats {
 // lair destroyed, damage as tie-breaker); heroes come sorted best first.
 export interface HeroReport {
   unit: number;
+  // The hero's name, when heroes are named.
+  name?: string;
   // Killed for good (see `slain`).
   slain?: boolean;
   type: string;
@@ -1835,6 +1952,19 @@ export interface RunReport {
   // null when the run was loaded from a save that has no command log.
   replay: string | null;
   fun: FunStats;
+  facts: RunFacts;
+  // Mean gear levels of the heroes standing at the end.
+  gear: { weapon: number; armour: number; headgear: number; offhand: number };
+  // What the shops sold: items (a plain market spend counts no item), gold spent, and the tax.
+  shops: Record<'smithy' | 'market', ShopTally>;
+  // When the run's first moments came (ms, null: never): a party of two or more, a hero at tier 2,
+  // the first lair to fall, a hero at tier 3.
+  beats: {
+    firstPartyMs: number | null;
+    firstTier2Ms: number | null;
+    firstLairFallMs: number | null;
+    firstTier3Ms: number | null;
+  };
 }
 
 // What an omen changes while it lasts (omens.ts, docs/systems/events.md section 2). Every field is
@@ -1928,6 +2058,12 @@ export interface FunStats {
   longestQuietAtMs: number;
 }
 
+export interface ShopTally {
+  items: number;
+  spent: number;
+  tax: number;
+}
+
 export interface Snapshot {
   // A first run with no temple yet: the clock is stopped until one stands (docs/systems/onboarding.md).
   readonly waiting: boolean;
@@ -1939,6 +2075,9 @@ export interface Snapshot {
   readonly plots: readonly Readonly<PlotState>[];
   readonly buildings: readonly Readonly<BuildingState>[];
   readonly lairs: readonly Readonly<LairState>[];
+  // The fog: cells of `cell` units, `cols` x `rows`, with the indices a hero has explored. Null
+  // while tuning.ai.discovery is off.
+  readonly fog: { cell: number; cols: number; rows: number; explored: readonly number[] } | null;
   readonly units: readonly Readonly<UnitState>[];
   readonly parties: readonly Readonly<PartyState>[];
   readonly paths: readonly Readonly<PathState>[];

@@ -1,4 +1,5 @@
 import { omenMods } from './omens';
+import { isWorking } from './town';
 import { emptyItems, itemsOf } from './items';
 import { passivePotionSlots } from './passives';
 import { dist, tierValue } from './units';
@@ -25,7 +26,8 @@ export function nearestShop(
 ): BuildingCore | undefined {
   let best: BuildingCore | undefined;
   for (const b of world.buildings) {
-    if (b.type === kind && (!best || dist(from, b.pos) < dist(from, best.pos))) best = b;
+    if (b.type === kind && isWorking(b) && (!best || dist(from, b.pos) < dist(from, best.pos)))
+      best = b;
   }
   return best;
 }
@@ -183,10 +185,12 @@ export function buyItem(world: World, unit: UnitState, id: string, shopTier: num
     case 'weapon':
       if (item.level !== items.weapon + 1) return 0;
       items.weapon = item.level;
+      if (item.level >= 2) world.facts.gear2 = true;
       break;
     case 'armour':
       if (item.level !== items.armour + 1) return 0;
       items.armour = item.level;
+      if (item.level >= 2) world.facts.gear2 = true;
       break;
     case 'headgear':
       if (item.level !== (items.headgear ?? 0) + 1) return 0;

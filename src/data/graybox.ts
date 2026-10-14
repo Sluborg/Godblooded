@@ -13,6 +13,7 @@ import type {
   SummonDef,
   UpgradeDef,
 } from '../sim/types';
+import { NAMES } from './names';
 
 // Derived (Sim): hp = sta * 8 + str * 4, damage = str, attack time = weapon base reduced by dex.
 
@@ -1365,6 +1366,8 @@ export const GRAYBOX: GameData = {
   monsters: MONSTERS,
   lairs: LAIRS,
   items: ITEMS,
+  // Hero names by pantheon (src/data/names.ts).
+  names: NAMES,
   skills: SKILLS,
   omens: OMENS,
   summons: SUMMONS,

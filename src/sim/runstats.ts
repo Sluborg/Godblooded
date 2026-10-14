@@ -4,6 +4,16 @@ import { funStats } from './funstats';
 import type { World } from './world';
 import type { HeroReport, RunReport, UnitState } from './types';
 
+// The type of the run's boss lair (standing or cleared), for the meta layer.
+function bossType(world: World): string | null {
+  if (world.bossLair === null) return null;
+  return (
+    world.lairs.find((l) => l.id === world.bossLair)?.type ??
+    world.lairLog.find((l) => l.lair === world.bossLair)?.type ??
+    null
+  );
+}
+
 // Per hero and per run tallies for the end screen. Kept apart from the rules: the sim only
 // counts, nothing here changes an outcome.
 
@@ -80,6 +90,7 @@ export function runReport(world: World): RunReport {
     if (u.kind !== 'hero' || !rec) continue;
     heroes.push({
       unit: u.id,
+      ...(u.name ? { name: u.name } : {}),
       type: u.type,
       god: u.god,
       path: u.path,
@@ -94,6 +105,7 @@ export function runReport(world: World): RunReport {
     if (!rec) continue;
     heroes.push({
       unit: g.id,
+      ...(g.name ? { name: g.name } : {}),
       type: g.type,
       god: g.god,
       path: g.path,
@@ -121,6 +133,24 @@ export function runReport(world: World): RunReport {
     goldHistory: goldHistory(world),
     replay: world.replayable ? encodeReplay(world) : null,
     fun: funStats(world),
+    gear: gearLevels(world),
+    shops: {
+      smithy: { ...world.shopTally.smithy },
+      market: { ...world.shopTally.market },
+    },
+    beats: {
+      firstPartyMs: world.beats.firstPartyMs,
+      firstTier2Ms: world.beats.firstTier2Ms,
+      firstLairFallMs: world.lairLog[0]?.timeMs ?? null,
+      firstTier3Ms: world.beats.firstTier3Ms,
+    },
+    facts: {
+      peakLevel: { ...world.facts.peakLevel },
+      heroPantheons: [...world.facts.heroPantheons],
+      templePantheons: [...world.facts.templePantheons],
+      gear2: world.facts.gear2,
+      boss: bossType(world),
+    },
   };
 }
 
@@ -132,4 +162,35 @@ function goldHistory(world: World): { timeMs: number; gold: number }[] {
   if (last && last.timeMs === world.timeMs) last.gold = world.gold;
   else out.push({ timeMs: world.timeMs, gold: world.gold });
   return out;
+}
+
+// A shop sold something (items 0: a plain market spend with no item rows).
+export function noteSale(
+  world: World,
+  shop: 'smithy' | 'market',
+  items: number,
+  spent: number,
+  tax: number,
+): void {
+  const tally = world.shopTally[shop];
+  tally.items += items;
+  tally.spent += spent;
+  tally.tax += tax;
+}
+
+// The first time something happens in the run, for the curve beats.
+export function noteBeat(world: World, beat: keyof World['beats']): void {
+  world.beats[beat] ??= world.timeMs;
+}
+
+function gearLevels(world: World): RunReport['gear'] {
+  const heroes = world.units.filter((u) => u.kind === 'hero');
+  const mean = (key: 'weapon' | 'armour' | 'headgear' | 'offhand') =>
+    heroes.length === 0 ? 0 : heroes.reduce((a, u) => a + (u.items?.[key] ?? 0), 0) / heroes.length;
+  return {
+    weapon: mean('weapon'),
+    armour: mean('armour'),
+    headgear: mean('headgear'),
+    offhand: mean('offhand'),
+  };
 }

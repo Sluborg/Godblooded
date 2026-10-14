@@ -274,3 +274,13 @@ export function fearOf(world: World, id: number): { x: number; y: number } | und
   const f = fxOf(world, id)?.fear;
   return f && world.timeMs < f.until ? f.from : undefined;
 }
+
+// Knocks a unit's swing and cast off its rhythm: it loses the swing in progress and waits out one
+// windup (skills' stagger effect, Metis crits).
+export function staggerUnit(world: World, unit: UnitState): void {
+  const rt = world.unitRuntime.get(unit.id);
+  if (!rt) return;
+  rt.swing = undefined;
+  rt.cooldownMs = Math.max(rt.cooldownMs, world.tuning.combat.windupMs);
+  if (rt.skill) rt.skill.cast = undefined;
+}
