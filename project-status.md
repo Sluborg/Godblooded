@@ -14,23 +14,25 @@ Lead keeps this to one screen. Read it first when resuming.
 - PRs are scarce (Codex auto-review spends Stefan's quota). Workers push `<role>/<topic>`
   branches; Review reviews by message; Integrator lands batch PRs. See `CLAUDE.md` "Git".
 
-## Now (2026-10-14 morning)
+## Now (2026-10-14 evening)
 
-- **M2 "Aesir, alive" is close.** On main: Aesir skills, passives, cards, items and gear,
-  hero AI with retreat and intent icons, raids by role (tier-up raids on), monster roles and
-  quirks, Fafnir boss moves and telegraphs, sealed boss lair, hints, sound effects, title music,
-  tap-twice build menu, report on quit, grass, wood UI, parts heroes.
-- **Bot:** about 63-75% wins, run about 16 min, boss at about 13 min, 80%+ heroes geared by 8:00.
-- **In flight:** Sim hunt bounties and flag responsiveness (core verb fix, Review gaps), then
-  Scene "?" considering sign and Balance flag pricing.
-- **Art:** S5 taste batch running (Thor parts sheet looks good, fists need a re-roll); U1B logo
-  b2/b3 ready. Art freeze holds for everything else.
-- **M3 specs ready:** nodes and gatherers (Ambrosia in-run), Altar with Essence, chosen lean.
+- **On main (batch 42, f48a80b):** collision, player-picked level-up cards, hall tiers and
+  ruins on, Vanguard rule (off), boss call, playtest trim, hero kit slots and builds (save v7),
+  monster strike types, painted parts rig (floating or bent limbs per kit), PWA update check.
+- **Bot:** human-hints 60-65%, median run about 15 min, quiet gap p90 80-100 s (accepted until
+  Stefan's next run judges it; fallback rule specced).
+- **Next batch:** Sim r2 stack (omens, elites, replay, fun-stats, Hearth Hall, meta/Essence),
+  Balance bosses/omens/first-run, Scene omens and meta screens (Altar, run setup, Hall).
+- **On branches:** card keys, late recruits, hero names, hero-kit item rows.
+- **Art:** one painted style (STYLE.md, hero anchor Grim). Heroes are a painted parts kit with
+  icons and worn layers; G1 test (Grim, both limb modes) and B13 (flag, plot) Ready. Art QA
+  gate (art-tasks/QA.md): nothing reaches Stefan unchecked. U1B void, U1C Draft.
+- **Art verdicts page:** https://claude.ai/artifact/TNTyhAUSmpoduTGwjZDryP (Stefan rates 1-5,
+  Lead reads the `items` store).
 
 ## Waiting on Stefan
 
-- Logo: b2 (hexagon, Lead's pick) or b3 (sun).
-- Fafnir: keep code version as stand-in (held off main) and order painted parts later?
-- Verdict on S5 sheets when all 8 are in; only then other art batches.
-- Gear gate redefinition (80% geared by 8:00), veto if needed.
-- M2 playtest on the phone (`docs/playtest-m2.md`) once flags land.
+- Grim test: floating or bent limbs (Scene sends the side-by-side).
+- Playtest run 3 on main: level-up picks, hall tiers, ruins, collision, the late lull.
+- Fafnir: still held (code stand-in vs painted).
+- U1C logo after it passes QA.
