@@ -206,7 +206,7 @@ export interface World {
   tuning: Tuning;
   parties: Map<number, Party>;
   bonds: Map<string, number>;
-  pendingDeaths: { victim: number; by: number }[];
+  pendingDeaths: { victim: number; by: number; via?: 'miracle' }[];
   // Where heroes were slain.
   graves: GraveState[];
   // Monster and lair types a hero has already seen (the `discovered` event fires once each).
@@ -836,7 +836,7 @@ function fight(world: World, unit: UnitState, rt: UnitRuntime, stats: Stats, foe
 function settleDeaths(world: World): void {
   const settled = new Set<number>();
   const slainIds = new Set<number>();
-  for (const { victim, by } of world.pendingDeaths) {
+  for (const { victim, by, via } of world.pendingDeaths) {
     const unit = world.units.find((u) => u.id === victim);
     if (!unit || unit.ko || settled.has(victim)) continue;
     settled.add(victim);
@@ -907,7 +907,7 @@ function settleDeaths(world: World): void {
       if (krt?.fight) krt.fight.kills++;
       healOnKill(world, by);
       payBounty(world, by, bounty + stolenBy(world, unit.id));
-      claimHunt(world, unit.id, by);
+      claimHunt(world, unit.id, by, via);
       shareXp(world, by, xp);
       splitSwarm(world, unit, mrt);
     }
@@ -1003,12 +1003,15 @@ export function command(world: World, cmd: Command): CommandResult {
       if (world.gold < cmd.gold) return { ok: false, reason: 'not enough gold' };
       world.gold -= cmd.gold;
       const id = world.nextId++;
-      // On a monster (within huntRadius): a hunt flag bound to the nearest one.
+      // On a monster (within huntSnap): a hunt flag bound to the nearest one. A flag on a lair
+      // stays a lair flag, whatever guards stand around it.
+      const snap = world.tuning.bounty.huntSnap;
+      const onLair = world.lairs.some((l) => dist(l.pos, cmd.pos) <= snap);
       let prey: UnitState | undefined;
-      for (const u of world.units) {
+      for (const u of onLair ? [] : world.units) {
         if (u.kind !== 'monster' || u.hp <= 0) continue;
         const d = dist(u.pos, cmd.pos);
-        if (d <= world.tuning.bounty.huntRadius && (!prey || d < dist(prey.pos, cmd.pos))) prey = u;
+        if (d <= snap && (!prey || d < dist(prey.pos, cmd.pos))) prey = u;
       }
       world.bounties.push({
         id,
@@ -1042,6 +1045,9 @@ export function command(world: World, cmd: Command): CommandResult {
       if (world.gold < cmd.gold) return { ok: false, reason: 'not enough gold' };
       world.gold -= cmd.gold;
       flag.gold += cmd.gold;
+      // A raised flag is news again: it may break a commitment for a while, and is weighed now.
+      flag.placedMs = world.timeMs;
+      rescoreForFlag(world);
       world.events.push({
         kind: 'bountyRaised',
         bounty: flag.id,

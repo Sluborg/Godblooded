@@ -119,12 +119,14 @@ describe('hunt flags', () => {
     expect(m.hp).toBe(0);
     expect(flagOf(w, id)).toBeUndefined();
     const claimed = ev.filter((e) => e.kind === 'bountyClaimed');
-    expect(claimed).toEqual([{ kind: 'bountyClaimed', bounty: id, unit: h.id, gold: 50 }]);
+    expect(claimed).toEqual([
+      { kind: 'bountyClaimed', bounty: id, unit: h.id, gold: 50, hunt: true },
+    ]);
     // the monster's own 12 gold plus the flag's 50
     expect(h.gold).toBeGreaterThanOrEqual(62);
   });
 
-  it('a kill by something that is no hero takes the flag down with the cancel refund', () => {
+  it('a kill by something that is no hero leaves a ground flag where it fell, no refund', () => {
     const w = createWorld(1, base);
     const m = monster(w, 2000, 2000);
     const id = flag(w, 2000, 2000, 50);
@@ -132,11 +134,63 @@ describe('hunt flags', () => {
     m.hp = 0;
     w.pendingDeaths.push({ victim: m.id, by: 9999 });
     const ev = run(w, 100);
+    const left = flagOf(w, id);
+    expect(left).toBeDefined();
+    expect(left?.target).toBeUndefined();
+    expect(left?.pos).toEqual({ x: 2000, y: 2000 });
+    expect(left?.gold).toBe(50);
+    expect(w.gold).toBe(gold);
+    expect(ev.some((e) => e.kind === 'bountyCancelled' || e.kind === 'bountyClaimed')).toBe(false);
+  });
+
+  it('a miracle kill does not pay the hunt either', () => {
+    const w = createWorld(1, base);
+    const h = hero(w, 3000, 3000);
+    const m = monster(w, 2000, 2000);
+    const id = flag(w, 2000, 2000, 50);
+    m.hp = 0;
+    w.pendingDeaths.push({ victim: m.id, by: h.id, via: 'miracle' });
+    run(w, 100);
+    expect(flagOf(w, id)?.target).toBeUndefined();
+    // only the monster's own bounty (12), not the 50 of the flag
+    expect(h.gold).toBe(12);
+  });
+
+  it("a summon's kill pays its owner", () => {
+    const w = createWorld(1, base);
+    const h = hero(w, 3000, 3000);
+    const m = monster(w, 2000, 2000);
+    const id = flag(w, 2000, 2000, 50);
+    const sid = w.nextId++;
+    w.units.push({
+      ...m,
+      id: sid,
+      kind: 'summon',
+      type: 'decoy',
+      pos: { x: 2010, y: 2000 },
+      summon: { owner: h.id, def: 'decoy', until: null, src: 'sk' },
+    });
+    m.hp = 0;
+    w.pendingDeaths.push({ victim: m.id, by: sid });
+    const ev = run(w, 100);
     expect(flagOf(w, id)).toBeUndefined();
-    expect(ev.some((e) => e.kind === 'bountyCancelled' && e.bounty === id && e.refund === 25)).toBe(
-      true,
-    );
-    expect(w.gold).toBe(gold + 25);
+    expect(ev.some((e) => e.kind === 'bountyClaimed' && e.unit === h.id && e.hunt)).toBe(true);
+  });
+
+  it('a flag on a lair stays a lair flag, even with a guard within 60', () => {
+    const w = createWorld(1, {
+      ...base,
+      lairs: [{ id: 'barrow', monster: 'draugr', spawnS: 100_000, maxAlive: 0, hp: 5000 }],
+      lairSites: [{ lair: 'barrow', pos: { x: 2000, y: 2000 } }],
+    });
+    monster(w, 2030, 2000);
+    const id = flag(w, 2000, 2000, 50);
+    expect(flagOf(w, id)?.target).toBeUndefined();
+    // away from the lair the same guard does bind
+    const far = flag(w, 2050, 2000, 50);
+    expect(flagOf(w, far)?.target).toBeUndefined();
+    const away = monster(w, 2800, 2000);
+    expect(flagOf(w, flag(w, 2800, 2000, 50))?.target).toBe(away.id);
   });
 
   it('its target is not danger: a hero heads for a 50 gold hunt flag it would skip on open ground', () => {
@@ -146,7 +200,7 @@ describe('hunt flags', () => {
       const m = monster(w, 900, 500);
       m.mode = 'wander';
       // freeze the monster: a flag on it, or the same flag 120 away from it (open ground)
-      const id = flag(w, hunt ? 900 : 900, hunt ? 500 : 620, 50);
+      const id = flag(w, 900, hunt ? 500 : 620, 50);
       run(w, 1_100);
       return { goal: w.heroRuntime.get(h.id)?.goal, id };
     };
@@ -196,6 +250,53 @@ describe('open ground flags', () => {
 });
 
 describe('responsiveness', () => {
+  it('raising a flag re-scores at once and makes it fresh again', () => {
+    const w = createWorld(1, base);
+    const h = hero(w, 500, 500);
+    const a = flag(w, 1500, 500, 200);
+    run(w, 1_100);
+    expect(w.heroRuntime.get(h.id)?.goal?.id).toBe(a);
+    const b = flag(w, 1500, 520, 100);
+    run(w, 12_000);
+    // b is old news now and far from the 200 goal
+    expect(w.heroRuntime.get(h.id)?.goal?.id).toBe(a);
+    const placed = flagOf(w, b)?.placedMs ?? 0;
+    // a raise to 400 inside a hold: weighed this tick, and the party switches
+    command(w, { kind: 'raiseBounty', bounty: b, gold: 400 });
+    expect(flagOf(w, b)?.placedMs).toBeGreaterThan(placed);
+    expect(w.heroRuntime.get(h.id)?.goal?.id).toBe(b);
+  });
+
+  it('a lair goal at its lair holds against a new flag', () => {
+    const w = createWorld(1, {
+      ...base,
+      lairs: [{ id: 'barrow', monster: 'draugr', spawnS: 100_000, maxAlive: 0, hp: 50_000 }],
+      lairSites: [{ lair: 'barrow', pos: { x: 700, y: 500 } }],
+    });
+    const h = hero(w, 650, 500);
+    run(w, 1_100);
+    const goal = w.heroRuntime.get(h.id)?.goal;
+    expect(goal?.kind).toBe('lair');
+    flag(w, 1500, 500, 900);
+    run(w, 3_000);
+    expect(w.heroRuntime.get(h.id)?.goal?.kind).toBe('lair');
+  });
+
+  it('considering is said once per flag, however the scores wobble', () => {
+    const w = createWorld(1, base);
+    const h = hero(w, 500, 500);
+    flag(w, 1500, 500, 200);
+    run(w, 1_100);
+    const c = flag(w, 1500, 540, 170);
+    const d = flag(w, 1500, 560, 165);
+    const ev = run(w, 8_000);
+    const said = ev.filter((e) => e.kind === 'considering');
+    expect(said.map((e) => (e.kind === 'considering' ? e.bounty : 0)).sort()).toEqual(
+      [c, d].sort(),
+    );
+    void h;
+  });
+
   it('weighing a flag worth 70% of the goal says so once, without switching', () => {
     const w = createWorld(1, base);
     const h = hero(w, 500, 500);

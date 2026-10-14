@@ -906,10 +906,6 @@ export interface AiTuning {
   exploreValue: number;
   // A lair's xp counts this much next to its gold.
   lairXpWeight: number;
-  // A flag this young may break a party's commitment, and the flag score that makes a party
-  // "consider" it is this share of its current goal's score (event `considering`).
-  freshFlagMs: number;
-  consideringShare: number;
 }
 
 export interface BountyTuning {
@@ -923,8 +919,13 @@ export interface BountyTuning {
   claimRadius: number;
   // A flag with no monster within this of it is clear (a hunt flag is claimed by the kill).
   claimClearRadius: number;
-  // A flag placed within this of a monster is a hunt flag bound to it.
-  huntRadius: number;
+  // A flag placed within this of a living monster (and not on a lair) is a hunt flag bound to it.
+  huntSnap: number;
+  // A flag this young (placed or raised) may break a party's commitment.
+  freshFlagMs: number;
+  // A flag scoring this share of a party's current goal, without winning, is "considered" (event
+  // `considering`).
+  considerShare: number;
   greedyGoldMult: number;
   curiousGoldMult: number;
   braveFearMult: number;
@@ -1320,7 +1321,7 @@ export type SimEvent =
   | { kind: 'lairTierUp'; lair: number; tier: number; pressure?: boolean }
   | { kind: 'lairDestroyed'; lair: number; type: string; by: number; bounty: number }
   | { kind: 'buildingDestroyed'; building: number; type: string }
-  | { kind: 'bountyClaimed'; bounty: number; unit: number; gold: number }
+  | { kind: 'bountyClaimed'; bounty: number; unit: number; gold: number; hunt?: true }
   | { kind: 'won' }
   | { kind: 'lost' }
   | { kind: 'arrived'; unit: number; type: string; god: string | null }

@@ -105,6 +105,19 @@ describe('score and commit', () => {
     expect(w.heroRuntime.get(h.id)?.goal?.id).toBe((big as { id: number }).id);
   });
 
+  it('an old flag, much better, does not break the hold', () => {
+    const w = createWorld(1, { ...base, startGold: 1000 });
+    const h = hero(w);
+    flag(w, 1500, 500, 90);
+    run(w, 1_100);
+    const first = w.heroRuntime.get(h.id)?.goal;
+    expect(first?.kind).toBe('flag');
+    // a rich flag that is not news (placed long ago, no re-score) waits out the hold
+    w.bounties.push({ id: w.nextId++, pos: { x: 1500, y: 520 }, gold: 400, placedMs: -100_000 });
+    run(w, 3_000);
+    expect(w.heroRuntime.get(h.id)?.goal?.id).toBe(first?.id);
+  });
+
   it('a lair is a goal when it pays: the hero heads for it', () => {
     const w = createWorld(1, {
       ...base,

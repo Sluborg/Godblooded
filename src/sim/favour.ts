@@ -241,6 +241,6 @@ function hurt(world: World, effect: MiracleEffect, foe: UnitState, by: UnitState
   if (effect.rider) applyRider(world, effect.rider, by.id, foe, out);
   if (foe.hp <= 0) {
     foe.hp = 0;
-    world.pendingDeaths.push({ victim: foe.id, by: by.id });
+    world.pendingDeaths.push({ victim: foe.id, by: by.id, via: 'miracle' });
   }
 }

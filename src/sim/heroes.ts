@@ -20,8 +20,8 @@ export interface HeroRuntime {
   dest: Vec2 | null;
   // The bounty flag this hero is heading for.
   bounty?: number;
-  // The flag its party last weighed against its goal (event `considering`), to say it once.
-  considering?: number;
+  // The flags its party already weighed against its goal (event `considering`): said once each.
+  considered?: number[];
   // What a leader (or a hero alone) chose to do while exploring: kept for commitMs, replaced only
   // by something that scores clearly better (docs/systems/hero-ai.md section 3).
   goal?: { kind: 'flag' | 'lair' | 'explore'; id?: number; score: number; sinceMs: number };
@@ -503,7 +503,7 @@ export function runBounties(world: World): void {
         (u) => u.id === flag.target && u.kind === 'monster' && u.hp > 0,
       );
       if (prey) flag.pos = { ...prey.pos };
-      else dropFlag(world, flag);
+      else releaseFlag(flag);
       continue;
     }
     const hero = world.units.find(
@@ -525,27 +525,32 @@ const lairNear = (world: World, pos: Vec2): boolean =>
 const monsterNear = (world: World, pos: Vec2, r: number): boolean =>
   world.units.some((u) => u.kind === 'monster' && u.hp > 0 && dist(u.pos, pos) <= r);
 
-// A hunt flag whose monster died to something that is no hero (a tower, a raid) or vanished:
-// the flag is taken down and the town gets the cancel refund back.
-function dropFlag(world: World, flag: BountyState): void {
-  world.bounties = world.bounties.filter((b) => b.id !== flag.id);
-  const refund = Math.floor(flag.gold * world.tuning.bounty.cancelRefund);
-  world.gold += refund;
-  world.events.push({ kind: 'bountyCancelled', bounty: flag.id, gold: flag.gold, refund });
+// A hunt flag whose monster died to something that is no hero (a tower, a miracle) or vanished
+// drops where it fell and becomes a flag on open ground: same gold, no refund.
+function releaseFlag(flag: BountyState): void {
+  delete flag.target;
 }
 
-// A monster died: a hunt flag on it is paid to the hero that landed the kill (`by`, the owner for
-// a summon's kill).
-export function claimHunt(world: World, victim: number, by: number): void {
+// A monster died: a hunt flag on it is paid to the hero that landed the kill (a summon's kill
+// pays its owner). A tower's or a miracle's kill (`via`) pays nobody: the flag stays on the ground.
+export function claimHunt(world: World, victim: number, by: number, via?: 'miracle'): void {
+  const killer = world.units.find((u) => u.id === by);
+  const heroId = killer?.kind === 'summon' ? killer.summon?.owner : by;
+  const hero = world.units.find((u) => u.id === heroId && u.kind === 'hero');
   for (const flag of world.bounties.filter((b) => b.target === victim)) {
-    const hero = world.units.find((u) => u.id === by && u.kind === 'hero');
-    if (!hero) {
-      dropFlag(world, flag);
+    if (!hero || via) {
+      releaseFlag(flag);
       continue;
     }
     earn(world, hero, flag.gold);
     world.bounties = world.bounties.filter((b) => b.id !== flag.id);
-    world.events.push({ kind: 'bountyClaimed', bounty: flag.id, unit: hero.id, gold: flag.gold });
+    world.events.push({
+      kind: 'bountyClaimed',
+      bounty: flag.id,
+      unit: hero.id,
+      gold: flag.gold,
+      hunt: true,
+    });
   }
 }
 
@@ -604,12 +609,17 @@ function chooseGoals(world: World): void {
     }
     // A flag placed in the last freshFlagMs (other than the goal) may break the commitment: the
     // party scores everything and switches only if it beats the goal by the margin.
-    const freshFlag = world.bounties.some(
-      (b) =>
-        b.placedMs !== undefined &&
-        world.timeMs - b.placedMs < ai.freshFlagMs &&
-        !(cur?.kind === 'flag' && cur.id === b.id),
-    );
+    // A lair goal at its lair is sticky: a flag placed in the meantime does not pull the party
+    // out of the fight (the party finishes it first).
+    const stickyLair = !!goalLair && dist(unit.pos, goalLair.pos) <= world.tuning.monster.lairAggro;
+    const isFresh = (b: BountyState): boolean =>
+      b.placedMs !== undefined && world.timeMs - b.placedMs < world.tuning.bounty.freshFlagMs;
+    // A flag placed or raised in the last freshFlagMs (other than the goal) may break the
+    // commitment: the party scores everything and switches only if it beats the goal by the
+    // margin.
+    const freshFlag =
+      !stickyLair &&
+      world.bounties.some((b) => isFresh(b) && !(cur?.kind === 'flag' && cur.id === b.id));
     if (
       cur &&
       curScore !== null &&
@@ -630,6 +640,7 @@ function chooseGoals(world: World): void {
     for (const flag of world.bounties) {
       // A flag next to a sealed boss lair waits: nobody can claim it yet.
       if (nearSealedLair(world, flag.pos, world.tuning.bounty.dangerRadius)) continue;
+      if (stickyLair && isFresh(flag)) continue;
       const score = flagScore(world, unit, flag);
       if (score !== null && score > best.score) {
         best = { kind: 'flag', id: flag.id, score, sinceMs: world.timeMs };
@@ -668,28 +679,21 @@ function chooseGoals(world: World): void {
   }
 }
 
-// The party keeps its goal but a flag scores at least consideringShare of it: say so once per flag
-// (event `considering`), so the player sees the party weighing it.
+// The party keeps its goal but a flag scores at least considerShare of it: say so once per party
+// and flag (event `considering`), so the player sees the party weighing it.
 function considerFlags(world: World, unit: UnitState, rt: HeroRuntime, curScore: number): void {
-  const share = world.tuning.ai.consideringShare;
-  let pick: BountyState | undefined;
-  let pickScore = 0;
+  const share = world.tuning.bounty.considerShare;
+  // Forget the flags that are gone, so the memory stays small.
+  rt.considered = rt.considered?.filter((id) => world.bounties.some((b) => b.id === id));
   for (const flag of world.bounties) {
     if (rt.goal?.kind === 'flag' && rt.goal.id === flag.id) continue;
+    if (rt.considered?.includes(flag.id)) continue;
     if (nearSealedLair(world, flag.pos, world.tuning.bounty.dangerRadius)) continue;
     const score = flagScore(world, unit, flag);
-    if (score !== null && score >= curScore * share && score > pickScore) {
-      pick = flag;
-      pickScore = score;
-    }
+    if (score === null || score < curScore * share) continue;
+    rt.considered = [...(rt.considered ?? []), flag.id];
+    world.events.push({ kind: 'considering', party: unit.party, bounty: flag.id });
   }
-  if (!pick) {
-    rt.considering = undefined;
-    return;
-  }
-  if (rt.considering === pick.id) return;
-  rt.considering = pick.id;
-  world.events.push({ kind: 'considering', party: unit.party, bounty: pick.id });
 }
 
 // What a party is doing, from its leader's mode and goal; an `intent` event when it changes.
