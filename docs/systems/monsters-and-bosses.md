@@ -200,6 +200,8 @@ lair is winning. Guard pips show it. This is a look only: no rule changes.
 - **Sim:** the lair snapshot carries `alive` (its living monsters), `maxAlive` (after tier and
   swarm adds) and `nextSpawnMs` (ms left until its next spawn; null when full).
 
+## 5. What the player sees
+
 - **Roles read from motion:** harpies dart in and out, minotaurs paw the ground then charge
   (0.6 s windup with a dust puff), jackal packs move as a clump, scarabs spill out in numbers.
 - **Quirks:** a coin flying from hero to harpy; a troll's green regen sparkle that stops when

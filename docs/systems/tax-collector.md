@@ -128,8 +128,9 @@ tax collector", in M2). Sim builds it, Scene draws it, Balance sets the numbers.
   `collectorHit`, `collected`, `collectorFell`. Scene's rows in section 2 map onto these.
 - **Run report:** `taxBanked`, `taxLost`, `uncollected`.
 - **Save version:** Sim made the change additive (old saves get empty tills and a collector at
-  the hall). Design asks for the version bump anyway, because the save shape changed
-  (CLAUDE.md, "Saves").
+  the hall). Lead ruled v4 anyway (2026-10-14), with a trivial migration (empty
+  tills, no piles, a collector at the hall), following CLAUDE.md "Saves"; `save.ts` treats a new
+  field as safe, so the bump is Lead's call, not a code need.
 
 ## 5. Backlog rows (proposed)
 
