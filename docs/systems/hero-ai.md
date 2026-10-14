@@ -156,8 +156,9 @@ once-a-second re-score and a 6 s commit.
 - **Fresh flag breaks a commit:** for `freshFlagMs` (10 s) after it is placed or raised, a flag
   may replace a goal inside its `commitMs` hold if it beats it by the usual margin. Mid-fight nothing
   breaks (Lead's ruling c, 2026-10-14):
-  - **In a fight** (a monster within `stickyFoeRange` 100 of the party): every goal holds, and
-    fresh flags are not even candidates until the fight ends.
+  - **In a fight** (a monster within `stickyFoeRange` 100 of the party): no fresh flag can pull
+    the party away (fresh flags are not candidates), and a lair goal at its lair holds; other
+    goals follow the normal commit rules.
   - **At its lair with no foe near:** the party re-scores like an explorer and takes a fresh
     flag if it beats the lair by the usual margin.
   - **Walking to a lair:** the lair goal keeps its hold, as before.
