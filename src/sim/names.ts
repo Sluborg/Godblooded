@@ -31,6 +31,8 @@ export function nameHero(world: World, id: number, god: GodDef | undefined): str
     const epithet = pick(set.epithets, 'e');
     if (epithet) return `${given} ${epithet}`;
   }
-  if (set.patronym === 'suffix') return `${given} ${god.name}s${female ? 'dottir' : 'son'}`;
+  // 'Thorsson' reads right for a father; a god whose name ends in a (Freyja) takes the long form.
+  if (set.patronym === 'suffix' && !god.name.endsWith('a'))
+    return `${given} ${god.name}s${female ? 'dottir' : 'son'}`;
   return `${given} ${female ? 'daughter' : 'son'} of ${god.name}`;
 }

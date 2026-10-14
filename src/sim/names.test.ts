@@ -83,6 +83,7 @@ describe('hero names', () => {
       expect(new Set(set.male).size).toBe(set.male.length);
       expect(new Set(set.female).size).toBe(set.female.length);
       expect(set.epithets.length).toBeGreaterThanOrEqual(15);
+      for (const g of [...set.male, ...set.female]) expect(g.length).toBeLessThanOrEqual(10);
     }
   });
 });
