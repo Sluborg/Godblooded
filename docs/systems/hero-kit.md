@@ -89,7 +89,7 @@ Builds are rows of per-segment scale factors and socket offsets in Scene's data 
 
 | Row       | Field                                                                                                                                          |
 | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| GodDef    | `builds: [string, string]`, `faces: [string, string]`, `cloak`, `colours: [string, string]`, `emblem`                                          |
+| GodDef    | `builds: [string, string]`, `faces: [string, string]`, `cloak`, `colours: [string, string]`, `emblem`, `weapon`                                |
 | PathDef   | `cloak` and `weapon` (family) for tier 2                                                                                                       |
 | ItemDef   | `slot` gains `headgear` and `offhand`; weapon rows get a `family`; every row gets `icon` and `worn` (part ids per kit for armour and headgear) |
 | UnitState | `build`; `items` gains `headgear` and `offhand` levels                                                                                         |
