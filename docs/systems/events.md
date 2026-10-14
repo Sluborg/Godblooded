@@ -23,13 +23,13 @@ events.
 
 ## 1. Raids
 
-| Rule    | Today                                                           | Proposed                                                                                                       |
-| ------- | --------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| Timing  | first at `raidFirstMs` (6:00), every 3:00 (`raidEveryMs` 180 s) | also a small raid after every lair tier-up: 1 raider (`tierRaidSize` 1, `tierRaidEvery` 1, Balance 2026-10-14) |
-| Warning | none                                                            | event `raidWarning` 15 s ahead: lair, direction, size                                                          |
-| Who     | 2 per lair, +1 per `raidGrowEveryMs` (400 s)                    | unchanged count; the lair's monster row decides the shape (below)                                              |
-| Target  | nearest building                                                | by shape (below)                                                                                               |
-| Reward  | bounty and XP per raider                                        | unchanged, plus 20 gold to the town per raid fully beaten ("the town cheers")                                  |
+| Rule    | Today                                                                                  | Proposed                                                                                                       |
+| ------- | -------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Timing  | first at `raidFirstMs` (7:00), every 3:30 (`raidEveryMs` 210 s; Balance playtest trim) | also a small raid after every lair tier-up: 1 raider (`tierRaidSize` 1, `tierRaidEvery` 1, Balance 2026-10-14) |
+| Warning | none                                                                                   | event `raidWarning` 15 s ahead: lair, direction, size                                                          |
+| Who     | 2 per lair, +1 per `raidGrowEveryMs` (400 s)                                           | unchanged count; the lair's monster row decides the shape (below)                                              |
+| Target  | nearest building                                                                       | by shape (below)                                                                                               |
+| Reward  | bounty and XP per raider                                                               | unchanged, plus 20 gold to the town per raid fully beaten ("the town cheers")                                  |
 
 | Shape (from role) | Raid behaviour                                                            |
 | ----------------- | ------------------------------------------------------------------------- |
@@ -144,7 +144,7 @@ spell (no dodge, resisted by Wp).
 | OmenDef       | `id`, `name`, `text`, `pantheon?`, `weight`, `leadMs` 20000, `durationMs`, `effects` (tuning overrides, a spawn, a free bounty, a reward spot) |
 | tuning.events | `omenFirstMs` 180000, `omenEveryMs` [100000, 140000], `omenNoRepeat` 3, `leanWeight` 2                                                         |
 | tuning.town   | `raidWarnMs` 15000, `raidBeatenGold` 20, `towerWarnAddMs` 5000                                                                                 |
-| tuning.boss   | `vanguardSize` (Balance; start at `raidSize`), `vanguardEveryMs` 90000, `vanguardWarnMs` 15000                                                 |
+| tuning.boss   | `vanguardSize` 1 (Balance playtest trim), `vanguardEveryMs` 90000, `vanguardWarnMs` 15000                                                      |
 | MonsterDef    | raid shape comes from `role` (`monsters-and-bosses.md`), no new field                                                                          |
 | MiracleDef    | `id`, `pantheon`, `radius` 250, `effects` (skill effect ids), `visual`                                                                         |
 | tuning.favour | `perTempleTierS` 4, `tierUpGain` 10, `lairGain` 15, `max` 100, `dangerHp` 0.5, `tellMs` 1500                                                   |
