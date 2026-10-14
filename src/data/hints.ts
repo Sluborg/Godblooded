@@ -62,6 +62,18 @@ export const HINTS: readonly HintDef[] = [
     line1: 'Heroes spend their gold in shops.',
     line2: 'Build a market: the town takes a tax.',
   },
+  // Scene condition `tillFirst` (hint-texts.md row 55): the first till reaches 10 gold; fires with
+  // that building's position. A beat: after b-market, or from the first tithe with no market.
+  {
+    id: 'b-till',
+    order: 55,
+    group: 'beat',
+    trigger: 'tillFirst',
+    milestone: 2,
+    target: { kind: 'spot' },
+    line1: 'Gold builds up in your buildings.',
+    line2: 'The tax collector brings it home.',
+  },
   {
     id: 'b-bounty',
     order: 60,
@@ -235,6 +247,17 @@ export const HINTS: readonly HintDef[] = [
     line1: 'The boss has emerged.',
     line2: 'Slay it to win the run.',
   },
+  // Sim event `collectorFell` (hint-texts.md row 125); target the pile where the gold fell.
+  {
+    id: 'h-collector',
+    order: 125,
+    group: 'first',
+    trigger: 'collectorFell',
+    milestone: 2,
+    target: { kind: 'spot' },
+    line1: 'Your tax collector has fallen.',
+    line2: 'The gold lies where it fell.',
+  },
   {
     id: 'h-slain',
     order: 130,
@@ -254,6 +277,18 @@ export const HINTS: readonly HintDef[] = [
     target: { kind: 'flag' },
     line1: 'This bounty follows its monster.',
     line2: 'The hero who kills it gets the gold.',
+  },
+  // Scene condition `idleGold`: a market stands, no smithy yet, and the heroes carry 100+ gold
+  // between them; points at a free plot.
+  {
+    id: 'h-smithy',
+    order: 138,
+    group: 'first',
+    trigger: 'idleGold',
+    milestone: 2,
+    target: { kind: 'plot' },
+    line1: 'Heroes have gold and nothing to buy.',
+    line2: 'A smithy sells weapons and armour.',
   },
   {
     id: 'h-ruin',
