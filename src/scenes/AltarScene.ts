@@ -110,7 +110,7 @@ export class AltarScene extends Phaser.Scene {
   private back(): void {
     const to = (this.registry.get('altarReturn') as string | undefined) ?? 'Title';
     this.scene.stop();
-    if (to === 'End') this.scene.launch('End');
+    if (to === 'End' || to === 'Setup') this.scene.launch(to);
     else if (to !== 'none') this.scene.wake(to);
   }
 

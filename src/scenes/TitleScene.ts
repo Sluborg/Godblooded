@@ -6,6 +6,7 @@ import { pickLogoId } from '../ui/assetPriority';
 import { drawBackdrop } from '../ui/backdrop';
 import { canInstall, onInstallChange, promptInstall } from '../ui/install';
 import { clearSave, hasSave } from '../ui/saveStore';
+import { readMeta } from '../ui/metaStore';
 import { makeButton } from '../ui/button';
 import { getMusic } from '../ui/musicPlayer';
 import { fitDesignCamera } from '../ui/designCamera';
@@ -114,10 +115,16 @@ export class TitleScene extends Phaser.Scene {
 
   // A new run starts with a fresh seed (MapScene) and drops the old save.
   private play(): void {
-    clearSave();
-    this.registry.set('startMode', 'new');
-    this.scene.stop('Hud');
-    this.scene.start('Map');
+    // The very first run goes straight in; every later one passes the run setup (portent, Trials).
+    if (readMeta().runs === 0) {
+      clearSave();
+      this.registry.set('startMode', 'new');
+      this.registry.set('runTrials', []);
+      this.scene.stop('Hud');
+      this.scene.start('Map');
+      return;
+    }
+    this.scene.start('Setup');
   }
 
   private continueRun(): void {
