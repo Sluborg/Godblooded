@@ -100,6 +100,12 @@ spell (no dodge, resisted by Wp).
 ## 4. What the player sees
 
 - **Raid warning:** a horn, a red arrow at the map edge for 15 s, then the raiders arrive.
+  - **The raid shows its source** (Lead 2026-10-14): the arrow carries the icon of the lair it
+    comes from (`raidWarning.lair`), and a faint dotted trail runs from that lair toward the town
+    for the 15 s. The lair's growth ring (`monsters-and-bosses.md` section 4) flashes red once.
+    The player learns that a lair is where the raids come from, and that a flag on it ends them.
+  - **Off screen:** when the lair is off screen, the arrow at the map edge carries the icon,
+    and tapping the arrow pans the camera to the lair.
 - **Omen:** a sky tint (red, pale blue, gold, dark), a banner for 3 s with name and line, a
   marker on the map where it has a place; a small icon at the top while it lasts.
 - **Favour:** three thin bars in pantheon colours under the gold counter; a full bar pulses
@@ -130,11 +136,12 @@ spell (no dodge, resisted by Wp).
 
 ### Scene
 
-| Order | Row                                         |
-| ----- | ------------------------------------------- |
-| 10    | Raid warning arrow and horn                 |
-| 20    | Omen banner, sky tint, map marker, top icon |
-| 30    | Favour bars, the miracle tell and visuals   |
+| Order | Row                                                                                               |
+| ----- | ------------------------------------------------------------------------------------------------- |
+| 10    | Raid warning arrow and horn                                                                       |
+| 15    | Raid source: lair icon on the arrow, dotted trail from the lair, tap the arrow to pan to the lair |
+| 20    | Omen banner, sky tint, map marker, top icon                                                       |
+| 30    | Favour bars, the miracle tell and visuals                                                         |
 
 ### Lead (data)
 
