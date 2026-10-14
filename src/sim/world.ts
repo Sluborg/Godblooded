@@ -51,6 +51,7 @@ import {
 } from './boss';
 import { buildReport, sampleGold, tally, type HeroRecord } from './runstats';
 import { collectorFell, runCollector } from './collector';
+import { raiderHeld } from './corrupt';
 import { offering, recallFallen, upgradeWithAmbrosia } from './ambrosia';
 import { placeEscort, runEscorts } from './escort';
 import { guardFell, guardStats, runGuard, sendGuard } from './guards';
@@ -159,6 +160,8 @@ export interface UnitRuntime {
   lair: number | null;
   // Raiders march on the town instead of wandering near their lair.
   raid?: boolean;
+  // A raider left behind to hold a defiled node (corrupt.ts): the node's id.
+  defiler?: number;
   // Monster roles: a harrier on its way back to its lair to heal, a charger mid-charge (the way it
   // runs and the time left) and when it may charge again, a swarm half (cannot split again).
   retreat?: boolean;
@@ -284,6 +287,9 @@ export interface World {
   nodes: NodeState[];
   ambrosia: number;
   jars: JarState[];
+  // Lairs that sprouted on nodes so far, and the earliest time for the next (corrupt.ts).
+  sprouts: number;
+  nextSproutMs: number;
   guardQueue: { tower: number; atMs: number }[];
   // Generated map: the boss lair that wins the run and the pantheons the map leans on.
   bossLair: number | null;
@@ -348,6 +354,8 @@ export function createWorld(seed: number, data: GameData): World {
     nodes: [],
     ambrosia: 0,
     jars: [],
+    sprouts: 0,
+    nextSproutMs: 0,
     guardQueue: [],
     bossLair: null,
     bossUnsealed: false,
@@ -734,6 +742,11 @@ function runUnits(world: World): void {
         noteSeen(world, unit, 'lair', lair.type, lair.pos);
         attackLair(world, unit, rt, stats, lair);
       } else heroMove(world, unit);
+    } else if (rt.defiler !== undefined) {
+      const node = world.nodes.find((n) => n.id === rt.defiler);
+      if (node) wander(world, unit, rt, stats, node.pos);
+    } else if (rt.raid && raiderHeld(world, unit)) {
+      // Held at a freed node while it is being defiled (corrupt.ts).
     } else if (rt.raid) {
       const chase = raidChase(world, unit);
       if (chase) {
@@ -1030,7 +1043,13 @@ function flies(world: World, unit: UnitState): boolean {
   return !!unit.summon && !!world.data.summons?.find((s) => s.id === unit.summon?.def)?.flies;
 }
 
-function wander(world: World, unit: UnitState, rt: UnitRuntime, stats: Stats, home: Vec2): void {
+export function wander(
+  world: World,
+  unit: UnitState,
+  rt: UnitRuntime,
+  stats: Stats,
+  home: Vec2,
+): void {
   if (!rt.target) {
     rt.idleMs -= TICK_MS;
     if (rt.idleMs > 0) return;
