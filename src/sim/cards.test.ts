@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createWorld, step, type GameData } from './api';
+import { command, createWorld, step, type GameData } from './api';
 import { newParty, shareXp } from './parties';
 import { offerCards } from './cards';
 import { spawnHero } from './world';
@@ -230,7 +230,7 @@ describe('card offers', () => {
     ];
     let attack = 0;
     for (let seed = 1; seed <= 300; seed++) {
-      const { w, p, ids } = party(mk(cards, { party: { xpPerLevel: 10 } }));
+      const { w, p, ids } = party(mk(cards, { party: { xpPerLevel: 10, autoPick: true } }));
       void seed;
       const leader = w.units.find((u) => u.id === ids[0])!;
       leader.trait = 'brave';
@@ -292,5 +292,27 @@ describe('card offers', () => {
     frozen.p.offer = ['a', 'b', 'c'];
     step(frozen.w, 1_000);
     expect(frozen.w.timeMs).toBe(0);
+  });
+});
+
+describe('pickUpgrade without a card', () => {
+  it('lets the leader choose, from the open offer only', () => {
+    const cards = ['a', 'b', 'c', 'd'].map((id) => card(id, 'stats'));
+    const { w, p, ids } = party(mk(cards, { party: { xpPerLevel: 10, autoPick: false } }));
+    shareXp(w, ids[0], 10);
+    const offer = [...(p.offer ?? [])];
+    expect(offer.length).toBeGreaterThan(0);
+    const r = command(w, { kind: 'pickUpgrade', party: p.id });
+    expect(r.ok).toBe(true);
+    expect(p.offer).toBeNull();
+    expect(offer).toContain(p.upgrades[0]);
+    expect(command(w, { kind: 'pickUpgrade', party: p.id }).ok).toBe(false);
+  });
+
+  it('live defaults: the player picks, hall tiers and ruins are on', () => {
+    const w = createWorld(1, mk([]));
+    expect(w.tuning.party.autoPick).toBe(false);
+    expect(w.tuning.town.hallTiers).toBe(true);
+    expect(w.tuning.town.ruins).toBe(true);
   });
 });

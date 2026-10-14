@@ -66,9 +66,9 @@ import {
 // Heroes drawn from parts (src/ui/parts/) instead of a picture; `?noparts` in the URL turns it off.
 const USE_PARTS =
   typeof location === 'undefined' || !new URLSearchParams(location.search).has('noparts');
-// A painted still of the hero (`hero_<god>_t1_front`, `hero_<god>-<path>_t2_front`) beats the parts
-// look: one art style (Stefan, playtest run 2). Parts stay only for heroes with no picture.
-const ART_BEATS_PARTS = true;
+// Painted stills are for portraits and UI: heroes animate with the parts rig (Stefan, 2026-10-14),
+// whose pieces will be painted. Flip to let a hero's still beat the parts look.
+const ART_BEATS_PARTS = false;
 // A standard hero is about this tall in the parts drawing units (head to feet).
 const PARTS_HERO_H = 44;
 const NO_POSE: Pose = { rot: 0, dx: 0, dy: 0, sx: 1, sy: 1 };

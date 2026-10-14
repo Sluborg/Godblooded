@@ -120,7 +120,7 @@ export function setState(s) {
 
 ${body}
 
-export { drawHuman, SWING };
+export { drawHuman, pose, SWING };
 `;
 writeFileSync(OUT, out);
 console.log(`${OUT}: ${picked.length} declarations, ${out.split('\n').length} lines`);

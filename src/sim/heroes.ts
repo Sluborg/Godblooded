@@ -1,3 +1,4 @@
+import { visitPoint } from './collision';
 import { payIntoTill, payTithe } from './collector';
 import { escortHeldBy, escortOpenTo } from './escort';
 import { lairSealed, nearSealedLair } from './boss';
@@ -314,7 +315,9 @@ export function heroMove(world: World, unit: UnitState): void {
   const rt = world.heroRuntime.get(unit.id);
   const cls = world.data.classes?.find((c) => c.id === unit.type);
   if (!rt || !cls) return;
-  const step = (to: Vec2): boolean => {
+  const step = (target: Vec2): boolean => {
+    // A building is visited at its edge, not in its middle.
+    const to = visitPoint(world, target, unit.pos);
     const dir = stepToward(
       unit.pos,
       to,
@@ -325,7 +328,11 @@ export function heroMove(world: World, unit: UnitState): void {
         1000,
     );
     if (dir.x !== 0 || dir.y !== 0) unit.facing = dir;
-    return dist(unit.pos, to) <= tune(world).arrive;
+    // At a building's edge it is there when it touches it, not 50 units short.
+    return (
+      dist(unit.pos, to) <=
+      (to === target ? tune(world).arrive : world.tuning.collision.visitMargin * 2)
+    );
   };
   switch (unit.mode) {
     case 'explore': {
