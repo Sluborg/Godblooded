@@ -69,7 +69,17 @@ export class SkillGalleryScene extends Phaser.Scene {
   // Heroes wearing each status, through the real unit views.
   private statusRow(): void {
     const views = new UnitViews(this);
-    const kinds = ['shield', 'mark', 'taunt', 'bind', 'buff', 'hot'] as const;
+    const kinds = [
+      'shield',
+      'mark',
+      'taunt',
+      'bind',
+      'buff',
+      'hot',
+      'poison',
+      'fear',
+      'stone',
+    ] as const;
     const units: UnitState[] = kinds.map((_k, i) => ({
       id: 100 + i,
       kind: 'hero',
@@ -77,7 +87,7 @@ export class SkillGalleryScene extends Phaser.Scene {
       tier: 1,
       god: 'thor',
       path: null,
-      pos: { x: 120 + i * 190, y: GAME_HEIGHT - 70 },
+      pos: { x: 90 + i * 135, y: GAME_HEIGHT - 70 },
       facing: { x: 1, y: 0 },
       hp: 80,
       maxHp: 100,
@@ -106,7 +116,7 @@ export class SkillGalleryScene extends Phaser.Scene {
     });
     kinds.forEach((k, i) =>
       this.add
-        .text(120 + i * 190, GAME_HEIGHT - 20, k, {
+        .text(90 + i * 135, GAME_HEIGHT - 20, k, {
           fontFamily: 'monospace',
           fontSize: '16px',
           color: '#f4ead5',
