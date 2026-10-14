@@ -1745,7 +1745,7 @@ export interface RunStats {
 // lair destroyed, damage as tie-breaker); heroes come sorted best first.
 export interface HeroReport {
   unit: number;
-  // The hero's name, when the data names heroes.
+  // The hero's name, when heroes are named.
   name?: string;
   // Killed for good (see `slain`).
   slain?: boolean;
