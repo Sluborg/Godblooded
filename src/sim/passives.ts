@@ -1,4 +1,4 @@
-import { charmEffects } from './items';
+import { charmEffects, wornBuff } from './items';
 import { dist } from './units';
 import type { World } from './world';
 import type {
@@ -171,7 +171,9 @@ export function passiveBuff(world: World, unit: UnitState, stat: BuffStat): numb
   // Kill stacks last while the fight does, not into the next one.
   const rt = world.unitRuntime.get(unit.id);
   const kills = rt && world.timeMs < (rt.fightUntilMs ?? 0) ? (rt.fight?.kills ?? 0) : 0;
-  if (stat === 'dodge' || stat === 'crit') total += charmEffects(world, unit)[stat] ?? 0;
+  if (stat === 'dodge' || stat === 'crit') {
+    total += (charmEffects(world, unit)[stat] ?? 0) + wornBuff(world, unit, stat);
+  }
   for (const p of passivesFor(world, unit)) {
     const k = p.keys;
     if (stat === 'dodge') total += k.dodge ?? 0;
