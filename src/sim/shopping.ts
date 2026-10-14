@@ -105,22 +105,34 @@ export function planShopping(world: World, unit: UnitState): ShopStop[] {
     bought.push({ item: potion, shop: 'market' });
     return true;
   };
-  // 1: a potion if it holds none
-  if (have.potions === 0) buyPotion();
-  // 2: the next weapon or armour level, the cheaper first (proud: weapon, coward: armour)
-  while (smithy) {
+  // The next weapon or armour level that fits the budget: the cheaper (proud: weapon, coward: armour).
+  const pickGear = (): ItemDef | undefined => {
+    if (!smithy) return undefined;
     const w = nextLevel(world, 'weapon', have.weapon, smithy.tier);
     const a = nextLevel(world, 'armour', have.armour, smithy.tier);
     const fits = [w, a].filter((i): i is ItemDef => !!i && i.price <= budget);
-    if (fits.length === 0) break;
+    if (fits.length === 0) return undefined;
     let pick = fits.reduce((x, y) => (y.price < x.price ? y : x));
     if (fits.length === 2 && unit.trait === 'proud') pick = w!;
     if (fits.length === 2 && unit.trait === 'coward') pick = a!;
+    return pick;
+  };
+  const buyGear = (pick: ItemDef): void => {
     budget -= pick.price;
     if (pick.slot === 'weapon') have.weapon++;
     else have.armour++;
     bought.push({ item: pick, shop: 'smithy' });
+  };
+  // 0: a hero with no gear at all buys its first piece before its first potion, if it can pay
+  // for it (else the potion comes first as usual)
+  if (have.weapon === 0 && have.armour === 0) {
+    const first = pickGear();
+    if (first) buyGear(first);
   }
+  // 1: a potion if it holds none
+  if (have.potions === 0) buyPotion();
+  // 2: the next weapon or armour level, the cheaper first (proud: weapon, coward: armour)
+  for (let pick = pickGear(); pick; pick = pickGear()) buyGear(pick);
   // 3: a charm, if it has none (or a dearer one worth the swap)
   if (market) {
     const charm = charmToBuy(world, have.charm, market.tier, budget);

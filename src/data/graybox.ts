@@ -426,8 +426,7 @@ export const MONSTERS: readonly MonsterDef[] = [
     tags: ['beast', 'giant'],
     types: { frost: 1.5, physical: 0.75 },
   },
-  // Fafnir (monsters-and-bosses.md section 3). Balance pass: hp 1200 and Str 14 (spec 2400 and 22)
-  // for the graybox parties, which are weaker than the spec's four tier 3 heroes.
+  // Fafnir (monsters-and-bosses.md section 3): hp 1200, Str 14, Fire Breath instead of the cleave.
   {
     id: 'wyrm',
     move: {
@@ -456,14 +455,14 @@ export const MONSTERS: readonly MonsterDef[] = [
 
 // Lairs from docs/systems/monsters-and-bosses.md section 4; the wyrm nest is the boss lair (the
 // run is won when it falls) and spawns draugr guards. Balance passes (Lead 80, 90): big lairs 6000 hp
-// and the nest 6000 hp (spec 9000 and 16000) keep the median run at 15-18 min.
+// and the nest 8000 hp (spec 9000 and 16000) keep the median run at 15-18 min.
 export const LAIRS: readonly LairDef[] = [
   { id: 'barrow', monster: 'draugr', spawnS: 10, maxAlive: 6, hp: 3500 },
   { id: 'troll-den', monster: 'troll', spawnS: 25, maxAlive: 4, hp: 6000 },
   { id: 'harpy-roost', monster: 'harpy', spawnS: 9, maxAlive: 6, hp: 3000 },
   { id: 'jackal-camp', monster: 'jackal-man', spawnS: 10, maxAlive: 6, hp: 3500 },
   { id: 'labyrinth', monster: 'minotaur', spawnS: 24, maxAlive: 4, hp: 6000 },
-  { id: 'wyrm-nest', monster: 'wyrm', spawnS: 30, maxAlive: 3, hp: 6000, escort: 'draugr' },
+  { id: 'wyrm-nest', monster: 'wyrm', spawnS: 30, maxAlive: 3, hp: 8000, escort: 'draugr' },
 ];
 
 // Level-up cards; a party is offered 3 and its leader auto-picks (level-ups.md): `god` offers
@@ -885,22 +884,22 @@ export const GRAYBOX: GameData = {
   startGold: 480,
   map: { width: 2400, height: 1600 },
   townHall: { x: 1200, y: 800 },
-  // Balance pass (roles and quirks, Fafnir's breath, raids after a lair tier-up, shop trips, on
-  // top of the Aesir, item, card and pacing rows; 300 runs, seeds 1 and 1001): 69-73% wins,
-  // median 16-17 min, boss fight about 14.5 min, timeouts under 1%. Town income is item tax only:
-  // start gold 480 builds a temple, market and smithy, and tax is 60% of an item's price. Unset
-  // keys use DEFAULT_TUNING.
+  // Balance pass (gear before the first potion, roles and quirks, Fafnir's breath, raids after a
+  // lair tier-up, shop trips, on top of the Aesir, item, card and pacing rows; 300 runs, seeds 1
+  // and 1001): 68-69% wins, median 15.6 min, boss out at about 12.5-13 min, no timeouts, 88% of
+  // heroes with gear by 8:00. Town income is item tax only: start gold 480 builds a temple, market and
+  // smithy, and tax is 50% of an item's price. Unset keys use DEFAULT_TUNING.
   tuning: {
-    hero: { maxPerTemple: 7, recruitMs: 22_000, taxRate: 0.6, shopTripGold: 0 },
-    // Raids after a lair tier-up are on (Stefan): one raider, every second tier-up.
+    hero: { maxPerTemple: 7, recruitMs: 22_000, taxRate: 0.5, shopTripGold: 0 },
+    // Raids after a lair tier-up are on (Stefan): one raider on every tier-up.
     town: {
       raidFirstMs: 360_000,
-      raidEveryMs: 210_000,
+      raidEveryMs: 180_000,
       raidGrowEveryMs: 400_000,
       raidSize: 1,
       raidOnTierUp: true,
       tierRaidSize: 1,
-      tierRaidEvery: 2,
+      tierRaidEvery: 1,
     },
     // Pacing (docs/systems/pacing-review.md): slower levels and a staggered lair clock.
     party: { xpPerLevel: 45 },

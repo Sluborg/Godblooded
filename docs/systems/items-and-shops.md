@@ -98,7 +98,8 @@ Charms are generic, not per pantheon: pantheon flavour lives in passives and ski
       armour first);
    3. a charm, if it has none;
    4. a second potion (third at a tier 3 market).
-4. **Tax:** the town gets `price x taxRate x shop tier multiplier` per item (today's
+4. **Tax:** the town gets `price x taxRate x shop tier multiplier` per item (`taxRate` 0.5,
+   Balance 2026-10-14; today's
    `marketTaxMult` 1, 1.25, 1.5, now also on the smithy). The event `shopped` carries the
    item id.
 5. **Stock:** a shop of tier t sells every level up to t, so a hero arriving late with level 0
