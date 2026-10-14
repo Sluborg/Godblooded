@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { gatherersAt, glowStrength, poolLine, poolShare } from './nodeLook';
+import {
+  cleanseDone,
+  gatherersAt,
+  glowStrength,
+  poolLine,
+  poolShare,
+  sproutProgress,
+  threatLeft,
+} from './nodeLook';
 
 describe('node look', () => {
   it('brightens a freed node with its pool, never fully dark', () => {
@@ -27,5 +35,24 @@ describe('ambrosia look', () => {
   it('words the pop', () => {
     expect(ambrosiaPop(7)).toBe('+7 Ambrosia');
     expect(ambrosiaPop(7.4)).toBe('+7 Ambrosia');
+  });
+});
+
+describe('node threats', () => {
+  it('counts the defile countdown down over 10 s', () => {
+    expect(threatLeft(undefined, 5000)).toBeNull();
+    expect(threatLeft(1000, 1000)).toBe(1);
+    expect(threatLeft(1000, 6000)).toBeCloseTo(0.5);
+    expect(threatLeft(1000, 20_000)).toBe(0);
+  });
+
+  it('shows cleanse progress and sprouting cracks', () => {
+    expect(cleanseDone(undefined)).toBeNull();
+    expect(cleanseDone(0)).toBeNull();
+    expect(cleanseDone(5000)).toBeCloseTo(0.5);
+    expect(sproutProgress(undefined, 0)).toBeNull();
+    expect(sproutProgress(30_000, 0)).toBe(0);
+    expect(sproutProgress(30_000, 15_000)).toBeCloseTo(0.5);
+    expect(sproutProgress(30_000, 45_000)).toBe(1);
   });
 });

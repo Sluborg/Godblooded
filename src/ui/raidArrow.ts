@@ -46,6 +46,8 @@ export interface RaidWarningNote {
   raid: number;
   lair: number;
   untilMs: number;
+  // A fixed spot to point at instead of the lair (a node a lair will sprout on).
+  at?: { x: number; y: number };
 }
 
 export function activeWarnings(
