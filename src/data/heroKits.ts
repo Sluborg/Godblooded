@@ -15,7 +15,7 @@ export const KIT_SLOTS = [
   'thigh',
   'shin',
   'hand',
-  'foot',
+  'boot',
   'weapon',
   'offhand',
 ] as const;
@@ -27,10 +27,10 @@ export type KitSlot = (typeof KIT_SLOTS)[number];
 export type KitMode = 'bent' | 'floating';
 
 // Parts a painted look cannot do without, by mode; any other slot may be empty. In bent mode a
-// `hand` and a `foot` are optional extras on the wrist and the ankle.
+// `hand` and a `boot` are optional extras on the wrist and the ankle.
 export const KIT_REQUIRED: Readonly<Record<KitMode, readonly KitSlot[]>> = {
   bent: ['torso', 'head', 'upperarm', 'forearm', 'thigh', 'shin'],
-  floating: ['torso', 'head', 'hand', 'foot'],
+  floating: ['torso', 'head', 'hand', 'boot'],
 };
 
 // Body builds are scale factors on the same art: width and height of the torso, length and width of
@@ -75,7 +75,7 @@ export const HERO_KITS: Readonly<Record<string, KitCombo>> = {
       thigh: 'thigh_grim',
       shin: 'shin_grim',
       hand: 'hand_grim',
-      foot: 'foot_grim',
+      boot: 'boot_grim',
       weapon: 'weapon_staff',
     },
   },

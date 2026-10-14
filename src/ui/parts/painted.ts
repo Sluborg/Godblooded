@@ -49,6 +49,7 @@ const FALLBACK: Readonly<Record<string, [number, number]>> = {
   shoulder: [0.5, 0.05],
   elbow: [0.5, 0.95],
   wrist: [0.5, 0.95],
+  ankle: [0.5, 0.95],
   knee: [0.5, 0.95],
   ground: [0.5, 0.95],
   grip: [0.5, 0.85],
@@ -56,7 +57,7 @@ const FALLBACK: Readonly<Record<string, [number, number]>> = {
 };
 
 export const pivot = (part: KitPart, name: string): [number, number] => {
-  const v = part.cell.pivots?.[name];
+  const v = part.cell.pivots?.[name] ?? (name === 'ankle' ? part.cell.pivots?.ground : undefined);
   const f = v ?? FALLBACK[name] ?? [0.5, 0.5];
   return [f[0], f[1]];
 };
@@ -198,26 +199,40 @@ export function layout(kit: Kit, p: RigPose, raised = false): Draw[] {
   const hsc = build.head;
   // Hands and feet from the prototype's pose, scaled to the painted figure.
   const hand = (h: V2): V2 => ({ x: h.x * PROTO_K, y: h.y * PROTO_K });
-  // An arm from a shoulder socket to a hand target: its two Draws and where the wrist ends up.
-  const arm = (slotShoulder: string, target: V2, far: boolean): { draws: Draw[]; end: V2 } => {
-    const handDraw = (at: V2): Draw[] =>
-      parts.hand
-        ? [
-            {
-              part: parts.hand,
-              pivot: 'wrist',
-              x: at.x,
-              y: at.y,
-              rot: 0,
-              sx: 1,
-              sy: 1,
-              inBody: true,
-              far,
-            },
-          ]
-        : [];
+  // The hand on a wrist: drawn with its wrist pivot there, turned with the forearm; where its grip
+  // point lands (the weapon's grip goes there; without a hand picture the wrist is the grip).
+  const handAt = (at: V2, rot: number, far: boolean): { draws: Draw[]; grip: V2 } => {
+    const h = parts.hand;
+    if (!h) return { draws: [], grip: at };
+    const [gx, gy] = offsetIn(h, 'wrist', 'grip', 1, 1);
+    const c = Math.cos(rot);
+    const sn = Math.sin(rot);
+    const grip = { x: at.x + gx * c - gy * sn, y: at.y + gx * sn + gy * c };
+    const d: Draw = {
+      part: h,
+      pivot: 'wrist',
+      x: at.x,
+      y: at.y,
+      rot,
+      sx: 1,
+      sy: 1,
+      inBody: true,
+      far,
+    };
+    return { draws: layers.hand ? [d, { ...d, part: layers.hand }] : [d], grip };
+  };
+  // An arm from a shoulder socket to a hand target: its Draws (upper arm, forearm, hand), the
+  // wrist and the point the weapon grip goes to.
+  const arm = (
+    slotShoulder: string,
+    target: V2,
+    far: boolean,
+  ): { draws: Draw[]; end: V2; grip: V2 } => {
     // Floating: just the hand at the joint, like the code rig.
-    if (floating) return { draws: handDraw(target), end: target };
+    if (floating) {
+      const h = handAt(target, 0, far);
+      return { draws: h.draws, end: target, grip: h.grip };
+    }
     const up = parts.upperarm as KitPart;
     const fore = parts.forearm as KitPart;
     const [aw, al] = [build.arm[1], build.arm[0]];
@@ -235,35 +250,46 @@ export function layout(kit: Kit, p: RigPose, raised = false): Draw[] {
     };
     mk('upperarm', up, 'shoulder', shoulder, aUp);
     mk('forearm', fore, 'elbow', r.mid, aFore);
-    draws.push(...handDraw(r.end));
-    return { draws, end: r.end };
+    const h = handAt(r.end, aFore, far);
+    draws.push(...h.draws);
+    return { draws, end: r.end, grip: h.grip };
   };
-  const footDraw = (at: V2, far: boolean) => {
-    if (parts.foot)
-      out.push({
-        part: parts.foot,
-        pivot: 'ground',
-        x: at.x,
-        y: at.y,
-        rot: 0,
-        sx: 1,
-        sy: 1,
-        inBody: false,
-        far,
-      });
+  const bootDraw = (pv: 'ankle' | 'ground', at: V2, far: boolean) => {
+    const boot = parts.boot;
+    if (!boot) return;
+    const d: Draw = {
+      part: boot,
+      pivot: pv,
+      x: at.x,
+      y: at.y,
+      rot: 0,
+      sx: 1,
+      sy: 1,
+      inBody: false,
+      far,
+    };
+    out.push(d);
+    if (layers.boot) out.push({ ...d, part: layers.boot });
   };
   const drawLeg = (slotHip: string, foot: V2, far: boolean) => {
     // Floating: just the boot at the foot, like the code rig.
-    if (floating) return footDraw(foot, far);
+    if (floating) return bootDraw('ground', foot, far);
     const thigh = parts.thigh as KitPart;
     const shin = parts.shin as KitPart;
     const [lw, ll] = [build.leg[1], build.leg[0]];
     const hip = bodyPoint(p, sock(slotHip));
     const [kx, ky] = offsetIn(thigh, 'hip', 'knee', lw, ll);
-    const [gx, gy] = offsetIn(shin, 'knee', 'ground', lw, ll);
+    const [gx, gy] = offsetIn(shin, 'knee', 'ankle', lw, ll);
+    // The shin ends at the ankle; a boot picture carries the foot below it.
+    const ankle = parts.boot
+      ? (() => {
+          const [bx, by] = offsetIn(parts.boot, 'ankle', 'ground', 1, 1);
+          return { x: foot.x - bx, y: foot.y - by };
+        })()
+      : foot;
     const l1 = Math.hypot(kx, ky);
     const l2 = Math.hypot(gx, gy);
-    const r = solveTwoBone(hip, foot, l1, l2, (q) => q.x);
+    const r = solveTwoBone(hip, ankle, l1, l2, (q) => q.x);
     const aT = ang({ x: r.mid.x - hip.x, y: r.mid.y - hip.y }) - ang({ x: kx, y: ky });
     const aS = ang({ x: r.end.x - r.mid.x, y: r.end.y - r.mid.y }) - ang({ x: gx, y: gy });
     push('thigh', parts.thigh, {
@@ -286,7 +312,7 @@ export function layout(kit: Kit, p: RigPose, raised = false): Draw[] {
       inBody: false,
       far,
     });
-    footDraw(r.end, far);
+    bootDraw('ankle', r.end, far);
   };
   // Cloak behind everything.
   push('cloak', parts.cloak, {
@@ -315,13 +341,15 @@ export function layout(kit: Kit, p: RigPose, raised = false): Draw[] {
   // The front arm, with the weapon in its hand drawn under the hand.
   const fr = arm('shoulder_f', hand(p.hf), false);
   const frontDraws: Draw[] = [];
+  // The weapon is painted pointing straight UP with its grip pivot on the handle; the rig's weapon
+  // angle `wa` (0 = up, clockwise) turns it about the grip, which sits on the hand's grip point.
   const weapon = parts.weapon;
   if (weapon) {
     const w = {
       part: weapon,
       pivot: 'grip',
-      x: fr.end.x,
-      y: fr.end.y,
+      x: fr.grip.x,
+      y: fr.grip.y,
       rot: p.wa,
       sx: 1,
       sy: 1,
@@ -363,8 +391,8 @@ export function layout(kit: Kit, p: RigPose, raised = false): Draw[] {
     const holds = off.cell.pivots?.strap ? 'strap' : 'grip';
     push('offhand', off, {
       pivot: holds,
-      x: back.end.x,
-      y: back.end.y,
+      x: back.grip.x,
+      y: back.grip.y,
       rot: holds === 'grip' ? p.wb : 0,
       sx: 1,
       sy: 1,
