@@ -136,7 +136,7 @@ function check(world: World, data: GameData): void {
       if (!u.summon || !data.summons?.some((d) => d.id === u.summon?.def)) {
         bad('summon', u.summon?.def ?? u.type);
       }
-    } else {
+    } else if (u.kind !== 'collector') {
       const known =
         u.kind === 'hero'
           ? data.classes?.some((c) => c.id === u.type)
