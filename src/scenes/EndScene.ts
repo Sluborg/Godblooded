@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { COLORS, GAME_HEIGHT, GAME_WIDTH } from '../config';
 import { makeButton } from '../ui/button';
 import { addSeedLabel } from '../ui/seedLabel';
+import { copyReplay, replayButtonLabel } from '../ui/replayCode';
 import { markRunEnded } from '../ui/hintStore';
 import { formatClock, sparkline, visibleHeroes } from '../ui/endReport';
 import { heroLabel } from '../ui/partyLook';
@@ -58,15 +59,34 @@ export class EndScene extends Phaser.Scene {
     this.mvpCard(report?.heroes.find((h) => h.mvp) ?? null);
     this.goldChart(report?.goldHistory ?? []);
     this.totals(snap.stats);
-    if (report) addSeedLabel(this, report.seed, 16, GAME_HEIGHT - 12);
+    if (report) addSeedLabel(this, report.seed, 16, 112);
 
+    // A third button copies the replay code when the run has one (Sim: RunReport.replay).
+    const replay = report?.replay ?? null;
+    const three = replayButtonLabel(replay, false) !== null;
+    const left = three ? cx - 330 : cx - 200;
+    const right = three ? cx + 330 : cx + 200;
+    if (three && replay) {
+      const copy = makeButton(
+        this,
+        cx,
+        668,
+        300,
+        80,
+        replayButtonLabel(replay, false) ?? '',
+        () =>
+          void copyReplay(replay).then((ok) => {
+            if (ok) copy.setLabel(replayButtonLabel(replay, true) ?? '');
+          }),
+      );
+    }
     if (abandoned) {
-      makeButton(this, cx - 200, 668, 300, 80, 'Back to run', () => this.backToRun());
-      makeButton(this, cx + 200, 668, 300, 80, 'Title', () => this.leaveRun());
+      makeButton(this, left, 668, 300, 80, 'Back to run', () => this.backToRun());
+      makeButton(this, right, 668, 300, 80, 'Title', () => this.leaveRun());
       return;
     }
-    makeButton(this, cx - 200, 668, 300, 80, 'Play again', () => this.playAgain());
-    makeButton(this, cx + 200, 668, 300, 80, 'Title', () => this.toTitle());
+    makeButton(this, left, 668, 300, 80, 'Play again', () => this.playAgain());
+    makeButton(this, right, 668, 300, 80, 'Title', () => this.toTitle());
   }
 
   private text(x: number, y: number, s: string, size: number, color: string, ox = 0): void {
