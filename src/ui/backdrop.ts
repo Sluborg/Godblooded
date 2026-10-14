@@ -1,5 +1,9 @@
 import Phaser from 'phaser';
 import { GAME_HEIGHT, GAME_WIDTH } from '../config';
+import { FILL_W } from './view';
+
+// The backdrop spans any view (a centred scene reaches past the 1280 area on both sides).
+const X0 = (GAME_WIDTH - FILL_W) / 2;
 
 // Scale at which a picture of this size covers the screen (cover-fit, centred).
 export function coverScale(picW: number, picH: number, w = GAME_WIDTH, h = GAME_HEIGHT): number {
@@ -65,14 +69,14 @@ export function drawBackdrop(scene: Phaser.Scene): Phaser.GameObjects.GameObject
   const out: Phaser.GameObjects.GameObject[] = [];
   if (scene.textures.exists('art_splash')) {
     const img = scene.add.image(GAME_WIDTH / 2, GAME_HEIGHT / 2, punchedSplash(scene));
-    img.setScale(coverScale(img.width, img.height));
+    img.setScale(coverScale(img.width, img.height, FILL_W));
     out.push(img);
   } else {
     const sky = scene.add.graphics();
     sky.fillGradientStyle(0x140f26, 0x140f26, 0xc4682f, 0xc4682f, 1);
-    sky.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+    sky.fillRect(X0, 0, FILL_W, GAME_HEIGHT);
     sky.fillGradientStyle(0x140f26, 0x140f26, 0x4a2347, 0x4a2347, 1);
-    sky.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT * 0.55);
+    sky.fillRect(X0, 0, FILL_W, GAME_HEIGHT * 0.55);
     sky.fillStyle(0xf2c14e, 0.25).fillCircle(GAME_WIDTH * 0.7, GAME_HEIGHT * 0.72, 170);
     sky.fillStyle(0xf2c14e, 0.55).fillCircle(GAME_WIDTH * 0.7, GAME_HEIGHT * 0.72, 70);
     // Two ridges of hills in front of the glow.
@@ -94,18 +98,18 @@ export function drawBackdrop(scene: Phaser.Scene): Phaser.GameObjects.GameObject
     veilBottom,
     veilBottom,
   );
-  veil.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+  veil.fillRect(X0, 0, FILL_W, GAME_HEIGHT);
   out.push(veil);
   return out;
 }
 
 function ridge(baseY: number, amp: number, phase: number): Phaser.Types.Math.Vector2Like[] {
-  const pts: Phaser.Types.Math.Vector2Like[] = [{ x: 0, y: GAME_HEIGHT }];
-  for (let x = 0; x <= GAME_WIDTH; x += 40)
+  const pts: Phaser.Types.Math.Vector2Like[] = [{ x: X0, y: GAME_HEIGHT }];
+  for (let x = X0; x <= X0 + FILL_W; x += 40)
     pts.push({
       x,
       y: baseY + Math.sin(x / 130 + phase) * amp * 0.5 + Math.sin(x / 57 + phase * 2) * amp * 0.25,
     });
-  pts.push({ x: GAME_WIDTH, y: GAME_HEIGHT });
+  pts.push({ x: X0 + FILL_W, y: GAME_HEIGHT });
   return pts;
 }

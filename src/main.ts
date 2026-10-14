@@ -1,8 +1,9 @@
 import Phaser from 'phaser';
 import { initInstall } from './ui/install';
-import { keepFitted } from './ui/refit';
+import { keepFitted, viewForParent } from './ui/refit';
+import { setViewWidth } from './ui/view';
 import { registerSW } from 'virtual:pwa-register';
-import { COLORS, GAME_HEIGHT, GAME_WIDTH, RENDER_SCALE } from './config';
+import { COLORS, GAME_HEIGHT, RENDER_SCALE } from './config';
 import { BootScene } from './scenes/BootScene';
 import { HudScene } from './scenes/HudScene';
 import { EndScene } from './scenes/EndScene';
@@ -55,6 +56,10 @@ factory.text = function (this: unknown, x, y, text, style) {
   return makeText.call(this, x, y, text, { resolution: RENDER_SCALE, ...style });
 };
 
+// The view is as wide as the screen's aspect allows (16:9 up to 21:9) before any scene is built.
+const startView = viewForParent(document.getElementById('game'));
+setViewWidth(startView);
+
 const game = new Phaser.Game({
   type: Phaser.AUTO,
   parent: 'game',
@@ -62,7 +67,7 @@ const game = new Phaser.Game({
   scale: {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
-    width: Math.round(GAME_WIDTH * RENDER_SCALE),
+    width: Math.round(startView * RENDER_SCALE),
     height: Math.round(GAME_HEIGHT * RENDER_SCALE),
   },
   input: { activePointers: 2 },

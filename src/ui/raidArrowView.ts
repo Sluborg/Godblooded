@@ -1,11 +1,12 @@
 import Phaser from 'phaser';
 import type { Snapshot, Vec2 } from '../sim/api';
-import { GAME_HEIGHT, GAME_WIDTH, TAP_SLOP } from '../config';
+import { GAME_HEIGHT, TAP_SLOP } from '../config';
+import { viewWidth } from './view';
 import { worldToHud } from './camMath';
 import { activeWarnings, edgeArrow, type RaidWarningNote } from './raidArrow';
 
 // Under the top bar and clear of the screen border: where the arrow may sit.
-const AREA = { left: 60, top: 110, right: GAME_WIDTH - 60, bottom: GAME_HEIGHT - 60 };
+const area = () => ({ left: 60, top: 110, right: viewWidth() - 60, bottom: GAME_HEIGHT - 60 });
 const MAX_ARROWS = 3;
 
 // The HUD side of the raid warning (events.md section 4): a red arrow at the edge pointing at the
@@ -60,7 +61,7 @@ export class RaidArrowView {
     this.notes.slice(0, MAX_ARROWS).forEach((note, i) => {
       const target = note.at ?? snap.lairs.find((l) => l.id === note.lair)?.pos;
       if (!target) return;
-      const a = edgeArrow(worldToHud(cam, target), AREA);
+      const a = edgeArrow(worldToHud(cam, target), area());
       this.lairPos[i] = target;
       if (a.onScreen) return;
       this.screenPos[i] = { x: a.x, y: a.y };

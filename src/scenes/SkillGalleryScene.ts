@@ -21,7 +21,7 @@ export class SkillGalleryScene extends Phaser.Scene {
   }
 
   create(): void {
-    fitDesignCamera(this);
+    fitDesignCamera(this, 'centre');
     this.cameras.main.setBackgroundColor(0x3d5a2e);
     const fx = new SkillFx(this);
     SKILL_VISUALS.forEach((v, i) => {

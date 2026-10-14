@@ -20,7 +20,7 @@ export class TitleScene extends Phaser.Scene {
   }
 
   create(): void {
-    fitDesignCamera(this);
+    fitDesignCamera(this, 'centre');
     const cx = GAME_WIDTH / 2;
     getMusic(this).play(this, 'mus_title');
     drawBackdrop(this);
