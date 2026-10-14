@@ -865,6 +865,24 @@ export interface RiderTuning {
   searBonusMult: number;
 }
 
+// The tax collector (collector.ts). Off: shop tax and tithe go straight to the treasury.
+export interface CollectorTuning {
+  enabled: boolean;
+  // A till below this is not worth a trip.
+  minTill: number;
+  // Gold it carries before it must go home.
+  capacity: number;
+  hp: number;
+  // Dexterity for its walking speed (40 + 8 x dex world units per second).
+  dex: number;
+  // How close counts as arrived at a till or the town hall.
+  reach: number;
+  // A monster this close sends it running home.
+  fearRange: number;
+  // A new collector comes this long after one fell.
+  respawnMs: number;
+}
+
 export interface TownTuning {
   townHallHp: number;
   buildingHp: number;
@@ -1002,6 +1020,7 @@ export interface Tuning {
   role: RoleTuning;
   favour: FavourTuning;
   town: TownTuning;
+  collector: CollectorTuning;
   bounty: BountyTuning;
 }
 
@@ -1042,6 +1061,7 @@ export interface GameData {
     role?: Partial<RoleTuning>;
     favour?: Partial<FavourTuning>;
     town?: Partial<TownTuning>;
+    collector?: Partial<CollectorTuning>;
     bounty?: Partial<BountyTuning>;
   };
   lairs?: readonly LairDef[];
@@ -1066,6 +1086,8 @@ export interface BuildingState {
   maxHp: number;
   // Gold the `upgrade` command costs now; null at the top tier and for the town hall.
   upgradeCost: number | null;
+  // Gold waiting in the building for the tax collector (shop tax, tithe). Missing: none.
+  till?: number;
 }
 
 // A building as the sim keeps it; the snapshot adds the upgrade cost.
@@ -1093,7 +1115,7 @@ export interface LairState {
 export interface UnitState {
   id: number;
   // 'summon': a unit a hero's skill called; it fights for the party and monsters can target it.
-  kind: 'hero' | 'monster' | 'summon';
+  kind: 'hero' | 'monster' | 'summon' | 'collector';
   // Monsters: the monster id. Heroes: the id of the template in use (ClassDef): the god's at
   // tier 1, the path's from tier 2. Look and strike fall back on it.
   type: string;
@@ -1181,6 +1203,13 @@ export interface GraveState {
   tier: number;
   pos: Vec2;
   timeMs: number;
+}
+
+// Gold lying on the ground (a fallen tax collector's load): the first hero to stand on it takes it.
+export interface DropState {
+  id: number;
+  pos: Vec2;
+  gold: number;
 }
 
 export interface BountyState {
@@ -1333,6 +1362,15 @@ export type SimEvent =
   | { kind: 'buildingDestroyed'; building: number; type: string }
   // The town took its share of a hero's bounty (tuning.hero.tithe): a coin pop for Scene.
   | { kind: 'tithe'; unit: number; gold: number }
+  // Gold went into a building's till (shop tax or tithe): a coin pop over the building.
+  | { kind: 'till'; building: number; gold: number; total: number }
+  // The tax collector: comes out of the town hall, empties a till (carrying `carried` now),
+  // delivers at the hall, falls (its gold drops at pos); a hero takes dropped gold.
+  | { kind: 'collectorOut'; unit: number }
+  | { kind: 'tillEmptied'; unit: number; building: number; gold: number; carried: number }
+  | { kind: 'taxDelivered'; unit: number; gold: number }
+  | { kind: 'collectorDown'; unit: number; gold: number; pos: Vec2 }
+  | { kind: 'dropClaimed'; drop: number; unit: number; gold: number }
   | { kind: 'bountyClaimed'; bounty: number; unit: number; gold: number; hunt?: true }
   | { kind: 'won' }
   | { kind: 'lost' }
@@ -1441,6 +1479,8 @@ export interface Snapshot {
   readonly parties: readonly Readonly<PartyState>[];
   readonly paths: readonly Readonly<PathState>[];
   readonly bounties: readonly Readonly<BountyState>[];
+  // Gold on the ground (a fallen tax collector's load).
+  readonly drops: readonly Readonly<DropState>[];
   // Favour bar of every pantheon with a miracle row (0 to max); a full bar waits for a fight.
   readonly favour: readonly Readonly<{ pantheon: string; value: number; max: number }>[];
   // Where heroes were slain; the markers stay for the run.

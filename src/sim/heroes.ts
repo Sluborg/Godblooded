@@ -1,3 +1,4 @@
+import { claimDrops, payIntoTill } from './collector';
 import { lairSealed, nearSealedLair } from './boss';
 import { earn, newRecord } from './runstats';
 import { baseFleeOf, fledParty, fleeThreshold, newParty, pantheonOf, TRAITS } from './parties';
@@ -240,8 +241,7 @@ function visitShops(
     const price = buyItem(world, unit, id, shop.tier);
     if (price === 0) continue;
     const tax = Math.floor(price * tune(world).taxRate * tierValue(bt.shopTaxMult, shop.tier, 1));
-    world.gold += tax;
-    world.stats.taxCollected += tax;
+    payIntoTill(world, shop.id, tax);
     world.events.push({ kind: 'shopped', unit: unit.id, spent: price, tax, item: id });
   }
   rt.shop = rt.shop?.slice(1);
@@ -375,8 +375,7 @@ export function heroMove(world: World, unit: UnitState): void {
           spent * tune(world).taxRate * tierValue(bt.marketTaxMult, market.tier, 1),
         );
         unit.gold -= spent;
-        world.gold += tax;
-        world.stats.taxCollected += tax;
+        payIntoTill(world, market.id, tax);
         world.events.push({ kind: 'shopped', unit: unit.id, spent, tax });
         unit.mode = 'explore';
         rt.dest = null;
@@ -524,6 +523,11 @@ export function runBounties(world: World): void {
     world.bounties = world.bounties.filter((b) => b.id !== flag.id);
     world.events.push({ kind: 'bountyClaimed', bounty: flag.id, unit: hero.id, gold: flag.gold });
   }
+  // Gold a fallen collector dropped goes to the first hero standing on it.
+  claimDrops(world, (heroId, gold) => {
+    const hero = world.units.find((u) => u.id === heroId);
+    if (hero) earn(world, hero, gold);
+  });
   if (world.tick % 20 === 0) chooseGoals(world);
 }
 

@@ -1,3 +1,4 @@
+import { payIntoTill } from './collector';
 import type { World } from './world';
 import type { HeroReport, RunReport, UnitState } from './types';
 
@@ -38,8 +39,8 @@ export function earn(world: World, hero: UnitState, gold: number, tithe = false)
   // The end screen counts what reached the purse, not the gross bounty.
   tally(world, hero.id, 'goldEarned', gold - cut);
   if (cut > 0) {
-    world.gold += cut;
-    world.stats.taxCollected += cut;
+    // Into the till of the temple that called the hero (the treasury when the collector is off).
+    payIntoTill(world, world.heroRuntime.get(hero.id)?.temple, cut);
     world.events.push({ kind: 'tithe', unit: hero.id, gold: cut });
   }
 }
