@@ -37,6 +37,8 @@ export interface StrikeIn {
   };
   // Flat crit chance added after the curve (buffs).
   critAdd?: number;
+  // A guaranteed crit (Pounce on a hurt foe); bosses still cannot be crit.
+  forceCrit?: boolean;
   // Tower bolts cannot dodge-roll (true by default for physical strikes with a target).
   canDodge?: boolean;
   // Tower bolts cannot crit.
@@ -79,7 +81,8 @@ export function resolveStrike(world: World, s: StrikeIn): StrikeOut {
   const crit =
     s.canCrit !== false &&
     !bossTarget &&
-    world.rng() < Math.min(0.9, critChance(s.attrs, t.critK) + (s.critAdd ?? 0));
+    (s.forceCrit === true ||
+      world.rng() < Math.min(0.9, critChance(s.attrs, t.critK) + (s.critAdd ?? 0)));
   if (crit) dmg *= t.critMult;
   // 50 type multiplier: the target's row for this type; fire hurts buildings more
   let row = s.target?.types?.[type] ?? 1;
@@ -196,6 +199,17 @@ export function landStrike(
   const taken = takeDamage(world, foe, out.damage);
   out.damage = taken.dealt;
   foe.hp -= taken.hp;
+  // Lifesteal: each landed hit heals the attacker a share of its max hp.
+  if (!out.dodged && taken.dealt > 0 && attacker.hp > 0) {
+    const steal = buffOf(world, attacker.id, 'lifesteal');
+    if (steal > 0) {
+      const gain = Math.min(Math.round(steal * attacker.maxHp), attacker.maxHp - attacker.hp);
+      if (gain > 0) {
+        attacker.hp += gain;
+        world.events.push({ kind: 'heal', healer: attacker.id, target: attacker.id, amount: gain });
+      }
+    }
+  }
   // A summon's strikes count for the hero that called it.
   const credit = attacker.summon?.owner ?? attacker.id;
   tally(world, credit, 'damage', out.damage);

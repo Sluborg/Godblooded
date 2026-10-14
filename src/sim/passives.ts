@@ -1,5 +1,5 @@
 import { charmEffects } from './items';
-import { dist } from './units';
+import { dist, TICK_MS } from './units';
 import type { World } from './world';
 import type {
   Attributes,
@@ -115,6 +115,9 @@ export function passiveAttrs(world: World, unit: UnitState): Partial<Attributes>
   return out;
 }
 
+// Hp share a second the hero heals while in a fight (Apollo's favour card).
+export const passiveRegen = (world: World, unit: UnitState) => sum(world, unit, (k) => k.regen);
+
 export const passiveArmour = (world: World, unit: UnitState) => sum(world, unit, (k) => k.armour);
 export const passiveRestMult = (world: World, unit: UnitState) =>
   product(world, unit, (k) => k.restMult);
@@ -190,4 +193,14 @@ export function passiveBuff(world: World, unit: UnitState, stat: BuffStat): numb
 export function everyNthOf(world: World, unit: UnitState): PassiveKeys['everyNth'] {
   for (const p of passivesFor(world, unit)) if (p.keys.everyNth) return p.keys.everyNth;
   return undefined;
+}
+
+// Heroes with a regen passive heal while their fight runs.
+export function runPassiveRegen(world: World): void {
+  for (const u of world.units) {
+    if (u.kind !== 'hero' || u.ko || u.hp <= 0 || u.hp >= u.maxHp) continue;
+    if ((world.unitRuntime.get(u.id)?.fightUntilMs ?? 0) <= world.timeMs) continue;
+    const pct = passiveRegen(world, u);
+    if (pct > 0) u.hp = Math.min(u.maxHp, u.hp + (u.maxHp * pct * TICK_MS) / 1000);
+  }
 }

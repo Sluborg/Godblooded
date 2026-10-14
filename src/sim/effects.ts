@@ -107,6 +107,9 @@ export function takeDamage(
   const fx = fxOf(world, unit.id);
   if (!fx || damage <= 0) return { dealt: damage, hp: damage };
   let dealt = damage;
+  // A damageTaken buff (Sun Disk) takes a share off.
+  const guard = buffOf(world, unit.id, 'damageTaken');
+  if (guard > 0) dealt = Math.max(1, Math.round(dealt * (1 - Math.min(0.9, guard))));
   // Turned to stone: half damage.
   if (fx.stone && world.timeMs < fx.stone.until) dealt = Math.max(1, Math.round(dealt / 2));
   if (fx.mark && world.timeMs < fx.mark.until) {

@@ -109,6 +109,7 @@ export function baseFleeOf(world: World, unit: UnitState): number {
 
 // Hp percent below which a hero flees: the party's upgrade, scaled by personality.
 export function fleeThreshold(world: World, unit: UnitState): number {
+  if (world.timeMs < (world.heroRuntime.get(unit.id)?.noFleeUntilMs ?? 0)) return 0;
   const flee = baseFleeOf(world, unit);
   if (unit.trait === 'brave') return flee * 0.67;
   if (unit.trait === 'coward') return flee * 1.5;

@@ -19,6 +19,8 @@ import type { BountyState, LairState, PartyIntent, Vec2, UnitState } from './typ
 // market (the town taxes what they spend). Numbers come from GameData.tuning.hero.
 
 export interface HeroRuntime {
+  // A War Cry keeps the hero in the fight until here: it does not flee.
+  noFleeUntilMs?: number;
   dest: Vec2 | null;
   // Tithe set aside from bounties, paid into the home temple's till when the hero starts to rest.
   titheOwed?: number;

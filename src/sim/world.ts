@@ -15,7 +15,7 @@ import {
 } from './effects';
 import { armourBonus, charmEffects, weaponPower } from './items';
 import { passiveRider } from './passives';
-import { everyNthOf, passiveAggroMult, passiveArmour } from './passives';
+import { everyNthOf, passiveAggroMult, passiveArmour, runPassiveRegen } from './passives';
 import { noteFight } from './engage';
 import { headCount, runBossMoves } from './bossmoves';
 import { runQuirks, scavenge, stolenBy } from './quirks';
@@ -36,7 +36,14 @@ import { removeSummon, runSummon, runSummonUpkeep, summonStats } from './summons
 import { runStatuses, slowOf, healMult, type UnitStatus } from './riders';
 import { attackStrike, landStrike } from './strike';
 import { cancelDrink, runDrink } from './potions';
-import { cancelCast, runSkill, supportEffect, tickSkill, type SkillRuntime } from './skills';
+import {
+  cancelCast,
+  resetOnKill,
+  runSkill,
+  supportEffect,
+  tickSkill,
+  type SkillRuntime,
+} from './skills';
 import { swing, type Area } from './swing';
 import {
   bossNumbers,
@@ -482,6 +489,7 @@ function runTick(world: World): void {
   runQuirks(world);
   runFavour(world);
   runParties(world);
+  runPassiveRegen(world);
   runUnits(world);
   syncIntent(world);
   // Combat, heroes and the economy hook in here (Sim backlog 30 and up).
@@ -1042,6 +1050,7 @@ function settleDeaths(world: World): void {
       const krt = world.unitRuntime.get(by);
       if (krt?.fight) krt.fight.kills++;
       healOnKill(world, by);
+      resetOnKill(world, by);
       payBounty(world, by, bounty + stolenBy(world, unit.id));
       claimHunt(world, unit.id, by);
       shareXp(world, by, xp);

@@ -76,6 +76,8 @@ export interface PassiveKeys {
   rangeMult?: number;
   // Basic strikes carry this rider.
   rider?: RiderId;
+  // Heals this share of max hp a second while the hero is in a fight (Apollo's favour card).
+  regen?: number;
 }
 
 // One effect of a passive: a set of keys and who gets them. `scope` 'self' is the owner only,
@@ -669,7 +671,10 @@ export type SkillShape =
 // When an effect runs. Only 'cast' (the default) exists until statuses and summons arrive.
 export type SkillHook = 'cast' | 'hit' | 'kill' | 'expire' | 'death';
 
-export type BuffStat = 'attackSpeed' | 'dodge' | 'armour' | 'damage' | 'crit';
+// `lifesteal`: the share of its max hp the bearer heals with each landed hit (Frenzy);
+// `damageTaken`: the share less damage it takes (Sun Disk).
+export type BuffStat =
+  'attackSpeed' | 'dodge' | 'armour' | 'damage' | 'crit' | 'lifesteal' | 'damageTaken';
 
 interface EffectBase {
   // Defaults to 'cast'.
@@ -677,6 +682,8 @@ interface EffectBase {
   // Who the effect lands on, out of the shape: foes (damage, stagger, mark, taunt), allies
   // (heal, shield, buff; the caster counts as one), or the caster alone (dash). Override here.
   to?: 'foes' | 'allies' | 'self';
+  // Its own shape instead of the skill's (War Cry's stagger in a circle of 150).
+  shape?: SkillShape;
 }
 
 // `mult` x power (a weapon hero's Str, a caster's Int x spellMult) of `type` (default: the
@@ -687,6 +694,10 @@ export interface DamageEffect extends EffectBase {
   type?: DamageType;
   rider?: RiderId;
   sure?: boolean;
+  // Heals the caster this share of the damage dealt (Reaping Sweep).
+  drain?: number;
+  // Always a critical strike against a foe below this share of its max hp (Pounce).
+  critBelow?: number;
 }
 
 // Heals `mult` x (Int + Wp) of the caster, like a healer's heal.
@@ -805,7 +816,24 @@ export interface RefreshEffect extends EffectBase {
   kind: 'refresh';
 }
 
+// `count` strikes of `mult` x power at random foes within `radius` of the caster (Sun Arrow).
+export interface VolleyEffect extends EffectBase {
+  kind: 'volley';
+  count: number;
+  radius: number;
+  mult: number;
+  type?: DamageType;
+}
+
+// The targets do not flee for `s` seconds (War Cry).
+export interface NoFleeEffect extends EffectBase {
+  kind: 'noFlee';
+  s: number;
+}
+
 export type SkillEffect =
+  | VolleyEffect
+  | NoFleeEffect
   | SummonEffect
   | DamageEffect
   | KnockbackEffect
@@ -834,10 +862,29 @@ export interface SkillDef {
   target: 'self' | 'foe' | 'ally' | 'point';
   shape: SkillShape;
   effects: readonly SkillEffect[];
+  // A kill by this skill resets its cooldown (Frenzy tier 3).
+  refreshOnKill?: boolean;
+  // A kill by this skill casts it again on the nearest foe within this radius (Pounce tier 3).
+  chainOnKill?: number;
+  // Which foe a single-target cast picks: the most hp, or a monster that heals (Binding Spell).
+  pick?: 'mostHp' | 'onHealer';
   // Picture ids for Scene (bolt, burst, cone, line, chain, aura, shield, dash, mark, pillar).
   visual: readonly string[];
   // Fields that change at tier 3 (replace the field whole).
-  t3?: Partial<Pick<SkillDef, 'trigger' | 'cooldownS' | 'target' | 'shape' | 'effects' | 'visual'>>;
+  t3?: Partial<
+    Pick<
+      SkillDef,
+      | 'trigger'
+      | 'cooldownS'
+      | 'target'
+      | 'shape'
+      | 'effects'
+      | 'visual'
+      | 'refreshOnKill'
+      | 'chainOnKill'
+      | 'pick'
+    >
+  >;
 }
 
 export interface SkillTuning {

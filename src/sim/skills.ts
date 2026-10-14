@@ -23,6 +23,7 @@ import type {
   SkillTrigger,
   UnitState,
   Vec2,
+  VolleyEffect,
 } from './types';
 
 // The skill engine (Sim 240, docs/systems/paths-and-skills.md). A hero on a path with a skill
@@ -123,7 +124,7 @@ export function runSkill(
   if (sr.cdMs > 0) return false;
   const found = evalTrigger(world, hero, def.trigger, foe, def.target === 'self');
   if (!found) return false;
-  const at = centre(hero, def, found, foe);
+  const at = centre(world, hero, def, found, foe);
   if (!at) return false;
   const t = world.tuning.skill;
   sr.cdMs = def.cooldownS * 1000 * passiveCooldownMult(world, hero);
@@ -146,6 +147,7 @@ export function runSkill(
 
 // Where the shape sits, from the skill's `target` and what the trigger found.
 function centre(
+  world: World,
   hero: UnitState,
   def: SkillDef,
   found: Found,
@@ -155,7 +157,7 @@ function centre(
     case 'self':
       return { unit: null, point: { ...hero.pos } };
     case 'foe': {
-      const f = found.foe ?? foe ?? undefined;
+      const f = ruledFoe(world, hero, def, found.foe ?? foe ?? undefined);
       return f ? { unit: f, point: { ...f.pos } } : undefined;
     }
     case 'ally':
@@ -163,6 +165,38 @@ function centre(
     case 'point':
       return { unit: null, point: { ...found.point } };
   }
+}
+
+// A skill's `pick` rule: the foe with the most hp, or one that heals, within 300 of the hero.
+function ruledFoe(
+  world: World,
+  hero: UnitState,
+  def: SkillDef,
+  foe: UnitState | undefined,
+): UnitState | undefined {
+  if (!def.pick || !foe) return foe;
+  const near = foesOf(world).filter((f) => dist(hero.pos, f.pos) <= 300);
+  if (def.pick === 'mostHp') return near.reduce((a, b) => (b.hp > a.hp ? b : a), foe);
+  const heals = (f: UnitState) => {
+    const q = world.data.monsters?.find((m) => m.id === f.type)?.quirk;
+    return !!q && (q.healOnKo !== undefined || q.regen !== undefined);
+  };
+  return near.find(heals) ?? foe;
+}
+
+// A kill while the skill's own buff runs resets its cooldown (`refreshOnKill`, Frenzy tier 3).
+export function resetOnKill(world: World, killerId: number): void {
+  const killer = world.units.find((u) => u.id === killerId);
+  const hero =
+    killer?.kind === 'summon' && killer.summon
+      ? world.units.find((u) => u.id === killer.summon?.owner)
+      : killer;
+  if (!hero || hero.kind !== 'hero') return;
+  const def = skillOf(world, hero);
+  const rt = world.unitRuntime.get(hero.id);
+  if (!def?.refreshOnKill || !rt?.skill) return;
+  const fx = rt.fx;
+  if ((fx?.buffs ?? []).some((b) => b.src === def.id && world.timeMs < b.until)) rt.skill.cdMs = 0;
 }
 
 function face(hero: UnitState, to: Vec2): void {
@@ -392,6 +426,7 @@ export function resolve(
   def: SkillDef,
   targetId: number | null,
   point: Vec2,
+  chainDepth = 0,
 ): void {
   if (hero.ko || hero.hp <= 0) return;
   const target = targetId === null ? undefined : world.units.find((u) => u.id === targetId);
@@ -408,6 +443,7 @@ export function resolve(
   const allies = () =>
     (side ??= foesInShape(world, hero, def.shape, point, target, [hero, ...alliesOf(world, hero)]));
   const touched = new Set<number>();
+  const killed: UnitState[] = [];
   for (const effect of effects) {
     if (effect.kind === 'summon') {
       // Only a thrall uses up the party's recent kills.
@@ -423,12 +459,29 @@ export function resolve(
       }
       continue;
     }
+    if (effect.kind === 'volley') {
+      if (stats) volley(world, hero, stats, effect, point);
+      continue;
+    }
     const to = effect.to ?? defaultTo(effect.kind);
-    const hits = to === 'foes' ? foes : to === 'allies' ? allies() : [{ unit: hero, mult: 1 }];
+    // An effect may carry its own shape (War Cry's stagger in a circle of 150).
+    const pool = effect.shape ? foesInShape(world, hero, effect.shape, point, target) : foes;
+    const hits =
+      to === 'foes'
+        ? pool
+        : to === 'allies'
+          ? effect.shape
+            ? foesInShape(world, hero, effect.shape, point, target, [
+                hero,
+                ...alliesOf(world, hero),
+              ])
+            : allies()
+          : [{ unit: hero, mult: 1 }];
     for (const h of hits) {
       if (h.unit.hp <= 0 || h.unit.ko) continue;
       if (effect.kind === 'damage') {
         if (stats) damage(world, hero, stats, effect, h.unit, h.mult);
+        if (h.unit.hp <= 0) killed.push(h.unit);
       } else {
         supportEffect(world, hero, stats, effect, h.unit, def.id);
       }
@@ -443,6 +496,16 @@ export function resolve(
     point: { ...point },
     ...(from ? { from } : {}),
   });
+  // A kill by the skill pounces on: it is cast again on the nearest foe near the one that fell.
+  if (def.chainOnKill && killed.length > 0 && chainDepth < 3) {
+    const at = killed[killed.length - 1].pos;
+    const next = pickNearest(
+      foesOf(world).filter((f) => !killed.includes(f)),
+      at,
+      def.chainOnKill,
+    );
+    if (next) resolve(world, hero, def, next.id, { ...next.pos }, chainDepth + 1);
+  }
 }
 
 // The party's recent kills near a point, nearest first (a thrall rises from each; they are used up).
@@ -538,6 +601,8 @@ function defaultTo(kind: SkillEffect['kind']): 'foes' | 'allies' | 'self' {
     case 'dash':
     case 'refresh':
       return 'self';
+    case 'noFlee':
+      return 'allies';
     default:
       return 'foes';
   }
@@ -640,6 +705,13 @@ export function supportEffect(
     case 'refresh':
       if (src) refreshFrom(world, unit, src);
       return;
+    case 'noFlee': {
+      const hr = world.heroRuntime.get(unit.id);
+      if (hr) hr.noFleeUntilMs = world.timeMs + effect.s * 1000;
+      return;
+    }
+    case 'volley':
+      return;
     case 'revive':
     case 'summon':
       // Handled in resolve (the dead are not in the shape's pool; a summon is not a hit).
@@ -678,11 +750,40 @@ function damage(
     }
     return;
   }
-  landStrike(world, hero, foe, {
+  const out = landStrike(world, hero, foe, {
     ...base,
     type,
     skillMult: effect.mult * share,
     ...(effect.sure ? { canDodge: false } : {}),
     ...(effect.rider ? { rider: effect.rider } : {}),
+    ...(effect.critBelow !== undefined && foe.maxHp > 0 && foe.hp / foe.maxHp < effect.critBelow
+      ? { forceCrit: true }
+      : {}),
   });
+  // Drain: the caster heals a share of the damage that landed.
+  if (effect.drain && !out.dodged && out.damage > 0 && hero.hp > 0) {
+    const gain = Math.min(Math.round(out.damage * effect.drain), hero.maxHp - hero.hp);
+    if (gain > 0) {
+      hero.hp += gain;
+      tally(world, hero.id, 'healing', gain);
+      world.events.push({ kind: 'heal', healer: hero.id, target: hero.id, amount: gain });
+    }
+  }
+}
+
+// Sun Arrow tier 3: `count` strikes at random foes within `radius` of the caster.
+function volley(
+  world: World,
+  hero: UnitState,
+  stats: Stats,
+  effect: VolleyEffect,
+  point: Vec2,
+): void {
+  const centre = effect.radius > 0 ? hero.pos : point;
+  const foes = foesOf(world).filter((f) => dist(centre, f.pos) <= effect.radius);
+  for (let i = 0; i < effect.count && foes.length > 0; i++) {
+    const foe = foes[Math.floor(world.rng() * foes.length)];
+    if (foe.hp <= 0) continue;
+    damage(world, hero, stats, { kind: 'damage', mult: effect.mult, type: effect.type }, foe, 1);
+  }
 }
