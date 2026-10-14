@@ -95,8 +95,16 @@ cards (stats, sustain, nerve) and the standard seeded map (Sim 150).
 
 - Every hero who reached tier 3 is written into the Saga: name, god, path, kills, how the run
   ended, and how it ended for them (fell to a boss, saw the win).
-- Heroes have no names today: each pantheon gets a name list (Lead data, about 30 names
-  each), and Sim gives every arrival a seeded name. Names also feed speech bubbles.
+- **Hero names** (Sim, `src/data/names.ts`, Design-reviewed 2026-10-14): each pantheon has 30
+  male and 30 female given names (at most 10 letters, tested) and 20 epithets; grim and period,
+  no modern, comic or famous-ruler names. Names also feed speech bubbles.
+  - **Form:** a given name of a seeded gender, then 50/50 an epithet ("Grim the Silent") or the
+    parentage. Aesir parentage is a suffix from the god: "Eirik Thorsson", "Astrid
+    Thorsdottir"; a god whose name ends in "a" uses the long form ("Sigrid daughter of
+    Freyja"). Greek and Egyptian always use the long form ("Kallias son of Ares", "Iset
+    daughter of Sekhmet").
+  - **Seeded** by a hash of the run seed and the hero id, so it never shifts a run's random
+    stream.
 - Up to 50 entries, newest first. One tap on the hall's Saga tab.
 - It turns pillar 2 (personality you can see) into a reason to remember a run.
 
@@ -149,11 +157,11 @@ string }` (`nextSeed`, and `lean`, the one pantheon chosen at the Altar, first i
 
 ### Lead
 
-| Order | Row                                            |
-| ----- | ---------------------------------------------- |
-| 10    | Data: unlock rows and Trial rows               |
-| 15    | Data: Essence sources and the 10 Altar rows    |
-| 20    | Data: a name list per pantheon (about 30 each) |
+| Order | Row                                                                                       |
+| ----- | ----------------------------------------------------------------------------------------- |
+| 10    | Data: unlock rows and Trial rows                                                          |
+| 15    | Data: Essence sources and the 10 Altar rows                                               |
+| 20    | Data: a name list per pantheon (done: 30 + 30 given names, 20 epithets; `sim/hero-names`) |
 
 ### Art
 

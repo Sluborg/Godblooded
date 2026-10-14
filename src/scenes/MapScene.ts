@@ -34,6 +34,7 @@ import { releaseSets } from '../ui/parts/bake';
 import { effectiveSpeed } from '../ui/pathSpeed';
 import { STYLE } from '../ui/style';
 import { LAIR_UI_DEPTH, LairIndicators, groundScale, plateColor } from '../ui/lairRings';
+import { LairFx } from '../ui/lairFx';
 import { portraitIds } from '../ui/portraits';
 import { bakeRings } from '../ui/bake';
 import {
@@ -41,6 +42,7 @@ import {
   groundShadow,
   lairDecal,
   lairPlate,
+  skullPike,
   ruinMark,
   townPatch,
 } from '../ui/groundDecal';
@@ -84,7 +86,9 @@ const PLOT_RADIUS = 110;
 
 // The camera's start zoom: 0.7 shows 1830 x 1030 world units on a 1280 x 720 screen, enough for the
 // plot ring (about 1040 x 760) with the buildings on it.
-const DEFAULT_ZOOM = 0.7;
+// The camera starts close so the art reads on a phone (Stefan, 2026-10-14); a pinch out reaches the
+// whole map (minZoom below).
+const DEFAULT_ZOOM = 1.0;
 
 export interface MapTap {
   // Sim plot id of a free plot, or null.
@@ -115,6 +119,7 @@ export class MapScene extends Phaser.Scene {
   private lairInd!: LairIndicators;
   // Lairs with a raid on the way: the run time the warning ends (a dotted trail to the town).
   private raidTrails = new Map<number, number>();
+  private lairFx!: LairFx;
   private selectRing: Phaser.GameObjects.Image | null = null;
   private ruinMarks = new Map<number, Phaser.GameObjects.Image>();
   private selectRingFor = 0;
@@ -181,7 +186,7 @@ export class MapScene extends Phaser.Scene {
     this.world = this.startWorld();
     this.registry.set('speed', getSettings().speed);
     const cam = this.cameras.main;
-    const minZoom = Math.max(GAME_WIDTH / width, GAME_HEIGHT / height);
+    const minZoom = Math.min(GAME_WIDTH / width, GAME_HEIGHT / height);
     cam.setBounds(0, 0, width, height).setZoom(Math.max(minZoom, DEFAULT_ZOOM) * RENDER_SCALE);
     cam.centerOn(GRAYBOX.townHall.x, GRAYBOX.townHall.y);
     cam.setBackgroundColor(COLORS.background);
@@ -223,6 +228,7 @@ export class MapScene extends Phaser.Scene {
     this.links = this.add.graphics().setDepth(1_000_000);
     this.nodeViews = new NodeViews(this);
     this.lairInd = new LairIndicators(this);
+    this.lairFx = new LairFx(this, () => getSettings().reducedMotion);
     this.snap = snapshot(this.world);
     this.sync();
     this.scene.launch('Hud');
@@ -744,6 +750,7 @@ export class MapScene extends Phaser.Scene {
     this.drawLinks();
     this.nodeViews.update(this.snap, this.nodeTiming);
     this.lairInd.update(this.snap, dtMs, this.world.tuning.monster.lairAggro);
+    this.lairFx.update(this.time.now);
     // The plate pulses with its ring in the last 15 s before a tier-up.
     for (const l of this.snap.lairs)
       (
@@ -1230,7 +1237,8 @@ export class MapScene extends Phaser.Scene {
         pos,
       );
     const w = view.getData('w') as number | undefined;
-    if (w) this.groundUnder(view, groundShadow(this, w), pos, 0.6);
+    const h = view.getData('h') as number | undefined;
+    if (w) this.groundUnder(view, groundShadow(this, w, h), pos, 0.6);
     return view;
   }
 
@@ -1258,6 +1266,7 @@ export class MapScene extends Phaser.Scene {
         .container(pos.x, pos.y, [img])
         .setData('top', o.y * img.height * k - FOOT_Y)
         .setData('w', img.width * k)
+        .setData('h', img.height * k)
         .setDepth(footprintDepth(pos.y, img.width * k));
     }
     const body = this.add
@@ -1291,6 +1300,13 @@ export class MapScene extends Phaser.Scene {
     plate.setPosition(l.pos.x, l.pos.y + 46).setDepth(LAIR_UI_DEPTH);
     c.once(Phaser.GameObjects.Events.DESTROY, () => plate.destroy());
     c.setData('plate', plate);
+    // A skull on a pike beside the lair and embers rising from it.
+    const k = l.boss ? 1.4 : 1;
+    const pike = skullPike(this)
+      .setPosition(l.pos.x + 78 * k, l.pos.y + 24)
+      .setDepth(l.pos.y + 24);
+    c.once(Phaser.GameObjects.Events.DESTROY, () => pike.destroy());
+    this.lairFx.add(c, l.pos.x, l.pos.y - 8, 150 * k);
     this.refreshLair(c, l.type, l.tier, l.boss);
     return c;
   }
@@ -1343,7 +1359,7 @@ export class MapScene extends Phaser.Scene {
     // The shadow follows the picture's size (a tier-up or a boss lair is larger).
     const old = view.getData('shadow') as Phaser.GameObjects.Image | undefined;
     old?.destroy();
-    const shadow = groundShadow(this, img.width * k);
+    const shadow = groundShadow(this, img.width * k, img.height * k);
     shadow.setPosition(view.x, view.y).setDepth(0.6);
     view.once(Phaser.GameObjects.Events.DESTROY, () => shadow.destroy());
     view.setData('shadow', shadow);

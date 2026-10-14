@@ -38,6 +38,10 @@ export function rebuildRuin(world: World, id: number): CommandResult {
     plot: ruin.plot,
     hp: world.tuning.town.buildingHp,
     maxHp: world.tuning.town.buildingHp,
+    // A rebuilt ruin has a scaffold too (tuning.town.buildMs).
+    ...(world.tuning.town.buildMs > 0
+      ? { buildUntilMs: world.timeMs + world.tuning.town.buildMs }
+      : {}),
   });
   world.events.push({ kind: 'built', building: buildingId, type: ruin.type });
   return { ok: true, id: buildingId };

@@ -19,6 +19,9 @@
 // first temple), to tune data.firstRun.
 // --replay-check replays every run from its replay code and reports how many replays equal the
 // original run report (the determinism check; also tries the code through `npm run replay`).
+// --altar none|half|full plays with the Altar bought to that level (every upgrade at half its ranks, or
+// all of them) and every unlock open, to measure the win rate at the three Altar levels.
+// --trials a,b plays with those Trials (ids from meta.ts).
 // --data takes a JSON file that overrides GRAYBOX fields (top level; `tuning` groups are
 // merged one by one), so data passes can be tried without editing src/data.
 import { readFileSync } from 'node:fs';
@@ -54,6 +57,10 @@ const HALL_TIERS = args.includes('--hall-tiers');
 const RUINS = args.includes('--ruins');
 const FIRST_RUN = args.includes('--first-run');
 const REPLAY_CHECK = args.includes('--replay-check');
+const altarIdx = args.indexOf('--altar');
+const ALTAR = altarIdx >= 0 ? args[altarIdx + 1] : undefined;
+const trialsIdx = args.indexOf('--trials');
+const TRIALS = trialsIdx >= 0 ? args[trialsIdx + 1].split(',') : [];
 const HUNT = args.includes('--hunt');
 const FLAGS = args.includes('--flags') || HUNT;
 const FLAG_GOLD = opt('flag-gold', HUNT ? 50 : 40);
@@ -76,7 +83,23 @@ try {
   const data0 = dataFile ? withOverride(base, JSON.parse(readFileSync(dataFile, 'utf8'))) : base;
   const data1 = M3 ? withOverride(data0, { tuning: { nodes: { enabled: true } } }) : data0;
   const data2 = HALL_TIERS ? withOverride(data1, { tuning: { town: { hallTiers: true } } }) : data1;
-  const GRAYBOX = RUINS ? withOverride(data2, { tuning: { town: { ruins: true } } }) : data2;
+  const dataBase = RUINS ? withOverride(data2, { tuning: { town: { ruins: true } } }) : data2;
+  // --altar / --trials: the data the meta layer would hand the run.
+  let GRAYBOX = dataBase;
+  if (ALTAR || TRIALS.length > 0) {
+    const meta = sim.emptyMeta();
+    const rules = sim.metaRules(dataBase);
+    meta.unlocks = rules.unlocks.map((u) => u.id);
+    if (ALTAR === 'half' || ALTAR === 'full') {
+      for (const def of rules.altar) {
+        const ranks = ALTAR === 'full' ? def.ranks.length : Math.ceil(def.ranks.length / 2);
+        if (def.perPantheon) {
+          for (const p of sim.pantheonsOf(dataBase, meta)) meta.altar[`${def.id}:${p}`] = ranks;
+        } else meta.altar[def.id] = ranks;
+      }
+    }
+    GRAYBOX = sim.playData(dataBase, meta, TRIALS);
+  }
   // The smithy joins the order once the data has one (heroes then buy weapons and armour).
   const BUILD_ORDER = ['temple_aesir', 'market', 'shrine', 'tower'];
   if (GRAYBOX.buildings.some((b) => b.id === 'smithy')) BUILD_ORDER.splice(2, 0, 'smithy');

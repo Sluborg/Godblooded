@@ -1,9 +1,12 @@
 import { hearthOf } from './hearth';
+import { isWorking } from './town';
+import { noteBeat } from './runstats';
+import { noteLevel } from './facts';
 import { curePoison } from './effects';
 import { armourBonus } from './items';
 import { autoPickCard, leaderOf, offerCards } from './cards';
 import { addFavour } from './favour';
-import { passiveAttrs } from './passives';
+import { passiveAttrs, passiveBondMult } from './passives';
 import { partiesHaveRivals, runRivalries } from './rivalry';
 import { dist, maxHp } from './units';
 import type { World } from './world';
@@ -121,12 +124,16 @@ const bondKey = (a: number, b: number) => (a < b ? `${a}:${b}` : `${b}:${a}`);
 export const bond = (world: World, a: number, b: number) => world.bonds.get(bondKey(a, b)) ?? 0;
 
 export function addBond(world: World, a: number, b: number, rawDelta: number): void {
-  // A tier 2 Hearth Hall makes bonds grow faster.
+  // A tier 2 Hearth Hall makes bonds grow faster; Oath-Brothers do too (a loss stays as it is).
   const hearth = hearthOf(world);
-  const delta =
+  let delta =
     rawDelta > 0 && hearth && hearth.tier >= 2
       ? rawDelta * world.tuning.building.hallBondMult
       : rawDelta;
+  if (delta > 0) {
+    const [ua, ub] = [a, b].map((id) => world.units.find((u) => u.id === id));
+    if (ua && ub) delta *= Math.max(passiveBondMult(world, ua), passiveBondMult(world, ub));
+  }
   const v = Math.max(-3, Math.min(tune(world).bondCap, bond(world, a, b) + delta));
   world.bonds.set(bondKey(a, b), v);
 }
@@ -150,6 +157,7 @@ export function shareXp(world: World, killer: number, xp: number): void {
   ) {
     party.xp -= xpNext(world, party.level);
     party.level++;
+    noteLevel(world, party);
     const ids = offerCards(world, party);
     if (ids.length > 0 && !tune(world).autoPick) party.offer = ids;
     world.events.push({ kind: 'levelUp', party: party.id, level: party.level, offer: ids });
@@ -177,6 +185,7 @@ export function pantheonOf(world: World, type: string): string | undefined {
 function builtPantheons(world: World): Set<string> {
   const out = new Set<string>();
   for (const b of world.buildings) {
+    if (!isWorking(b)) continue;
     const pantheon = pantheonOf(world, b.type);
     if (pantheon) out.add(pantheon);
   }
@@ -235,6 +244,8 @@ function retier(world: World, party: Party): void {
     u.tier = tier;
     u.type = template;
     refreshMaxHp(world, u);
+    if (tier >= 2) noteBeat(world, 'firstTier2Ms');
+    if (tier >= 3) noteBeat(world, 'firstTier3Ms');
     world.events.push({ kind: 'tierUp', unit: u.id, tier, path: u.path });
   }
 }
@@ -516,5 +527,6 @@ function merge(world: World, into: Party, from: Party): void {
     if (u) u.party = into.id;
   }
   world.parties.delete(from.id);
+  noteBeat(world, 'firstPartyMs');
   world.events.push({ kind: 'partyFormed', party: into.id, members: [...into.members] });
 }
