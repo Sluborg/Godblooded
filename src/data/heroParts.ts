@@ -62,3 +62,26 @@ export function partsGods(): { god: string; paths: string[] }[] {
     paths: (d.paths ?? []).map((p) => pathIdOf(god, p.name)),
   }));
 }
+
+// The tax collector on the hero parts rig (interim until Art's painted reeve kit, G3, npc_collector):
+// a lean man at hero proportions in muted grey-brown wool, grey hair, no cape and nothing red. The
+// sack on his back and the ledger in his hand are small props drawn by taxLook.ts.
+export const COLLECTOR_LOOK_ID = 'npc_collector';
+export function collectorPartsLook(): PartsLook {
+  return {
+    id: COLLECTOR_LOOK_ID,
+    def: {
+      name: 'Reeve',
+      skin: '#d3ab88',
+      body: '#6f6250',
+      trim: '#8d7e66',
+      boots: '#352a1f',
+      head: 'hair',
+      hairCol: '#8e897d',
+      armCol: '#5f5343',
+      hp: 30,
+      speed: 40,
+      atk: { style: 'swing', type: 'physical', dmg: [1, 2], cd: 2, range: 20, dur: 0.8 },
+    },
+  };
+}

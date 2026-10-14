@@ -32,6 +32,32 @@ export function drawCoin(g: Phaser.GameObjects.Graphics, x: number, y: number, r
   g.lineStyle(2, TAX_STYLE.coinEdge, 0.9).strokeCircle(x, y, r * 0.62);
 }
 
+// The collector's props on the parts rig (a figure of hero size, feet at the origin): the sack on
+// his back (left) in 3 sizes by what he carries, a strap across the chest and a ledger held at his
+// front hand. The body itself comes from the rig.
+export function drawCollectorProps(g: Phaser.GameObjects.Graphics, size: 0 | 1 | 2): void {
+  g.clear();
+  const ink = 0x1a0f08;
+  const r = size === 0 ? 9 : size === 1 ? 12 : 15;
+  const sx = -11;
+  const sy = -25 - r * 0.1;
+  g.fillStyle(TAX_STYLE.sack, 1).fillEllipse(sx, sy, r * 1.6, r * 1.9);
+  g.lineStyle(2, ink, 0.85).strokeEllipse(sx, sy, r * 1.6, r * 1.9);
+  g.fillStyle(TAX_STYLE.sackTie, 1).fillRect(sx - r * 0.3, sy - r * 0.98, r * 0.6, 3);
+  if (size > 0) drawCoin(g, sx, sy + 1, size === 2 ? 5 : 4);
+  // The strap from the sack over the shoulder.
+  g.lineStyle(2, 0x3a2a1c, 0.9).lineBetween(sx + r * 0.6, sy - r * 0.5, 4, -33);
+  // The ledger: a thick dark-brown book with pale pages, held out in front.
+  const lx = 12;
+  const ly = -17;
+  g.fillStyle(0x3b2616, 1).fillRect(lx - 5, ly - 7, 10, 14);
+  g.lineStyle(1.5, ink, 0.9).strokeRect(lx - 5, ly - 7, 10, 14);
+  g.fillStyle(0xe6dcc0, 1).fillRect(lx - 4, ly - 6, 2, 12);
+  g.lineStyle(1, 0x8a7a58, 0.9)
+    .lineBetween(lx, ly - 4, lx + 3, ly - 4)
+    .lineBetween(lx, ly - 1, lx + 3, ly - 1);
+}
+
 // The tax collector, drawn facing right with its feet at the origin: a stocky hooded figure in a
 // brown robe with a gold belt, and a big sack on its back (left) in 3 sizes. The sack is the
 // point: it is what tells it from a hero, and it grows with what the collector carries.
@@ -43,9 +69,9 @@ export function drawCollector(g: Phaser.GameObjects.Graphics, size: 0 | 1 | 2): 
   const sx = -30;
   const sy = -26 - r * 0.2;
   g.fillStyle(TAX_STYLE.sack, 1).fillEllipse(sx, sy, r * 1.7, r * 2);
-  g.lineStyle(3, ink, 0.85).strokeEllipse(sx, sy, r * 1.7, r * 2);
+  g.lineStyle(2, ink, 0.85).strokeEllipse(sx, sy, r * 1.7, r * 2);
   g.fillStyle(TAX_STYLE.sackTie, 1).fillRect(sx - r * 0.3, sy - r * 1.05, r * 0.6, 6);
-  if (size > 0) drawCoin(g, sx, sy + 2, size === 2 ? 9 : 7);
+  if (size > 0) drawCoin(g, sx, sy + 1, size === 2 ? 5 : 4);
   // Robe: a wide rounded bell.
   g.fillStyle(0x7a5a30, 1).fillEllipse(0, -26, 54, 56);
   g.lineStyle(3, ink, 0.85).strokeEllipse(0, -26, 54, 56);
