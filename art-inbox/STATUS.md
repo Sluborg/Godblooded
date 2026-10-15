@@ -266,3 +266,5 @@ B19 | 2026-10-15 21:27 UTC | buildings | started | O-2
 
 B13 | 2026-10-15 21:29 UTC | buildings | bld_plot | uploaded | O-1 remake; unchanged built-in PNG; 3 countable logs clear of all four continuous rope sides, four stakes. Near-magenta and width~93% are pipeline notes. https://drive.google.com/file/d/1rtR7XH1Vs6vQBUS7Y0FlRexOTGCfJdKX/view
 B20 | 2026-10-15 21:29 UTC | buildings | started | O-2
+
+B19 | 2026-10-15 21:31 UTC | buildings | bld_townhall_t2 | uploaded | O-2; unchanged built-in PNG, verified Drive metadata. Same tier1 longhouse, turf roof and dragon gables, low stone footing, carved supported porch, two red banners. Old roof platform removed; second attempt corrected edge contact. Near-magenta/framing notes only. https://drive.google.com/file/d/1KjUGx6LdioocoSQGHcspR5EjstpmIGm4/view
