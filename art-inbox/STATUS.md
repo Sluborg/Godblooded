@@ -228,3 +228,5 @@ U6 | 2026-10-15T03:24:48.630Z | ui | ui_card_iron, ui_card_bronze, ui_card_gold,
 U7 | 2026-10-15T03:24:52.813Z | ui | started
 
 V3 | 2026-10-15T08:26:56.818Z | monsters | started
+
+V3 | 2026-10-15T08:29:18.581Z | monsters | mon_minotaur_t1_front | uploaded | O-2 complete: unchanged built-in edit of delivered V2, 1254x1254 PNG, 1521651 bytes; https://drive.google.com/file/d/1RWrTWSUF1fF8XWmTMMEz7SBynjyNpHOS/view?usp=drivesdk . Name, PNG MIME, byte size and destination verified by Drive metadata. Full-size QA: straight continuous wooden shaft aligned through both closed grips with parallel edges; double axe high behind shoulder; face, horns, kilt, pose, colours and framing visually retained. Near-magenta background and approx73% silhouette height/84% feet are pipeline notes. No resize/crop/conversion/recompression. O-3 acknowledged: production paused until resume order; webhook stays enabled. Replies file not written: saved automation permits STATUS.md only.
