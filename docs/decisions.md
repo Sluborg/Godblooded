@@ -441,3 +441,5 @@ his notes:
   needs varied hero poses and a mixed party from several pantheons.
 - Redos: title art, logo and app icon, Greek sigil, UI buttons, panel, settings and bounty icons,
   bronze card frame (more distinct), minotaur (straight axe haft).
+- Map bounty flag redone neutral to match the new icon: plain wood-and-iron pole, dark-red coin
+  banner, no dragon head (Stefan, 2026-10-15).
