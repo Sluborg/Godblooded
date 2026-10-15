@@ -5,6 +5,7 @@ import { bossState } from './bossLook';
 import { bakeRings, type RingSpec } from './bake';
 import { RENDER_SCALE } from '../config';
 import { collectorPartsLook, heroPartsLook } from '../data/heroParts';
+import { monsterPartsLook } from '../data/monsterParts';
 import {
   STATUS_LOOK,
   isStatusKind,
@@ -354,9 +355,10 @@ export class UnitView {
 
   // A hero with a parts row is drawn from baked parts frames; false when it has none.
   private applyParts(u: UnitState): boolean {
-    if (!USE_PARTS || (u.kind !== 'hero' && u.kind !== 'collector')) return this.leaveParts();
+    if (!USE_PARTS || (u.kind !== 'hero' && u.kind !== 'collector' && u.kind !== 'monster'))
+      return this.leaveParts();
     if (u.kind === 'hero' && !u.god) return this.leaveParts();
-    const sk = `${u.god}:${u.path}:${u.tier}`;
+    const sk = `${u.type}:${u.god}:${u.path}:${u.tier}`;
     if (sk !== this.stillKey) {
       this.stillKey = sk;
       this.stillOk = artCandidates(u.kind, u.type, u.tier, u.path, u.god).some((c) =>
@@ -367,7 +369,9 @@ export class UnitView {
     const look =
       u.kind === 'collector'
         ? collectorPartsLook(sackSize(u.gold ?? 0, this.carryCap))
-        : heroPartsLook(u.god, u.path, u.tier);
+        : u.kind === 'monster'
+          ? monsterPartsLook(u.type, u.tier)
+          : heroPartsLook(u.god, u.path, u.tier);
     if (!look) return this.leaveParts();
     const id = look.id;
     if (id === this.partsId) return true;
