@@ -34,7 +34,7 @@ log; never a **Draft** (Art is still waiting on Stefan). Art sets a batch to Don
 | A2    | heroes    | `A2.md`  | Aesir paths tier 3 as parts sheets (after H2)                                    | 8      | Void   |
 | U1    | ui        | `U1.md`  | Logo and app icon: three options                                                 | 6      | Done   |
 | U1B   | ui        | `U1B.md` | Logo option B revised: fixed khopesh, Greek spear, calmer sun, drop              | 4      | Void   |
-| U9    | ui        | `U9.md`  | Neutral UI kit redo: stone, iron, leather (panel, buttons, 2 icons, bronze card) | 7      | Ready  |
+| U9    | ui        | `U9.md`  | Neutral UI kit in stone, iron and leather: panel, 3 buttons, 2 icons, card, flag | 8      | Ready  |
 | G8    | ui        | `G8.md`  | Title key art redo: no grain, readable monsters, mixed party                     | 1      | Ready  |
 | U1D   | ui        | `U1D.md` | Logo options, one emblem per pantheon (3), pantheon sigil options (3)            | 6      | Ready  |
 | U8    | ui        | `U8.md`  | UI kit in carved oak and parchment: panel, 3 buttons, 9 icons                    | 13     | Done   |
