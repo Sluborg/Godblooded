@@ -443,3 +443,21 @@ his notes:
   bronze card frame (more distinct), minotaur (straight axe haft).
 - Map bounty flag redone neutral to match the new icon: plain wood-and-iron pole, dark-red coin
   banner, no dragon head (Stefan, 2026-10-15).
+
+## 2026-10-15 Round 4 ratings; monsters use the compact hero rig (Stefan)
+
+Stefan rated 18 round-4 pieces. Ship (4-5): the U9 neutral kit (panel, button, pressed,
+disabled, bronze card frame, bounty and settings icons) and seven U7 omens (champion, red sky,
+fallen star, fimbul frost, olympia, scarabs, eclipse). Redo:
+
+- **Caravan omen (2):** "Odd fabric roof floating." The canvas must sit on the wagon or go.
+- **Bound status (2):** "Doesn't look like chain."
+- **G8 title art (3):** "Make the monsters more focused on the heroes, and add some subtle
+  magical effects on each hero. I want the scene to feel tense and epic, right before the fight
+  starts!" Subtle magic on the heroes is wanted here, an exception to no painted-in effects.
+
+**Monsters get the same build as heroes.** V3 minotaur (1): "Why spend all time on this minotaur
+when we don't even use art like that. Make RimWorld minotaur instead." Asked which build he
+means, Stefan picked the compact rig: small body, small floating hands and feet moved in code,
+painted grim gear. No more full-figure painted monster sprites. A compact-rig minotaur is a go
+as the first monster test; Fafnir's painted kit follows the same rig.
