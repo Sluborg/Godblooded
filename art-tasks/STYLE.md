@@ -31,8 +31,22 @@ painted in; busy piles of props; a temple that is only a gate.
 
 - **Look:** detailed **painted pixel art**: crisp pixel clusters, no blur, no soft airbrush, no
   noise or grain. Hand-made, worn, heavy: weathered wood, rough stone, dented iron, leather, fur.
-- **Mood: grim and mythic**, Norse first. Carved knotwork, runes, dragon heads, iron bands. Gods'
-  children look like the heroes of a saga, not like a fairy tale.
+- **Mood: grim and mythic.** Three pantheons: Aesir (Norse), Greek and Egyptian. Norse carving,
+  knotwork, runes and dragon heads belong to Aesir things only; Greek things get bronze, marble
+  and laurel, Egyptian things get sandstone, lapis and gold. Gods' children look like the heroes
+  of a saga, not like a fairy tale.
+- **Core UI is pantheon-neutral** (Stefan 2026-10-15: the oak-and-dragon kit is "too Aesir",
+  "wood doesn't do well on a phone"): buttons, panels and common icons are **dark stone, iron and
+  dark leather**, plain and readable, with no carving, no knotwork, no dragon heads and no
+  pantheon symbol. Pantheon flavour appears only in items that belong to one pantheon.
+- **Symbols per pantheon, not per god** (Stefan 2026-10-15: "Think Aesir, not Thor"): a logo, app
+  icon or pantheon sigil uses one emblem for each **whole pantheon**, never the sign of a single
+  god (no hammer for the Aesir, no owl for the Greeks).
+- **No grain on any picture**, key art included (Stefan 2026-10-15: the title art was "so grainy
+  you can hardly see the monsters"): clean flat pixel clusters, no noise, no film grain, no
+  speckle or dither texture over areas. Every figure must read at a glance.
+- **Groups vary:** when several figures stand together, each has its own pose and stance; never
+  the same stance repeated.
 - **Outline:** a thin dark warm-brown outline around the whole object (as on the anchors), darker
   brown lines between parts. Never thick black ink.
 - **Palette:** earthy and muted like the anchors: umber, ochre, moss, slate, iron grey, bone,
