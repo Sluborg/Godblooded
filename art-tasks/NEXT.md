@@ -19,7 +19,8 @@ log; never a **Draft** (Art is still waiting on Stefan). Art sets a batch to Don
 | B11   | buildings | `B11.md` | Ground tiles (5, seamless) and map props (7)                                     | 12     | Ready  |
 | B12   | buildings | `B12.md` | Merchant caravan, ruin, scaffold, 3 grave markers                                | 6      | Ready  |
 | B14   | buildings | `B14.md` | Buildings tier 3: all nine, per Design table                                     | 9      | Ready  |
-| V3    | monsters  | `V3.md`  | Minotaur t1: straight axe haft (edit of V2)                                      | 1      | Ready  |
+| G10   | monsters  | `G10.md` | Monster look test on the compact rig: minotaur, whole and parts                  | 2      | Ready  |
+| V3    | monsters  | `V3.md`  | Minotaur t1: straight axe haft (edit of V2)                                      | 1      | Void   |
 | V2    | monsters  | `V2.md`  | Redo minotaur t1: a real two-handed grip                                         | 1      | Void   |
 | G7    | heroes    | `G7.md`  | Hero look test: 8 compact heroes, different mixes (nothing ships)                | 8      | Ready  |
 | G1    | heroes    | `G1.md`  | Compact hero kit: Grim, 3 more faces, 3 headgear (after G7)                      | 2      | Draft  |
@@ -34,8 +35,10 @@ log; never a **Draft** (Art is still waiting on Stefan). Art sets a batch to Don
 | A2    | heroes    | `A2.md`  | Aesir paths tier 3 as parts sheets (after H2)                                    | 8      | Void   |
 | U1    | ui        | `U1.md`  | Logo and app icon: three options                                                 | 6      | Done   |
 | U1B   | ui        | `U1B.md` | Logo option B revised: fixed khopesh, Greek spear, calmer sun, drop              | 4      | Void   |
+| G9    | ui        | `G9.md`  | Title art: monsters close on the heroes, subtle hero glow                        | 1      | Ready  |
+| U10   | ui        | `U10.md` | Redo omen caravan (canvas on hoops) and status bound (3 links)                   | 2      | Ready  |
 | U9    | ui        | `U9.md`  | Neutral UI kit in stone, iron and leather: panel, 3 buttons, 2 icons, card, flag | 8      | Ready  |
-| G8    | ui        | `G8.md`  | Title key art redo: no grain, readable monsters, mixed party                     | 1      | Ready  |
+| G8    | ui        | `G8.md`  | Title key art redo: no grain, readable monsters, mixed party                     | 1      | Void   |
 | U1D   | ui        | `U1D.md` | Logo options, one emblem per pantheon (3), pantheon sigil options (3)            | 6      | Ready  |
 | U8    | ui        | `U8.md`  | UI kit in carved oak and parchment: panel, 3 buttons, 9 icons                    | 13     | Done   |
 | G5    | ui        | `G5.md`  | Title key art in the one style, crisp                                            | 1      | Void   |
