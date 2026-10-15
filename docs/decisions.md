@@ -425,3 +425,19 @@ combine per hero; portraits are the in-game hero drawn larger.
 "Proportions are fine. Have heroes make some test art so I can describe what works." G7 is
 Ready: eight assembled compact heroes at today's proportions (Grim, axeman, old warrior,
 shieldmaiden, son of Loki, son of Thor, two darker variants), QA-checked, then rated by Stefan.
+
+## 2026-10-15 Overnight art ratings: neutral UI, pantheon symbols, no grain (Stefan)
+
+Stefan rated 34 overnight pieces. Ship (4): riders, raven mark, shield rune, iron and gold card
+frames, family icons, Egyptian sigil, gold, speed, upgrade, menu and pause icons. New rules from
+his notes:
+
+- **Core UI is pantheon-neutral:** the oak-and-dragon UI kit is "too Aesir". Buttons, panels and
+  common icons use neutral dark stone, iron and leather; pantheon flavour stays in pantheon items.
+  Wood reads poorly on a phone.
+- **Symbols are per pantheon, not per god:** "Think Aesir, not Thor." The logo, app icon and the
+  pantheon sigils use one emblem for each pantheon.
+- **No grain on any art:** the title art was "so grainy you can hardly see the monsters". It also
+  needs varied hero poses and a mixed party from several pantheons.
+- Redos: title art, logo and app icon, Greek sigil, UI buttons, panel, settings and bounty icons,
+  bronze card frame (more distinct), minotaur (straight axe haft).
