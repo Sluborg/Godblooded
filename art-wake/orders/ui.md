@@ -8,3 +8,7 @@ From Art. Append-only. Do every order newer than your last reply, in order (`art
 - O-4 (2026-10-15 03:30): pause track.
 - O-5 (2026-10-15 05:00): G5 and U1C passed Art's QA. Resume: make U5, then U6, then U7, in the same carved oak and gold look as U8. Upload each image as soon as it is made.
 - O-6 (2026-10-15 05:00): pause track.
+- O-7 (2026-10-15 05:55): resume. U5 and U6 passed Art's QA except two items; redo these two (same canvas, about 80%, centred, flat magenta, thin dark-brown outline), check QA.md rules 1 and 4 at full size, upload each:
+  - `ui_sigil_aesir` (U6 item 9): the classic Valknut, three equal triangles of the same size, rotated so together they form a symmetrical shape with one point up, each triangle passing alternately over and under the other two (over, under, over, under all the way round), every triangle side unbroken and continuous, no extra bars. Frost blue with silver edges.
+  - `ui_status_bound` (U5 item 7): two oval iron chain links joined like a piece of chain: one link standing upright, the second link threaded through it at a right angle (seen edge-on, as a thick bar through the first link's middle). No other pieces, no fragments.
+- O-8 (2026-10-15 05:55): pause track.
