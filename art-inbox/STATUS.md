@@ -257,3 +257,5 @@ G7 | 2026-10-15T21:18:40.725Z | heroes | g7_grim, g7_axeman, g7_oldwarrior, g7_s
 - G7--g7_bold_a.png | bytes 1806222; RGB239,12,239; height80.4%; feet92.0% | https://drive.google.com/file/d/1RPeog-8rjCY9KiqXV6xuPKFXW4ANfAEZ/view?usp=drivesdk
 - G7--g7_bold_b.png | bytes 1672459; RGB242,11,241; height78.9%; feet91.7% | https://drive.google.com/file/d/1gb4mGsd5BZelEWEJ85-5IY_XNlMn4kiI/view?usp=drivesdk
 U10 | 2026-10-15T21:22:28.395Z | ui | started
+
+G10 | 2026-10-15T21:22:38.171Z | monsters | started
