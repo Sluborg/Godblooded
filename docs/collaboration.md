@@ -107,3 +107,12 @@ self-echo and **do not wake anyone**. `send_message` is the bell (above).
 
 `project-status.md` is Lead's one-screen summary. Lead updates it whenever something ships
 and is the one who tells Stefan what to test.
+
+## Questions for Stefan (decision 2026-10-15)
+
+Stefan loses questions asked inside running chats, so no session and no ChatGPT chat asks him
+directly. A question for Stefan goes to Lead by `send_message` (ChatGPT chats write a
+`question | <batch> | <text>` line in their replies file and continue with the safe default or
+skip that item; Art relays it to Lead). Lead posts it on the Questions tab of the Art Verdicts
+page (https://claude.ai/artifact/TNTyhAUSmpoduTGwjZDryP), reads the answer there and relays it
+back. Include the options and your recommendation so Lead can post it as a pick.
