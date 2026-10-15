@@ -158,7 +158,13 @@ export function makeButton(
     } else if (g) {
       g.setTexture(buttonTexture(scene, w, h, state, !!opts.flat));
     }
-    text.setAlpha(enabled ? 1 : 0.45);
+    // On the kit's grey disabled picture the label is dark ink at full strength: it often says why
+    // the button is locked ("needs hall tier 2") and must stay readable.
+    if (art && !enabled) text.setColor('#1d1814').setShadow(0, 0, '#000000', 0).setAlpha(0.92);
+    else {
+      text.setColor(COLORS.text).setShadow(0, 2, '#000000', 3, false, true);
+      text.setAlpha(enabled ? 1 : 0.45);
+    }
     text.y = pressed ? 2 : 0;
     icon?.setAlpha(enabled ? 1 : 0.45).setY(pressed ? 2 : 0);
   };
