@@ -917,6 +917,50 @@
         dur: 1.8,
       },
     },
+    minotaur: {
+      // a charger: bull head with big horns and a gold nose ring, a broad dark-hide body, hooves,
+      // and an axe in each hand
+      name: 'Minotaur',
+      skin: '#7a5238',
+      body: '#4a2f22',
+      trim: '#2a1a12',
+      boots: '#2b2119',
+      head: 'bull',
+      weapon: 'grimaxe',
+      off: 'grimaxe',
+      wscale: 1.2,
+      scale: 1.55,
+      bw: 9.5,
+      bh: 9,
+      hx: 5,
+      hy: -24,
+      hr: 6.4,
+      hunch: 0.08,
+      hp: 90,
+      speed: 34,
+      footR: 3.6,
+      handR: 3,
+      arms: {
+        f: { x: 3, y: -17 },
+        b: { x: -3, y: -17.5 },
+        L: 9.5,
+        w: 3.6,
+        rest: 0.4,
+        restB: -0.35,
+        wa: 0.35,
+        swing: 0.25,
+      },
+      armCol: '#7a5238',
+      atk: {
+        style: 'swing',
+        heavy: true,
+        type: 'physical',
+        dmg: [8, 12],
+        cd: 2.1,
+        range: 30,
+        dur: 1.4,
+      },
+    },
     harpy: { name: 'Harpy', fly: true, hp: 30, speed: 50, atk: { style: 'none' } },
   };
   // overhead swing keyframes: [time, arm angle, weapon angle, lean, lunge, ease into this key].
@@ -3043,6 +3087,29 @@
         'rgba(20,10,8,0.55)',
         0.6,
       ); // an old scar
+      return;
+    }
+    if (hd === 'bull') {
+      // a bull's head: ear under the horn, deep-set eyes, a broad pale muzzle with flared nostrils
+      // and a gold nose ring
+      paint(mix(d.skin, '#000000', 0.14), E(hx - 5.6, hy - 2.4, 2.4, 1.5), hx - 8, hy - 3.9, 4.8, 3, {
+        lw: 1.1,
+        rim: 0.4,
+      });
+      horn(hx - 3.2, hy - 5.2, -1, 1.5, '#e8dcc0', null);
+      horn(hx + 2.4, hy - 6.2, 1, 1.5, '#e8dcc0', null);
+      eyes(u, d, hx + 0.6, hy - 0.8, 1.9);
+      paint(mix(d.skin, '#e8d2b4', 0.38), E(hx + 5.6, hy + 2.8, 4.6, 3.7), hx + 1, hy - 0.9, 9.2, 7.4, {
+        lw: 1.3,
+        rim: 0.6,
+      });
+      fs('#1a1008', E(hx + 8.2, hy + 1.8, 0.9, 0.7), 1);
+      fs('#1a1008', E(hx + 8.6, hy + 3.7, 0.9, 0.7), 1);
+      paint('#e2b34a', E(hx + 9, hy + 5.4, 1.5, 1.9), hx + 7.5, hy + 3.5, 3, 3.8, {
+        lw: 1.1,
+        rim: 0.3,
+      });
+      line(hx + 1.2, hy + 5.4, hx + 7.4, hy + 5, '#1a1008', 0.9);
       return;
     }
     eyes(u, d, hx, hy, 2.2);

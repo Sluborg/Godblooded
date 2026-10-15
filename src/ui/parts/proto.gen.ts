@@ -1483,6 +1483,37 @@ function drawHead(u, d) {
     ); // an old scar
     return;
   }
+  if (hd === 'bull') {
+    // a bull's head: ear under the horn, deep-set eyes, a broad pale muzzle with flared nostrils
+    // and a gold nose ring
+    paint(mix(d.skin, '#000000', 0.14), E(hx - 5.6, hy - 2.4, 2.4, 1.5), hx - 8, hy - 3.9, 4.8, 3, {
+      lw: 1.1,
+      rim: 0.4,
+    });
+    horn(hx - 3.2, hy - 5.2, -1, 1.5, '#e8dcc0', null);
+    horn(hx + 2.4, hy - 6.2, 1, 1.5, '#e8dcc0', null);
+    eyes(u, d, hx + 0.6, hy - 0.8, 1.9);
+    paint(
+      mix(d.skin, '#e8d2b4', 0.38),
+      E(hx + 5.6, hy + 2.8, 4.6, 3.7),
+      hx + 1,
+      hy - 0.9,
+      9.2,
+      7.4,
+      {
+        lw: 1.3,
+        rim: 0.6,
+      },
+    );
+    fs('#1a1008', E(hx + 8.2, hy + 1.8, 0.9, 0.7), 1);
+    fs('#1a1008', E(hx + 8.6, hy + 3.7, 0.9, 0.7), 1);
+    paint('#e2b34a', E(hx + 9, hy + 5.4, 1.5, 1.9), hx + 7.5, hy + 3.5, 3, 3.8, {
+      lw: 1.1,
+      rim: 0.3,
+    });
+    line(hx + 1.2, hy + 5.4, hx + 7.4, hy + 5, '#1a1008', 0.9);
+    return;
+  }
   eyes(u, d, hx, hy, 2.2);
   if (d.tattoo) {
     strokePts(
