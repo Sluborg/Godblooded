@@ -36,7 +36,7 @@ log; never a **Draft** (Art is still waiting on Stefan). Art sets a batch to Don
 | U1B   | ui        | `U1B.md` | Logo option B revised: fixed khopesh, Greek spear, calmer sun, drop              | 4      | Void   |
 | U9    | ui        | `U9.md`  | Neutral UI kit redo: stone, iron, leather (panel, buttons, 2 icons, bronze card) | 7      | Ready  |
 | G8    | ui        | `G8.md`  | Title key art redo: no grain, readable monsters, mixed party                     | 1      | Ready  |
-| U1D   | ui        | `U1D.md` | Logo options, one emblem per pantheon (3), Greek sigil options (2)               | 5      | Ready  |
+| U1D   | ui        | `U1D.md` | Logo options, one emblem per pantheon (3), pantheon sigil options (3)            | 6      | Ready  |
 | U8    | ui        | `U8.md`  | UI kit in carved oak and parchment: panel, 3 buttons, 9 icons                    | 13     | Done   |
 | G5    | ui        | `G5.md`  | Title key art in the one style, crisp                                            | 1      | Void   |
 | U1C   | ui        | `U1C.md` | Logo and app icon, simple: carved disc, gold drop, wordmark                      | 2      | Void   |

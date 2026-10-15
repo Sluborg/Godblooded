@@ -1,4 +1,4 @@
-# U1D: logo options with one emblem per pantheon, and Greek sigil options (5 images)
+# U1D: logo options with one emblem per pantheon, and pantheon sigil options (6 images)
 
 Track: ui. Art request 470 (Stefan's ratings, 2026-10-15: "Not satisfied with Thor as
 representative for Aesir, same with owl. Think AESIR not THOR"; Greek sigil: "don't know if the
@@ -21,21 +21,25 @@ background, stone disc, carved symbols, gold drop, wordmark.
 letters of dark bronze with a worn gold edge, about 90% of the canvas width. Spell it exactly
 G-O-D-B-L-O-O-D-E-D. The emblem in the upper half, about 45% of the canvas width.
 
-1. `ui_logo_a`: symbols **Valknut** (three interlocked triangles, Aesir), **laurel wreath**
-   (Greek), **ankh** (Egyptian).
-2. `ui_logo_b`: symbols **Yggdrasil** (the world tree, roots and crown in a circle, Aesir),
-   **a mountain peak with a lightning bolt** (Olympus, Greek), **a winged sun disc** (Egyptian).
+1. `ui_logo_a`: symbols **Yggdrasil** (the world tree, roots and crown inside a circle, Aesir),
+   **Mount Olympus** (a three-peaked mountain with a few clouds around the summit, no lightning,
+   Greek), **a winged sun disc** (a sun disc with two long spread wings, Egyptian). Design's
+   pick: one idea for all three, the gods' worlds (tree, mountain, sun).
+2. `ui_logo_b`: symbols **Valknut** (three interlocked triangles, Aesir), **Mount Olympus** as in
+   item 1 (Greek), **an ankh** (Egyptian).
 3. `ui_logo_c`: **no carved symbols**: instead three small inset gems in the iron rim, evenly
    spaced, **frost blue** (Aesir) top left, **bronze-gold** (Greek) top right, **lapis blue**
    with a gold fleck (Egyptian) bottom. The disc plain stone, only the gold drop in the centre.
 
-## Greek sigil options (on a Greek pantheon card)
+## Pantheon sigil options (on a pantheon card)
 
-Single bold symbol about **80% of the canvas**, centred, no plate, **read at 32 px**, bronze-gold
-with one accent; same look as the shipped `public/assets/ui/ui_sigil_egyptian.png` (fetch raw and
-match its weight and outline).
+Single bold symbol about **80% of the canvas**, centred, no plate, **read at 32 px**; same weight
+and outline as the shipped `public/assets/ui/ui_sigil_egyptian.png` (fetch raw and match it).
+Each in its pantheon colour. They match logo option 1, so Stefan can pick a full set.
 
-4. `ui_sigil_greek_a`: a **laurel wreath**, open at the top, tied with a small dark-red ribbon at
-   the bottom. Nothing inside it.
-5. `ui_sigil_greek_b`: a **mountain peak with a lightning bolt** striking down beside it
-   (Olympus), bronze-gold peak, white-gold bolt.
+4. `ui_sigil_aesir_b`: **Yggdrasil**, the world tree with roots and crown inside a ring, frost
+   blue and silver.
+5. `ui_sigil_greek_b`: **Mount Olympus**, a three-peaked mountain with a few clouds around the
+   summit, no lightning, bronze-gold with white clouds.
+6. `ui_sigil_egyptian_b`: **a winged sun disc**, a round sun with two long spread wings, lapis
+   blue and gold.
