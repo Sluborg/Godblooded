@@ -17,10 +17,6 @@ export const UI_STYLE = {
   nail: 0xc9a25a,
 } as const;
 
-// Multiplies the neutral kit's light parchment centre down to a dark parchment (the light UI text
-// keeps its contrast); the steel frame goes darker with it.
-export const PANEL_TINT = 0x786a5a;
-
 export interface WoodPalette {
   top: number;
   mid: number;

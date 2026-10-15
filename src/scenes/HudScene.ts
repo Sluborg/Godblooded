@@ -10,7 +10,7 @@ import { buildInfo, buildTap, type BuildInfo } from '../ui/buildMenu';
 import { formatClock } from '../ui/endReport';
 import { modeLabel, partyColor } from '../ui/partyLook';
 import { buildRoster, paginate } from '../ui/roster';
-import { makePanel } from '../ui/panel';
+import { makePanel, panelInk } from '../ui/panel';
 import { autoPickToast, pickToast } from '../ui/levelUpLook';
 import { heroLabel } from '../ui/partyLook';
 import { makeHudButton } from '../ui/hudButton';
@@ -31,7 +31,7 @@ import { getSettings } from '../ui/settings';
 import { omenLabel, omenSky, skyAlpha, type OmenSky } from '../ui/omenLook';
 
 const ROSTER_PER_PAGE = 5;
-const ROSTER_W = 470;
+const ROSTER_W = 500;
 const SPEEDS = [1, 2, 4];
 // The top bar's height (design px); the buttons' hit areas are larger than their drawing.
 const BAR_H = 64;
@@ -481,40 +481,41 @@ export class HudScene extends Phaser.Scene {
     const rowH = MIN_TOUCH;
     const pitch = rowH + 4; // a gap so neighbouring outlines never overdraw
     // As tall as its rows (and the pager when there is one), so it never blocks empty map.
-    const H = 40 + Math.max(pg.rows.length, 1.5) * pitch + (pg.pages > 1 ? 90 : 14);
+    const H = 70 + Math.max(pg.rows.length, 1.5) * pitch + (pg.pages > 1 ? 100 : 30);
     this.rosterRect = new Phaser.Geom.Rectangle(X, Y, ROSTER_W, H);
     const add = <T extends Phaser.GameObjects.GameObject>(o: T): T => {
       this.rosterObjects.push(o);
       return o;
     };
     add(makePanel(this, X + ROSTER_W / 2, Y + H / 2, ROSTER_W, H, 0.95));
+    const ink = panelInk(this);
     add(
       this.add
-        .text(X + 18, Y + 22, `Heroes (${all.length})`, {
+        .text(X + 36, Y + 44, `Heroes (${all.length})`, {
           ...TEXT,
           fontSize: '24px',
-          color: '#f2c14e',
+          color: ink.heading,
         })
         .setOrigin(0, 0.5),
     );
     if (pg.rows.length === 0)
       add(
         this.add
-          .text(X + 18, Y + 80, 'No heroes yet.\nBuild a temple.', {
+          .text(X + 36, Y + 90, 'No heroes yet.\nBuild a temple.', {
             ...TEXT,
             fontSize: '22px',
-            color: COLORS.textMuted,
+            color: ink.muted,
           })
           .setOrigin(0, 0),
       );
     pg.rows.forEach((r, i) => {
-      const y = Y + 40 + i * pitch;
+      const y = Y + 66 + i * pitch;
       const bg = add(
         this.add
           .rectangle(
             X + ROSTER_W / 2,
             y + rowH / 2,
-            ROSTER_W - 20,
+            ROSTER_W - 56,
             rowH,
             r.unit === selected ? 0x4a3322 : 0x241a12,
             0.95,
@@ -530,11 +531,11 @@ export class HudScene extends Phaser.Scene {
         this.rosterNextAt = 0;
       });
       if (r.party > 0)
-        add(this.add.rectangle(X + 16, y + rowH / 2, 8, rowH - 14, partyColor(r.party), 1));
+        add(this.add.rectangle(X + 36, y + rowH / 2, 8, rowH - 14, partyColor(r.party), 1));
       const sub = r.party > 0 ? `  ·  party ${r.party} lv ${r.partyLevel}` : '';
       add(
         this.add
-          .text(X + 28, y + 16, `${r.label}  T${r.tier}${sub}`, {
+          .text(X + 46, y + 16, `${r.label}  T${r.tier}${sub}`, {
             ...TEXT,
             fontSize: '20px',
             color: r.ko ? COLORS.textMuted : COLORS.text,
@@ -543,19 +544,19 @@ export class HudScene extends Phaser.Scene {
       );
       add(
         this.add
-          .text(X + ROSTER_W - 22, y + 16, modeLabel(r.mode), {
+          .text(X + ROSTER_W - 40, y + 16, modeLabel(r.mode), {
             ...TEXT,
             fontSize: '16px',
             color: COLORS.textMuted,
           })
           .setOrigin(1, 0.5),
       );
-      const bw = 190;
+      const bw = 170;
       const f = r.maxHp > 0 ? Math.max(0, Math.min(1, r.hp / r.maxHp)) : 0;
-      add(this.add.rectangle(X + 28 + bw / 2, y + 50, bw, 12, 0x000000, 0.7));
+      add(this.add.rectangle(X + 46 + bw / 2, y + 50, bw, 12, 0x000000, 0.7));
       add(
         this.add.rectangle(
-          X + 28 + (bw * f) / 2,
+          X + 46 + (bw * f) / 2,
           y + 50,
           Math.max(1, bw * f),
           12,
@@ -564,7 +565,7 @@ export class HudScene extends Phaser.Scene {
       );
       add(
         this.add
-          .text(X + ROSTER_W - 22, y + 50, `${r.hp}/${r.maxHp}   ${r.gold}g`, {
+          .text(X + ROSTER_W - 40, y + 50, `${r.hp}/${r.maxHp}   ${r.gold}g`, {
             ...TEXT,
             fontSize: '18px',
             color: '#f2c14e',
@@ -573,10 +574,10 @@ export class HudScene extends Phaser.Scene {
       );
     });
     // Paging.
-    const py = Y + H - 44;
+    const py = Y + H - 62;
     if (pg.pages > 1) {
-      const prev = makeButton(this, X + 70, py, 100, MIN_TOUCH, 'Prev', () => this.pageRoster(-1));
-      const next = makeButton(this, X + ROSTER_W - 70, py, 100, MIN_TOUCH, 'Next', () =>
+      const prev = makeButton(this, X + 100, py, 100, MIN_TOUCH, 'Prev', () => this.pageRoster(-1));
+      const next = makeButton(this, X + ROSTER_W - 100, py, 100, MIN_TOUCH, 'Next', () =>
         this.pageRoster(1),
       );
       prev.setEnabled(pg.page > 0);
@@ -588,7 +589,7 @@ export class HudScene extends Phaser.Scene {
           .text(X + ROSTER_W / 2, py, `${pg.page + 1} / ${pg.pages}`, {
             ...TEXT,
             fontSize: '20px',
-            color: COLORS.textMuted,
+            color: ink.muted,
           })
           .setOrigin(0.5),
       );
@@ -806,7 +807,8 @@ export class HudScene extends Phaser.Scene {
     const bh = 100;
     const gap = 14;
     const w = n * bw + (n + 1) * gap;
-    const h = bh + 2 * gap + 40;
+    // The kit's panel has a 26 px frame: a heading band, the buttons, then the frame.
+    const h = bh + 90;
     const cx = viewWidth() / 2;
     const cy = 720 - h / 2 - 12;
     this.menuRect = new Phaser.Geom.Rectangle(cx - w / 2, cy - h / 2, w, h);
@@ -814,12 +816,16 @@ export class HudScene extends Phaser.Scene {
     if (info) this.openInfoStrip(info, cx, cy - h / 2, w);
     const panel = makePanel(this, cx, cy, w, h, 0.92);
     const heading = this.add
-      .text(cx, cy - h / 2 + 24, title, { ...TEXT, fontSize: '24px', color: COLORS.textMuted })
+      .text(cx, cy - h / 2 + 42, title, {
+        ...TEXT,
+        fontSize: '24px',
+        color: panelInk(this).muted,
+      })
       .setOrigin(0.5);
     this.menu.push(panel, heading);
     options.forEach((opt, i) => {
       const x = cx - w / 2 + gap + bw / 2 + i * (bw + gap);
-      const button = makeButton(this, x, cy + 20, bw, bh, opt.label, opt.pick);
+      const button = makeButton(this, x, cy - h / 2 + 62 + bh / 2, bw, bh, opt.label, opt.pick);
       this.menu.push(button.container);
       if (opt.active) button.setActive(true);
       if (opt.pulse && !getSettings().reducedMotion)
@@ -837,7 +843,7 @@ export class HudScene extends Phaser.Scene {
 
   private openInfoStrip(info: BuildInfo, cx: number, bottom: number, w: number): void {
     const lineH = 26;
-    const h = 54 + info.lines.length * lineH;
+    const h = 100 + info.lines.length * lineH;
     const cy = bottom - 8 - h / 2;
     const top = cy - h / 2;
     this.menuRect = Phaser.Geom.Rectangle.Union(
@@ -847,20 +853,20 @@ export class HudScene extends Phaser.Scene {
     this.menu.push(makePanel(this, cx, cy, w, h, 0.92));
     this.menu.push(
       this.add
-        .text(cx, top + 26, info.title, {
+        .text(cx, top + 44, info.title, {
           ...TEXT,
           fontSize: '26px',
-          color: info.affordable ? '#f2c14e' : '#e0645c',
+          color: info.affordable ? panelInk(this).heading : panelInk(this).warn,
         })
         .setOrigin(0.5),
     );
     info.lines.forEach((l, i) =>
       this.menu.push(
         this.add
-          .text(cx, top + 56 + i * lineH, l, {
+          .text(cx, top + 76 + i * lineH, l, {
             ...TEXT,
             fontSize: '20px',
-            color: i === 0 ? COLORS.text : COLORS.textMuted,
+            color: i === 0 ? panelInk(this).body : panelInk(this).muted,
             align: 'center',
             wordWrap: { width: w - 40 },
           })
@@ -881,6 +887,7 @@ export class HudScene extends Phaser.Scene {
     const cy = 720 - h / 2 - 12;
     this.menuRect = new Phaser.Geom.Rectangle(cx - w / 2, cy - h / 2, w, h);
     const maxTier = DEFAULT_TUNING.building.maxTier;
+    const ink = panelInk(this);
     const line = (y: number, text: string, size: number, color: string) =>
       this.add
         .text(cx, cy - h / 2 + y, text, {
@@ -893,12 +900,12 @@ export class HudScene extends Phaser.Scene {
         .setOrigin(0.5);
     this.menu.push(
       makePanel(this, cx, cy, w, h, 0.95),
-      line(34, `${buildingName(b.type)}  ·  Tier ${b.tier}/${maxTier}`, 32, '#f2c14e'),
-      line(76, `HP ${Math.ceil(b.hp)} / ${b.maxHp}`, 22, COLORS.text),
-      line(112, buildingEffect(b.type, b.tier), 22, COLORS.text),
-      line(150, nextTierEffect(b.type, b.tier), 20, COLORS.textMuted),
+      line(58, `${buildingName(b.type)}  ·  Tier ${b.tier}/${maxTier}`, 32, ink.heading),
+      line(100, `HP ${Math.ceil(b.hp)} / ${b.maxHp}`, 22, ink.body),
+      line(136, buildingEffect(b.type, b.tier), 22, ink.body),
+      line(174, nextTierEffect(b.type, b.tier), 20, ink.muted),
     );
-    const y = cy + h / 2 - 60;
+    const y = cy + h / 2 - 72;
     const snap = map.snapshot;
     const nodesOn = snap.gathererCap > 0 || snap.nodes.length > 0;
     const nodeTuning = map.nodeTuning;
