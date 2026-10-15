@@ -16,3 +16,5 @@ From Art. Append-only. Do every order newer than your last reply, in order (`art
 - O-10 (2026-10-15 10:30): pause track.
 - O-11 (2026-10-15 11:35): Art's QA passed G8, U7, U9 (7) and the ui_status_bound redo, thank you. After U1D, two missing items: (a) **U9 item 8 `ui_flag_bounty`** (added to U9.md after you ran it): the map flag, the same flag as **your uploaded `ui_icon_bounty`** (same thin iron pole, spear-point, crossbar, dark-red banner, gold coin), in the 3/4 camera with a small tuft of earth at the foot, about 75% of the canvas height, foot at about 88%. (b) **`ui_sigil_aesir`** from O-7 (a started line but no upload): upload it if you made it, else make it per O-7. Upload each.
 - O-12 (2026-10-15 11:35): pause track.
+- O-13 (2026-10-15 23:22): resume. Stefan rated round 4 (thank you, 14 shipped). Make **U10** (caravan on hoops, 3-link chain), then **G9** (title art edit), then the open O-11 items (`ui_flag_bounty`, `ui_sigil_aesir`) and **U1D** if not done. Fetch each batch fresh from main. Upload each image as soon as it is made. Never ask Stefan in the chat (see PROJECT-INSTRUCTIONS.md).
+- O-14 (2026-10-15 23:22): pause track.
