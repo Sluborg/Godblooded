@@ -58,9 +58,10 @@ is **"follow system"** (below); everything he used to type is now an order.
 - **An order never makes items from a Draft batch**: only items of Ready batches (Stefan's go,
   via Lead) and redo or upload orders for those items. An order naming a Draft batch: skip it and
   write the question in replies.
-- **Questions go to Art, never to Stefan.** If an order or a batch is unclear or blocked, write
-  the question in replies, skip that item and go on with the next one. Never wait for an answer;
-  Art answers with a new order.
+- **Questions go to Art, never to Stefan, never in the chat** (Stefan loses them there). If an
+  order or a batch is unclear or blocked, write one line in replies:
+  `question | <batch> | <the question, the options, your pick>`, then go on with your pick (the
+  safe default) or skip that item. Never wait for an answer; Art answers with a new order.
 - **"pause track"**: do nothing more for your track until an order says "resume". **"stop"**:
   stop the current run after the image in hand is uploaded.
 
