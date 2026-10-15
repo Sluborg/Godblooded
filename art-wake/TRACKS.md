@@ -9,3 +9,4 @@ If your track is listed below, do "run all" (`art-tasks/README.md` on `main`). I
 | --------- | ---------------- | --------------------------------------------- |
 | heroes    | 2026-10-15 04:15 | Orders: G7 look test, then pause              |
 | buildings | 2026-10-15 04:15 | Orders: remake bld_plot, B19, B20, then pause |
+| ui        | 2026-10-15 05:00 | Orders: U5, U6, U7, then pause                |
