@@ -790,7 +790,11 @@
       "anchorX": 0.5,
       "anchorY": 0.5,
       "license": "own (ChatGPT, Stefan's account)",
-      "source": "U9"
+      "source": "U9",
+      "sliceLeft": 16,
+      "sliceRight": 16,
+      "sliceTop": 17,
+      "sliceBottom": 17
     },
     {
       "id": "ui_button_disabled",
@@ -801,7 +805,11 @@
       "anchorX": 0.5,
       "anchorY": 0.5,
       "license": "own (ChatGPT, Stefan's account)",
-      "source": "U9"
+      "source": "U9",
+      "sliceLeft": 16,
+      "sliceRight": 16,
+      "sliceTop": 17,
+      "sliceBottom": 17
     },
     {
       "id": "ui_button_pressed",
@@ -812,7 +820,11 @@
       "anchorX": 0.5,
       "anchorY": 0.5,
       "license": "own (ChatGPT, Stefan's account)",
-      "source": "U9"
+      "source": "U9",
+      "sliceLeft": 16,
+      "sliceRight": 16,
+      "sliceTop": 17,
+      "sliceBottom": 17
     },
     {
       "id": "ui_card_bronze",
@@ -1230,7 +1242,11 @@
       "anchorX": 0.5,
       "anchorY": 0.5,
       "license": "own (ChatGPT, Stefan's account)",
-      "source": "U9"
+      "source": "U9",
+      "sliceLeft": 26,
+      "sliceRight": 26,
+      "sliceTop": 26,
+      "sliceBottom": 26
     },
     {
       "id": "ui_rider_arc",
