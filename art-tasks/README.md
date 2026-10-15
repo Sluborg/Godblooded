@@ -61,7 +61,7 @@ is **"follow system"** (below); everything he used to type is now an order.
 - **Questions go to Art, never to Stefan, never in the chat** (Stefan loses them there). If an
   order or a batch is unclear or blocked, write one line in replies:
   `question | <batch> | <the question, the options, your pick>`, then go on with your pick (the
-  safe default) or skip that item. Never wait for an answer; Art answers with a new order.
+  safe default; never a Draft-batch item) or skip that item. Never wait for an answer; Art answers with a new order.
 - **"pause track"**: do nothing more for your track until an order says "resume". **"stop"**:
   stop the current run after the image in hand is uploaded.
 

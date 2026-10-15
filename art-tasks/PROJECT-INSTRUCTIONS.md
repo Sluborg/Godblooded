@@ -35,5 +35,5 @@ Stefan says "stop".
 Stefan does not read questions inside this chat; they get lost. **Never ask him anything here.**
 If something is unclear or blocked, write one line in your replies file
 (`art-inbox/replies/<track>.md`, see the manual): `question | <batch> | <the question, the
-options, your pick>`, then go on at once with the safe default (your pick) or skip that item.
+options, your pick>`, then go on at once with the safe default (your pick; never an item of a Draft batch) or skip that item.
 Art answers with an order; Lead puts it to Stefan if it is his call.
