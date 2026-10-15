@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { ASSETS_KEY, type ManifestAsset } from './assets';
 import { nineSliceArgs } from './nineSlice';
-import { UI_STYLE } from './uiStyle';
+import { PANEL_TINT, UI_STYLE } from './uiStyle';
 import { drawWoodPanel } from './woodFrame';
 
 // A framed panel centred on (x, y): the UI kit's `ui_panel` 9-slice when the manifest has it and
@@ -19,7 +19,9 @@ export function makePanel(
     UI_STYLE.preferKitPictures && scene.textures.exists('ui_panel')
       ? nineSliceArgs(rows?.get('ui_panel'))
       : null;
-  if (slice) return scene.add.nineslice(x, y, 'ui_panel', undefined, w, h, ...slice);
+  // The kit's centre is light parchment; the UI text is light, so the panel is tinted dark.
+  if (slice)
+    return scene.add.nineslice(x, y, 'ui_panel', undefined, w, h, ...slice).setTint(PANEL_TINT);
   const g = scene.add.graphics().setPosition(x, y);
   drawWoodPanel(g, w, h);
   g.setAlpha(Math.max(alpha, 0.9));

@@ -4,7 +4,7 @@
 export const UI_STYLE = {
   // false: always draw the wood look in code. true: use the manifest's `ui_panel` and `ui_button*`
   // pictures when present (flip when Art's wood kit replaces the iron one).
-  preferKitPictures: false,
+  preferKitPictures: true,
   // Frame width of a panel in px: at least `border`, 2.2% of its short side, at most `borderMax`.
   border: 6,
   borderMax: 16,
@@ -16,6 +16,10 @@ export const UI_STYLE = {
   centreEdge: 0x2b2014,
   nail: 0xc9a25a,
 } as const;
+
+// Multiplies the neutral kit's light parchment centre down to a dark parchment (the light UI text
+// keeps its contrast); the steel frame goes darker with it.
+export const PANEL_TINT = 0x786a5a;
 
 export interface WoodPalette {
   top: number;

@@ -4,6 +4,9 @@ import { bakeTexture } from './bake';
 import type { Button } from './button';
 import { addIcon } from './icons';
 import { getSfx } from './sfxPlayer';
+import { ASSETS_KEY, type ManifestAsset } from './assets';
+import { nineSliceArgs } from './nineSlice';
+import { UI_STYLE } from './uiStyle';
 
 // The top bar's buttons (Stefan, run 3: "the buttons are so ugly"): a flat dark plate with a gold
 // hairline, an icon, and a hit area larger than the drawing. Matches the title screen's flat
@@ -65,8 +68,28 @@ export function makeHudButton(
   const hh = Math.max(MIN_TOUCH, ph + 24);
   let state: State = 'normal';
   let active = false;
-  const bg = scene.add.image(0, 0, plate(scene, pw, ph, 'normal')).setScale(1 / RENDER_SCALE);
-  const parts: Phaser.GameObjects.GameObject[] = [bg];
+  // The neutral kit's button (a 9-slice, lit when active, sunk when pressed) when the manifest has
+  // it; else the baked flat plate.
+  const rows = scene.registry.get(ASSETS_KEY) as Map<string, ManifestAsset> | undefined;
+  const slice = ['ui_button', 'ui_button_pressed'].map((id) =>
+    scene.textures.exists(id) ? nineSliceArgs(rows?.get(id)) : null,
+  );
+  const kit = UI_STYLE.preferKitPictures && slice.every((k) => k !== null);
+  const art = kit
+    ? scene.add.nineslice(
+        0,
+        0,
+        'ui_button',
+        undefined,
+        pw,
+        ph,
+        ...(slice[0] as NonNullable<(typeof slice)[0]>),
+      )
+    : null;
+  const bg = art
+    ? null
+    : scene.add.image(0, 0, plate(scene, pw, ph, 'normal')).setScale(1 / RENDER_SCALE);
+  const parts: Phaser.GameObjects.GameObject[] = [(art ?? bg) as Phaser.GameObjects.GameObject];
   const label = opts.label
     ? scene.add
         .text(0, 0, opts.label, {
@@ -97,9 +120,15 @@ export function makeHudButton(
   parts.push(hit);
   const container = scene.add.container(x, y, parts);
   const refresh = () => {
-    bg.setTexture(
-      plate(scene, pw, ph, state === 'pressed' ? 'pressed' : active ? 'active' : 'normal'),
-    );
+    if (art) {
+      art.setTexture(state === 'pressed' ? 'ui_button_pressed' : 'ui_button');
+      // Lit: a warm gold wash over the brown while the button is switched on.
+      if (active && state !== 'pressed') art.setTint(0xffd98a);
+      else art.clearTint();
+    } else
+      bg?.setTexture(
+        plate(scene, pw, ph, state === 'pressed' ? 'pressed' : active ? 'active' : 'normal'),
+      );
     container.setScale(state === 'pressed' ? 0.95 : 1);
   };
   hit.on('pointerdown', () => {
