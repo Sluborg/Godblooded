@@ -4,7 +4,7 @@
 export const UI_STYLE = {
   // false: always draw the wood look in code. true: use the manifest's `ui_panel` and `ui_button*`
   // pictures when present (flip when Art's wood kit replaces the iron one).
-  preferKitPictures: false,
+  preferKitPictures: true,
   // Frame width of a panel in px: at least `border`, 2.2% of its short side, at most `borderMax`.
   border: 6,
   borderMax: 16,

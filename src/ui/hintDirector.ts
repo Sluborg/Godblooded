@@ -9,7 +9,7 @@ import { loadSeen, saveSeen } from './hintStore';
 import { firstTill, hintTargetPos, idleGold, monsterSeenBy, upgradeAffordable } from './hintTarget';
 import { getSettings } from './settings';
 import { NudgeWatch } from './nudgeWatch';
-import { makePanel } from './panel';
+import { makePanel, panelInk } from './panel';
 
 const ITEM_SLOT = new Map((GRAYBOX.items ?? []).map((i) => [i.id, i.slot]));
 const CHECK_MS = 500;
@@ -131,14 +131,15 @@ export class HintDirector {
       .text(viewWidth() / 2, 0, lines.join('\n'), {
         fontFamily: 'Georgia, serif',
         fontSize: '26px',
-        color: '#f4ead5',
+        color: panelInk(this.scene).body,
         align: 'center',
         lineSpacing: 4,
       })
       .setOrigin(0.5)
       .setDepth(62);
     const w = Math.max(360, text.width + 64);
-    const h = text.height + 36;
+    // The kit's panel has a 26 px frame: the text needs room inside it.
+    const h = text.height + 68;
     const y = 80 + 14 + h / 2;
     text.setY(y);
     const panel = makePanel(this.scene, viewWidth() / 2, y, w, h, 0.96);
