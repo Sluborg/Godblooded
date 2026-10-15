@@ -241,3 +241,4 @@ U6 | 2026-10-15T08:33:35.424Z | ui | started | O-7 redo ui_sigil_aesir only
 
 G8 | 2026-10-15T08:37:07.826Z | ui | started
 G8 | 2026-10-15T08:43:38.212Z | ui | art_splash | uploaded | https://drive.google.com/file/d/1fWS8gKbs6v4B3Ujj1D21TGlGoOhxXhfa/view | unchanged PNG; QA pass; harpy above crop safe band (framing note)
+U9 | 2026-10-15T08:43:49.919Z | ui | started
