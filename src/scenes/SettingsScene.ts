@@ -1,11 +1,11 @@
 import Phaser from 'phaser';
 import { FILL_W } from '../ui/view';
-import { COLORS, GAME_HEIGHT, GAME_WIDTH } from '../config';
+import { GAME_HEIGHT, GAME_WIDTH } from '../config';
 import { makeButton, type Button } from '../ui/button';
 import { stepVolume } from '../ui/musicPlan';
 import { clearSeen } from '../ui/hintStore';
 import type { HudScene } from './HudScene';
-import { makePanel } from '../ui/panel';
+import { makePanel, panelInk } from '../ui/panel';
 import { PARTY_COLORS, PARTY_COLORS_CB } from '../ui/partyLook';
 import { getSettings, updateSettings, type PaletteId, type Speed } from '../ui/settings';
 import { fitDesignCamera } from '../ui/designCamera';
@@ -42,9 +42,10 @@ export class SettingsScene extends Phaser.Scene {
     this.paletteButtons = [];
     const cx = GAME_WIDTH / 2;
     this.add.rectangle(cx, GAME_HEIGHT / 2, FILL_W, GAME_HEIGHT, 0x0e0b08, 1).setInteractive();
-    makePanel(this, cx, GAME_HEIGHT / 2, 1160, 660);
+    makePanel(this, cx, GAME_HEIGHT / 2, 1240, 700);
+    const ink = panelInk(this);
     this.add
-      .text(cx, 56, 'Settings', { fontFamily: FONT, fontSize: '56px', color: '#f2c14e' })
+      .text(cx, 62, 'Settings', { fontFamily: FONT, fontSize: '52px', color: ink.heading })
       .setOrigin(0.5);
 
     this.row(135, 'Default speed');
@@ -64,7 +65,7 @@ export class SettingsScene extends Phaser.Scene {
     });
 
     this.add
-      .text(680, 220, 'Hero names', { fontFamily: FONT, fontSize: '32px', color: COLORS.text })
+      .text(680, 220, 'Hero names', { fontFamily: FONT, fontSize: '32px', color: ink.body })
       .setOrigin(0, 0.5);
     this.names = makeButton(this, 1030, 220, 190, 80, '', () => {
       updateSettings({ heroNames: !getSettings().heroNames });
@@ -85,7 +86,7 @@ export class SettingsScene extends Phaser.Scene {
     this.row(450, 'Music');
     makeButton(this, 560, 450, 90, 80, '-', () => this.nudgeMusic(-1));
     this.musicText = this.add
-      .text(670, 450, '', { fontFamily: FONT, fontSize: '32px', color: COLORS.text })
+      .text(670, 450, '', { fontFamily: FONT, fontSize: '32px', color: ink.body })
       .setOrigin(0.5);
     makeButton(this, 780, 450, 90, 80, '+', () => this.nudgeMusic(1));
     this.muteButton = makeButton(this, 960, 450, 200, 80, '', () => {
@@ -96,7 +97,7 @@ export class SettingsScene extends Phaser.Scene {
     this.row(535, 'Effects');
     makeButton(this, 560, 535, 90, 80, '-', () => this.nudgeEffects(-1));
     this.effectsText = this.add
-      .text(670, 535, '', { fontFamily: FONT, fontSize: '32px', color: COLORS.text })
+      .text(670, 535, '', { fontFamily: FONT, fontSize: '32px', color: ink.body })
       .setOrigin(0.5);
     makeButton(this, 780, 535, 90, 80, '+', () => this.nudgeEffects(1));
     this.hintsBtn = makeButton(this, 902, 535, 150, 80, '', () => {
@@ -115,7 +116,7 @@ export class SettingsScene extends Phaser.Scene {
       .text(1100, 485, 'Hints will show again', {
         fontFamily: FONT,
         fontSize: '20px',
-        color: COLORS.textMuted,
+        color: ink.muted,
       })
       .setOrigin(0.5)
       .setAlpha(0);
@@ -131,7 +132,7 @@ export class SettingsScene extends Phaser.Scene {
 
   private row(y: number, label: string): void {
     this.add
-      .text(110, y, label, { fontFamily: FONT, fontSize: '32px', color: COLORS.text })
+      .text(110, y, label, { fontFamily: FONT, fontSize: '32px', color: panelInk(this).body })
       .setOrigin(0, 0.5);
   }
 
