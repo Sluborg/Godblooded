@@ -481,7 +481,7 @@ export class HudScene extends Phaser.Scene {
     const rowH = MIN_TOUCH;
     const pitch = rowH + 4; // a gap so neighbouring outlines never overdraw
     // As tall as its rows (and the pager when there is one), so it never blocks empty map.
-    const H = 70 + Math.max(pg.rows.length, 1.5) * pitch + (pg.pages > 1 ? 100 : 30);
+    const H = 70 + Math.max(pg.rows.length, 1.1) * pitch + (pg.pages > 1 ? 100 : 26);
     this.rosterRect = new Phaser.Geom.Rectangle(X, Y, ROSTER_W, H);
     const add = <T extends Phaser.GameObjects.GameObject>(o: T): T => {
       this.rosterObjects.push(o);
