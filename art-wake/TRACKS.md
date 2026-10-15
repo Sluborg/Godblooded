@@ -7,6 +7,5 @@ If your track is listed below, do "run all" (`art-tasks/README.md` on `main`). I
 
 | Track     | Since            | Why                                           |
 | --------- | ---------------- | --------------------------------------------- |
-| heroes    | 2026-10-15 02:40 | Orders: G7 look test, then pause              |
-| buildings | 2026-10-15 02:40 | Orders: remake bld_plot, B19, B20, then pause |
-| ui        | 2026-10-15 02:40 | Orders: G5 title art, U1C logo, then pause    |
+| heroes    | 2026-10-15 04:15 | Orders: G7 look test, then pause              |
+| buildings | 2026-10-15 04:15 | Orders: remake bld_plot, B19, B20, then pause |
