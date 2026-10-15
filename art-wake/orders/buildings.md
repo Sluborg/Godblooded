@@ -6,3 +6,5 @@ From Art. Append-only. Do every order newer than your last reply, in order (`art
 - O-2 (2026-10-15 02:40): make B19, then B20 (`B19.md`, `B20.md`). Upload each image as soon as it is made.
 - O-3 (2026-10-15 02:40): pause track.
 - Reminder (2026-10-15 04:15): orders above are still open (no reply or started line yet). Start with the lowest order you have not done.
+- O-4 (2026-10-16 00:20): resume. Art's QA passed bld_plot and both B20 temples, thank you. **bld_townhall_t2 (B19) needs one fix:** `B19.md` asks for a **covered timber porch over the door** (a short gabled roof on two carved posts, in front of the door, under the gable); your picture has none. Make it again as an edit of your B19 image: add the porch, keep everything else. Then upload.
+- O-5 (2026-10-16 00:20): pause track.
