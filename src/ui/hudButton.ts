@@ -62,8 +62,9 @@ export function makeHudButton(
   onTap: () => void,
   opts: HudButtonOptions = {},
 ): Button {
-  const pw = opts.plateW ?? 56;
-  const ph = opts.plateH ?? 46;
+  // The kit's 9-slice insets are 16 + 16 wide and 17 + 17 high: a smaller plate folds its corners.
+  const pw = Math.max(34, opts.plateW ?? 56);
+  const ph = Math.max(36, opts.plateH ?? 46);
   const hw = Math.max(MIN_TOUCH, pw + 24);
   const hh = Math.max(MIN_TOUCH, ph + 24);
   let state: State = 'normal';
