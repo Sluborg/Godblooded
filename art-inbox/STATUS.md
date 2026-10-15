@@ -246,3 +246,13 @@ U9 | 2026-10-15T08:51:09.702Z | ui | ui_panel, ui_button, ui_button_pressed, ui_
 U1D | 2026-10-15T08:51:23.429Z | ui | started
 
 G7 | 2026-10-15T21:12:50.423Z | heroes | started
+
+G7 | 2026-10-15T21:18:40.725Z | heroes | g7_grim, g7_axeman, g7_oldwarrior, g7_shieldmaiden, g7_lokison, g7_thorson, g7_bold_a, g7_bold_b | uploaded | O-1; eight unchanged built-in PNGs, each 1254x1254; metadata readback verified names/MIME/sizes/parent. Compact floating hands and boots, stern adult faces, references Grim materials + style-test-1 proportions. Nothing ships from G7. QA notes for Art: flat near-magenta keys and framing deviations below are notes under QA.md; Grim cloak/tunic reads longer than other tests; oldwarrior sword/shield presentation mirrored relative to others; dense anchor-derived material detail merits small-size rating. O-2 pause now active.
+- G7--g7_grim.png | bytes 1728672; RGB244,10,242; height84.1%; feet94.8% | https://drive.google.com/file/d/1Efgt5jpDxmHRcPe1zO1KflVkgmMyS80s/view?usp=drivesdk
+- G7--g7_axeman.png | bytes 1741760; RGB242,11,241; height68.6%; feet88.0% | https://drive.google.com/file/d/1rZJE8GSElmTaeRINtHA6tHSa1lIoNCVi/view?usp=drivesdk
+- G7--g7_oldwarrior.png | bytes 1871117; RGB243,12,243; height78.2%; feet90.0% | https://drive.google.com/file/d/1Byy17DZKI6zpBVW9AVS1dIGddoH1abCG/view?usp=drivesdk
+- G7--g7_shieldmaiden.png | bytes 1815467; RGB241,11,241; height79.7%; feet92.0% | https://drive.google.com/file/d/1Tngat-17x5lPayvFRfrkFJpJkf8AjiI2/view?usp=drivesdk
+- G7--g7_lokison.png | bytes 1716843; RGB240,12,240; height82.7%; feet91.0% | https://drive.google.com/file/d/1l3FB3sC1hiu8xCwnipn13z1w3PG5r7Ge/view?usp=drivesdk
+- G7--g7_thorson.png | bytes 1737821; RGB243,11,243; height78.5%; feet89.8% | https://drive.google.com/file/d/1nT_ETIgjp9RjUPJf7xrrHLL28vf-yL-1/view?usp=drivesdk
+- G7--g7_bold_a.png | bytes 1806222; RGB239,12,239; height80.4%; feet92.0% | https://drive.google.com/file/d/1RPeog-8rjCY9KiqXV6xuPKFXW4ANfAEZ/view?usp=drivesdk
+- G7--g7_bold_b.png | bytes 1672459; RGB242,11,241; height78.9%; feet91.7% | https://drive.google.com/file/d/1gb4mGsd5BZelEWEJ85-5IY_XNlMn4kiI/view?usp=drivesdk
