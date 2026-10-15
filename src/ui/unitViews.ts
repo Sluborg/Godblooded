@@ -358,7 +358,7 @@ export class UnitView {
     if (!USE_PARTS || (u.kind !== 'hero' && u.kind !== 'collector' && u.kind !== 'monster'))
       return this.leaveParts();
     if (u.kind === 'hero' && !u.god) return this.leaveParts();
-    const sk = `${u.god}:${u.path}:${u.tier}`;
+    const sk = `${u.type}:${u.god}:${u.path}:${u.tier}`;
     if (sk !== this.stillKey) {
       this.stillKey = sk;
       this.stillOk = artCandidates(u.kind, u.type, u.tier, u.path, u.god).some((c) =>

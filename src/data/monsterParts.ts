@@ -12,11 +12,12 @@ const DEFS = MON_DEFS as unknown as Record<string, PartsDef>;
 // Monster types drawn from the rig. Empty until a rig look is approved for a type.
 export const MONSTER_RIG: ReadonlySet<string> = new Set<string>([]);
 
-function askedFor(): ReadonlySet<string> {
-  if (typeof location === 'undefined') return new Set();
+// The URL does not change during a run: read it once.
+const ASKED: ReadonlySet<string> = (() => {
+  if (typeof location === 'undefined') return new Set<string>();
   const raw = new URLSearchParams(location.search).get('monsterrig');
   return new Set(raw ? raw.split(',').map((s) => s.trim()) : []);
-}
+})();
 
 // The monster types that have a prototype row (for the review page and tests).
 export function monsterPartsTypes(): string[] {
@@ -28,7 +29,7 @@ export function monsterPartsTypes(): string[] {
 export function monsterPartsLook(type: string, tier: number): PartsLook | undefined {
   const def = DEFS[type];
   if (!def) return undefined;
-  if (!MONSTER_RIG.has(type) && !askedFor().has(type)) return undefined;
+  if (!MONSTER_RIG.has(type) && !ASKED.has(type)) return undefined;
   const t = Math.min(3, Math.max(1, Math.round(tier)));
   return { id: `mon_${type}_t${t}`, def: { ...def, kit: `mon_${type}` } };
 }

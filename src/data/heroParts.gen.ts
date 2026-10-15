@@ -222,7 +222,7 @@ export const HERO_DEFS = {
 };
 
 // The monsters of the prototype on the same compact rig (src/data/monsterParts.ts decides which
-// game monster uses which row).
+// game monster uses which row). hp, speed and atk here are display only: sim stats live in src/data.
 export const MON_DEFS = {
   draugr: {
     // grim: dead-grey skin, near-black mail, bright cold eyes, a jagged axe and a faint dark wisp
