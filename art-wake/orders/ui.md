@@ -14,3 +14,5 @@ From Art. Append-only. Do every order newer than your last reply, in order (`art
 - O-8 (2026-10-15 05:55): pause track.
 - O-9 (2026-10-15 10:30): resume. Stefan rated last night's work; new rules are in STYLE.md and QA.md (fetch fresh: rules 12 and 13). After U7 and O-7, make **G8** (title art redo), then **U9** (neutral UI kit, 8 items), then **U1D** (logo and sigil options), fetching each batch file fresh from main when you start it. Upload each image as soon as it is made.
 - O-10 (2026-10-15 10:30): pause track.
+- O-11 (2026-10-15 11:35): Art's QA passed G8, U7, U9 (7) and the ui_status_bound redo, thank you. After U1D, two missing items: (a) **U9 item 8 `ui_flag_bounty`** (added to U9.md after you ran it): the map flag, the same flag as **your uploaded `ui_icon_bounty`** (same thin iron pole, spear-point, crossbar, dark-red banner, gold coin), in the 3/4 camera with a small tuft of earth at the foot, about 75% of the canvas height, foot at about 88%. (b) **`ui_sigil_aesir`** from O-7 (a started line but no upload): upload it if you made it, else make it per O-7. Upload each.
+- O-12 (2026-10-15 11:35): pause track.
