@@ -204,3 +204,5 @@ Released withheld finals unchanged per Stefan and revised QA.md. Drive metadata 
 U8 | 2026-10-14T22:15:34.987Z | ui | started
 
 V2 | 2026-10-15T00:36:44.805Z | monsters | started
+
+V2 | 2026-10-15T00:39:47.026Z | monsters | mon_minotaur_t1_front | uploaded | unchanged built-in PNG 1254x1254, 1521377 bytes; https://drive.google.com/file/d/1fxHBex1j9NWI_wt4az4Rb8qzxRhvmkw2/view?usp=drivesdk ; metadata verified name, MIME, size, folder. QA: two closed hands wrap one continuous haft, lower hand near butt and upper hand separated above; axe raised behind back shoulder, whole silhouette visible, facing right. Second built-in edit corrected oversized framing, final silhouette about73% high, soles84%; near-magenta background is pipeline note. Same bull face, horns, nose ring, fur, bronze cuffs and leather kilt retained. No resize/crop/conversion/recompression. O-1 work complete; replies file not written because saved automation authorizes STATUS.md only.
