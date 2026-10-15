@@ -1,7 +1,7 @@
 # Image QA (every image, before it is uploaded or shown)
 
 Lead's rule (2026-10-14, after Stefan rejected U1B: handles both in front of and behind the sun;
-rules 7-10 from Stefan's reference check the same evening).
+rules 7-10 from Stefan's reference check the same evening; 12-13 from his ratings 2026-10-15).
 Every image passes this check at **full size** before it leaves the chat; Art checks it again on
 arrival before anything reaches Lead or Stefan.
 
@@ -32,6 +32,11 @@ still fails, do not upload it: report the item and the fault instead.
 10. **Clear silhouette:** few, chunky props; if the eye cannot rest, remove things.
 11. **Reads at target size:** shrink it to the size the batch names (units 30-40 px, icons 32-48
     px): the silhouette and the main shapes still read.
+
+12. **Right flavour:** core UI (buttons, panels, common icons) shows no single pantheon (no Norse
+    carving, no dragon heads); a pantheon symbol stands for the whole pantheon, never one god.
+13. **No grain:** no noise, film grain or speckle texture anywhere; every figure and monster reads
+    at a glance. Several figures together never share one pose.
 
 **Not faults** (Art fixes these in the pipeline; never redo or withhold an image for them, just
 note them in the log): a background that is near the key colour instead of exact (it must be
