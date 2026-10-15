@@ -263,3 +263,6 @@ G10 | 2026-10-15T21:22:38.171Z | monsters | started
 B13 | 2026-10-15 21:24 UTC | buildings | started | O-1 remake bld_plot
 
 B19 | 2026-10-15 21:27 UTC | buildings | started | O-2
+
+B13 | 2026-10-15 21:29 UTC | buildings | bld_plot | uploaded | O-1 remake; unchanged built-in PNG; 3 countable logs clear of all four continuous rope sides, four stakes. Near-magenta and width~93% are pipeline notes. https://drive.google.com/file/d/1rtR7XH1Vs6vQBUS7Y0FlRexOTGCfJdKX/view
+B20 | 2026-10-15 21:29 UTC | buildings | started | O-2
