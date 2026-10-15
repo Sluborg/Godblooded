@@ -11,6 +11,10 @@
 // weapon2: double only. fit: re-frame an upload ChatGPT framed too big or off-centre to the spec
 // framing before keying (lib fitFrame); the points stay in pixels of the original upload.
 // It is kept as assets/source/<batch>/points.json, so a re-ship finds the points again.
+// 9-slice pictures (panels, buttons, card frames) need their insets in `<folder>/slices.json`
+// (pixels of the SHIPPED picture, measured after a first ship): { "<id>": [left, right, top,
+// bottom] }. Kept as assets/source/<batch>/slices.json. Replacing a row that had insets without
+// new ones is an error: the game would silently fall back to its code-drawn frame.
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
@@ -46,6 +50,8 @@ const byId = new Map(uploads.map((u) => [u.id, u]));
 const readJson = (p) => (existsSync(p) ? JSON.parse(readFileSync(p, 'utf-8')) : {});
 const keptPointsPath = `assets/source/${batch}/points.json`;
 const points = { ...readJson(keptPointsPath), ...readJson(join(dir, 'points.json')) };
+const keptSlicesPath = `assets/source/${batch}/slices.json`;
+const slices = { ...readJson(keptSlicesPath), ...readJson(join(dir, 'slices.json')) };
 const ship = (id, path, r, strike) => {
   mkdirSync(`assets/source/${batch}`, { recursive: true });
   copyFileSync(path, `assets/source/${batch}/${id}.png`);
@@ -69,6 +75,14 @@ const ship = (id, path, r, strike) => {
     ...(r.weapon2X === undefined ? {} : { weapon2X: r.weapon2X, weapon2Y: r.weapon2Y }),
     license: LICENSE,
     source: batch,
+    ...(slices[id]
+      ? {
+          sliceLeft: slices[id][0],
+          sliceRight: slices[id][1],
+          sliceTop: slices[id][2],
+          sliceBottom: slices[id][3],
+        }
+      : {}),
   });
   const extra = r.pivotX === undefined ? '' : `, shoulder pivot ${r.pivotX},${r.pivotY}`;
   console.log(
@@ -140,6 +154,11 @@ for (const u of uploads)
     throw new Error(`${u.id}: its body is not in this batch`);
 for (const f of written) await compressPng(f);
 const ids = new Set(rows.map((r) => r.id));
+const lostSlices = manifest.assets
+  .filter((a) => ids.has(a.id) && a.sliceLeft !== undefined && !slices[a.id])
+  .map((a) => a.id);
+if (lostSlices.length)
+  throw new Error(`${lostSlices.join(', ')}: 9-slice insets missing, add them to slices.json`);
 manifest.assets = manifest.assets
   .filter((a) => !ids.has(a.id))
   .concat(rows)
@@ -153,5 +172,16 @@ if (Object.keys(points).length) {
     '[$1, $2]',
   );
   writeFileSync(keptPointsPath, json + '\n');
+}
+const shippedSlices = Object.fromEntries(Object.entries(slices).filter(([id]) => ids.has(id)));
+if (Object.keys(shippedSlices).length) {
+  const kept = { ...readJson(keptSlicesPath), ...shippedSlices };
+  writeFileSync(
+    keptSlicesPath,
+    JSON.stringify(kept, null, 2).replace(
+      /\[\s+([\d,\s]+?)\s+\]/g,
+      (m, inner) => `[${inner.replace(/\s+/g, ' ')}]`,
+    ) + '\n',
+  );
 }
 console.log(`manifest: ${rows.length} rows added or replaced, ${manifest.assets.length} total`);
