@@ -37,6 +37,7 @@ log; never a **Draft** (Art is still waiting on Stefan). Art sets a batch to Don
 | U1B   | ui        | `U1B.md` | Logo option B revised: fixed khopesh, Greek spear, calmer sun, drop              | 4      | Void   |
 | G9    | ui        | `G9.md`  | Title art: monsters close on the heroes, subtle hero glow                        | 1      | Ready  |
 | U10   | ui        | `U10.md` | Redo omen caravan (canvas on hoops) and status bound (3 links)                   | 2      | Ready  |
+| U11   | ui        | `U11.md` | HUD icons in the neutral iron kit: menu, pause, speed 1, 2, 4                    | 5      | Ready  |
 | U9    | ui        | `U9.md`  | Neutral UI kit in stone, iron and leather: panel, 3 buttons, 2 icons, card, flag | 8      | Ready  |
 | G8    | ui        | `G8.md`  | Title key art redo: no grain, readable monsters, mixed party                     | 1      | Void   |
 | U1D   | ui        | `U1D.md` | Logo options, one emblem per pantheon (3), pantheon sigil options (3)            | 6      | Ready  |
