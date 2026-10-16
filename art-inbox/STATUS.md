@@ -283,3 +283,5 @@ U10 | 2026-10-16T19:28:21.623Z | ui | ui_omen_caravan | partial delivery | Stefa
 G12 | 2026-10-16T20:04:41.180Z | heroes | started | O-3 sheets 1-8 and 11 only; weapon sheets excluded.
 
 G12 | 2026-10-16T20:09:43.386Z | heroes | partial delivery | kit_emblems https://drive.google.com/file/d/1LKGn4p4EyXXogxFpngdjRvSI99tmExGI/view ; kit_boots https://drive.google.com/file/d/1abHf9ld07nSlS4qB0JJQYTfXbYh8K4bK/view ; kit_heads_a https://drive.google.com/file/d/1uX3rz0OE-70cOG_jSrt5uXN_jli8IgCg/view . Unchanged built-in PNGs. Emblems and boots metadata verified; heads metadata pending. Boots non-square canvas is pipeline note. kit_base failed 3 attempts: common scale not achieved, torso crosses cell boundary slightly, final hand lacks requested leather wrap; withheld. Other sheets in progress.
+
+G11 | 2026-10-16T20:11:50.798Z | monsters | started | O-6 draugr and troll compact rigs; run a3fa5850.
