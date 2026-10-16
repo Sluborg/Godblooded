@@ -103,12 +103,18 @@ export function validateAssets(root = '.', budget = ART_BUDGET) {
     return { errors: ['manifest.json: "assets" must be an array'], warnings, count: 0 };
 
   const seen = new Set();
+  // The game keys kit parts by cell id across all sheets: a reused id would silently override.
+  const cellOwner = new Map();
   for (const row of manifest.assets) {
     const id = row.id ?? '(missing id)';
     for (const f of FIELDS)
       if (typeof row[f] !== 'string' || !row[f]) err(id, `missing string "${f}"`);
     if (seen.has(id)) err(id, 'duplicate id');
     seen.add(id);
+    for (const cell of Object.keys(row.cells ?? {})) {
+      if (cellOwner.has(cell)) err(id, `cell ${cell} already in ${cellOwner.get(cell)}`);
+      else cellOwner.set(cell, id);
+    }
     // Music (docs/systems/audio.md section 6): `file` has no extension, .ogg and .m4a ship.
     if (/^mus_/.test(id)) {
       errors.push(...musicErrors(row, assets));
