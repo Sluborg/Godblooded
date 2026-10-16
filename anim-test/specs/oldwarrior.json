@@ -1,84 +1,39 @@
 {
- "name": "oldwarrior",
- "src": "g7_oldwarrior",
- "look": "loki_t1",
- "kind": "hero",
- "god": "loki",
- "type": "loki",
- "body": 0,
- "neck": [
-  600,
-  450
- ],
- "headPoly": [
-  [
-   440,
-   385
+  "name": "oldwarrior",
+  "src": "g7_oldwarrior",
+  "look": "loki_t1",
+  "kind": "hero",
+  "god": "loki",
+  "type": "loki",
+  "body": 0,
+  "neck": [600, 450],
+  "headPoly": [
+    [440, 385],
+    [480, 250],
+    [540, 180],
+    [630, 150],
+    [720, 170],
+    [760, 250],
+    [752, 335],
+    [742, 435],
+    [680, 475],
+    [600, 455],
+    [520, 445],
+    [460, 425]
   ],
-  [
-   480,
-   250
-  ],
-  [
-   540,
-   180
-  ],
-  [
-   630,
-   150
-  ],
-  [
-   720,
-   170
-  ],
-  [
-   760,
-   250
-  ],
-  [
-   752,
-   335
-  ],
-  [
-   742,
-   435
-  ],
-  [
-   680,
-   475
-  ],
-  [
-   600,
-   455
-  ],
-  [
-   520,
-   445
-  ],
-  [
-   460,
-   425
-  ]
- ],
- "weapon": {
-  "comp": 2,
-  "fist": [
-   305,
-   715
-  ],
-  "rotate": 22
- },
- "offhand": {
-  "kind": "shield",
-  "comp": 1,
-  "centre": [
-   960,
-   640
-  ]
- },
- "boot": {
-  "comp": 3,
-  "flip": false
- },
- "ground": 1124
+  "weapon": {
+    "comp": 2,
+    "fist": [305, 715],
+    "rotate": 22
+  },
+  "offhand": {
+    "kind": "shield",
+    "comp": 1,
+    "centre": [960, 640]
+  },
+  "boot": {
+    "comp": 3,
+    "flip": false
+  },
+  "ground": 1124
 }

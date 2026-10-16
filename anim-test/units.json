@@ -1,38 +1,38 @@
 [
- {
-  "name": "grim",
-  "kit": "grim",
-  "kind": "hero",
-  "god": "odin",
-  "type": "odin"
- },
- {
-  "name": "axeman",
-  "kit": "axeman",
-  "kind": "hero",
-  "god": "thor",
-  "path": "thor-hammerborn",
-  "tier": 2,
-  "type": "thor"
- },
- {
-  "name": "thorson",
-  "kit": "thorson",
-  "kind": "hero",
-  "god": "thor",
-  "type": "thor"
- },
- {
-  "name": "oldwarrior",
-  "kit": "oldwarrior",
-  "kind": "hero",
-  "god": "loki",
-  "type": "loki"
- },
- {
-  "name": "minotaur",
-  "kit": "minotaur",
-  "kind": "monster",
-  "type": "minotaur"
- }
+  {
+    "name": "grim",
+    "kit": "grim",
+    "kind": "hero",
+    "god": "odin",
+    "type": "odin"
+  },
+  {
+    "name": "axeman",
+    "kit": "axeman",
+    "kind": "hero",
+    "god": "thor",
+    "path": "thor-hammerborn",
+    "tier": 2,
+    "type": "thor"
+  },
+  {
+    "name": "thorson",
+    "kit": "thorson",
+    "kind": "hero",
+    "god": "thor",
+    "type": "thor"
+  },
+  {
+    "name": "oldwarrior",
+    "kit": "oldwarrior",
+    "kind": "hero",
+    "god": "loki",
+    "type": "loki"
+  },
+  {
+    "name": "minotaur",
+    "kit": "minotaur",
+    "kind": "monster",
+    "type": "minotaur"
+  }
 ]
