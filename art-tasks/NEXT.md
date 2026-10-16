@@ -8,9 +8,10 @@ log; never a **Draft** (Art is still waiting on Stefan). Art sets a batch to Don
 
 | Batch | Track     | File     | What                                                                             | Images | Status |
 | ----- | --------- | -------- | -------------------------------------------------------------------------------- | ------ | ------ |
-| B13   | buildings | `B13.md` | Map markers: build plot and bounty flag (M2)                                     | 2      | Ready  |
+| B13   | buildings | `B13.md` | Map markers: build plot and bounty flag (M2)                                     | 2      | Done   |
 | B19   | buildings | `B19.md` | Redo town hall t2: same longhouse grown, nothing odd on the back                 | 1      | Ready  |
-| B20   | buildings | `B20.md` | Redo Greek and Egyptian temples t1: real temples with an inside                  | 2      | Ready  |
+| B20   | buildings | `B20.md` | Redo Greek and Egyptian temples t1: real temples with an inside                  | 2      | Done   |
+| B25   | buildings | `B25.md` | Redo Greek temple t1 at the game camera (no straight-on front)                   | 1      | Ready  |
 | B21   | buildings | `B21.md` | Redo smithy t1 (real weapons) and market t2 (calmer, real logs)                  | 2      | Ready  |
 | B22   | buildings | `B22.md` | Redo watch tower t2: believable, built from tower t1                             | 1      | Ready  |
 | B23   | buildings | `B23.md` | Redo troll den t1: no wheel, no smoke, grimmer                                   | 1      | Ready  |
@@ -19,11 +20,13 @@ log; never a **Draft** (Art is still waiting on Stefan). Art sets a batch to Don
 | B11   | buildings | `B11.md` | Ground tiles (5, seamless) and map props (7)                                     | 12     | Ready  |
 | B12   | buildings | `B12.md` | Merchant caravan, ruin, scaffold, 3 grave markers                                | 6      | Ready  |
 | B14   | buildings | `B14.md` | Buildings tier 3: all nine, per Design table                                     | 9      | Ready  |
-| G10   | monsters  | `G10.md` | Monster look test on the compact rig: minotaur, whole and parts                  | 2      | Ready  |
+| G10   | monsters  | `G10.md` | Monster look test on the compact rig: minotaur, whole and parts                  | 2      | Done   |
+| G11   | monsters  | `G11.md` | Compact-rig monsters: draugr and troll, whole and parts                          | 4      | Ready  |
 | V3    | monsters  | `V3.md`  | Minotaur t1: straight axe haft (edit of V2)                                      | 1      | Void   |
 | V2    | monsters  | `V2.md`  | Redo minotaur t1: a real two-handed grip                                         | 1      | Void   |
-| G7    | heroes    | `G7.md`  | Hero look test: 8 compact heroes, different mixes (nothing ships)                | 8      | Ready  |
-| G1    | heroes    | `G1.md`  | Compact hero kit: Grim, 3 more faces, 3 headgear (after G7)                      | 2      | Draft  |
+| G12   | heroes    | `G12.md` | Hero kit from G7, first batch: 11 sheets, 41 parts                               | 11     | Ready  |
+| G7    | heroes    | `G7.md`  | Hero look test: 8 compact heroes, different mixes (nothing ships)                | 8      | Done   |
+| G1    | heroes    | `G1.md`  | Compact hero kit: Grim, 3 more faces, 3 headgear (after G7)                      | 2      | Void   |
 | G2    | heroes    | `G2.md`  | Aesir paths t2 in the one style (after G1)                                       | 8      | Draft  |
 | G3    | heroes    | `G3.md`  | Tax reeve as a parts kit, with portrait (gatherer, guard: G6)                    | 3      | Draft  |
 | G6    | heroes    | `G6.md`  | Town folk kits: gatherer and guard, with portraits (after G3)                    | 4      | Draft  |

@@ -87,6 +87,14 @@ export const KINDS = {
     nominal: { axis: 'width', share: 1, px: 256 },
     anchor: 'centre',
   },
+  // Parts kit sheets (asset-spec "Parts kit"): several parts packed in one picture, the manifest
+  // row carries pxPerUnit and a rectangle with pivots per part id (scripts/art/kit.mjs ships them).
+  kit: {
+    re: /^kit_[a-z0-9]+(_[a-z0-9]+)*$/,
+    dir: 'kits',
+    nominal: { axis: 'width', share: 1, px: 1024 },
+    anchor: 'centre',
+  },
   // Key art (the splash): a full painting, opaque edge to edge.
   art: {
     re: /^art_[a-z0-9]+(_[a-z0-9]+)*$/,

@@ -1,0 +1,54 @@
+{
+  "id": "kit_minotaur",
+  "batch": "G10",
+  "upload": "assets/source/G10/kit_minotaur.png",
+  "pxPerUnit": 8,
+  "parts": [
+    {
+      "cell": "head_minotaur",
+      "box": [10, 140, 440, 570],
+      "pivots": {
+        "neck": [0.5, 0.95],
+        "brow": [0.5, 0.4]
+      },
+      "width": 20
+    },
+    {
+      "cell": "torso_minotaur",
+      "box": [440, 120, 860, 595],
+      "pivots": {
+        "hip": [0.5, 0.5],
+        "neck": [0.5, 0.05],
+        "clasp": [0.4, 0.1]
+      },
+      "width": 26
+    },
+    {
+      "cell": "hand_minotaur",
+      "box": [955, 228, 1198, 494],
+      "pivots": {
+        "wrist": [0.5, 0.5],
+        "grip": [0.79, 0.62]
+      },
+      "width": 8
+    },
+    {
+      "cell": "boot_minotaur",
+      "box": [65, 848, 316, 1096],
+      "pivots": {
+        "ankle": [0.5, 0.25],
+        "ground": [0.5, 0.9]
+      },
+      "width": 9
+    },
+    {
+      "cell": "weapon_doubleaxe",
+      "box": [483, 612, 770, 1210],
+      "pivots": {
+        "grip": [0.5, 0.75]
+      },
+      "height": 32
+    }
+  ],
+  "scale": 1
+}
