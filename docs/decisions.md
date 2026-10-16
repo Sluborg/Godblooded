@@ -469,3 +469,20 @@ as the first monster test; Fafnir's painted kit follows the same rig.
 - **Map bounty flag:** thin iron pole, the same as the bounty icon he rated 5.
 - **Title art harpy:** feathered chest instead of a bare human torso.
 - **Run setup default pantheon:** Aesir on the first run, then the last pantheon chosen.
+
+## 2026-10-16 Round 5: hero look approved, compact minotaur approved (Stefan)
+
+- **G7 hero look test: approved.** Seven of eight rated 5 (Grim, axeman, shieldmaiden, son of
+  Loki, son of Thor, both darker variants). This is the hero look: compact rig, big stern adult
+  head, short body, floating fists and boots, painted grim gear. Build the hero kit (faces,
+  headgear, bodies, cloaks, weapons as separate parts) from this set.
+- **Old warrior (3):** "Hand on shield has a weird angle. With a strap and handle it wouldn't be
+  like that. Is a hand needed when shield?" Rule: a shield replaces the off-hand. The shield is
+  drawn at the off-hand socket, seen from the front, with the grip hidden behind it; no visible
+  hand on a shield.
+- **G10 compact minotaur: approved (5, parts 5).** Ship the parts as the minotaur's look; the
+  other monsters follow on the same rig.
+- **Buildings:** plot remake 5, Egyptian temple t1 4, Greek temple t1 4 (ship all three). Greek
+  temple note: "A bit odd angles." Lead's read: its front is drawn almost straight on while the
+  sides are isometric; a redo matches the town hall t1 camera angle. It ships now and is
+  replaced when the redo passes.
