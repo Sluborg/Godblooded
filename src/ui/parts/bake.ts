@@ -34,7 +34,11 @@ export interface BakedSet {
 }
 
 // Painted pictures are finely detailed: bake their frames denser (pixels per drawing unit) than the
-// code shapes, or they upscale to mush on a phone. About 2 MB per look at 1.5, 5 MB at 2.5.
+// code shapes, or they upscale to mush on a phone. 29 frames in 6 atlas rows: about 2.5 MB per
+// look at 1.5, 6.9 MB at 2.5. With 8 or more painted looks on screen that is 50 MB or more of
+// canvas textures on a phone: measure before the hero kits go live (or lower this on low-memory
+// devices).
+// code shapes, or they upscale to mush on a phone. 29 frames in 6 atlas rows: about 2.5 MB per look at 1.5, 6.9 MB at 2.5. With 8 or more painted looks on screen that is 50 MB or more of canvas textures on a phone: measure before the hero kits go live (or lower this on low-memory devices).
 export const KIT_BAKE = 2.5;
 
 const POSES: PoseName[] = ['idle', 'walk', 'attack', 'ko'];
