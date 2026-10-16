@@ -461,3 +461,11 @@ when we don't even use art like that. Make RimWorld minotaur instead." Asked whi
 means, Stefan picked the compact rig: small body, small floating hands and feet moved in code,
 painted grim gear. No more full-figure painted monster sprites. A compact-rig minotaur is a go
 as the first monster test; Fafnir's painted kit follows the same rig.
+
+## 2026-10-15 Answers on the Questions tab (Stefan)
+
+- **HUD icons:** the wood menu, pause and speed 1/2/4 icons are redone in the neutral iron and
+  stone of the new kit, so the whole HUD matches.
+- **Map bounty flag:** thin iron pole, the same as the bounty icon he rated 5.
+- **Title art harpy:** feathered chest instead of a bare human torso.
+- **Run setup default pantheon:** Aesir on the first run, then the last pantheon chosen.
