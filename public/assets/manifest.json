@@ -100,6 +100,17 @@
       "source": "B9"
     },
     {
+      "id": "bld_plot",
+      "kind": "bld",
+      "tier": null,
+      "view": null,
+      "file": "buildings/bld_plot.png",
+      "anchorX": 0.5,
+      "anchorY": 0.694,
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "B13"
+    },
+    {
       "id": "bld_shrine_t1",
       "kind": "bld",
       "tier": 1,
@@ -172,9 +183,9 @@
       "view": null,
       "file": "buildings/bld_temple_egyptian_t1.png",
       "anchorX": 0.5,
-      "anchorY": 0.778,
+      "anchorY": 0.763,
       "license": "own (ChatGPT, Stefan's account)",
-      "source": "B6"
+      "source": "B20"
     },
     {
       "id": "bld_temple_egyptian_t2",
@@ -194,9 +205,9 @@
       "view": null,
       "file": "buildings/bld_temple_greek_t1.png",
       "anchorX": 0.5,
-      "anchorY": 0.8,
+      "anchorY": 0.763,
       "license": "own (ChatGPT, Stefan's account)",
-      "source": "B6"
+      "source": "B20"
     },
     {
       "id": "bld_temple_greek_t2",

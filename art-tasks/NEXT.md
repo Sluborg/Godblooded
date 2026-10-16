@@ -8,9 +8,10 @@ log; never a **Draft** (Art is still waiting on Stefan). Art sets a batch to Don
 
 | Batch | Track     | File     | What                                                                             | Images | Status |
 | ----- | --------- | -------- | -------------------------------------------------------------------------------- | ------ | ------ |
-| B13   | buildings | `B13.md` | Map markers: build plot and bounty flag (M2)                                     | 2      | Ready  |
+| B13   | buildings | `B13.md` | Map markers: build plot and bounty flag (M2)                                     | 2      | Done   |
 | B19   | buildings | `B19.md` | Redo town hall t2: same longhouse grown, nothing odd on the back                 | 1      | Ready  |
-| B20   | buildings | `B20.md` | Redo Greek and Egyptian temples t1: real temples with an inside                  | 2      | Ready  |
+| B20   | buildings | `B20.md` | Redo Greek and Egyptian temples t1: real temples with an inside                  | 2      | Done   |
+| B25   | buildings | `B25.md` | Redo Greek temple t1 at the game camera (no straight-on front)                   | 1      | Ready  |
 | B21   | buildings | `B21.md` | Redo smithy t1 (real weapons) and market t2 (calmer, real logs)                  | 2      | Ready  |
 | B22   | buildings | `B22.md` | Redo watch tower t2: believable, built from tower t1                             | 1      | Ready  |
 | B23   | buildings | `B23.md` | Redo troll den t1: no wheel, no smoke, grimmer                                   | 1      | Ready  |

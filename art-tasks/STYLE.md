@@ -86,6 +86,8 @@ painted in; busy piles of props; a temple that is only a gate.
   | bolt          | staffs, wands, casting hands | staff or wand in the FRONT hand, head raised at shoulder height; a free casting hand may glow behind. No staff: the focus (orb, casting hand) raised in front at shoulder height |
   | shot          | bows, slings                 | the bow held in front at chest height                                                                                                                                            |
 
+  **A shield replaces the off hand** (Stefan 2026-10-16): draw it at the off-hand place, seen
+  from the front, its grip and strap hidden behind it, **no visible hand** on or beside it.
   Grip like a real fighter (axe and hammer at the lower end of the handle). The whole weapon is
   inside the picture, never cut off.
 
