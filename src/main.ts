@@ -66,6 +66,8 @@ const game = new Phaser.Game({
   type: Phaser.AUTO,
   parent: 'game',
   backgroundColor: COLORS.background,
+  // ?record: keep the canvas buffer so the dev clip recorder can read frames (src/dev/animStage.ts).
+  render: { preserveDrawingBuffer: new URLSearchParams(location.search).has('record') },
   scale: {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,

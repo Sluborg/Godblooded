@@ -1,0 +1,81 @@
+{
+ "name": "axeman",
+ "src": "g7_axeman",
+ "look": "thor-hammerborn_t2",
+ "kind": "hero",
+ "god": "thor",
+ "type": "thor",
+ "body": 0,
+ "neck": [
+  620,
+  470
+ ],
+ "headPoly": [
+  [
+   470,
+   330
+  ],
+  [
+   500,
+   270
+  ],
+  [
+   570,
+   246
+  ],
+  [
+   660,
+   250
+  ],
+  [
+   722,
+   300
+  ],
+  [
+   728,
+   380
+  ],
+  [
+   702,
+   445
+  ],
+  [
+   640,
+   478
+  ],
+  [
+   590,
+   478
+  ],
+  [
+   540,
+   435
+  ],
+  [
+   500,
+   392
+  ]
+ ],
+ "weapon": {
+  "comp": 1,
+  "fist": [
+   878,
+   712
+  ],
+  "rotate": -15.7
+ },
+ "offhand": {
+  "kind": "fist",
+  "comp": 4,
+  "centre": [
+   335,
+   765
+  ]
+ },
+ "boot": {
+  "comp": 2
+ },
+ "ground": 1084,
+ "path": "thor-hammerborn",
+ "tier": 2
+}

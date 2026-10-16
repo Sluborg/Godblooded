@@ -175,7 +175,14 @@ const ang = (v: V2): number => Math.atan2(v.y, v.x);
 // Places every part for a pose, in draw order: cloak, back leg, back arm, torso, head, headgear,
 // off-hand, front leg, front arm with the weapon; a weapon cocked behind the head goes before the
 // head. A worn layer is drawn right after the part it covers with the same placement.
-export function layout(kit: Kit, p: RigPose, raised = false): Draw[] {
+// The head's own motion on the neck: an offset (drawing units) and a tilt (radians) on top of the body's.
+export interface HeadOff {
+  dx: number;
+  dy: number;
+  rot: number;
+}
+
+export function layout(kit: Kit, p: RigPose, raised = false, headOff?: HeadOff): Draw[] {
   const out: Draw[] = [];
   const { parts, layers, build } = kit;
   const floating = kit.mode === 'floating';
@@ -362,11 +369,12 @@ export function layout(kit: Kit, p: RigPose, raised = false): Draw[] {
   frontDraws.push(...fr.draws);
   // A weapon cocked behind the head is drawn before the head.
   if (raised) out.push(...frontDraws);
+  const ho = headOff ?? { dx: 0, dy: 0, rot: 0 };
   push('head', head, {
     pivot: 'neck',
-    x: neck.x,
-    y: neck.y,
-    rot: 0,
+    x: neck.x + ho.dx,
+    y: neck.y + ho.dy,
+    rot: ho.rot,
     sx: hsc,
     sy: hsc,
     inBody: true,
@@ -375,11 +383,13 @@ export function layout(kit: Kit, p: RigPose, raised = false): Draw[] {
   const gear = parts.headgear;
   if (gear && head) {
     const [bx, by] = offsetIn(head, 'neck', 'brow', hsc, hsc);
+    const c = Math.cos(ho.rot);
+    const sn = Math.sin(ho.rot);
     push('headgear', gear, {
       pivot: 'brow',
-      x: neck.x + bx,
-      y: neck.y + by,
-      rot: 0,
+      x: neck.x + ho.dx + bx * c - by * sn,
+      y: neck.y + ho.dy + bx * sn + by * c,
+      rot: ho.rot,
       sx: hsc,
       sy: hsc,
       inBody: true,
