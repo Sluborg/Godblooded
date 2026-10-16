@@ -8,7 +8,8 @@
 //     "parts": [ { "cell": "head_minotaur", "box": [x0, y0, x1, y1],
 //                  "pivots": { "neck": [0.5, 0.95] } } ] }
 // box: the part's region in raw pixels (inclusive); the part is trimmed to its visible pixels
-// inside it, so a loose box is fine. Pivots are fractions of the trimmed part.
+// inside it, so a loose box is fine. Pivots are fractions of the trimmed part. A part may set
+// "width" or "height" in drawing units (Scene's sizes) instead of using the sheet's scale.
 import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 import {
@@ -40,8 +41,13 @@ const cut = spec.parts.map((p) => {
   const region = resample(keyed, { x: x0, y: y0, w, h }, w, h);
   const b = bbox(visibleMask(region, 16), w, h);
   if (!b) throw new Error(`${p.cell}: nothing visible in box ${p.box}`);
-  const ow = Math.max(1, Math.round(b.w * spec.scale));
-  const oh = Math.max(1, Math.round(b.h * spec.scale));
+  const f = p.width
+    ? (p.width * spec.pxPerUnit) / b.w
+    : p.height
+      ? (p.height * spec.pxPerUnit) / b.h
+      : spec.scale;
+  const ow = Math.max(1, Math.round(b.w * f));
+  const oh = Math.max(1, Math.round(b.h * f));
   return { ...p, image: resample(region, b, ow, oh) };
 });
 const width = cut.reduce((s, c) => s + c.image.width + GAP, GAP);
