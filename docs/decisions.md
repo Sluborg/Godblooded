@@ -499,3 +499,9 @@ hurt) rated 3: "Better swings, feet pointing forward, less static head without c
 - **The head moves on its own:** the head is a separate part (bob, small tilt and turn toward the
   target), so the kit draws heads apart from bodies with a collar or neck overlap that hides the
   seam in every pose. No clipping.
+
+## 2026-10-16 Shared head pool for the hero kit (Lead)
+
+Heroes draw their head from one shared pool of painted heads (8 in the first kit) instead of a
+per-god `faces` list; the god decides gear, not the face. Follows the kit decision (faces,
+headgear, bodies and gear combine per hero) and Design's hero-kit.md for G7.
