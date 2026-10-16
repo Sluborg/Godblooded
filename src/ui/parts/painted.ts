@@ -327,7 +327,10 @@ export function layout(kit: Kit, p: RigPose, raised = false): Draw[] {
   // The prototype's f0 is the back foot, f1 the front one.
   drawLeg('hip_b', { x: p.f0.x * PROTO_K, y: p.f0.y * PROTO_K }, true);
   const back = arm('shoulder_b', hand(p.hb), true);
-  out.push(...back.draws);
+  // A shield replaces the off-hand: it is drawn at the off-hand socket and no hand shows (a shield
+  // part carries a `strap` pivot; any other off-hand item is held by a visible hand).
+  const shield = !!parts.offhand?.cell.pivots?.strap;
+  if (!shield) out.push(...back.draws);
   push('torso', torso, {
     pivot: 'hip',
     ...hipAt,
@@ -388,11 +391,12 @@ export function layout(kit: Kit, p: RigPose, raised = false): Draw[] {
   }
   const off = parts.offhand;
   if (off) {
-    const holds = off.cell.pivots?.strap ? 'strap' : 'grip';
+    const holds = shield ? 'strap' : 'grip';
+    const at = shield ? back.end : back.grip;
     push('offhand', off, {
       pivot: holds,
-      x: back.grip.x,
-      y: back.grip.y,
+      x: at.x,
+      y: at.y,
       rot: holds === 'grip' ? p.wb : 0,
       sx: 1,
       sy: 1,
