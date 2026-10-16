@@ -20,6 +20,7 @@ interface KitJson {
   look: string;
   ppu: number;
   mode: 'floating';
+  footSpread?: number;
   parts: Partial<Record<string, PartSpec>>;
 }
 
@@ -60,6 +61,7 @@ export async function registerAnimKit(name: string): Promise<KitJson> {
     layers: {},
     build: BUILDS.standard,
     mode: 'floating',
+    footSpread: json.footSpread,
   };
   RUNTIME_KITS.set(json.look, kit);
   return json;
@@ -73,6 +75,8 @@ export interface StageSpec {
   tier?: number;
   type: string;
   zoom: number;
+  // The camera looks this far above the feet (taller figures look higher).
+  lookUp?: number;
 }
 
 const FPS = 15;
@@ -121,7 +125,7 @@ export class AnimStage {
     cam.stopFollow();
     cam.setBounds(-100000, -100000, 200000, 200000);
     cam.setZoom(this.spec.zoom * (this.game.scale.gameSize.width / 1280));
-    cam.centerOn(at.x + 34, at.y - 14);
+    cam.centerOn(at.x + 34, at.y - (this.spec.lookUp ?? 14));
     this.scene.scene.get('Hud').scene.setVisible(false);
     this.views = new UnitViews(this.scene);
     this.game.loop.sleep();
@@ -207,7 +211,7 @@ export class AnimStage {
     const k = canvas.width / 1280;
     const cam = this.scene.cameras.main;
     const sx = (this.home.x + 34 - cam.worldView.x) * cam.zoom;
-    const sy = (this.home.y - 14 - cam.worldView.y) * cam.zoom;
+    const sy = (this.home.y - (this.spec.lookUp ?? 14) - cam.worldView.y) * cam.zoom;
     const out = document.createElement('canvas');
     out.width = Math.round(box.w * k);
     out.height = Math.round(box.h * k);

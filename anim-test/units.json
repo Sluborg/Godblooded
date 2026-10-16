@@ -33,6 +33,7 @@
     "name": "minotaur",
     "kit": "minotaur",
     "kind": "monster",
-    "type": "minotaur"
+    "type": "minotaur",
+    "lookUp": 34
   }
 ]

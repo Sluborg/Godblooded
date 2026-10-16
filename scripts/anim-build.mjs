@@ -154,6 +154,7 @@ const kit = {
   look: spec.look,
   ppu,
   mode: 'floating',
+  footSpread: spec.footSpread,
   parts: {
     torso: {
       file: 'torso.png',

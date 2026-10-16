@@ -33,7 +33,8 @@ async function record(u, zoom) {
     await browser.newContext({ viewport: { width: 1280, height: 720 } })
   ).newPage();
   page.on('pageerror', (e) => console.log('PAGE ERROR', e.message));
-  const rig = u.kind === 'monster' ? `&monsterrig=${u.type}` : '';
+  // The foe is the compact-rig draugr (hero scale), and a monster subject is on the rig too.
+  const rig = `&monsterrig=draugr${u.kind === 'monster' ? `,${u.type}` : ''}`;
   await page.goto(`http://localhost:${PORT}/?debug&record&scale=2${rig}`);
   await page.waitForFunction(() => window.__game?.scene.isActive('Title'), null, {
     timeout: 40000,

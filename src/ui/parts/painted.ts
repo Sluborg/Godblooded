@@ -34,6 +34,8 @@ export interface Kit {
   layers: PartMap;
   build: Build;
   mode: KitMode;
+  // How far apart the feet stand, as a factor on the rig's stance (1: as the code figure).
+  footSpread?: number;
 }
 
 // Pivot fallbacks (fractions) when a cell does not name one.
@@ -175,6 +177,18 @@ const ang = (v: V2): number => Math.atan2(v.y, v.x);
 // Places every part for a pose, in draw order: cloak, back leg, back arm, torso, head, headgear,
 // off-hand, front leg, front arm with the weapon; a weapon cocked behind the head goes before the
 // head. A worn layer is drawn right after the part it covers with the same placement.
+// A weapon swung down ends with its head on the ground line in front of the fighter, never below
+// it: turns the weapon back (about its grip) until its far end is at ground level (y 0 is the feet).
+export function keepOffGround(weapon: KitPart, gripY: number, rot: number): number {
+  const [, gy] = pivot(weapon, 'grip');
+  const up = gy * (weapon.cell.h / weapon.ppu);
+  if (up <= 0) return rot;
+  const c = Math.min(1, Math.max(-1, (gripY + 0.5) / up));
+  // The far end is at gripY - up * cos(rot): it must stay above the ground, cos(rot) >= c.
+  if (Math.cos(rot) >= c) return rot;
+  return Math.sign(rot || 1) * Math.acos(c);
+}
+
 // The head's own motion on the neck: an offset (drawing units) and a tilt (radians) on top of the body's.
 export interface HeadOff {
   dx: number;
@@ -332,7 +346,8 @@ export function layout(kit: Kit, p: RigPose, raised = false, headOff?: HeadOff):
     far: false,
   });
   // The prototype's f0 is the back foot, f1 the front one.
-  drawLeg('hip_b', { x: p.f0.x * PROTO_K, y: p.f0.y * PROTO_K }, true);
+  const fs = kit.footSpread ?? 1;
+  drawLeg('hip_b', { x: p.f0.x * PROTO_K * fs, y: p.f0.y * PROTO_K }, true);
   const back = arm('shoulder_b', hand(p.hb), true);
   out.push(...back.draws);
   push('torso', torso, {
@@ -344,7 +359,7 @@ export function layout(kit: Kit, p: RigPose, raised = false, headOff?: HeadOff):
     inBody: true,
     far: false,
   });
-  drawLeg('hip_f', { x: p.f1.x * PROTO_K, y: p.f1.y * PROTO_K }, false);
+  drawLeg('hip_f', { x: p.f1.x * PROTO_K * fs, y: p.f1.y * PROTO_K }, false);
   // The front arm, with the weapon in its hand drawn under the hand.
   const fr = arm('shoulder_f', hand(p.hf), false);
   const frontDraws: Draw[] = [];
@@ -357,7 +372,7 @@ export function layout(kit: Kit, p: RigPose, raised = false, headOff?: HeadOff):
       pivot: 'grip',
       x: fr.grip.x,
       y: fr.grip.y,
-      rot: p.wa,
+      rot: keepOffGround(weapon, fr.grip.y, p.wa),
       sx: 1,
       sy: 1,
       inBody: true,

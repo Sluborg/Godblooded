@@ -28,8 +28,19 @@
     [400, 395],
     [350, 350]
   ],
-  "weapon": { "comp": 1, "fist": [950, 750], "rotate": 0 },
-  "offhand": { "kind": "fist", "comp": 2, "centre": [250, 795] },
-  "boot": { "comp": 3 },
-  "ground": 1185
+  "weapon": {
+    "comp": 1,
+    "fist": [950, 750],
+    "rotate": 0
+  },
+  "offhand": {
+    "kind": "fist",
+    "comp": 2,
+    "centre": [250, 795]
+  },
+  "boot": {
+    "comp": 3
+  },
+  "ground": 1185,
+  "footSpread": 0.6
 }
