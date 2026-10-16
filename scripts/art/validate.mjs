@@ -34,6 +34,7 @@ const MAX = {
   ui: [512, 512],
   portraits: [256, 256],
   art: [1280, 1280],
+  kits: [2048, 1024],
 };
 
 // Total bytes of shipped PNGs (offline cache budget, Lead 2026-10-13: 12 MB; lazy-load if M3 passes it).
@@ -53,6 +54,31 @@ export function musicErrors(row, assets) {
   const { loopStartMs: a, loopEndMs: b } = row;
   if (!Number.isInteger(a) || !Number.isInteger(b) || a < 0 || b <= a)
     out.push(`${id}: loopStartMs and loopEndMs must be whole ms, start < end`);
+  return out;
+}
+
+// A kit sheet row: pxPerUnit and one whole-pixel rectangle per part inside the picture, each
+// pivot a fraction 0..1 of its rectangle (asset-spec "Parts kit").
+export function kitErrors(row, img) {
+  const out = [];
+  if (typeof row.pxPerUnit !== 'number' || row.pxPerUnit <= 0) out.push('kit needs pxPerUnit > 0');
+  const cells = row.cells && typeof row.cells === 'object' ? Object.entries(row.cells) : [];
+  if (!cells.length) out.push('kit needs at least one cell');
+  for (const [part, c] of cells) {
+    if (!/^[a-z]+(_[a-z0-9]+)+$/.test(part)) out.push(`cell id ${part} must be <slot>_<name>`);
+    const nums = [c.x, c.y, c.w, c.h];
+    if (!nums.every((v) => Number.isInteger(v)) || c.w < 1 || c.h < 1 || c.x < 0 || c.y < 0)
+      out.push(`cell ${part} needs whole-pixel x, y, w, h`);
+    else if (c.x + c.w > img.width || c.y + c.h > img.height)
+      out.push(`cell ${part} lies outside the ${img.width}x${img.height} picture`);
+    for (const [name, p] of Object.entries(c.pivots ?? {}))
+      if (
+        !Array.isArray(p) ||
+        p.length !== 2 ||
+        p.some((v) => typeof v !== 'number' || v < 0 || v > 1)
+      )
+        out.push(`cell ${part} pivot ${name} must be [fx, fy] in 0..1`);
+  }
   return out;
 }
 
@@ -157,6 +183,10 @@ export function validateAssets(root = '.', budget = ART_BUDGET) {
         err(id, `${img.width}x${img.height}, a ground tile ships 256x256`);
       if (k.kind === 'art' && img.width !== 1280)
         err(id, `${img.width} px wide, key art ships 1280 wide`);
+      continue;
+    }
+    if (k.kind === 'kit') {
+      errors.push(...kitErrors(row, img).map((e) => `${id}: ${e}`));
       continue;
     }
     const r = alphaReport(img);
