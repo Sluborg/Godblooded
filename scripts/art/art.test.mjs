@@ -389,7 +389,7 @@ describe('9-slice fields', () => {
 
 describe('kit sheets', () => {
   // A temp repo with one 100 x 50 kit sheet and the given cells.
-  function errorsFor(extra) {
+  function errorsFor(extra, more) {
     const root = mkdtempSync(join(tmpdir(), 'art-'));
     mkdirSync(join(root, 'public/assets/kits'), { recursive: true });
     writePng(join(root, 'public/assets/kits/kit_test.png'), blank(100, 50));
@@ -407,7 +407,8 @@ describe('kit sheets', () => {
       cells: { head_test: { x: 0, y: 0, w: 40, h: 40, pivots: { neck: [0.5, 0.95] } } },
       ...extra,
     };
-    writeFileSync(join(root, 'public/assets/manifest.json'), JSON.stringify({ assets: [row] }));
+    const rows = [row, ...(more ? [{ ...row, id: 'kit_test2', ...more }] : [])];
+    writeFileSync(join(root, 'public/assets/manifest.json'), JSON.stringify({ assets: rows }));
     return validateAssets(root).errors;
   }
 
@@ -422,6 +423,10 @@ describe('kit sheets', () => {
     );
     const badPivot = { head_test: { x: 0, y: 0, w: 40, h: 40, pivots: { neck: [1.5, 0] } } };
     expect(errorsFor({ cells: badPivot }).join()).toMatch(/pivot neck/);
+  });
+
+  it('rejects a cell id used by two kit sheets', () => {
+    expect(errorsFor({}, {}).join()).toMatch(/kit_test2: cell head_test already in kit_test/);
   });
 });
 
