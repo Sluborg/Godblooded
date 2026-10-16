@@ -20,10 +20,11 @@ log; never a **Draft** (Art is still waiting on Stefan). Art sets a batch to Don
 | B11   | buildings | `B11.md` | Ground tiles (5, seamless) and map props (7)                                     | 12     | Ready  |
 | B12   | buildings | `B12.md` | Merchant caravan, ruin, scaffold, 3 grave markers                                | 6      | Ready  |
 | B14   | buildings | `B14.md` | Buildings tier 3: all nine, per Design table                                     | 9      | Ready  |
-| G10   | monsters  | `G10.md` | Monster look test on the compact rig: minotaur, whole and parts                  | 2      | Ready  |
+| G10   | monsters  | `G10.md` | Monster look test on the compact rig: minotaur, whole and parts                  | 2      | Done   |
+| G11   | monsters  | `G11.md` | Compact-rig monsters: draugr and troll, whole and parts                          | 4      | Ready  |
 | V3    | monsters  | `V3.md`  | Minotaur t1: straight axe haft (edit of V2)                                      | 1      | Void   |
 | V2    | monsters  | `V2.md`  | Redo minotaur t1: a real two-handed grip                                         | 1      | Void   |
-| G7    | heroes    | `G7.md`  | Hero look test: 8 compact heroes, different mixes (nothing ships)                | 8      | Ready  |
+| G7    | heroes    | `G7.md`  | Hero look test: 8 compact heroes, different mixes (nothing ships)                | 8      | Done   |
 | G1    | heroes    | `G1.md`  | Compact hero kit: Grim, 3 more faces, 3 headgear (after G7)                      | 2      | Draft  |
 | G2    | heroes    | `G2.md`  | Aesir paths t2 in the one style (after G1)                                       | 8      | Draft  |
 | G3    | heroes    | `G3.md`  | Tax reeve as a parts kit, with portrait (gatherer, guard: G6)                    | 3      | Draft  |
