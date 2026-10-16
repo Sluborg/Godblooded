@@ -93,13 +93,15 @@ with Scene); Scene combines and animates; Balance and Lead write the item rows. 
 | Off-hand 2 | 65    | shield +3 armour   | blade +5% crit | focus +2 power | shield, blade, focus (level 2) |
 | Off-hand 3 | 140   | shield +4 armour   | blade +8% crit | focus +3 power | shield, blade, focus (level 3) |
 
-- **Ids follow Art's scheme** (`asset-spec.md` "Item ids", `art/item-ids` 900ce8c; Art owns
-  ids). One item per level, a worn piece per kit: icons `ui_item_armour_N`,
+- **Ids follow Art's scheme** (`asset-spec.md` "Item ids", `art/item-ids` 900ce8c; the first
+  kit batch is G12, `art/hero-kit` e07dded; Art owns ids). One item per level, a worn piece per kit: icons `ui_item_armour_N`,
   `ui_item_headgear_N`, `ui_item_offhand_N` (N 1-3) and `ui_item_weapon_<kind>_N` (N 0-3);
-  worn armour as `layer_torso_<kit>_N` and `layer_boot_<kit>_1` (one boot pair per kit; the
-  thigh layers go with the compact rig), `layer_headgear_<helm|hood|hat>_N`,
+  worn armour as `layer_torso_<kit>_N` (a layer over the tunic) and `layer_boot_<kit>_1` (one
+  pair per kit, the size of `boot_base`, drawn in its place; the thigh layers go with the compact
+  rig), `layer_headgear_<helm|hood|hat>_N`,
   `offhand_<shield|blade|focus>_N`, `weapon_<kind>_N`. Base parts are `<slot>_<variant>`
-  (`head_a` to `head_h` for the shared heads, `hand`, `boot`, `cloak_odin`).
+  (`torso_base`, `hand_base`, `boot_base`, `head_a` to `head_h` for the shared heads,
+  `cloak_odin`, `layer_cloak_emblem_raven`). Headgear covers the hair, so no separate hair piece.
 
 ## 3. Builds
 
