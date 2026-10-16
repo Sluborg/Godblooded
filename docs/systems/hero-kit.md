@@ -44,6 +44,15 @@ with Scene); Scene combines and animates; Balance and Lead write the item rows. 
 - **The shield rule:** with a shield in the off-hand, Scene hides the off-hand fist and draws the
   shield at its socket, face on, so no hand shows (Stefan's G7 note on the old warrior). The main
   hand always shows its fist on the weapon grip.
+- **Drawn for animation** (Stefan's mock feedback, `docs/decisions.md` 2026-10-16):
+  - **Heads apart:** every head is its own part with a collar or neck overlap at the base, so it
+    can bob, tilt and turn toward a target with no seam or clipping in any pose. The torso's neck
+    sits under that collar.
+  - **Boots toes forward:** boots point the way the hero walks (toes forward in the front view,
+    toes in the walk direction from the side), never splayed. The base boot is redrawn this way.
+  - **Weapons for big arcs:** each weapon is drawn so the fist grips it low enough for a full
+    swing: overhead chops for axes and hammers, thrusts for spears and daggers, a wind-up and
+    follow-through. Scene owns the motion; Art keeps the grip pivot at the real hand position.
 - **The keeps rule, revised:** the head and the god's cloak, colours and emblem never change
   for a god's child; what the hero wears on head, body and hands is its gear.
 - **The god's read** without fixed headgear: the cloak's shape and the god's two colours (Odin
@@ -84,13 +93,15 @@ with Scene); Scene combines and animates; Balance and Lead write the item rows. 
 | Off-hand 2 | 65    | shield +3 armour   | blade +5% crit | focus +2 power | shield, blade, focus (level 2) |
 | Off-hand 3 | 140   | shield +4 armour   | blade +8% crit | focus +3 power | shield, blade, focus (level 3) |
 
-- **Ids follow Art's scheme** (`asset-spec.md` "Item ids", `art/item-ids` 900ce8c; Art owns
-  ids). One item per level, a worn piece per kit: icons `ui_item_armour_N`,
+- **Ids follow Art's scheme** (`asset-spec.md` "Item ids", `art/item-ids` 900ce8c; the first
+  kit batch is G12, `art/hero-kit` e07dded; Art owns ids). One item per level, a worn piece per kit: icons `ui_item_armour_N`,
   `ui_item_headgear_N`, `ui_item_offhand_N` (N 1-3) and `ui_item_weapon_<kind>_N` (N 0-3);
-  worn armour as `layer_torso_<kit>_N` and `layer_boot_<kit>_1` (one boot pair per kit; the
-  thigh layers go with the compact rig), `layer_headgear_<helm|hood|hat>_N`,
+  worn armour as `layer_torso_<kit>_N` (a layer over the tunic) and `layer_boot_<kit>_1` (one
+  pair per kit, the size of `boot_base`, drawn in its place; the thigh layers go with the compact
+  rig), `layer_headgear_<helm|hood|hat>_N`,
   `offhand_<shield|blade|focus>_N`, `weapon_<kind>_N`. Base parts are `<slot>_<variant>`
-  (`head_a` to `head_h` for the shared heads, `hand`, `boot`, `cloak_odin`).
+  (`torso_base`, `hand_base`, `boot_base`, `head_a` to `head_h` for the shared heads,
+  `cloak_odin`, `layer_cloak_emblem_raven`). Headgear covers the hair, so no separate hair piece.
 
 ## 3. Builds
 
@@ -150,7 +161,7 @@ cloak and trim from today's parts data (`src/data/heroParts.gen.ts`), so the loo
   (code effect over the weapon socket).
 - **Fallbacks:** a missing worn piece shows the base part (or nothing for headgear and
   off-hand), a missing icon a plain slot icon.
-- **Saves:** new slots and `build` change the hero's shape: bump the save version with a
+- **Saves:** new slots, `build` and `head` are saved on the hero, so Sim bumps the save version with a
   migration (old heroes: level 0 headgear and off-hand, the god's first build, a head seeded
   from the hero's id).
 - **Magenta** stays the upload chroma key; Art and Scene pick the technical form for
@@ -160,20 +171,20 @@ cloak and trim from today's parts data (`src/data/heroParts.gen.ts`), so the loo
 
 One facing (right, mirrored), so one picture per piece.
 
-| Group          | First batch | Later  | What                                                                              |
-| -------------- | ----------- | ------ | --------------------------------------------------------------------------------- |
-| Base body      | 3           |        | torso (plain tunic), fist (drawn twice), boot (drawn twice)                       |
-| Heads          | 8           |        | shared pool with hair and beard; the approved G7 heads can seed it                |
-| God cloaks     | 4           |        | one per god, in its colours                                                       |
-| Emblems        | 4           |        | raven, hammer, serpent, falcon feather (clasp size)                               |
-| Path cloaks    |             | 8      | one per path, for tier 2                                                          |
-| Torso (armour) | 3           | 6      | heavy, light, robe: level 1 first; levels 2 and 3 later                           |
-| Boots (armour) | 3           |        | heavy, light, robe (one pair per kit for levels 1-3)                              |
-| Headgear       | 3           | 6      | heavy helm, light hood, robe hat: level 1 first; levels 2 and 3 later             |
-| Weapons        | 10          | 10     | 5 families x levels 0 and 1 first; levels 2 and 3 later                           |
-| Off-hands      | 3           | 6      | shield, second blade, focus: level 1 first; levels 2 and 3 later                  |
-| **Pieces**     | **41**      | **36** | **77 in all**                                                                     |
-| Icons          | 20          | 28     | one per item row: armour 3+6, headgear 3+6, weapons 10+10, off-hand 3+6, potion 1 |
+| Group          | First batch | Later  | What                                                                                             |
+| -------------- | ----------- | ------ | ------------------------------------------------------------------------------------------------ |
+| Base body      | 3           |        | torso (plain tunic, neck under the collar), fist (drawn twice), boot (toes forward, drawn twice) |
+| Heads          | 8           |        | shared pool with hair and beard; the approved G7 heads can seed it                               |
+| God cloaks     | 4           |        | one per god, in its colours                                                                      |
+| Emblems        | 4           |        | raven, hammer, serpent, falcon feather (clasp size)                                              |
+| Path cloaks    |             | 8      | one per path, for tier 2                                                                         |
+| Torso (armour) | 3           | 6      | heavy, light, robe: level 1 first; levels 2 and 3 later                                          |
+| Boots (armour) | 3           |        | heavy, light, robe (one pair per kit for levels 1-3), toes forward; stay in the first batch      |
+| Headgear       | 3           | 6      | heavy helm, light hood, robe hat: level 1 first; levels 2 and 3 later                            |
+| Weapons        | 10          | 10     | 5 families x levels 0 and 1 first; levels 2 and 3 later                                          |
+| Off-hands      | 3           | 6      | shield, second blade, focus: level 1 first; levels 2 and 3 later                                 |
+| **Pieces**     | **41**      | **36** | **77 in all**                                                                                    |
+| Icons          | 20          | 28     | one per item row: armour 3+6, headgear 3+6, weapons 10+10, off-hand 3+6, potion 1                |
 
 - **Down from 46 + 8 portraits:** no upperarm, forearm, thigh or shin (-2 base parts), one boot
   pair per kit instead of trousers and boots (-3), no portraits (-8).
