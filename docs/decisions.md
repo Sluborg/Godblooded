@@ -486,3 +486,16 @@ as the first monster test; Fafnir's painted kit follows the same rig.
   temple note: "A bit odd angles." Lead's read: its front is drawn almost straight on while the
   sides are isometric; a redo matches the town hall t1 camera angle. It ships now and is
   replaced when the redo passes.
+
+## 2026-10-16 Animation mock feedback (Stefan)
+
+Lead's quick animation mock of the G7 heroes and minotaur (cut into parts, idle, walk, attack,
+hurt) rated 3: "Better swings, feet pointing forward, less static head without clipping errors."
+
+- **Swings:** a real arc with wind-up, follow-through and weight (overhead chops for axes and
+  hammers, thrusts for spears and seax), not a small wrist turn.
+- **Feet point forward:** boots are drawn pointing the way the hero walks (toes forward in the
+  front view, toes in the walk direction in the side view), not splayed to the sides.
+- **The head moves on its own:** the head is a separate part (bob, small tilt and turn toward the
+  target), so the kit draws heads apart from bodies with a collar or neck overlap that hides the
+  seam in every pose. No clipping.
