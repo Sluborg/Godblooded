@@ -87,7 +87,12 @@ manifest.assets = manifest.assets
   .filter((a) => a.id !== spec.id)
   .concat(row)
   .sort((a, b) => a.id.localeCompare(b.id));
-writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + '\n');
+// [fx, fy] on one line, as Prettier writes it.
+const json = JSON.stringify(manifest, null, 2).replace(
+  /\[\s+([\d.]+),\s+([\d.]+)\s+\]/g,
+  '[$1, $2]',
+);
+writeFileSync(manifestPath, json + '\n');
 console.log(
   `shipped ${file} ${width}x${height}, ${cut.length} parts: ${Object.keys(cells).join(', ')}`,
 );
