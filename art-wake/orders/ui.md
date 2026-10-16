@@ -18,3 +18,5 @@ From Art. Append-only. Do every order newer than your last reply, in order (`art
 - O-12 (2026-10-15 11:35): pause track.
 - O-13 (2026-10-15 23:22): resume. Stefan rated round 4 (thank you, 14 shipped). Make **U10** (caravan on hoops, 3-link chain), then **G9** (title art edit), then the open O-11 items (`ui_flag_bounty`, `ui_sigil_aesir`) and **U1D** if not done. Fetch each batch fresh from main. Upload each image as soon as it is made. Never ask Stefan in the chat (see PROJECT-INSTRUCTIONS.md).
 - O-14 (2026-10-15 23:22): pause track.
+- O-15 (2026-10-16 21:35): resume. Stefan's answers (re-fetch the files from main): **G9.md** now gives the harpy a **feathered chest**; **U9.md** item 8: the map flag `ui_flag_bounty` matches the shipped **thin iron** `ui_icon_bounty`. Do the open work in this order: U10, G9, `ui_flag_bounty`, `ui_sigil_aesir`, U1D, then the new **U11** (menu, pause, speed icons in the iron kit). Upload each image as soon as it is made.
+- O-16 (2026-10-16 21:35): pause track.
