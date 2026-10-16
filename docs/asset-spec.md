@@ -165,7 +165,7 @@ with the portrait `por_<face>`.
 **Upload (ChatGPT):** a square sheet in a grid of equal cells (the batch gives the order), flat
 magenta between cells, every part inside its own cell, all at the same scale.
 
-**Ship:** keyed to alpha, one packed PNG per sheet and **one manifest row** `kit_<name>`
+**Ship:** `node scripts/art/kit.mjs <spec.json>` (spec kept as `assets/source/<batch>/<id>.kit.json`: the raw upload, `pxPerUnit`, one scale factor, a box and pivots per part) keys to alpha, packs one PNG per sheet into `public/assets/kits/` and writes **one manifest row** `kit_<name>`
 (`kit_grim_test`, later `kit_heads`, `kit_torsos`, ...) with `pxPerUnit` and `cells`:
 `{ "<partId>": { x, y, w, h, pivots: { <name>: [fx, fy] } } }` (px rectangle in the PNG).
 `partId` is `<slot>_<variant>` (`head_hooded`, `torso_grim`, `forearm_grim`, `weapon_staff`,

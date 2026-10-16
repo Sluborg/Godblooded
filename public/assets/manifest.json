@@ -581,6 +581,70 @@
       "source": "B2"
     },
     {
+      "id": "kit_minotaur",
+      "kind": "kit",
+      "tier": null,
+      "view": null,
+      "file": "kits/kit_minotaur.png",
+      "anchorX": 0.5,
+      "anchorY": 0.5,
+      "pxPerUnit": 8,
+      "cells": {
+        "head_minotaur": {
+          "x": 4,
+          "y": 4,
+          "w": 160,
+          "h": 155,
+          "pivots": {
+            "neck": [0.5, 0.95],
+            "brow": [0.5, 0.4]
+          }
+        },
+        "torso_minotaur": {
+          "x": 168,
+          "y": 4,
+          "w": 208,
+          "h": 230,
+          "pivots": {
+            "hip": [0.5, 0.5],
+            "neck": [0.5, 0.05],
+            "clasp": [0.4, 0.1]
+          }
+        },
+        "hand_minotaur": {
+          "x": 380,
+          "y": 4,
+          "w": 64,
+          "h": 70,
+          "pivots": {
+            "wrist": [0.5, 0.5],
+            "grip": [0.79, 0.62]
+          }
+        },
+        "boot_minotaur": {
+          "x": 448,
+          "y": 4,
+          "w": 72,
+          "h": 71,
+          "pivots": {
+            "ankle": [0.5, 0.25],
+            "ground": [0.5, 0.9]
+          }
+        },
+        "weapon_doubleaxe": {
+          "x": 524,
+          "y": 4,
+          "w": 119,
+          "h": 256,
+          "pivots": {
+            "grip": [0.5, 0.75]
+          }
+        }
+      },
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "G10"
+    },
+    {
       "id": "mon_draugr_t1_front",
       "kind": "mon",
       "tier": 1,
