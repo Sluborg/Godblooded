@@ -20,7 +20,7 @@ buildings in `buildings.md`); this sheet is the common frame.
   footprints; draw order by ground y, so nobody hides under a roof.
 - **Who builds what:** everything that moves (heroes, monsters, summons, Fafnir) is an **animated
   parts rig** (Scene); heroes are combined from a **painted parts kit** by Art (Stefan,
-  2026-10-14; `hero-kit.md`: seven sockets, four builds, worn items); everything that stands (buildings, lairs) is an **Art
+  2026-10-14; `hero-kit.md`: compact rig approved 2026-10-16, seven sockets, four builds, worn items); everything that stands (buildings, lairs) is an **Art
   sheet** with Scene adding ground patches, decals, smoke and glow; flags, rings, labels, numbers, FX and
   the ground are **Scene code**; UI frames are **Art** 9-slices.
 - **Lairs must never read as buildings** (Stefan could not tell them apart): four cues together,
@@ -48,12 +48,12 @@ buildings in `buildings.md`); this sheet is the common frame.
 
 ## 2. Heroes
 
-| Item        | Reads as                                 | Parts                                                                                                                                                                                          | Palette                                   | Owner                         |
-| ----------- | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- | ----------------------------- |
-| Hero        | a child of its god, its path at a glance | a build (lean, broad, tall, short) plus seven sockets: head, headgear, cloak, torso, legs, weapon, off-hand (`hero-kit.md`)                                                                    | per god (`paths-and-skills.md` section 6) | Art (kit pieces), Scene (rig) |
-| Party ring  | which party this hero belongs to         | a thin ellipse under the feet in the party colour, 70% opacity                                                                                                                                 | the 8 party colours                       | Scene                         |
-| Name label  | who it is, on request                    | off by default; tapping a hero shows the labels of everyone in its party while its Party panel is open: name in 14 px on a small parchment tab above the head, the party colour as a thin edge | parchment fill, dark brown text           | Scene                         |
-| Knocked out | down, not dead                           | the KO pose, greyed 30%, a small swirl                                                                                                                                                         |                                           | Scene                         |
+| Item        | Reads as                                 | Parts                                                                                                                                                                                                                                                                      | Palette                                   | Owner                         |
+| ----------- | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- | ----------------------------- |
+| Hero        | a child of its god, its path at a glance | a build (lean, broad, tall, short) on the compact rig (big head, short body, floating fists and boots) with seven sockets: head, headgear, cloak, torso, boots, weapon, off-hand; a shield replaces the off-hand fist; portraits are the hero drawn larger (`hero-kit.md`) | per god (`paths-and-skills.md` section 6) | Art (kit pieces), Scene (rig) |
+| Party ring  | which party this hero belongs to         | a thin ellipse under the feet in the party colour, 70% opacity                                                                                                                                                                                                             | the 8 party colours                       | Scene                         |
+| Name label  | who it is, on request                    | off by default; tapping a hero shows the labels of everyone in its party while its Party panel is open: name in 14 px on a small parchment tab above the head, the party colour as a thin edge                                                                             | parchment fill, dark brown text           | Scene                         |
+| Knocked out | down, not dead                           | the KO pose, greyed 30%, a small swirl                                                                                                                                                                                                                                     |                                           | Scene                         |
 
 ## 3. Monsters (the M2 five and Fafnir)
 
