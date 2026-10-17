@@ -13,3 +13,5 @@ O-5 | 2026-10-16T20:42:38.456Z | done | kit_cloaks redone with plain unmarked br
 O-6 | 2026-10-16T20:42:38.456Z | done | heroes production paused pending resume order; webhook remains enabled.
 
 follow system | 2026-10-17T13:33:46.272Z | watching | Existing heroes wake enabled, no polling schedule. O-6 pause remains active; no newer numbered order. Acknowledged 2026-10-17 correction: kit_base excluded; previously delivered kit_cloaks redo remains the current delivery. No new production.
+
+follow system | 2026-10-17T13:44:05.958Z | watching | Existing heroes wake enabled without polling; reading O-7 and O-8; proceeding with G13 sheets 1 and 5, then cloaks redo.
