@@ -117,16 +117,16 @@ of the weapon; a fight blends into the weapon's guard stance.
 Weapon stances (Stefan, 2026-10-17). Weapon side = the hand holding it; the lead foot is the one
 in front in the guard stance.
 
-| Weapon | Hands | Carry (walking) | Guard | Lead foot | Attacks |
-| --- | --- | --- | --- | --- | --- |
-| Axe | 1 | at the side | cocked back | off-hand foot | chop from the back |
-| Sword | 1 | at the side | back | off-hand foot | slash from the back; thrust from the back |
-| Stabbing sword | 1 | at the side | front, point out | weapon foot | thrust |
-| Dagger | 1 | at the side | front, low | weapon foot | quick stab, short slash |
-| Wand | 1 | at the side | front | weapon foot | point, flick cast |
-| Greataxe, greatsword | 2 | on the shoulder | back | off-hand foot | chop or slash from the back, top hand slides down the haft in the wind-up |
-| Spear | 2 | on the shoulder | back, at the hip | off-hand foot | long thrust, front hand slides along the shaft |
-| Staff | 2 | on the shoulder | back or front | off-hand foot | swing from the back; thrust or cast from the front |
+| Weapon               | Hands | Carry (walking) | Guard            | Lead foot     | Attacks                                                                   |
+| -------------------- | ----- | --------------- | ---------------- | ------------- | ------------------------------------------------------------------------- |
+| Axe                  | 1     | at the side     | cocked back      | off-hand foot | chop from the back                                                        |
+| Sword                | 1     | at the side     | back             | off-hand foot | slash from the back; thrust from the back                                 |
+| Stabbing sword       | 1     | at the side     | front, point out | weapon foot   | thrust                                                                    |
+| Dagger               | 1     | at the side     | front, low       | weapon foot   | quick stab, short slash                                                   |
+| Wand                 | 1     | at the side     | front            | weapon foot   | point, flick cast                                                         |
+| Greataxe, greatsword | 2     | on the shoulder | back             | off-hand foot | chop or slash from the back, top hand slides down the haft in the wind-up |
+| Spear                | 2     | on the shoulder | back, at the hip | off-hand foot | long thrust, front hand slides along the shaft                            |
+| Staff                | 2     | on the shoulder | back or front    | off-hand foot | swing from the back; thrust or cast from the front                        |
 
 Two-handed carry: the weapon hand is raised to the shoulder, elbow bent and low, fist just in
 front of the same shoulder; the blade or haft lies on top of the shoulder pointing back, nearly
