@@ -1,0 +1,45 @@
+{
+  "id": "kit_rig_test",
+  "batch": "G13",
+  "upload": "assets/source/G13/kit_rig_test.png",
+  "pxPerUnit": 16,
+  "scale": 1,
+  "parts": [
+    {
+      "cell": "torso_mail",
+      "box": [75, 125, 425, 575],
+      "pivots": {
+        "neck": [0.5, 0.05],
+        "shoulder_r": [0.08, 0.14],
+        "shoulder_l": [0.92, 0.14],
+        "hip_r": [0.47, 0.88],
+        "hip_l": [0.53, 0.88]
+      },
+      "width": 16
+    },
+    {
+      "cell": "upperarm_mail",
+      "box": [565, 135, 735, 575],
+      "pivots": { "shoulder": [0.5, 0.08], "elbow": [0.5, 0.92] },
+      "height": 5
+    },
+    {
+      "cell": "forearm_bracer",
+      "box": [965, 160, 1145, 570],
+      "pivots": { "elbow": [0.5, 0.08], "wrist": [0.5, 0.92] },
+      "height": 4
+    },
+    {
+      "cell": "thigh_wool",
+      "box": [70, 765, 395, 1115],
+      "pivots": { "hip": [0.5, 0.08], "knee": [0.5, 0.92] },
+      "height": 3
+    },
+    {
+      "cell": "shin_wrap",
+      "box": [515, 785, 785, 1110],
+      "pivots": { "knee": [0.5, 0.08], "ankle": [0.5, 0.92] },
+      "height": 3
+    }
+  ]
+}
