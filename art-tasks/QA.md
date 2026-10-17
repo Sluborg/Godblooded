@@ -15,7 +15,8 @@ still fails, do not upload it: report the item and the fault instead.
 2. **One light:** light from the top left everywhere; highlights and shading agree.
 3. **Anatomy and grip:** the right number of fingers, arms and legs; hands really hold what they
    hold (fingers around the grip, the grip inside the fist); weapons have one blade or head,
-   joined to their handle; joints bend the right way.
+   joined to their handle; joints bend the right way. A shield has no visible hand: it takes the
+   off hand's place, front view, grip hidden.
 4. **Nothing melted or doubled:** no fused shapes, no duplicated parts, no half-drawn pieces, no
    stray marks, no letters or text unless asked.
 5. **Matches `STYLE.md`:** the anchors' painted pixel look, thin dark-brown outline, earthy

@@ -486,3 +486,42 @@ as the first monster test; Fafnir's painted kit follows the same rig.
   temple note: "A bit odd angles." Lead's read: its front is drawn almost straight on while the
   sides are isometric; a redo matches the town hall t1 camera angle. It ships now and is
   replaced when the redo passes.
+
+## 2026-10-16 Animation mock feedback (Stefan)
+
+Lead's quick animation mock of the G7 heroes and minotaur (cut into parts, idle, walk, attack,
+hurt) rated 3: "Better swings, feet pointing forward, less static head without clipping errors."
+
+- **Swings:** a real arc with wind-up, follow-through and weight (overhead chops for axes and
+  hammers, thrusts for spears and seax), not a small wrist turn.
+- **Feet point forward:** boots are drawn pointing the way the hero walks (toes forward in the
+  front view, toes in the walk direction in the side view), not splayed to the sides.
+- **The head moves on its own:** the head is a separate part (bob, small tilt and turn toward the
+  target), so the kit draws heads apart from bodies with a collar or neck overlap that hides the
+  seam in every pose. No clipping.
+
+## 2026-10-16 Shared head pool for the hero kit (Lead)
+
+Heroes draw their head from one shared pool of painted heads (8 in the first kit) instead of a
+per-god `faces` list; the god decides gear, not the face. Follows the kit decision (faces,
+headgear, bodies and gear combine per hero) and Design's hero-kit.md for G7.
+
+## 2026-10-17 Heroes on a real skeleton; order rig-ready test art (Stefan)
+
+After the Hero Lab and the skeleton test page (https://claude.ai/artifact/WfDNPmW9tbv1ttpoqoChJu),
+heroes move on a real skeleton: bones (hips, torso, head; shoulder, upper arm, forearm, hand;
+hip, thigh, shin, foot), two-bone IK so knees and elbows bend themselves, and keyframed clips
+(walk with feet passing each other on one line, attack with wind-up, hit pause and follow-through,
+hit). The weapon is fixed in the hand and the wrist bends at most about 40 degrees. Turning left
+mirrors the whole figure for now (true right-handedness needs far-side hand art).
+
+Go for G13 as a skeleton test only: the base rig sheet (sleeveless torso, upper arm, forearm,
+thigh, shin) and the hands sheet (loose fists L/R, two-layer grip hands: back of hand behind the
+haft, thumb in front), with proportions from the test page. Armour layer sheets and weapons wait
+for the test verdict. Spine stays an option (decided after the test).
+
+## 2026-10-17 Heroes mirror when facing left (Stefan)
+
+Turning left mirrors the whole figure (scaleX -1): the weapon and shield swap hands visually.
+No far-side hand art, no layer swap. G13 still ships both left and right hands, so true
+handedness stays a cheap switch later if the test shows a need.

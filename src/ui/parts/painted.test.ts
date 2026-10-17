@@ -91,6 +91,30 @@ describe('keepOffGround', () => {
   });
 });
 
+describe('layout: a shield replaces the off-hand', () => {
+  const floating = (extra: Partial<Kit['parts']> = {}): Kit => ({
+    ...kit({
+      hand: part(20, 20, { wrist: [0.5, 0.5], grip: [0.5, 0.5] }),
+      boot: part(24, 16),
+      ...extra,
+    }),
+    mode: 'floating',
+  });
+  const farHands = (k: Kit) =>
+    layout(k, pose).filter((d) => d.far && d.part === k.parts.hand).length;
+  it('draws the far hand when the off-hand is a held item', () => {
+    expect(farHands(floating({ offhand: part(28, 40, { grip: [0.5, 0.5] }) }))).toBe(1);
+  });
+  it('draws no far hand behind a shield, and puts the shield on the off-hand socket', () => {
+    const k = floating({ offhand: part(40, 44, { strap: [0.5, 0.5] }) });
+    expect(farHands(k)).toBe(0);
+    const d = layout(k, pose).find((x) => x.part === k.parts.offhand);
+    expect(d?.pivot).toBe('strap');
+    expect(d?.x).toBeCloseTo(pose.hb.x * (44 / 32));
+    expect(d?.y).toBeCloseTo(pose.hb.y * (44 / 32));
+  });
+});
+
 describe('layout', () => {
   it('needs the body parts and skips the optional ones', () => {
     expect(kitComplete(kit().parts, 'bent')).toBe(true);

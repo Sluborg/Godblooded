@@ -387,6 +387,49 @@ describe('9-slice fields', () => {
   });
 });
 
+describe('kit sheets', () => {
+  // A temp repo with one 100 x 50 kit sheet and the given cells.
+  function errorsFor(extra, more) {
+    const root = mkdtempSync(join(tmpdir(), 'art-'));
+    mkdirSync(join(root, 'public/assets/kits'), { recursive: true });
+    writePng(join(root, 'public/assets/kits/kit_test.png'), blank(100, 50));
+    const row = {
+      id: 'kit_test',
+      kind: 'kit',
+      tier: null,
+      view: null,
+      file: 'kits/kit_test.png',
+      anchorX: 0.5,
+      anchorY: 0.5,
+      license: 'own',
+      source: 'T1',
+      pxPerUnit: 8,
+      cells: { head_test: { x: 0, y: 0, w: 40, h: 40, pivots: { neck: [0.5, 0.95] } } },
+      ...extra,
+    };
+    const rows = [row, ...(more ? [{ ...row, id: 'kit_test2', ...more }] : [])];
+    writeFileSync(join(root, 'public/assets/manifest.json'), JSON.stringify({ assets: rows }));
+    return validateAssets(root).errors;
+  }
+
+  it('accepts whole-pixel cells inside the picture with pivots in 0..1', () => {
+    expect(errorsFor({})).toEqual([]);
+  });
+
+  it('rejects a missing pxPerUnit, cells outside the picture and bad pivots', () => {
+    expect(errorsFor({ pxPerUnit: 0 }).join()).toMatch(/pxPerUnit/);
+    expect(errorsFor({ cells: { head_test: { x: 80, y: 0, w: 40, h: 40 } } }).join()).toMatch(
+      /outside/,
+    );
+    const badPivot = { head_test: { x: 0, y: 0, w: 40, h: 40, pivots: { neck: [1.5, 0] } } };
+    expect(errorsFor({ cells: badPivot }).join()).toMatch(/pivot neck/);
+  });
+
+  it('rejects a cell id used by two kit sheets', () => {
+    expect(errorsFor({}, {}).join()).toMatch(/kit_test2: cell head_test already in kit_test/);
+  });
+});
+
 describe('opaque pictures (key art, ground tiles)', () => {
   // A full painting: no key colour anywhere.
   function painting(w, h) {
