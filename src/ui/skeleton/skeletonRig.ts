@@ -28,6 +28,9 @@ export interface RigSpec {
   // The fist on the weapon arm and on the free arm.
   fistW: string;
   fistO: string;
+  // The weapon hand as a grip pair (hand_grip_r_back, hand_grip_r_front): the back half is drawn
+  // behind the weapon and the front half over it, instead of the plain `fistW`.
+  gripW?: readonly [back: string, front: string];
   weapon?: string;
   // Sizes of the pieces against their sheets (1 = as painted); defaults: RIG_SCALE.
   scale?: Partial<RigScale>;
@@ -330,36 +333,60 @@ export class SkeletonRig extends Phaser.GameObjects.Container {
       const neck = { x: (nx - midx) * (to.cell.w / to.ppu), y: (ny - hy) * (to.cell.h / to.ppu) };
       this.put('head', s.head, this.upper, 'neck', neck.x, neck.y, P.nod, false, this.sc.head);
     }
-    // The weapon sits in the weapon hand and follows the forearm within the wrist limit; the fist
-    // is drawn over it.
+    // The weapon sits in the weapon hand and follows the forearm within the wrist limit. A grip pair
+    // wraps the haft (back half, weapon, front half) with the hand's grip point on the haft; the
+    // plain fist is drawn over the weapon.
     const wr = weaponAngle(P.axe, wl.a2, P.wrist);
     const wRef = this.ref(s.weapon);
-    // The hand slides up the haft toward the head (slide 1: grip at HEAD_GRIP of the picture).
+    const gB = this.ref(s.gripW?.[0]);
+    const gF = this.ref(s.gripW?.[1]);
+    const pair = s.gripW && gB && gF ? s.gripW : null;
+    // Where the haft goes: the end of the wrist, or the grip point of the hand picture (the hand
+    // lies along the forearm, wrist to grip).
+    let hold = { x: wl.end.x, y: wl.end.y };
+    if (pair && gB) {
+      const [wx, wy] = pv(gB, 'wrist');
+      const [gx, gy] = pv(gB, 'grip');
+      const dx = ((gx - wx) * gB.cell.w * this.sc.fist) / gB.ppu;
+      const dy = ((gy - wy) * gB.cell.h * this.sc.fist) / gB.ppu;
+      const c = Math.cos(wl.a2);
+      const sn = Math.sin(wl.a2);
+      hold = { x: wl.end.x + dx * c - dy * sn, y: wl.end.y + dx * sn + dy * c };
+    }
     const wGrip = wRef ? pv(wRef, 'grip') : [0.5, 0.75];
+    // The hand slides up the haft toward the head (slide 1: grip at HEAD_GRIP of the picture).
     const origin: [number, number] = [wGrip[0], lerp(wGrip[1], HEAD_GRIP, P.slide)];
     this.put(
       'weapon',
       s.weapon,
       this.upper,
       'grip',
-      wl.end.x,
-      wl.end.y,
+      hold.x,
+      hold.y,
       wr,
       false,
       this.sc.weapon,
       origin,
     );
-    this.put(
-      'fistW',
-      s.fistW,
-      this.upper,
-      'wrist',
-      wl.end.x,
-      wl.end.y,
-      wl.a2 - Math.PI / 2,
-      false,
-      this.sc.fist,
-    );
+    if (pair) {
+      for (const [key, id] of [
+        ['gripB', pair[0]],
+        ['gripF', pair[1]],
+      ] as const)
+        this.put(key, id, this.upper, 'wrist', wl.end.x, wl.end.y, wl.a2, false, this.sc.fist);
+    } else {
+      this.put(
+        'fistW',
+        s.fistW,
+        this.upper,
+        'wrist',
+        wl.end.x,
+        wl.end.y,
+        wl.a2 - Math.PI / 2,
+        false,
+        this.sc.fist,
+      );
+    }
     this.put(
       'fistO',
       s.fistO,
@@ -373,9 +400,8 @@ export class SkeletonRig extends Phaser.GameObjects.Container {
     );
     // Order: free arm and its fist behind the torso, then torso, then head and the weapon arm
     // (the weapon cocked behind the head is drawn before it).
-    const tail = P.behind
-      ? ['weapon', 'wu', 'wf', 'fistW', 'head']
-      : ['head', 'wu', 'wf', 'weapon', 'fistW'];
+    const hands = pair ? ['gripB', 'weapon', 'gripF'] : ['weapon', 'fistW'];
+    const tail = P.behind ? ['wu', 'wf', ...hands, 'head'] : ['head', 'wu', 'wf', ...hands];
     this.order(this.upper, ['ou', 'of', 'fistO', 'torso', ...tail]);
     return P;
   }
