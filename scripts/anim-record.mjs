@@ -75,7 +75,7 @@ async function record(u, zoom) {
   const dir = `${OUT}/frames-${u.name}-z${zoom}`;
   rmSync(dir, { recursive: true, force: true });
   mkdirSync(dir, { recursive: true });
-  const box = { w: 400, h: 300 };
+  const box = u.box ?? { w: 400, h: 300 };
   for (let i = 0; i < total; i++) {
     const url = await page.evaluate((box) => {
       window.__stage.step();

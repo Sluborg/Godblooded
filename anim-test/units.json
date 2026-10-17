@@ -34,6 +34,10 @@
     "kit": "minotaur",
     "kind": "monster",
     "type": "minotaur",
-    "lookUp": 58
+    "lookUp": 62,
+    "box": {
+      "w": 400,
+      "h": 440
+    }
   }
 ]
