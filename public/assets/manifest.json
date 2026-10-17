@@ -249,9 +249,9 @@
       "view": null,
       "file": "buildings/bld_townhall_t1.png",
       "anchorX": 0.5,
-      "anchorY": 0.783,
+      "anchorY": 0.762,
       "license": "own (ChatGPT, Stefan's account)",
-      "source": "B7"
+      "source": "B26"
     },
     {
       "id": "bld_townhall_t2",
@@ -611,18 +611,8 @@
             "clasp": [0.4, 0.1]
           }
         },
-        "boot_minotaur": {
-          "x": 392,
-          "y": 8,
-          "w": 72,
-          "h": 71,
-          "pivots": {
-            "ankle": [0.5, 0.25],
-            "ground": [0.5, 0.9]
-          }
-        },
         "weapon_doubleaxe": {
-          "x": 472,
+          "x": 392,
           "y": 8,
           "w": 119,
           "h": 256,
@@ -633,6 +623,40 @@
       },
       "license": "own (ChatGPT, Stefan's account)",
       "source": "G10"
+    },
+    {
+      "id": "kit_monster_feet",
+      "kind": "kit",
+      "tier": null,
+      "view": null,
+      "file": "kits/kit_monster_feet.png",
+      "anchorX": 0.5,
+      "anchorY": 0.5,
+      "pxPerUnit": 8,
+      "cells": {
+        "boot_troll": {
+          "x": 8,
+          "y": 8,
+          "w": 104,
+          "h": 75,
+          "pivots": {
+            "ankle": [0.4, 0.15],
+            "ground": [0.5, 0.95]
+          }
+        },
+        "boot_minotaur": {
+          "x": 120,
+          "y": 8,
+          "w": 80,
+          "h": 66,
+          "pivots": {
+            "ankle": [0.4, 0.15],
+            "ground": [0.5, 0.95]
+          }
+        }
+      },
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "G11"
     },
     {
       "id": "kit_monster_grips",

@@ -13,7 +13,7 @@ only references. Copy their palette, thin dark-brown outline, top-left light and
 | Picture (`public/assets/...` unless noted)  | Copy from it                                           |
 | ------------------------------------------- | ------------------------------------------------------ |
 | `art-tasks/ref/hero-anchor-grim.png`        | **every hero**: proportions, face, materials, detail   |
-| `buildings/bld_townhall_t1.png` (5)         | the style itself: timber, turf, carving, banners       |
+| `buildings/bld_townhall_t1.png` (5)         | the style itself, built for real (rule 14, 2026-10-17) |
 | `buildings/bld_lair_labyrinth_t1.png` (5)   | grim ruin: stone, braziers, bones, mood                |
 | `units/mon_jackal-man_t1_front.png` (5)     | a figure: anatomy, grip on the weapon, trim            |
 | `buildings/bld_tower_t1.png` (4)            | believable timber construction, ladder, stone base     |
