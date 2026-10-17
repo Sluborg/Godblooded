@@ -505,3 +505,17 @@ hurt) rated 3: "Better swings, feet pointing forward, less static head without c
 Heroes draw their head from one shared pool of painted heads (8 in the first kit) instead of a
 per-god `faces` list; the god decides gear, not the face. Follows the kit decision (faces,
 headgear, bodies and gear combine per hero) and Design's hero-kit.md for G7.
+
+## 2026-10-17 Heroes on a real skeleton; order rig-ready test art (Stefan)
+
+After the Hero Lab and the skeleton test page (https://claude.ai/artifact/WfDNPmW9tbv1ttpoqoChJu),
+heroes move on a real skeleton: bones (hips, torso, head; shoulder, upper arm, forearm, hand;
+hip, thigh, shin, foot), two-bone IK so knees and elbows bend themselves, and keyframed clips
+(walk with feet passing each other on one line, attack with wind-up, hit pause and follow-through,
+hit). The weapon is fixed in the hand and the wrist bends at most about 40 degrees. Turning left
+mirrors the whole figure for now (true right-handedness needs far-side hand art).
+
+Go for G13 as a skeleton test only: the base rig sheet (sleeveless torso, upper arm, forearm,
+thigh, shin) and the hands sheet (loose fists L/R, two-layer grip hands: back of hand behind the
+haft, thumb in front), with proportions from the test page. Armour layer sheets and weapons wait
+for the test verdict. Spine stays an option (decided after the test).
