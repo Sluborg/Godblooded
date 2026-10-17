@@ -45,7 +45,8 @@ proportions, colours), changing only what the batch asks.
 Stefan is out of the loop: **Art gives the orders, the chats answer Art.** Stefan's only phrase
 is **"follow system"** (below); everything he used to type is now an order.
 
-- **Orders:** `art-wake/orders/<track>.md` on branch `art-wake` (fetch raw with `?t=`). Art
+- **Orders:** `art-wake/orders/<track>.md` on branch `art-wake`, raw URL
+  `https://raw.githubusercontent.com/Sluborg/Godblooded/art-wake/art-wake/orders/<track>.md?t=<current time>`. Art
   appends numbered orders, `O-<n>: <what to do>` (for example "upload your withheld finals of
   ui_item_axe", "remake bld_plot per B13.md item 1", "run all", "pause track", "stop"). A push of an
   order also rings the bell.
@@ -62,8 +63,15 @@ is **"follow system"** (below); everything he used to type is now an order.
   order or a batch is unclear or blocked, write one line in replies:
   `question | <batch> | <the question, the options, your pick>`, then go on with your pick (the
   safe default; never a Draft-batch item) or skip that item. Never wait for an answer; Art answers with a new order.
-- **"pause track"**: do nothing more for your track until an order says "resume". **"stop"**:
-  stop the current run after the image in hand is uploaded.
+- **Fetch the orders file fresh every time**, with `?t=<current time>` on the raw URL (a cached
+  copy hides the newest orders). Then read **from the bottom up**: the **last** order is the one
+  that counts now.
+- **Order format (from 2026-10-17):** one order carries the whole run, ending in **"then pause"**
+  (for example "O-15: resume; make X, then Y, then pause"). An order whose number is higher than
+  any pause before it **always resumes the track**, even if older orders said "pause track".
+  Older files still hold separate "pause track" orders: they only count if no newer order follows.
+- **"pause track"** / **"then pause"**: do nothing more for your track until a **newer** order.
+  **"stop"**: stop the current run after the image in hand is uploaded.
 
 **"follow system"** (Stefan's one phrase): forget earlier state and batches; fetch fresh
 `README.md`, `STYLE.md`, `QA.md`, `NEXT.md` and your orders file; set up or confirm the wake-up

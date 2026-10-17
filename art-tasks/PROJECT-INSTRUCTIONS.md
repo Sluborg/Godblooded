@@ -18,6 +18,10 @@ you.
    `https://raw.githubusercontent.com/Sluborg/Godblooded/main/art-tasks/README.md` (the
    manual) and the files it names (`STYLE.md`, `QA.md`, `NEXT.md`, your batch file, your orders
    file).
+   Your orders file lives on the `art-wake` branch:
+   `https://raw.githubusercontent.com/Sluborg/Godblooded/art-wake/art-wake/orders/<track>.md?t=<current time>`.
+   **Never skip the `?t=`**, and read it from the bottom: the **newest** order counts, and any
+   order after a "pause" resumes the track.
 2. Follow the manual exactly. If the manual and this file disagree, the manual wins. If you
    cannot fetch it, say so and stop.
 3. **Never work from memory:** make only the items of a batch marked **Ready** in
