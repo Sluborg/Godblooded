@@ -525,3 +525,12 @@ for the test verdict. Spine stays an option (decided after the test).
 Turning left mirrors the whole figure (scaleX -1): the weapon and shield swap hands visually.
 No far-side hand art, no layer swap. G13 still ships both left and right hands, so true
 handedness stays a cheap switch later if the test shows a need.
+
+## 2026-10-17 Buildings: real construction, symmetry, no slop (Stefan)
+
+Building art must show plausible, period-true construction: every beam, post and brace carries
+load and meets a joint or the foundation; no decorative straps, floating beams or clutter.
+Symmetric types (gables, temple fronts, gates, doorways, paired ornaments) are mirror-symmetric
+about the entrance axis, and repeated elements share width and spacing. One focal ornament per
+facade. Door about 1.3x hero height. Art QA fails pictures that break this. Redos of shipped
+buildings are Stefan's call after Art lists the offenders.
