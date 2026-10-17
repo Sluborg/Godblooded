@@ -326,3 +326,5 @@ G11 | 2026-10-17T16:28:05.867Z | monsters | kit_monster_grips | uploaded | O-10 
 G11 | 2026-10-17T16:54:52.067Z | monsters | started | O-12 kit_monster_feet only; run47499a80.
 
 B26 | 2026-10-17T16:55:03.363Z | buildings | started | O-8 rule-14 town hall tier1 rebuild only
+
+B26 | 2026-10-17T16:57:17.627Z | buildings | bld_townhall_t1 | uploaded | O-8; unchanged built-in PNG1254x1254,2242692bytes; Drive name/MIME/size/parent verified. QA including14: continuous turf, plain wooden ridge, no roof metal, evenly repeated unbraced stave bays, posts on low stone footing, no loose beams; centered double door, paired plain red banners and mirrored equal dragon heads on crossed gable bargeboards. Human-scale doorway designed2.3m for1.75m hero; no person drawn. Pipeline notes: flat near-magenta RGB242,11,240; width95.6% vs85% nominal. No resize/crop/conversion/recompression. Art/Stefan approval required before anchor designation. https://drive.google.com/file/d/1ZLqYzwtTLkmJvyLkzPppd04FVwemQaJG/view?usp=drivesdk
