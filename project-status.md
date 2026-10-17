@@ -14,25 +14,22 @@ Lead keeps this to one screen. Read it first when resuming.
 - PRs are scarce (Codex auto-review spends Stefan's quota). Workers push `<role>/<topic>`
   branches; Review reviews by message; Integrator lands batch PRs. See `CLAUDE.md` "Git".
 
-## Now (2026-10-16 night)
+## Now (2026-10-17 evening)
 
-- **On main (batch 312, 72732f6):** everything from 2026-10-15 plus the neutral UI kit switched
-  on (steel-framed leather buttons, parchment panels with dark ink), the 14 round-4 UI pieces and
-  omens, the neutral map flag, and the compact rig for monsters (off; minotaur row ready).
-- **Bot:** human-hints 65-75%, runs 12-15 min. Sim, Balance queues empty.
-- **Look:** heroes AND monsters use the compact parts rig (small body, floating hands and feet,
-  painted grim gear). No more full-figure painted monsters (decision 2026-10-15 round 4).
-- **Art:** G7 (8 compact heroes) and G10 (compact minotaur) are on the rating page. Open orders:
-  U10 caravan + chain, G9 title art, map flag, Valknut, U1D logos (ui chat); B19 porch fix
-  (buildings chat). ChatGPT usage limits stall the chats overnight.
-- **Questions for Stefan:** all sessions and ChatGPT chats route them to Lead; Lead posts them on
-  the Questions tab of https://claude.ai/artifact/TNTyhAUSmpoduTGwjZDryP (collaboration.md).
-- **Music:** pantheon theme prompts given to Stefan in chat (Norse redone grim, no strings).
+- **Heroes on a real skeleton** (decisions 1453417): G13 body parts, hands, grips, G12 heads and
+  boots shipped as test parts (#332, #333). Scene's port runs on the dev AnimStage (branch
+  scene/skeleton, v5); live `?rig=skeleton` flag on the axeman waits for Stefan's verdict.
+  Spec: game-design.md "Hero animation: skeleton and weapon stances". Mirroring when facing left.
+- **Live in game:** minotaur on the compact rig with new grip hands and side-view hooves; new
+  town hall t1 (style anchor, rated 5).
+- **Art rules:** buildings need real construction, symmetry, perspective-true beams (QA 14).
+  Grip hands: back of hand for the weapon hand, fingers side for far hands. Orders end in
+  "then pause"; chats fetch orders fresh (?t=).
+- **Questions for Stefan:** every go or decision goes on the Questions tab of Art Verdicts
+  (https://claude.ai/artifact/TNTyhAUSmpoduTGwjZDryP); Lead opens it as a card only when something
+  waits.
 
 ## Waiting on Stefan
 
-- Rate round 5 on the Art Verdicts page: G7 heroes, G10 minotaur, plot, Greek and Egyptian temple.
-- Answer 4 questions on the Questions tab (HUD wood icons, default pantheon, harpy, flag pole).
-- Type "follow system" in the buildings chat (and any chat that stalled).
-- Playtest on main: new neutral UI; on a phone check hold-to-buy, pinch zoom, 20:9 fill.
-- Fog of war (built, off): decide after the playtest.
+- Art Verdicts: skeleton clip v5 (2x and game size), G14 back capes, town hall t2, smithy t1+t2.
+- Questions tab: Greek temples, park or fix by hand (both failed repeatedly in the chat).
