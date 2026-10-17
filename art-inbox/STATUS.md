@@ -350,3 +350,5 @@ B27 | 2026-10-17T17:53:48.855Z | buildings | bld_smithy_t2 | partial delivery | 
 B27 | 2026-10-17T17:56:51.540Z | buildings | bld_temple_greek_t2 | QA failed; not uploaded | O-10 three attempts:6 columns present,but central spacing stays wider and doorway not precisely on column/pediment axis; rule14.2 failure. Both smithies delivered separately; batch NOT fully uploaded.
 
 B25 | 2026-10-17T17:56:51.540Z | buildings | started | O-10 Egyptian footprint/camera rebuild
+
+B25 | 2026-10-17T18:00:18.591Z | buildings | bld_temple_greek_t1 | QA failed; not uploaded | O-10 three new attempts using Egyptian footprint/camera. First mixed perspective; second retained battered Egyptian walls; third fixed vertical walls/relief but front lintel/pediment still flatter than steps and widened central column spacing/door-axis mismatch persists. QA7/14.2 fail. No B25 upload, shipped image unchanged. O-10 requested production pause now active.
