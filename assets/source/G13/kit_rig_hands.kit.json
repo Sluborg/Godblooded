@@ -1,0 +1,43 @@
+{
+  "id": "kit_rig_hands",
+  "batch": "G13",
+  "upload": "assets/source/G13/kit_rig_hands.png",
+  "pxPerUnit": 16,
+  "scale": 1,
+  "parts": [
+    {
+      "cell": "hand_fist_r",
+      "box": [170, 100, 530, 520],
+      "pivots": {
+        "wrist": [0.5, 0.1]
+      },
+      "width": 7
+    },
+    {
+      "cell": "hand_grip_far_r",
+      "box": [650, 80, 1070, 590],
+      "split": "grip",
+      "pivots": {
+        "wrist": [0.1, 0.5]
+      },
+      "height": 9
+    },
+    {
+      "cell": "hand_fist_l",
+      "box": [150, 690, 510, 1110],
+      "pivots": {
+        "wrist": [0.5, 0.1]
+      },
+      "width": 7
+    },
+    {
+      "cell": "hand_grip_far_l",
+      "box": [730, 660, 1150, 1180],
+      "split": "grip",
+      "pivots": {
+        "wrist": [0.9, 0.5]
+      },
+      "height": 9
+    }
+  ]
+}

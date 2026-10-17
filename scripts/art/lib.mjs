@@ -669,3 +669,64 @@ export function checkRaw(raw, id) {
   }
   return problems;
 }
+
+// A grip fist drawn whole around a flat green haft (G13 / G11 "green haft" sheets): splits it into
+// the layer behind the weapon (back: everything left or right of the haft column) and the layer
+// over it (front: what was painted over the green), and a closed fist for an empty hand (the
+// green between the fingers filled dark). The green and the haft stub above and below the fist
+// become transparent. Returns the three images, same size as `img`, and the haft column.
+export function splitGrip(img) {
+  const { width: W, height: H, data } = img;
+  const isGreen = (i) =>
+    data[i + 3] > 0 &&
+    data[i + 1] > 100 &&
+    data[i + 1] > data[i] + 30 &&
+    data[i + 1] > data[i + 2] + 30;
+  // The haft is the run of columns that are green over a good part of the height (stray green
+  // fringe pixels elsewhere do not count); its painted outline, a few pixels either side, goes too.
+  const count = new Array(W).fill(0);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (isGreen((y * W + x) * 4)) count[x]++;
+  const peak = Math.max(...count);
+  if (peak === 0) throw new Error('splitGrip: no green haft found');
+  const gx0 = count.findIndex((c) => c >= peak * 0.3);
+  const gx1 = W - 1 - [...count].reverse().findIndex((c) => c >= peak * 0.3);
+  const pad = Math.max(2, Math.round((gx1 - gx0 + 1) * 0.15));
+  // Near the haft, its dark anti-aliased fringe counts as haft too.
+  const isFringe = (i, x) =>
+    x >= gx0 - pad &&
+    x <= gx1 + pad &&
+    data[i + 3] > 0 &&
+    data[i + 1] > 40 &&
+    data[i + 1] > data[i] + 25 &&
+    data[i + 1] > data[i + 2] + 25;
+  const back = blank(W, H);
+  const front = blank(W, H);
+  const closed = blank(W, H);
+  const dark = [40, 28, 22, 255];
+  for (let y = 0; y < H; y++) {
+    let left = false;
+    let right = false;
+    for (let x = 0; x < W; x++) {
+      const i = (y * W + x) * 4;
+      if (data[i + 3] === 0 || isGreen(i) || isFringe(i, x)) continue;
+      if (x < gx0 - pad) left = true;
+      if (x > gx1 + pad) right = true;
+    }
+    for (let x = 0; x < W; x++) {
+      const i = (y * W + x) * 4;
+      if (data[i + 3] === 0) continue;
+      // The haft stub and its outline go wherever the hand does not close round it on both sides.
+      if (!(left && right) && x >= gx0 - pad && x <= gx1 + pad) continue;
+      if (isGreen(i) || isFringe(i, x)) {
+        if (left && right) for (let k = 0; k < 4; k++) closed.data[i + k] = dark[k];
+        continue;
+      }
+      const layer = x >= gx0 && x <= gx1 ? front : back;
+      for (let k = 0; k < 4; k++) {
+        layer.data[i + k] = data[i + k];
+        closed.data[i + k] = data[i + k];
+      }
+    }
+  }
+  return { back, front, closed, haft: { x0: gx0, x1: gx1 } };
+}
