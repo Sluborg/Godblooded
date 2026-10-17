@@ -1,0 +1,21 @@
+{
+  "id": "kit_monster_feet",
+  "batch": "G11",
+  "upload": "assets/source/G11/kit_monster_feet.png",
+  "pxPerUnit": 8,
+  "scale": 1,
+  "parts": [
+    {
+      "cell": "boot_troll",
+      "box": [50, 180, 640, 620],
+      "pivots": { "ankle": [0.4, 0.15], "ground": [0.5, 0.95] },
+      "width": 13
+    },
+    {
+      "cell": "boot_minotaur",
+      "box": [690, 180, 1210, 620],
+      "pivots": { "ankle": [0.4, 0.15], "ground": [0.5, 0.95] },
+      "width": 10
+    }
+  ]
+}

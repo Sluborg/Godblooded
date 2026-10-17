@@ -9,7 +9,7 @@ log; never a **Draft** (Art is still waiting on Stefan). Art sets a batch to Don
 | Batch | Track     | File     | What                                                                             | Images | Status |
 | ----- | --------- | -------- | -------------------------------------------------------------------------------- | ------ | ------ |
 | B13   | buildings | `B13.md` | Map markers: build plot and bounty flag (M2)                                     | 2      | Done   |
-| B26   | buildings | `B26.md` | Redo town hall t1 under rule 14 (becomes the style anchor)                       | 1      | Ready  |
+| B26   | buildings | `B26.md` | Redo town hall t1 under rule 14 (becomes the style anchor)                       | 1      | Done   |
 | B19   | buildings | `B19.md` | Redo town hall t2: same longhouse grown, nothing odd on the back                 | 1      | Ready  |
 | B20   | buildings | `B20.md` | Redo Greek and Egyptian temples t1: real temples with an inside                  | 2      | Done   |
 | B25   | buildings | `B25.md` | Redo Greek temple t1 at the game camera (no straight-on front)                   | 1      | Ready  |

@@ -24,15 +24,6 @@
       "width": 26
     },
     {
-      "cell": "boot_minotaur",
-      "box": [65, 848, 316, 1096],
-      "pivots": {
-        "ankle": [0.5, 0.25],
-        "ground": [0.5, 0.9]
-      },
-      "width": 9
-    },
-    {
       "cell": "weapon_doubleaxe",
       "box": [483, 612, 770, 1210],
       "pivots": {
