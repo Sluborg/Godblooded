@@ -570,7 +570,8 @@ ships; the minotaur's live rig swaps to the new hoof.
 ## 2026-10-17 Rig test parts may ship before rating (Lead, under the G13 go)
 
 kit_rig_test and kit_rig_hands are test parts: they ship to public/ (manifest rows, nothing in
-src uses them by default) so the skeleton can be built and judged in place. Stefan rates them as
+src uses them by default) so the skeleton can be built and judged in place. The same holds
+for the G12 heads (kit_heads_a/b, rated 5) and boots (kit_boots) shipped as skeleton test parts. Stefan rates them as
 a whole on the skeleton test, not as single pictures. Scene ports the skeleton to the dev
 AnimStage first, then behind a ?rig=skeleton flag on one hero. Spec: game-design.md "Hero
 animation: skeleton and weapon stances".
