@@ -1,0 +1,23 @@
+{
+  "id": "kit_rig_grips",
+  "batch": "G13",
+  "upload": "assets/source/G13/kit_rig_grips.png",
+  "pxPerUnit": 16,
+  "scale": 1,
+  "parts": [
+    {
+      "cell": "hand_grip_r",
+      "box": [60, 230, 620, 990],
+      "split": "grip",
+      "pivots": { "wrist": [0.1, 0.5] },
+      "height": 9
+    },
+    {
+      "cell": "hand_grip_l",
+      "box": [634, 230, 1200, 990],
+      "split": "grip",
+      "pivots": { "wrist": [0.9, 0.5] },
+      "height": 9
+    }
+  ]
+}

@@ -716,7 +716,13 @@ export function splitGrip(img) {
       const i = (y * W + x) * 4;
       if (data[i + 3] === 0) continue;
       // The haft stub and its outline go wherever the hand does not close round it on both sides.
-      if (!(left && right) && x >= gx0 - pad && x <= gx1 + pad) continue;
+      // Rows with no hand beside the haft are the bare stub: all of it goes. Where the hand is
+      // on one side only (a thumb over the haft), its paint stays and only the haft's dark
+      // outline goes.
+      const outline = data[i] + data[i + 1] + data[i + 2] < 180;
+      const inHaft = x >= gx0 - pad && x <= gx1 + pad;
+      if (inHaft && !left && !right) continue;
+      if (inHaft && !(left && right) && (outline || isGreen(i) || isFringe(i, x))) continue;
       if (isGreen(i) || isFringe(i, x)) {
         if (left && right) for (let k = 0; k < 4; k++) closed.data[i + k] = dark[k];
         continue;
