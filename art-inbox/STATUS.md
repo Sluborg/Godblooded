@@ -301,3 +301,5 @@ B19 | 2026-10-17T09:01:06.845Z | buildings | started | O-4 porch edit; source Dr
 B19 | 2026-10-17T09:02:55.310Z | buildings | bld_townhall_t2 | uploaded | O-4 porch fix: unchanged built-in edit, 1254x1254 PNG, 2266246 bytes; replaced existing Drive file in place, metadata verified. Projecting shingled gabled roof on two carved front posts, door recessed behind; main roof, dragons, stone base, banners and camera preserved. Full-size QA pass; near-magenta and approx90% width are pipeline notes. https://drive.google.com/file/d/1KjUGx6LdioocoSQGHcspR5EjstpmIGm4/view
 
 B25 | 2026-10-17T09:02:55.310Z | buildings | started | O-6 Greek temple camera correction
+
+B25 | 2026-10-17T09:05:55.843Z | buildings | bld_temple_greek_t1 | QA failed; not uploaded | O-6: three built-in image attempts, all retain inconsistent front-facade projection: lintel/pediment base flatter than front step/platform edges. QA rule7 and B25 camera requirement not met. No failed PNG sent to Drive and no uploaded claim. B19 porch correction already delivered. Production paused by O-7.
