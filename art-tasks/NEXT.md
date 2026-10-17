@@ -21,7 +21,7 @@ log; never a **Draft** (Art is still waiting on Stefan). Art sets a batch to Don
 | B12   | buildings | `B12.md` | Merchant caravan, ruin, scaffold, 3 grave markers                                | 6      | Ready  |
 | B14   | buildings | `B14.md` | Buildings tier 3: all nine, per Design table                                     | 9      | Ready  |
 | G10   | monsters  | `G10.md` | Monster look test on the compact rig: minotaur, whole and parts                  | 2      | Done   |
-| G11   | monsters  | `G11.md` | Compact-rig monsters: draugr and troll, whole and parts                          | 4      | Ready  |
+| G11   | monsters  | `G11.md` | Compact-rig monsters: draugr and troll, whole and parts                          | 5      | Ready  |
 | V3    | monsters  | `V3.md`  | Minotaur t1: straight axe haft (edit of V2)                                      | 1      | Void   |
 | V2    | monsters  | `V2.md`  | Redo minotaur t1: a real two-handed grip                                         | 1      | Void   |
 | G13   | heroes    | `G13.md` | Skeleton test: mail body pieces + R/L hands (sheets 1 and 5)                     | 2      | Ready  |
