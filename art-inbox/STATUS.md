@@ -342,3 +342,5 @@ B19 | 2026-10-17T17:48:17.013Z | buildings | started | O-10 rule14 rebuild from 
 B19 | 2026-10-17T17:50:50.239Z | buildings | bld_townhall_t2 | uploaded | O-10 rule14 rebuild from shipped B26: uniform turf roof, no roof metal, repeated unbraced bays, mirrored dragon pair; fully shingled projecting porch with jointed depth beams, paired banners centered on carved posts. Second attempt corrected framing only. Unchanged PNG metadata verified. https://drive.google.com/file/d/1KjUGx6LdioocoSQGHcspR5EjstpmIGm4/view
 
 B27 | 2026-10-17T17:50:50.239Z | buildings | started | O-10 rule14 smithies and Greek temple t2
+
+B27 | 2026-10-17T17:52:13.196Z | buildings | bld_smithy_t1 | partial delivery | O-10 unchanged PNG; name/MIME/size/folder verified. Rule14 QA: all-shingle rafter roof,no roof metal,joined braces,regular posts; one chimney,hearth,anvil,three usable weapons. Near-magenta/oversized framing note. https://drive.google.com/file/d/19sq0VJzEJ-m_XYirj0qZ7HTHMiFY73Ec/view?usp=drivesdk
