@@ -23,3 +23,9 @@ O-8 | 2026-10-17T13:53:14.215Z | done | heroes production paused until resume; e
 O-9 | 2026-10-17T16:20:08.407Z | done with skipped item | kit_rig_hands uploaded unchanged: https://drive.google.com/file/d/1inXL5QPabkE0Fj6tr4HCZMqSoc1Bf7sR/view?usp=drivesdk . kit_rig_test failed3 attempts: closed vest shoulders not achieved, torso cell clearance insufficient; withheld. Cloaks preserved as approved; no redo. G13 incomplete.
 question | G13 | Body still has sleeve-like shoulder edges after3 tries; my pick: preserve delivered hands and request isolated torso edit before another whole-sheet run. Stefan notes cloak must leave arms free: hang behind shoulders with no torso-to-upperarm cloth bridge; shoulder trim should move independently if attached to upperarm.
 O-10 | 2026-10-17T16:20:08.407Z | done | production paused pending resume; no automation changes.
+
+O-11 | 2026-10-17T17:40:32.131Z | done | kit_rig_test best saved attempt uploaded unchanged as test-grade; five complete separated parts. Shoulder edges/small cell margins and per-piece scale faults recorded in STATUS.md. https://drive.google.com/file/d/1PQVOjb54rbQTwE2-KbpkqZKcWQurM8Ua/view?usp=drivesdk
+O-12 | 2026-10-17T17:40:32.131Z | skipped | superseded by O-13/O-15 and Stefan's direct instruction to continue capes.
+O-13 | 2026-10-17T17:40:32.131Z | done | G14 kit_capes uploaded unchanged and Drive metadata verified; straight collar bands, back panels, arms free. https://drive.google.com/file/d/1pUZW09Cuh-v56ZmPouksPrgX6ns4GnLz/view?usp=drivesdk
+O-14 | 2026-10-17T17:40:32.131Z | done | production paused after rig and capes per Stefan's newest direct command.
+O-15 | 2026-10-17T17:40:32.131Z | skipped in part | kit_rig_test and kit_capes delivered; kit_rig_grips not made because Stefan's later direct instruction specifies O-11, then O-13, then pause. Production paused; no automation changes.
