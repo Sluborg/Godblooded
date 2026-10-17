@@ -9,8 +9,9 @@ import type { PartsDef, PartsLook } from './heroParts';
 // Anything else keeps today's picture or shape: the game never breaks for lack of a row.
 const DEFS = MON_DEFS as unknown as Record<string, PartsDef>;
 
-// Monster types drawn from the rig. Empty until a rig look is approved for a type.
-export const MONSTER_RIG: ReadonlySet<string> = new Set<string>([]);
+// Monster types drawn from the rig. A type with a painted kit combo (data/heroKits.ts `mon_<type>`)
+// falls back to its picture while the kit pictures are missing.
+export const MONSTER_RIG: ReadonlySet<string> = new Set<string>(['minotaur']);
 
 // The URL does not change during a run: read it once.
 const ASKED: ReadonlySet<string> = (() => {

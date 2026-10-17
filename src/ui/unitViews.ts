@@ -6,6 +6,8 @@ import { bakeRings, type RingSpec } from './bake';
 import { RENDER_SCALE } from '../config';
 import { collectorPartsLook, heroPartsLook } from '../data/heroParts';
 import { monsterPartsLook } from '../data/monsterParts';
+import { kitFor } from '../data/heroKits';
+import { kitOf } from './parts/paintedLoad';
 import {
   STATUS_LOOK,
   isStatusKind,
@@ -375,6 +377,11 @@ export class UnitView {
     if (!look) return this.leaveParts();
     const id = look.id;
     if (id === this.partsId) return true;
+    // A monster with a painted kit combo needs its pictures: without them it keeps its picture.
+    if (u.kind === 'monster') {
+      const kitId = typeof look.def.kit === 'string' ? look.def.kit : look.id;
+      if (kitFor(kitId) && !kitOf(this.scene, kitId)) return this.leaveParts();
+    }
     const set = ensureHeroSet(this.scene, id, look.def, u.tier);
     const first = set.frames.idle[0];
     this.partsSet = set;
