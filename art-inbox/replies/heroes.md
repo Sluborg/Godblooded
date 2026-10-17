@@ -29,3 +29,5 @@ O-12 | 2026-10-17T17:40:32.131Z | skipped | superseded by O-13/O-15 and Stefan's
 O-13 | 2026-10-17T17:40:32.131Z | done | G14 kit_capes uploaded unchanged and Drive metadata verified; straight collar bands, back panels, arms free. https://drive.google.com/file/d/1pUZW09Cuh-v56ZmPouksPrgX6ns4GnLz/view?usp=drivesdk
 O-14 | 2026-10-17T17:40:32.131Z | done | production paused after rig and capes per Stefan's newest direct command.
 O-15 | 2026-10-17T17:40:32.131Z | skipped in part | kit_rig_test and kit_capes delivered; kit_rig_grips not made because Stefan's later direct instruction specifies O-11, then O-13, then pause. Production paused; no automation changes.
+
+O-16 | 2026-10-17T18:26:43.016Z | done | kit_rig_grips uploaded unchanged and Drive metadata verified: https://drive.google.com/file/d/16F2BwH0gtKxKI6vf62jLkzx-usFfbxGr/view?usp=drivesdk . Back-of-hand/knuckles toward viewer, top thumbs, mirrored cuffs and straight flat-green hafts; full-size QA passed. Art to review split-layer extraction. Production paused as ordered; persistent webhook unchanged.
