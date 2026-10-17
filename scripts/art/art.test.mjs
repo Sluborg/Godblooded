@@ -17,6 +17,7 @@ import {
   processFrames,
   processPair,
   readPng,
+  splitGrip,
   writePng,
 } from './lib.mjs';
 import { musicErrors, validateAssets } from './validate.mjs';
@@ -583,5 +584,32 @@ describe('shipped assets', () => {
   it('manifest and PNGs match docs/asset-spec.md', () => {
     const { errors } = validateAssets();
     expect(errors).toEqual([]);
+  });
+});
+
+describe('grip split (fist drawn around a green haft)', () => {
+  // 20 x 20: a brown fist on rows 6-13, x 2-17; a green haft at x 9-10 on every row; the
+  // fingers painted over the haft on rows 8-11.
+  function gripImage() {
+    const img = { width: 20, height: 20, data: Buffer.alloc(20 * 20 * 4) };
+    const set = (x, y, rgb) => img.data.set([...rgb, 255], (y * 20 + x) * 4);
+    for (let y = 0; y < 20; y++) for (let x = 9; x <= 10; x++) set(x, y, [0, 255, 0]);
+    for (let y = 6; y <= 13; y++)
+      for (let x = 2; x <= 17; x++)
+        if (x < 9 || x > 10 || (y >= 8 && y <= 11)) set(x, y, [120, 80, 40]);
+    return img;
+  }
+  const alpha = (img, x, y) => img.data[(y * 20 + x) * 4 + 3];
+
+  it('puts what lies over the haft in front, the rest behind, and drops the green and the stub', () => {
+    const { back, front, closed, haft } = splitGrip(gripImage());
+    expect(haft).toEqual({ x0: 9, x1: 10 });
+    expect(alpha(front, 9, 9)).toBe(255); // finger over the haft
+    expect(alpha(back, 9, 9)).toBe(0);
+    expect(alpha(back, 4, 9)).toBe(255); // palm beside it
+    expect(alpha(front, 9, 7)).toBe(0); // green inside the fist: transparent in the layers
+    expect(alpha(closed, 9, 7)).toBe(255); // filled in the closed fist
+    expect(alpha(back, 9, 2)).toBe(0); // the haft stub above the fist goes
+    expect(alpha(closed, 9, 2)).toBe(0);
   });
 });

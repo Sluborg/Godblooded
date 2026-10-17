@@ -1,0 +1,39 @@
+{
+  "id": "kit_monster_grips",
+  "batch": "G11",
+  "upload": "assets/source/G11/kit_monster_grips.png",
+  "pxPerUnit": 8,
+  "scale": 1,
+  "parts": [
+    {
+      "cell": "hand_grip_draugr",
+      "box": [80, 60, 560, 620],
+      "split": "grip",
+      "closed": "hand_draugr",
+      "pivots": {
+        "wrist": [0.1, 0.5]
+      },
+      "height": 7
+    },
+    {
+      "cell": "hand_grip_troll",
+      "box": [640, 60, 1180, 620],
+      "split": "grip",
+      "closed": "hand_troll",
+      "pivots": {
+        "wrist": [0.1, 0.5]
+      },
+      "height": 11
+    },
+    {
+      "cell": "hand_grip_minotaur",
+      "box": [80, 640, 560, 1200],
+      "split": "grip",
+      "closed": "hand_minotaur",
+      "pivots": {
+        "wrist": [0.1, 0.5]
+      },
+      "height": 8
+    }
+  ]
+}
