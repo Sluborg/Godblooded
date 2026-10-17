@@ -3,7 +3,7 @@
 // clip can be recorded at exactly 1x game speed (scripts/anim-record.mjs). Nothing here ships.
 import type Phaser from 'phaser';
 import { BUILDS } from '../data/heroKits';
-import { RUNTIME_KITS } from '../ui/parts/paintedLoad';
+import { DEV_PARTS, RUNTIME_KITS } from '../ui/parts/paintedLoad';
 import type { Kit, KitPart } from '../ui/parts/painted';
 import { releaseSets } from '../ui/parts/bake';
 import { UnitViews } from '../ui/unitViews';
@@ -67,6 +67,21 @@ export async function registerAnimKit(name: string): Promise<KitJson> {
   };
   RUNTIME_KITS.set(json.look, kit);
   return json;
+}
+
+// Registers a loose picture as a part (id `id`, texture `dev_<id>`) for the skeleton rig; pivots are
+// fractions of the picture. `url` is under the repo root (anim-test/...).
+export async function registerDevPart(
+  scene: Phaser.Scene,
+  id: string,
+  url: string,
+  ppu: number,
+  pivots: Record<string, [number, number]>,
+): Promise<void> {
+  const img = await loadImage(url);
+  const tex = `dev_${id}`;
+  if (!scene.textures.exists(tex)) scene.textures.addImage(tex, img);
+  DEV_PARTS.set(id, { tex, id, cell: { x: 0, y: 0, w: img.width, h: img.height, pivots }, ppu });
 }
 
 export interface StageSpec {

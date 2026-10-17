@@ -44,8 +44,10 @@ async function record(u, zoom) {
   await sleep(600);
   const total = await page.evaluate(
     async ({ u, zoom }) => {
-      const { AnimStage, registerAnimKit } = await import('/src/dev/animStage.ts');
+      const { AnimStage, registerAnimKit, registerDevPart } = await import('/src/dev/animStage.ts');
       if (u.kit) await registerAnimKit(u.kit);
+      for (const d of u.devParts ?? [])
+        await registerDevPart(window.__game.scene.getScene('Map'), d.id, d.url, d.ppu, d.pivots);
       const game = window.__game;
       const map = game.scene.getScene('Map');
       map.registry.set('speed', 0);

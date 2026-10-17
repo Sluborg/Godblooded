@@ -96,21 +96,20 @@ export interface Clip {
   behind: readonly [from: number, to: number];
 }
 
-// The axe chop: from the carry at the side (arm hanging, hand slid up the haft so the head hangs
-// near the knee), the axe is cocked up behind the head, struck down in front (hand low and forward,
+// The axe chop: from the carry at the side (arm hanging, the head in front of the thigh), the axe is cocked up behind the head, struck down in front (hand low and forward,
 // body leaning and dipping), held for the hit pause and carried through back to the carry. The
 // contact key is the moment of the sim's `hit`. The wrist bends 40 degrees, 55 in the contact
 // window (Lead 2026-10-17).
 export const CARRY_AXE = 3;
-export const CARRY_SLIDE = 0.6;
+export const CARRY_SLIDE = 0;
 export const WRIST_STRIKE = 0.96;
 export const CHOP: Clip = {
   keys: [
     [0.0, -0.1, 0.96, CARRY_AXE, 0, 0, CARRY_SLIDE, WRIST_LIMIT, 'inOut'],
     [0.34, -0.58, -0.78, -1.25, -4, -0.1, 0, WRIST_LIMIT, 'in'],
-    [0.44, 0.55, 0.95, 3.0, 11, 0.45, 0, WRIST_STRIKE, 'out'],
-    [0.52, 0.55, 0.95, 3.0, 11, 0.45, 0, WRIST_STRIKE, 'out'],
-    [0.68, 0.42, 0.95, 3.0, 11, 0.4, 0.4, WRIST_LIMIT, 'inOut'],
+    [0.44, 0.3, 0.98, 3.6, 11, 0.5, 0, WRIST_STRIKE, 'out'],
+    [0.52, 0.3, 0.98, 3.6, 11, 0.5, 0, WRIST_STRIKE, 'out'],
+    [0.68, 0.25, 0.98, 3.4, 11, 0.45, 0, WRIST_LIMIT, 'inOut'],
     [1.0, -0.1, 0.96, CARRY_AXE, 0, 0, CARRY_SLIDE, WRIST_LIMIT, 'inOut'],
   ],
   contact: [2, 3],

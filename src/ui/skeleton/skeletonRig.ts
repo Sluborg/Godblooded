@@ -50,7 +50,7 @@ export const RIG_SCALE: RigScale = {
   boot: 0.8,
   leg: 2.8,
   arm: 1.3,
-  weapon: 1.1,
+  weapon: 1,
 };
 
 const DARK = 0xb4b4b4;

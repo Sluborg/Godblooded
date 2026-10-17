@@ -75,7 +75,17 @@ export interface PartRef {
 
 // The reference for a part id from any kit sheet, or null when the sheet is not loaded. The frame
 // named `id` is added to the sheet's texture the first time.
+// Parts registered at run time (the dev animation test): they win over the manifest's. Empty in the
+// shipped game.
+export const DEV_PARTS = new Map<string, PartRef>();
+
 export function partRef(scene: Phaser.Scene, id: string): PartRef | null {
+  const dev = DEV_PARTS.get(id);
+  if (dev && scene.textures.exists(dev.tex)) {
+    const tex = scene.textures.get(dev.tex);
+    if (!tex.has(id)) tex.add(id, 0, dev.cell.x, dev.cell.y, dev.cell.w, dev.cell.h);
+    return dev;
+  }
   const rows = scene.registry.get(ASSETS_KEY) as Map<string, ManifestAsset> | undefined;
   if (!rows) return null;
   for (const row of rows.values()) {
