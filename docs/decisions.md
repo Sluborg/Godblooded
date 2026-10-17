@@ -552,3 +552,11 @@ follows the building's perspective; loose beams ending in mid-air still fail.
   from the shoulders down the back, behind the arms, so the skeleton's arms move freely.
 - Troll 3: two left feet. Draugr 4. Town hall t2 porch 2 (see building rules).
 - Minotaur in game 2: hooves point backwards.
+
+## 2026-10-17 Grip hands: fingers-side view (Stefan, Questions tab)
+
+Asked whether grip hands may show the fingers and thumb in front of the haft (palm side) instead
+of the back of the hand, Stefan picked "Heroes: reorder, monsters: accept". Monster grips
+(draugr, troll, minotaur) ship as drawn. The G13 hero grips ship as the far hand on two-handed
+hafts (hand_grip_far_r/l), with the loose fists R/L from the same sheet (he saw both on the
+card); a back-of-hand weapon-hand grip is reordered for heroes (O-15).
