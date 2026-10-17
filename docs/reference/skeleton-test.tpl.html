@@ -1,0 +1,389 @@
+<title>Godblooded Skeleton Test</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya+SC:wght@500;700&family=Alegreya+Sans:wght@400;500;700&display=swap">
+<style>
+/* Layout: the stage fills the top, one row of controls under it, a short legend of the bones below. */
+:root {
+  --bg: #e9e4d8; --surface: #f6f2e9; --ink: #2a241d; --muted: #6e6455; --line: #d3c9b6;
+  --accent: #8a5a1f; --grass: #7f9455; --grass-dark: #6b7f45;
+  --display: "Alegreya SC", Georgia, serif;
+  --body: "Alegreya Sans", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #16181c; --surface: #20232a; --ink: #ece4d4; --muted: #a39a89; --line: #343841;
+  --accent: #d39a4a; --grass: #5d6f3c; --grass-dark: #4c5c30; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #16181c; --surface: #20232a; --ink: #ece4d4; --muted: #a39a89; --line: #343841;
+  --accent: #d39a4a; --grass: #5d6f3c; --grass-dark: #4c5c30; color-scheme: dark }
+body { background: var(--bg); color: var(--ink); font: 16px/1.45 var(--body); }
+.wrap { max-width: 760px; margin: 0 auto; padding-block: 14px 32px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 12px; }
+h1 { font: 700 1.5rem/1.1 var(--display); margin: 0; letter-spacing: .02em; }
+header p { margin: 4px 0 0; color: var(--muted); max-width: 62ch; }
+.stage { position: relative; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--grass); }
+#big { display: block; width: 100%; height: 38vh; min-height: 220px; max-height: 380px; }
+.inset { position: absolute; right: 8px; top: 8px; background: var(--grass-dark); border: 1px solid rgba(0,0,0,.35); border-radius: 6px; padding: 4px; display: grid; gap: 2px; justify-items: center; }
+.inset span { font-size: .62rem; color: #f3ecd9; letter-spacing: .06em; text-transform: uppercase; }
+#small { display: block; width: 92px; height: 56px; }
+.ctl { display: flex; gap: 6px; flex-wrap: nowrap; }
+.btn { font: 500 .8rem var(--body); border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+  border-radius: 8px; min-height: 38px; padding: 0 8px; cursor: pointer; flex: 1 1 auto; }
+.btn[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.panel { display: grid; gap: 8px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); padding: 10px 12px 12px; }
+.panel select { font: 500 .9rem var(--body); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; min-height: 38px; padding: 0 8px; }
+.row { display: grid; grid-template-columns: 1fr auto; gap: 0 10px; align-items: center; }
+.row label { font-size: .9rem; }
+.row output { font-variant-numeric: tabular-nums; color: var(--muted); font-size: .82rem; }
+.row input { grid-column: 1 / -1; width: 100%; accent-color: var(--accent); min-height: 26px; touch-action: pan-y; }
+.tog { display: flex; align-items: center; gap: 10px; min-height: 32px; font-size: .9rem; }
+.tog input { width: 20px; height: 20px; accent-color: var(--accent); }
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); display: grid; gap: 8px; padding-block: 4px 8px; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+.legend { font-size: .92rem; color: var(--muted); max-width: 62ch; }
+.legend b { color: var(--ink); font-weight: 700; }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Skeleton test: the axeman</h1>
+    <p>A real skeleton with bones, joints that bend themselves, and timed poses. Head, hands and feet are art; the rest are plain shapes until rig-ready art exists.</p>
+  </header>
+  <div class="top">
+  <div class="stage">
+    <canvas id="big" aria-label="Axeman on a skeleton, close-up"></canvas>
+    <div class="inset"><canvas id="small" aria-label="Axeman at game size"></canvas><span>game size</span></div>
+  </div>
+  <div class="ctl" role="group" aria-label="Controls">
+    <button class="btn" data-mode="walk" id="m-walk">Walk</button>
+    <button class="btn" data-mode="attack" id="m-attack">Attack</button>
+    <button class="btn" data-mode="hit" id="m-hit">Hit</button>
+    <button class="btn" data-mode="loop" id="m-loop" aria-pressed="true">Loop</button>
+    <button class="btn" id="t-bones" aria-pressed="false">Bones</button>
+    <button class="btn" id="t-off" aria-pressed="true">Off hand</button>
+  </div>
+  </div>
+  <div class="panel">
+    <select id="grp" aria-label="Part to tune"></select>
+    <div id="sliders" style="display:grid;gap:6px"></div>
+    <div class="ctl"><button class="btn" id="reset">Reset</button><button class="btn" id="copy">Copy settings</button></div>
+    <span class="legend" id="status"></span>
+  </div>
+  <p class="legend"><b>How it works:</b> hips carry the torso and head; each shoulder carries an upper arm (the sleeve), a forearm and a fist; each hip carries a thigh, a shin and a boot. The game only places the feet, the hands and the hips; knees and elbows bend by themselves to reach. Walk, attack and hit are a handful of timed poses with smooth curves between them. Tap Bones to see the skeleton.</p>
+</div>
+
+<script>
+/*IMGS*/
+const IMG = {}; let loaded = 0;
+for (const [k, src] of Object.entries(IMG_SRC)) { const im = new Image(); im.onload = () => loaded++; im.src = src; IMG[k] = im; }
+const N_IMG = Object.keys(IMG_SRC).length;
+const $ = (id) => document.getElementById(id);
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+const lerp = (a, b, k) => a + (b - a) * k;
+const eio = (x) => x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
+const ein = (x) => x * x;
+const eout = (x) => 1 - (1 - x) * (1 - x);
+
+// ---------- settings: 4 per set ----------
+const DEF = {
+  torsoW: 92, torsoH: 108, headSize: 0.62, torsoArt: false,
+  upper: 27, fore: 24, handSize: 0.62, armW: 12,
+  thigh: 18, shin: 17, footSize: 0.42, stride: 18,
+  walkSpeed: 1.8, bob: 2.4, swing: 1.0, attackTime: 1.0, trueHand: false,
+};
+const SETS = [
+  ["Body", [["torsoW", "Torso width", 60, 140, 1], ["torsoH", "Torso height", 70, 150, 1], ["headSize", "Head size", 0.4, 0.9, 0.01], ["torsoArt", "Painted torso (test cut)", "toggle"]]],
+  ["Arms", [["upper", "Upper arm", 12, 42, 1], ["fore", "Forearm", 10, 38, 1], ["handSize", "Hand and axe size", 0.4, 1.0, 0.01], ["armW", "Arm thickness", 6, 24, 1]]],
+  ["Legs", [["thigh", "Thigh", 6, 32, 1], ["shin", "Shin", 6, 32, 1], ["footSize", "Foot size", 0.25, 0.65, 0.01], ["stride", "Step length", 0, 28, 1]]],
+  ["Motion", [["walkSpeed", "Steps per second", 0.6, 3, 0.05], ["bob", "Bounce", 0, 6, 0.1], ["swing", "Swing size", 0.6, 1.4, 0.05], ["attackTime", "Attack time (s)", 0.6, 1.6, 0.05], ["trueHand", "Keep the axe in the right hand when he turns (needs far-side hand art)", "toggle"]]],
+];
+let S = { ...DEF };
+try { const v = JSON.parse(localStorage.getItem("skeltest") || "null"); if (v) S = { ...DEF, ...v }; } catch (e) {}
+let grp = "Body";
+try { grp = localStorage.getItem("skeltest-grp") || "Body"; } catch (e) {}
+function save() { try { localStorage.setItem("skeltest", JSON.stringify(S)); } catch (e) {} }
+function buildPanel() {
+  const sel = $("grp"); sel.replaceChildren();
+  for (const [t] of SETS) { const o = document.createElement("option"); o.value = o.textContent = t; sel.append(o); }
+  sel.value = grp;
+  sel.onchange = () => { grp = sel.value; try { localStorage.setItem("skeltest-grp", grp); } catch (e) {} buildSliders(); };
+  buildSliders();
+}
+function buildSliders() {
+  const box = $("sliders"); box.replaceChildren();
+  const set = SETS.find((x) => x[0] === grp) || SETS[0];
+  for (const [k, label, a, b, step] of set[1]) {
+    if (a === "toggle") {
+      const l = document.createElement("label"); l.className = "tog";
+      const i = document.createElement("input"); i.type = "checkbox"; i.id = "c-" + k; i.checked = !!S[k];
+      i.onchange = () => { S[k] = i.checked; save(); };
+      l.append(i, document.createTextNode(label)); box.append(l); continue;
+    }
+    const r = document.createElement("div"); r.className = "row";
+    const l = document.createElement("label"); l.htmlFor = "c-" + k; l.textContent = label;
+    const o = document.createElement("output");
+    const i = document.createElement("input"); i.type = "range"; i.id = "c-" + k; i.min = a; i.max = b; i.step = step; i.value = S[k];
+    const show = () => { o.textContent = (+S[k]).toFixed(step < 0.1 ? 2 : step < 1 ? 1 : 0); };
+    i.oninput = () => { S[k] = +i.value; show(); save(); };
+    show(); r.append(l, o, i); box.append(r);
+  }
+}
+$("reset").onclick = () => { S = { ...DEF }; save(); buildSliders(); };
+$("copy").onclick = async () => {
+  const t = "Skeleton settings: " + JSON.stringify(S);
+  try { await navigator.clipboard.writeText(t); $("status").textContent = "Copied. Paste it to Lead."; }
+  catch (e) { $("status").textContent = t; }
+};
+
+// ---------- geometry from the settings (hero units; feet on y 0, facing right) ----------
+function G() {
+  const FH = 92 * S.footSize, ANKLE = -FH * 0.87;
+  const PEL = ANKLE - (S.thigh + S.shin) * 0.93;
+  const skirt = Math.min(14, S.thigh * 0.7);
+  const bottom = PEL + skirt, top = bottom - S.torsoH;
+  const sh = { x: S.torsoW * 0.42, y: top + S.torsoH * 0.14 - PEL };
+  return { FH, ANKLE, PEL, skirt, bottom, top, sh, hipX: 3, reach: S.upper + S.fore };
+}
+const SLEEVE = {
+  F: { im: "sleeveR", px: 6, py: 12, axis: Math.atan2(32, 22) },
+  B: { im: "sleeveL", px: 34, py: 12, axis: Math.atan2(32, -22) },
+};
+
+function ik(ax, ay, tx, ty, l1, l2, side) {
+  let dx = tx - ax, dy = ty - ay, d = Math.hypot(dx, dy);
+  d = clamp(d, Math.abs(l1 - l2) + 0.01, l1 + l2 - 0.01);
+  const a = Math.atan2(dy, dx);
+  const b = Math.acos(clamp((l1 * l1 + d * d - l2 * l2) / (2 * l1 * d), -1, 1));
+  const j = a + side * b;
+  const jx = ax + Math.cos(j) * l1, jy = ay + Math.sin(j) * l1;
+  const ex = ax + Math.cos(a) * d, ey = ay + Math.sin(a) * d;
+  return { jx, jy, ex, ey, a1: j, a2: Math.atan2(ey - jy, ex - jx) };
+}
+
+// attack keys: time (fraction), front hand from the shoulder (in arm lengths), axe angle, hips forward, lean
+const ATK = [
+  [0.00, 0.20, 0.86, 0.30, 0, 0, eio],
+  [0.34, -0.58, -0.78, -1.25, -4, -0.10, ein],
+  [0.44, 0.78, -0.04, 1.35, 11, 0.20, eout],
+  [0.52, 0.78, -0.04, 1.35, 11, 0.20, eout],
+  [0.68, 0.66, 0.32, 1.75, 11, 0.24, eio],
+  [1.00, 0.20, 0.86, 0.30, 0, 0, eio],
+];
+function keys(K, t) {
+  if (t <= K[0][0]) return K[0].slice(1, 6);
+  for (let i = 1; i < K.length; i++) if (t <= K[i][0]) {
+    const a = K[i - 1], b = K[i], k = b[6]((t - a[0]) / (b[0] - a[0]));
+    return [1, 2, 3, 4, 5].map((j) => lerp(a[j], b[j], k));
+  }
+  return K[K.length - 1].slice(1, 6);
+}
+const HIT_T = 0.8;
+
+function pose(g, mode, t, walkPh) {
+  const R = g.reach;
+  const P = { px: 0, py: g.PEL, lean: 0, feet: [{ x: -9, y: 0, toe: 0 }, { x: 8, y: 0, toe: 0 }],
+    hf: { x: 0.2 * R, y: g.sh.y + 0.86 * R }, hb: { x: 0.05 * R, y: g.sh.y + 0.95 * R }, axe: 0.3, nod: 0, contact: false, flash: 0, behind: false };
+  P.py += Math.sin(t * 2.4) * 0.5;
+  if (mode === "walk") {
+    const St = S.stride, H = 7, u = (walkPh / (Math.PI * 2)) % 1;
+    for (const i of [0, 1]) {
+      const v = (u + i * 0.5) % 1;
+      let x, y = 0, toe = 0;
+      if (v < 0.5) x = St - 4 * St * v;
+      else { const w = (v - 0.5) * 2; x = -St + 2 * St * eio(w); y = H * Math.sin(Math.PI * w); toe = -0.22 * Math.sin(Math.PI * w); }
+      P.feet[i] = { x: (i ? g.hipX : -g.hipX) + x, y: -y, toe };
+    }
+    P.py = g.PEL - S.bob * (1 - Math.cos(4 * Math.PI * u)) / 2 + S.bob * 0.4;
+    P.lean = 0.05;
+    const sw = Math.cos(2 * Math.PI * u), RR = 0.96 * R;
+    const thB = 0.15 + 0.45 * sw, thF = 0.4 - 0.18 * sw;
+    P.hb = { x: Math.sin(thB) * RR, y: g.sh.y + Math.cos(thB) * RR };
+    P.hf = { x: Math.sin(thF) * RR, y: g.sh.y + Math.cos(thF) * RR };
+  }
+  if (mode === "attack") {
+    const T = S.attackTime, u = t / T;
+    const [hx, hy, axe, dx, lean] = keys(ATK, u);
+    const sw = S.swing;
+    P.hf = { x: hx * R * sw, y: g.sh.y + hy * R * sw }; P.attack = true; P.axe = axe * (0.7 + 0.3 * sw); P.px = dx; P.lean = lean;
+    P.contact = u > ATK[2][0] && u < ATK[3][0];
+    P.behind = u > 0.08 && u < 0.40;
+    P.nod = lean * 0.4;
+    P.feet[0].x = -9 - dx;
+    const step = clamp((u - 0.30) / 0.16, 0, 1);
+    P.feet[1].y = -5 * Math.sin(Math.PI * step);
+    P.hb = { x: -4 - lean * 20, y: g.sh.y + 0.93 * R };
+  }
+  if (mode === "hit") {
+    const k = Math.sin(Math.PI * clamp(t / 0.6, 0, 1));
+    P.px = -8 * k; P.lean = -0.2 * k; P.py += 2 * k; P.nod = -0.15 * k; P.flash = t < 0.16 ? 1 - t / 0.16 : 0;
+    P.feet[0].x = -9 + 2.4 * k; P.feet[1].x = 8 + 4.8 * k;
+    P.hf = { x: 4, y: g.sh.y + 0.8 * R }; P.hb = { x: -10 * k, y: g.sh.y + 0.7 * R };
+  }
+  return P;
+}
+
+// ---------- drawing ----------
+function img(ctx, im, ax, ay, sc) { const w = im.width * sc, h = im.height * sc; ctx.drawImage(im, -ax * w, -ay * h, w, h); }
+function limb(ctx, x0, y0, x1, y1, w, col) {
+  ctx.lineCap = "round";
+  ctx.strokeStyle = "#1c140e"; ctx.lineWidth = w + 3.5; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+  ctx.strokeStyle = col; ctx.lineWidth = w; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+}
+function torsoShape(ctx, g, pelY) {
+  const w = S.torsoW, h = S.torsoH, top = pelY + g.skirt - h, bot = pelY + g.skirt;
+  ctx.beginPath();
+  ctx.moveTo(-w * 0.3, top);
+  ctx.quadraticCurveTo(-w * 0.5, top, -w * 0.48, top + h * 0.22);
+  ctx.lineTo(-w * 0.5, bot - 6);
+  ctx.quadraticCurveTo(-w * 0.5, bot, -w * 0.42, bot);
+  ctx.lineTo(w * 0.42, bot);
+  ctx.quadraticCurveTo(w * 0.5, bot, w * 0.5, bot - 6);
+  ctx.lineTo(w * 0.48, top + h * 0.22);
+  ctx.quadraticCurveTo(w * 0.5, top, w * 0.3, top);
+  ctx.closePath();
+  ctx.fillStyle = "#6f6a60"; ctx.fill();
+  ctx.lineWidth = 3.5; ctx.strokeStyle = "#1c140e"; ctx.stroke();
+  // belt and neck opening, so facing and scale read
+  ctx.fillStyle = "#8a5a2b"; ctx.fillRect(-w * 0.49, top + h * 0.56, w * 0.98, h * 0.08);
+  ctx.fillStyle = "#c9c4b8"; ctx.fillRect(-5, top + h * 0.56, 10, h * 0.08);
+  ctx.fillStyle = "#c08a3e"; ctx.beginPath(); ctx.moveTo(-w * 0.16, top); ctx.lineTo(0, top + h * 0.2); ctx.lineTo(w * 0.16, top); ctx.closePath(); ctx.fill();
+}
+let showBones = false, offHand = true;
+function hero(ctx, g, P) {
+  const bones = [];
+  ctx.fillStyle = "rgba(0,0,0,.22)"; ctx.beginPath(); ctx.ellipse(P.px + 6, 2, S.torsoW * 0.5, 7, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.save(); ctx.translate(P.px, 0);
+  const pel = { x: 0, y: P.py };
+  for (const i of [0, 1]) {
+    const hx = (i ? g.hipX : -g.hipX) * 0.9, hy = pel.y - (i ? 0 : 2);
+    const f = P.feet[i], ax = f.x, ay = g.ANKLE + f.y - (i ? 0 : 2);
+    const s = ik(hx, hy, ax, ay, S.thigh, S.shin, -1), dark = i === 0;
+    limb(ctx, hx, hy, s.jx, s.jy, 15, dark ? "#3a2e24" : "#54432f");
+    limb(ctx, s.jx, s.jy, s.ex, s.ey, 13, dark ? "#3a2e24" : "#54432f");
+    ctx.save(); ctx.translate(s.ex, s.ey); ctx.rotate(f.toe); if (dark) ctx.filter = "brightness(0.78)";
+    img(ctx, IMG.boot, 0.3, 0.12, S.footSize); ctx.restore();
+    bones.push([hx, hy, s.jx, s.jy], [s.jx, s.jy, s.ex, s.ey]);
+  }
+  ctx.save(); ctx.translate(pel.x, pel.y); ctx.rotate(P.lean); ctx.translate(-pel.x, -pel.y);
+  const shR = { x: -g.sh.x, y: pel.y + g.sh.y }, shL = { x: g.sh.x, y: pel.y + g.sh.y };
+  // facing right his right (axe) arm is the near one; walking left with the axe kept in the right hand it is the far one
+  const axeNear = !(S.trueHand && P.mirrored);
+  const wSh = axeNear ? shR : shL, oSh = axeNear ? shL : shR;
+  const wSl = axeNear ? SLEEVE.B : SLEEVE.F, oSl = axeNear ? SLEEVE.F : SLEEVE.B;
+  const reachX = P.attack && axeNear ? g.sh.x * 0.9 : 0; // strikes reach across the body
+  const arm = (sh, hand, sl, dark, gripCut) => {
+    const s = ik(sh.x, sh.y, hand.x, pel.y + hand.y, S.upper, S.fore, 1);
+    const ux = Math.cos(s.a2), uy = Math.sin(s.a2);
+    limb(ctx, s.jx, s.jy, s.ex - ux * gripCut, s.ey - uy * gripCut, S.armW * 0.9, dark ? "#4a3523" : "#6b4a2c");
+    if (S.torsoArt) {
+      const k = S.upper / 31;
+      ctx.save(); ctx.translate(sh.x, sh.y); ctx.rotate(s.a1 - sl.axis); if (dark) ctx.filter = "brightness(0.78)";
+      ctx.drawImage(IMG[sl.im], -sl.px * 0.8 * k, -sl.py * 0.8 * k, IMG[sl.im].width * 0.8 * k, IMG[sl.im].height * 0.8 * k); ctx.restore();
+    } else limb(ctx, sh.x, sh.y, s.jx, s.jy, S.armW * 1.25, dark ? "#55524b" : "#6f6a60");
+    bones.push([sh.x, sh.y, s.jx, s.jy], [s.jx, s.jy, s.ex, s.ey]);
+    return s;
+  };
+  const offArm = (dark) => {
+    if (!offHand) return;
+    const out = Math.sign(oSh.x) * 0.08 * g.reach;
+    const s = arm(oSh, { x: oSh.x + out + P.hb.x * 0.7, y: P.hb.y }, oSl, dark, 0);
+    ctx.save(); ctx.translate(s.ex, s.ey); ctx.rotate(s.a2 - Math.PI / 2 - 0.42); if (dark) ctx.filter = "brightness(0.78)";
+    img(ctx, P.mirrored ? IMG.fist : IMG.fistL, 0.5, 0.14, S.handSize * 1.08); ctx.restore(); // left hand
+  };
+  const axeFar = !axeNear;
+  if (axeFar) { front(true); } else offArm(true);
+  if (S.torsoArt) {
+    ctx.save(); ctx.translate(0, pel.y + g.skirt);
+    // the visible torso in the picture is about 72 x 150 pixels
+    ctx.scale(S.torsoW / 72, S.torsoH / 150); img(ctx, IMG.torso, 0.5, 0.97, 1); ctx.restore();
+  } else torsoShape(ctx, g, pel.y);
+  const neckY = pel.y + g.skirt - S.torsoH + 6;
+  function front(dark) {
+    const s = arm(wSh, { x: wSh.x + P.hf.x + reachX, y: P.hf.y }, wSl, !!dark, 6);
+    // the axe is fixed in the hand: it follows the forearm, and the wrist may only bend about 40 degrees either way
+    const want = P.axe + 0.26 - Math.PI / 2;            // direction the timed pose asks the haft to point
+    let rel = want - s.a2;
+    rel = Math.atan2(Math.sin(rel), Math.cos(rel));      // wrap to -pi..pi
+    rel = clamp(rel, -Math.PI / 2 - 0.7, -Math.PI / 2 + 0.7);
+    const rot = s.a2 + rel + Math.PI / 2;
+    ctx.save(); ctx.translate(s.ex, s.ey); ctx.rotate(rot); if (dark) ctx.filter = "brightness(0.78)";
+    img(ctx, IMG.axeBare, 41.9 / 190, 223 / 322, S.handSize);
+    // right hand across the haft: wrist toward the body, the haft through the curled fingers (stand-in fist)
+    ctx.rotate(-Math.PI / 2 + 0.42); img(ctx, IMG.fist, 0.6, 0.62, S.handSize * 1.08);
+    ctx.restore();
+  }
+  const head = () => {
+    ctx.save(); ctx.translate(0, neckY); ctx.rotate(P.nod);
+    img(ctx, IMG.head, 0.45, 0.8, S.headSize); ctx.restore();
+    bones.push([0, pel.y, 0, neckY], [0, neckY, 0, neckY - 70 * S.headSize / 0.62]);
+  };
+  if (axeFar) { head(); offArm(false); }
+  else if (P.behind) { front(); head(); } else { head(); front(); }
+  if (showBones) {
+    ctx.save(); ctx.lineCap = "round";
+    for (const [a, b, c, d] of bones) {
+      ctx.strokeStyle = "rgba(255,240,120,.95)"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(a, b); ctx.lineTo(c, d); ctx.stroke();
+      ctx.fillStyle = "#ffef7a"; for (const [x, y] of [[a, b], [c, d]]) { ctx.beginPath(); ctx.arc(x, y, 3.2, 0, Math.PI * 2); ctx.fill(); }
+    }
+    ctx.restore();
+  }
+  ctx.restore(); ctx.restore();
+}
+
+// ---------- stage ----------
+let mode = "loop", modeT = 0, loopI = 0, walkPh = 0, posX = -70, dir = 1, last = 0, shake = 0;
+const LOOP = ["walk", "attack", "attack", "hit", "walk"];
+const lenOf = (m) => m === "attack" ? S.attackTime + 0.25 : m === "hit" ? HIT_T + 0.3 : 3.2;
+const cur = () => mode === "loop" ? LOOP[loopI] : mode;
+for (const b of document.querySelectorAll("[data-mode]")) b.addEventListener("click", () => {
+  mode = b.dataset.mode; modeT = 0; loopI = 0;
+  for (const x of document.querySelectorAll("[data-mode]")) x.setAttribute("aria-pressed", String(x === b));
+});
+$("t-bones").onclick = (e) => { showBones = !showBones; e.currentTarget.setAttribute("aria-pressed", String(showBones)); };
+$("t-off").onclick = (e) => { offHand = !offHand; e.currentTarget.setAttribute("aria-pressed", String(offHand)); };
+
+function scene(ctx, W, H, sc) {
+  ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue("--grass").trim() || "#7f9455";
+  ctx.fillRect(0, 0, W, H);
+  const gy = H * 0.88, m = cur(), g = G();
+  ctx.fillStyle = "rgba(0,0,0,.08)";
+  for (let i = 0; i < 24; i++) ctx.fillRect((i * 97) % W, gy - 50 * sc + ((i * 53) % 90) * sc, 3 * sc, 2 * sc);
+  const fight = m === "attack" || m === "hit";
+  const postX = W / 2 + 95 * sc;
+  if (fight) {
+    ctx.save(); ctx.translate(postX + Math.sin(shake * 60) * shake * 5 * sc, gy); ctx.scale(sc, sc);
+    ctx.fillStyle = "rgba(0,0,0,.22)"; ctx.beginPath(); ctx.ellipse(6, 2, 22, 6, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#5a4330"; ctx.strokeStyle = "#1c140e"; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.rect(-9, -130, 18, 130); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = "#c9b48a"; ctx.beginPath(); ctx.ellipse(0, -104, 24, 30, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.restore();
+  }
+  const x = fight ? postX - 120 * sc : W / 2 + posX * sc, flip = !fight && dir < 0;
+  const P = pose(g, m, modeT, walkPh); P.mirrored = flip;
+  ctx.save(); ctx.translate(x, gy); ctx.scale(flip ? -sc : sc, sc); hero(ctx, g, P); ctx.restore();
+  if (P.flash > 0) { ctx.fillStyle = "rgba(255,80,60," + 0.3 * P.flash + ")"; ctx.fillRect(0, 0, W, H); }
+  return P;
+}
+const big = $("big"), small = $("small");
+function fit(c) { const r = c.getBoundingClientRect(), d = Math.min(2, window.devicePixelRatio || 1);
+  if (c.width !== Math.round(r.width * d)) { c.width = Math.round(r.width * d); c.height = Math.round(r.height * d); } return d; }
+function frame(now) {
+  const dt = Math.min(0.05, last ? (now - last) / 1000 : 0); last = now;
+  const m = cur(); modeT += dt;
+  if (m === "walk") { walkPh += dt * S.walkSpeed * Math.PI; posX += dir * dt * 17 * S.walkSpeed; if (posX > 80) dir = -1; if (posX < -80) dir = 1; }
+  if (mode === "loop" && modeT > lenOf(m)) { modeT = 0; loopI = (loopI + 1) % LOOP.length; }
+  else if (mode !== "loop" && m !== "walk" && modeT > lenOf(m)) modeT = 0;
+  if (loaded >= N_IMG) {
+    const d1 = fit(big), d2 = fit(small), hb = big.height / d1;
+    const P = scene(big.getContext("2d"), big.width, big.height, d1 * clamp(hb / 400, 0.5, 1.0));
+    shake = P.contact ? 1 : Math.max(0, shake - dt * 4);
+    scene(small.getContext("2d"), small.width, small.height, 0.15 * d2);
+  }
+  requestAnimationFrame(frame);
+}
+buildPanel();
+requestAnimationFrame(frame);
+</script>
