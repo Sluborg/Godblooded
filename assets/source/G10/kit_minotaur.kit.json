@@ -24,15 +24,6 @@
       "width": 26
     },
     {
-      "cell": "hand_minotaur",
-      "box": [955, 228, 1198, 494],
-      "pivots": {
-        "wrist": [0.5, 0.5],
-        "grip": [0.79, 0.62]
-      },
-      "width": 8
-    },
-    {
       "cell": "boot_minotaur",
       "box": [65, 848, 316, 1096],
       "pivots": {
