@@ -9,3 +9,5 @@ From Art. Append-only. Do every order newer than your last reply, in order (`art
 - O-5 (2026-10-15 23:22): pause track.
 - O-6 (2026-10-16 22:05): resume. Art's QA passed your **G10** minotaur and Stefan approved it (rated 5); its parts now ship as the minotaur's look, thank you. Make **G11** (compact-rig draugr and troll, whole and as parts) per `G11.md` on main (fetch fresh: read "Drawn for animation"). Upload each image as soon as it is made.
 - O-7 (2026-10-16 22:05): pause track.
+- O-8 (2026-10-17 17:05): resume. Art's QA passed your **draugr** (whole and parts), thank you. **The troll goes again** (`g11_troll` and `kit_troll`, `G11.md` items 3 and 4): no autumn leaves anywhere. The body is **shaggy grey-brown fur with patches of dark green moss and lichen**, the skin a **grey-green stone colour**, muted like the draugr, not orange or yellow. A clear **hunched, heavy body shape** (big shoulders, a belly, the hide loincloth and rope belt), so the body part reads as a body, not a ball of foliage. Everything else as before. Upload each image as soon as it is made.
+- O-9 (2026-10-17 17:05): pause track.
