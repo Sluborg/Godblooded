@@ -63,3 +63,27 @@ export function kitOf(scene: Phaser.Scene, lookId: string): Kit | null {
     footSpread: combo.footSpread,
   };
 }
+
+// A kit part as a texture frame: the sheet's Phaser texture, the cell and the sheet's pixels per
+// drawing unit. The skeleton rig (src/ui/skeleton) draws parts as images from these.
+export interface PartRef {
+  tex: string;
+  id: string;
+  cell: KitPart['cell'];
+  ppu: number;
+}
+
+// The reference for a part id from any kit sheet, or null when the sheet is not loaded. The frame
+// named `id` is added to the sheet's texture the first time.
+export function partRef(scene: Phaser.Scene, id: string): PartRef | null {
+  const rows = scene.registry.get(ASSETS_KEY) as Map<string, ManifestAsset> | undefined;
+  if (!rows) return null;
+  for (const row of rows.values()) {
+    const cell = row.cells?.[id];
+    if (!cell || !row.pxPerUnit || !scene.textures.exists(row.id)) continue;
+    const tex = scene.textures.get(row.id);
+    if (!tex.has(id)) tex.add(id, 0, cell.x, cell.y, cell.w, cell.h);
+    return { tex: row.id, id, cell, ppu: row.pxPerUnit };
+  }
+  return null;
+}

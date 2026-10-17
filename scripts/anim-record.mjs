@@ -65,6 +65,9 @@ async function record(u, zoom) {
         tier: u.tier,
         type: u.type,
         zoom,
+        lookUp: u.lookUp,
+        skeleton: u.skeleton,
+        unit: u.unit,
       });
       stage.start(best);
       window.__stage = stage;

@@ -19,6 +19,9 @@ export type EaseName = keyof typeof EASE;
 // The wrist may bend this far either way from the forearm's line (about 40 degrees).
 export const WRIST_LIMIT = 0.7;
 
+// The prototype's torso width, the body its constants were tuned on.
+export const REF_TORSO_W = 92;
+
 // Bone lengths and the body's fixed offsets, in drawing units.
 export interface Bones {
   upper: number;
@@ -41,12 +44,16 @@ export interface Geom extends Bones {
   sh: V2;
   hipX: number;
   reach: number;
+  // Scale of the prototype's numbers (its torso was 92 wide): every fixed distance below is
+  // written for that body and multiplied by this.
+  k: number;
 }
 
-export function geomOf(b: Bones): Geom {
+// `over` replaces the fixed offsets with the real ones read from the kit's pivots.
+export function geomOf(b: Bones, over: Partial<Pick<Geom, 'sh' | 'hipX' | 'skirt'>> = {}): Geom {
   const ankle = -b.footH * 0.87;
   const pel = ankle - (b.thigh + b.shin) * 0.93;
-  const skirt = b.thigh * 0.7;
+  const skirt = over.skirt ?? b.thigh * 0.7;
   const bottom = pel + skirt;
   const top = bottom - b.torsoH;
   return {
@@ -54,9 +61,10 @@ export function geomOf(b: Bones): Geom {
     ankle,
     pel,
     skirt,
-    sh: { x: b.torsoW * 0.42, y: top + b.torsoH * 0.14 - pel },
-    hipX: b.torsoW * 0.033,
+    sh: over.sh ?? { x: b.torsoW * 0.42, y: top + b.torsoH * 0.14 - pel },
+    hipX: over.hipX ?? b.torsoW * 0.033,
     reach: b.upper + b.fore,
+    k: b.torsoW / REF_TORSO_W,
   };
 }
 
@@ -151,8 +159,16 @@ export interface Tune {
   swing: number;
   // Seconds for the whole attack clip.
   attackS: number;
+  // Walk phase (radians) per second: the prototype's 1.8 steps a second.
+  walkPhaseRate: number;
 }
-export const TUNE: Tune = { stride: 18, bob: 2.4, swing: 1, attackS: 1 };
+export const TUNE: Tune = {
+  stride: 18,
+  bob: 2.4,
+  swing: 1,
+  attackS: 1,
+  walkPhaseRate: 1.8 * Math.PI,
+};
 
 export type SkeletonMode = 'idle' | 'walk' | 'attack' | 'hurt';
 
@@ -168,6 +184,7 @@ export interface SkeletonPose {
   hb: V2;
   axe: number;
   nod: number;
+  attack: boolean;
   contact: boolean;
   flash: number;
   // The weapon is cocked behind the head: draw it before the head.
@@ -199,14 +216,16 @@ export function skeletonPose(g: Geom, inp: PoseInput, tune: Tune = TUNE): Skelet
     hb: { x: 0.05 * R, y: g.sh.y + 0.95 * R },
     axe: 0.3,
     nod: 0,
+    attack: false,
     contact: false,
     flash: 0,
     behind: false,
   };
-  P.py += Math.sin(t * 2.4) * 0.5;
+  const k = g.k;
+  P.py += Math.sin(t * 2.4) * 0.5 * k;
   if (mode === 'walk') {
-    const St = tune.stride;
-    const H = 7;
+    const St = tune.stride * k;
+    const H = 7 * k;
     const u = (inp.walkPh / (Math.PI * 2)) % 1;
     for (const i of [0, 1] as const) {
       const v = (u + i * 0.5) % 1;
@@ -222,7 +241,7 @@ export function skeletonPose(g: Geom, inp: PoseInput, tune: Tune = TUNE): Skelet
       }
       P.feet[i] = { x: (i ? g.hipX : -g.hipX) + x, y: -y, toe };
     }
-    P.py = g.pel - (tune.bob * (1 - Math.cos(4 * Math.PI * u))) / 2 + tune.bob * 0.4;
+    P.py = g.pel - (tune.bob * k * (1 - Math.cos(4 * Math.PI * u))) / 2 + tune.bob * k * 0.4;
     P.lean = 0.05;
     const sw = Math.cos(2 * Math.PI * u);
     const RR = 0.96 * R;
@@ -237,28 +256,29 @@ export function skeletonPose(g: Geom, inp: PoseInput, tune: Tune = TUNE): Skelet
     const [hx, hy, axe, dx, lean] = sampleKeys(clip.keys, u);
     const sw = tune.swing;
     P.hf = { x: hx * R * sw, y: g.sh.y + hy * R * sw };
+    P.attack = true;
     P.axe = axe * (0.7 + 0.3 * sw);
-    P.px = dx;
+    P.px = dx * k;
     P.lean = lean;
     P.contact = u > clip.keys[clip.contact[0]][0] && u < clip.keys[clip.contact[1]][0];
     P.behind = u > clip.behind[0] && u < clip.behind[1];
     P.nod = lean * 0.4;
-    P.feet[0].x = -g.hipX * 3 - dx;
+    P.feet[0].x = -g.hipX * 3 - dx * k;
     const step = clamp((u - 0.3) / 0.16, 0, 1);
-    P.feet[1].y = -5 * Math.sin(Math.PI * step);
-    P.hb = { x: -4 - lean * 20, y: g.sh.y + 0.93 * R };
+    P.feet[1].y = -5 * k * Math.sin(Math.PI * step);
+    P.hb = { x: (-4 - lean * 20) * k, y: g.sh.y + 0.93 * R };
   }
   if (mode === 'hurt') {
-    const k = Math.sin(Math.PI * clamp(t / 0.6, 0, 1));
-    P.px = -8 * k;
-    P.lean = -0.2 * k;
-    P.py += 2 * k;
-    P.nod = -0.15 * k;
+    const kk = Math.sin(Math.PI * clamp(t / 0.6, 0, 1));
+    P.px = -8 * k * kk;
+    P.lean = -0.2 * kk;
+    P.py += 2 * k * kk;
+    P.nod = -0.15 * kk;
     P.flash = t < 0.16 ? 1 - t / 0.16 : 0;
-    P.feet[0].x = -g.hipX * 3 + 2.4 * k;
-    P.feet[1].x = g.hipX * 2.7 + 4.8 * k;
-    P.hf = { x: 4, y: g.sh.y + 0.8 * R };
-    P.hb = { x: -10 * k, y: g.sh.y + 0.7 * R };
+    P.feet[0].x = -g.hipX * 3 + 2.4 * k * kk;
+    P.feet[1].x = g.hipX * 2.7 + 4.8 * k * kk;
+    P.hf = { x: 4 * k, y: g.sh.y + 0.8 * R };
+    P.hb = { x: -10 * k * kk, y: g.sh.y + 0.7 * R };
   }
   return P;
 }

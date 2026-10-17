@@ -7,6 +7,8 @@ import { RUNTIME_KITS } from '../ui/parts/paintedLoad';
 import type { Kit, KitPart } from '../ui/parts/painted';
 import { releaseSets } from '../ui/parts/bake';
 import { UnitViews } from '../ui/unitViews';
+import { SkeletonRig, type RigSpec } from '../ui/skeleton/skeletonRig';
+import { CHOP, TUNE, attackU } from '../ui/skeleton/skeleton';
 import type { SimEvent, UnitState } from '../sim/api';
 
 interface PartSpec {
@@ -77,9 +79,16 @@ export interface StageSpec {
   zoom: number;
   // The camera looks this far above the feet (taller figures look higher).
   lookUp?: number;
+  // Draw the subject on the skeleton rig from these parts (instead of its look), at `unit` px per
+  // drawing unit.
+  skeleton?: RigSpec;
+  unit?: number;
 }
 
 const FPS = 15;
+// The skeleton's attack clip (seconds) and the sim's windup lead the test script sends.
+const ATTACK_S = 0.8;
+const LEAD_S = 0.4;
 const DT = 1000 / FPS;
 // Seconds per phase.
 export const PHASES = { idle: 1.2, walk: 1.8, attack: 1.8, hurt: 1.2 } as const;
@@ -111,6 +120,7 @@ export class AnimStage {
   private frame = 0;
   readonly total = Math.round(Object.values(PHASES).reduce((a, b) => a + b, 0) * FPS);
   private home = { x: 0, y: 0 };
+  private rig: SkeletonRig | null = null;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -128,6 +138,14 @@ export class AnimStage {
     cam.centerOn(at.x + 34, at.y - (this.spec.lookUp ?? 14));
     this.scene.scene.get('Hud').scene.setVisible(false);
     this.views = new UnitViews(this.scene);
+    if (this.spec.skeleton) {
+      this.rig = new SkeletonRig(this.scene, this.spec.skeleton, this.spec.unit ?? 4, {
+        ...TUNE,
+        attackS: ATTACK_S,
+      });
+      this.rig.setDepth(1e6);
+      this.scene.add.existing(this.rig);
+    }
     this.game.loop.sleep();
     this.t = 0;
     this.frame = 0;
@@ -197,12 +215,54 @@ export class AnimStage {
     swing(attackStart + 0.95, 1, 2);
     swing(hurtStart + 0.1, 2, 1);
     swing(hurtStart + 0.7, 2, 1);
-    const units = [subject, foe];
+    const units = this.rig ? [foe] : [subject, foe];
+    if (this.rig) this.driveRig(t, ph, sx, attackStart, hurtStart, walkStart);
     this.views.sync(units, events, Math.round(t * 1000), DT);
     this.game.step(this.t, DT);
     this.t += DT;
     this.frame++;
     return true;
+  }
+
+  // Moves the skeleton hero through the same script: idle, a walk, two swings on the sim's windup
+  // and hit times, then two blows taken.
+  private driveRig(
+    t: number,
+    ph: keyof typeof PHASES,
+    x: number,
+    attackStart: number,
+    hurtStart: number,
+    walkStart: number,
+  ): void {
+    const rig = this.rig;
+    if (!rig) return;
+    rig.setPosition(x, this.home.y);
+    let mode: 'idle' | 'walk' | 'attack' | 'hurt' = ph;
+    let mt = t;
+    let u: number | undefined;
+    if (ph === 'walk') mt = t - walkStart;
+    if (ph === 'attack') {
+      // Two swings: each wind-up starts 0.1 s and 0.95 s in; between them the hero stands.
+      mode = 'idle';
+      for (const at of [attackStart + 0.1, attackStart + 0.95]) {
+        const el = t - at;
+        if (el >= 0 && el < LEAD_S + (1 - CHOP.keys[CHOP.contact[0]][0]) * ATTACK_S + 0.001) {
+          mode = 'attack';
+          u = attackU(CHOP, el, LEAD_S, ATTACK_S);
+        }
+      }
+    }
+    if (ph === 'hurt') {
+      mode = 'idle';
+      for (const at of [hurtStart + 0.5, hurtStart + 1.1]) {
+        if (t >= at && t < at + 0.6) {
+          mode = 'hurt';
+          mt = t - at;
+        }
+      }
+    }
+    const walkPh = Math.max(0, t - walkStart) * TUNE.walkPhaseRate;
+    rig.update({ mode, t: mt, walkPh, u }, 1);
   }
 
   // The canvas around the subject as a PNG data URL (the canvas keeps its buffer: ?record).
@@ -231,6 +291,8 @@ export class AnimStage {
   }
 
   stop(): void {
+    this.rig?.destroy();
+    this.rig = null;
     releaseSets(this.scene);
     this.game.loop.wake();
   }
