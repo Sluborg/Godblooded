@@ -338,3 +338,7 @@ G13 | 2026-10-17T17:38:24.155Z | heroes | kit_rig_test | uploaded | test-grade, 
 G14 | 2026-10-17T17:40:32.131Z | heroes | kit_capes | uploaded | unchanged PNG1254x1254,1500864bytes, Drive metadata name/MIME/size/parent verified. Four separate back panels, straight collar bands, no shoulder or arm covering; Odin dusty blue-grey/raven, Thor brick-red/fur, Loki moss/ragged, Freyja faded rose/falcon. Second attempt removed clasp symbols and speckle; plain bronze discs, top-left light, clean pixel clusters. Art notes: simplified broad fold shading compared with anchor, approximate symmetry and near-magenta key; assembly widths to be set by Art. https://drive.google.com/file/d/1pUZW09Cuh-v56ZmPouksPrgX6ns4GnLz/view?usp=drivesdk . No resize/crop/conversion/recompression. Production paused per latest direct Stefan instruction.
 
 B19 | 2026-10-17T17:48:17.013Z | buildings | started | O-10 rule14 rebuild from shipped B26 anchor
+
+B19 | 2026-10-17T17:50:50.239Z | buildings | bld_townhall_t2 | uploaded | O-10 rule14 rebuild from shipped B26: uniform turf roof, no roof metal, repeated unbraced bays, mirrored dragon pair; fully shingled projecting porch with jointed depth beams, paired banners centered on carved posts. Second attempt corrected framing only. Unchanged PNG metadata verified. https://drive.google.com/file/d/1KjUGx6LdioocoSQGHcspR5EjstpmIGm4/view
+
+B27 | 2026-10-17T17:50:50.239Z | buildings | started | O-10 rule14 smithies and Greek temple t2
