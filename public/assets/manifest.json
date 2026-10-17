@@ -581,6 +581,158 @@
       "source": "B2"
     },
     {
+      "id": "kit_boots",
+      "kind": "kit",
+      "tier": null,
+      "view": null,
+      "file": "kits/kit_boots.png",
+      "anchorX": 0.5,
+      "anchorY": 0.5,
+      "pxPerUnit": 16,
+      "cells": {
+        "boot_heavy_1": {
+          "x": 8,
+          "y": 8,
+          "w": 176,
+          "h": 109,
+          "pivots": {
+            "ankle": [0.35, 0.15],
+            "ground": [0.5, 0.95]
+          }
+        },
+        "boot_light_1": {
+          "x": 192,
+          "y": 8,
+          "w": 176,
+          "h": 109,
+          "pivots": {
+            "ankle": [0.35, 0.15],
+            "ground": [0.5, 0.95]
+          }
+        },
+        "boot_robe_1": {
+          "x": 376,
+          "y": 8,
+          "w": 176,
+          "h": 109,
+          "pivots": {
+            "ankle": [0.35, 0.15],
+            "ground": [0.5, 0.95]
+          }
+        }
+      },
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "G12"
+    },
+    {
+      "id": "kit_heads_a",
+      "kind": "kit",
+      "tier": null,
+      "view": null,
+      "file": "kits/kit_heads_a.png",
+      "anchorX": 0.5,
+      "anchorY": 0.5,
+      "pxPerUnit": 16,
+      "cells": {
+        "head_a": {
+          "x": 8,
+          "y": 8,
+          "w": 304,
+          "h": 339,
+          "pivots": {
+            "neck": [0.5, 0.95],
+            "brow": [0.5, 0.4]
+          }
+        },
+        "head_b": {
+          "x": 320,
+          "y": 8,
+          "w": 304,
+          "h": 343,
+          "pivots": {
+            "neck": [0.5, 0.95],
+            "brow": [0.5, 0.4]
+          }
+        },
+        "head_c": {
+          "x": 632,
+          "y": 8,
+          "w": 304,
+          "h": 322,
+          "pivots": {
+            "neck": [0.5, 0.95],
+            "brow": [0.5, 0.4]
+          }
+        },
+        "head_d": {
+          "x": 944,
+          "y": 8,
+          "w": 304,
+          "h": 345,
+          "pivots": {
+            "neck": [0.5, 0.95],
+            "brow": [0.5, 0.4]
+          }
+        }
+      },
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "G12"
+    },
+    {
+      "id": "kit_heads_b",
+      "kind": "kit",
+      "tier": null,
+      "view": null,
+      "file": "kits/kit_heads_b.png",
+      "anchorX": 0.5,
+      "anchorY": 0.5,
+      "pxPerUnit": 16,
+      "cells": {
+        "head_e": {
+          "x": 8,
+          "y": 8,
+          "w": 304,
+          "h": 348,
+          "pivots": {
+            "neck": [0.5, 0.95],
+            "brow": [0.5, 0.4]
+          }
+        },
+        "head_f": {
+          "x": 320,
+          "y": 8,
+          "w": 304,
+          "h": 386,
+          "pivots": {
+            "neck": [0.5, 0.95],
+            "brow": [0.5, 0.4]
+          }
+        },
+        "head_g": {
+          "x": 632,
+          "y": 8,
+          "w": 304,
+          "h": 434,
+          "pivots": {
+            "neck": [0.5, 0.95],
+            "brow": [0.5, 0.4]
+          }
+        },
+        "head_h": {
+          "x": 944,
+          "y": 8,
+          "w": 304,
+          "h": 482,
+          "pivots": {
+            "neck": [0.5, 0.95],
+            "brow": [0.5, 0.4]
+          }
+        }
+      },
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "G12"
+    },
+    {
       "id": "kit_minotaur",
       "kind": "kit",
       "tier": null,

@@ -1,0 +1,45 @@
+{
+  "id": "kit_heads_b",
+  "batch": "G12",
+  "upload": "assets/source/G12/kit_heads_b.png",
+  "pxPerUnit": 16,
+  "scale": 1,
+  "parts": [
+    {
+      "cell": "head_e",
+      "box": [10, 10, 620, 620],
+      "pivots": {
+        "neck": [0.5, 0.95],
+        "brow": [0.5, 0.4]
+      },
+      "width": 19
+    },
+    {
+      "cell": "head_f",
+      "box": [634, 10, 1244, 620],
+      "pivots": {
+        "neck": [0.5, 0.95],
+        "brow": [0.5, 0.4]
+      },
+      "width": 19
+    },
+    {
+      "cell": "head_g",
+      "box": [10, 634, 620, 1244],
+      "pivots": {
+        "neck": [0.5, 0.95],
+        "brow": [0.5, 0.4]
+      },
+      "width": 19
+    },
+    {
+      "cell": "head_h",
+      "box": [634, 634, 1244, 1244],
+      "pivots": {
+        "neck": [0.5, 0.95],
+        "brow": [0.5, 0.4]
+      },
+      "width": 19
+    }
+  ]
+}
