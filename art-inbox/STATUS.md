@@ -318,3 +318,5 @@ G11 | 2026-10-17T14:55:02.199Z | monsters | g11_troll, kit_troll | uploaded | O-
 G13 | 2026-10-17T16:15:15.839Z | heroes | started | O-9 relaxed per-piece scale and single-picture green-haft grip fists; direct run all.
 
 G13 | 2026-10-17T16:20:08.407Z | heroes | partial delivery O-9 | kit_rig_hands unchanged1254x1254 PNG uploaded https://drive.google.com/file/d/1inXL5QPabkE0Fj6tr4HCZMqSoc1Bf7sR/view?usp=drivesdk ; second attempt shows mirrored grip thumbs over vertical green haft channels, loose fists thumb toward body. Art must review split-layer extraction and grip registration. Near-magenta key is note. kit_rig_test withheld after3 attempts: rounded closed vest shoulders still read as sleeve-like open shoulder edges, torso too near cell boundary; initial shape/scale faults improved but not fully resolved. No complete G13 claimed. Cloaks not redone per O-9. O-10 pause applies.
+
+G11 | 2026-10-17T16:25:18.656Z | monsters | started | O-10 kit_monster_grips only; run109a1c20.
