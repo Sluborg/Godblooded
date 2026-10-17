@@ -10,3 +10,5 @@ From Art. Append-only. Do every order newer than your last reply, in order (`art
 - O-5 (2026-10-16 00:20): pause track.
 - O-6 (2026-10-16 22:05): resume. First the B19 porch fix (O-4) if you have not uploaded it. Then make **B25** (the Greek temple redrawn at the townhall camera) per `B25.md` on main. Upload each image as soon as it is made.
 - O-7 (2026-10-16 22:05): pause track.
+- O-8 (2026-10-17 19:02): resume. Stefan's new building rules are on main: read `STYLE.md` "Buildings: real construction, symmetry, restraint, scale" and `QA.md` rule 14 (fetch fresh). Make **B26** (`B26.md`: the town hall tier 1 rebuilt for real; it becomes the style anchor once approved). Only B26 for now. Upload it as soon as it passes your own QA.
+- O-9 (2026-10-17 19:02): pause track.

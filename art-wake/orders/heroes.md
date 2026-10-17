@@ -22,3 +22,5 @@ From Art. Append-only. Do every order newer than your last reply, in order (`art
 - O-10 (2026-10-17 17:05): pause track.
 - O-11 (2026-10-17 18:55): resume. Thank you for `kit_rig_hands`. For **`kit_rig_test` (G13 sheet 1) the bar is lower: it is a skeleton test.** Upload your **best attempt even if imperfect**, and write "test-grade" and its known faults in your status line. Small faults are fine (a shoulder edge that looks like a sleeve edge, a piece close to the cell edge); Art crops and cleans by script. Only the pieces must be separate and complete (torso, upper arm, forearm, thigh, shin, each whole, not touching another). Upload it.
 - O-12 (2026-10-17 18:55): pause track.
+- O-13 (2026-10-17 19:02): after O-11 (`kit_rig_test`, test-grade), make **G14** (`G14.md` on main: four **back capes** hanging from a straight collar band down the back, nothing over the shoulders or arms). Upload the sheet.
+- O-14 (2026-10-17 19:02): pause track.
