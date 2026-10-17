@@ -222,9 +222,17 @@ export function layout(kit: Kit, p: RigPose, raised = false, headOff?: HeadOff):
   const hand = (h: V2): V2 => ({ x: h.x * PROTO_K, y: h.y * PROTO_K });
   // The hand on a wrist: drawn with its wrist pivot there, turned with the forearm; where its grip
   // point lands (the weapon's grip goes there; without a hand picture the wrist is the grip).
-  const handAt = (at: V2, rot: number, far: boolean): { draws: Draw[]; grip: V2 } => {
-    const h = parts.hand;
-    if (!h) return { draws: [], grip: at };
+  // A hand: `back` is drawn before the weapon and `front` after it. A plain hand is all `back`; a
+  // grip pair (`hand` = the back half, `layers.hand` = the front half, same pivots) wraps the haft
+  // so it passes between the two. The empty off hand uses the closed `fist` when the kit has one.
+  const handAt = (
+    at: V2,
+    rot: number,
+    far: boolean,
+    empty = false,
+  ): { back: Draw[]; front: Draw[]; grip: V2 } => {
+    const h = empty ? (parts.fist ?? parts.hand) : parts.hand;
+    if (!h) return { back: [], front: [], grip: at };
     const [gx, gy] = offsetIn(h, 'wrist', 'grip', 1, 1);
     const c = Math.cos(rot);
     const sn = Math.sin(rot);
@@ -240,7 +248,8 @@ export function layout(kit: Kit, p: RigPose, raised = false, headOff?: HeadOff):
       inBody: true,
       far,
     };
-    return { draws: layers.hand ? [d, { ...d, part: layers.hand }] : [d], grip };
+    const front = layers.hand && !(empty && parts.fist) ? [{ ...d, part: layers.hand }] : [];
+    return { back: [d], front, grip };
   };
   // An arm from a shoulder socket to a hand target: its Draws (upper arm, forearm, hand), the
   // wrist and the point the weapon grip goes to.
@@ -248,11 +257,12 @@ export function layout(kit: Kit, p: RigPose, raised = false, headOff?: HeadOff):
     slotShoulder: string,
     target: V2,
     far: boolean,
-  ): { draws: Draw[]; end: V2; grip: V2 } => {
+    empty = false,
+  ): { draws: Draw[]; front: Draw[]; end: V2; grip: V2 } => {
     // Floating: just the hand at the joint, like the code rig.
     if (floating) {
-      const h = handAt(target, 0, far);
-      return { draws: h.draws, end: target, grip: h.grip };
+      const h = handAt(target, 0, far, empty);
+      return { draws: h.back, front: h.front, end: target, grip: h.grip };
     }
     const up = parts.upperarm as KitPart;
     const fore = parts.forearm as KitPart;
@@ -271,9 +281,9 @@ export function layout(kit: Kit, p: RigPose, raised = false, headOff?: HeadOff):
     };
     mk('upperarm', up, 'shoulder', shoulder, aUp);
     mk('forearm', fore, 'elbow', r.mid, aFore);
-    const h = handAt(r.end, aFore, far);
-    draws.push(...h.draws);
-    return { draws, end: r.end, grip: h.grip };
+    const h = handAt(r.end, aFore, far, empty);
+    draws.push(...h.back);
+    return { draws, front: h.front, end: r.end, grip: h.grip };
   };
   const bootDraw = (pv: 'ankle' | 'ground', at: V2, far: boolean) => {
     const boot = parts.boot;
@@ -348,11 +358,11 @@ export function layout(kit: Kit, p: RigPose, raised = false, headOff?: HeadOff):
   // The prototype's f0 is the back foot, f1 the front one.
   const fs = kit.footSpread ?? 1;
   drawLeg('hip_b', { x: p.f0.x * PROTO_K * fs, y: p.f0.y * PROTO_K }, true);
-  const back = arm('shoulder_b', hand(p.hb), true);
+  const back = arm('shoulder_b', hand(p.hb), true, true);
   // A shield replaces the off-hand: it is drawn at the off-hand socket and no hand shows (a shield
   // part carries a `strap` pivot; any other off-hand item is held by a visible hand).
   const shield = !!parts.offhand?.cell.pivots?.strap;
-  if (!shield) out.push(...back.draws);
+  if (!shield) out.push(...back.draws, ...back.front);
   push('torso', torso, {
     pivot: 'hip',
     ...hipAt,
@@ -384,7 +394,10 @@ export function layout(kit: Kit, p: RigPose, raised = false, headOff?: HeadOff):
     frontDraws.push(w);
     if (layers.weapon) frontDraws.push({ ...w, part: layers.weapon });
   }
-  frontDraws.push(...fr.draws);
+  // A grip pair wraps the haft: hand back, weapon, hand front. Any other hand is drawn over it.
+  if (fr.front.length) frontDraws.unshift(...fr.draws);
+  else frontDraws.push(...fr.draws);
+  frontDraws.push(...fr.front);
   // A weapon cocked behind the head is drawn before the head.
   if (raised) out.push(...frontDraws);
   const ho = headOff ?? { dx: 0, dy: 0, rot: 0 };

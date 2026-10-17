@@ -15,6 +15,7 @@ export const KIT_SLOTS = [
   'thigh',
   'shin',
   'hand',
+  'fist',
   'boot',
   'weapon',
   'offhand',
@@ -88,10 +89,12 @@ export const HERO_KITS: Readonly<Record<string, KitCombo>> = {
     parts: {
       torso: 'torso_minotaur',
       head: 'head_minotaur',
-      hand: 'hand_minotaur',
+      hand: 'hand_grip_minotaur_back',
+      fist: 'hand_minotaur',
       boot: 'boot_minotaur',
       weapon: 'weapon_doubleaxe',
     },
+    layers: { hand: 'hand_grip_minotaur_front' },
   },
 };
 
