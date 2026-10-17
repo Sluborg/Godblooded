@@ -71,7 +71,11 @@ painted in; busy piles of props; a temple that is only a gate.
      visible joint or rests on the foundation. Nothing floats, nothing is bolted on for
      decoration. Period-true methods: Norse turf or shingle roofs on rafters with **no metal
      bands or straps**, stave and log joinery; Greek post-and-lintel in stone; Egyptian battered
-     mud-brick and stone. No loose diagonal beams leaning on walls or ending in mid-air.
+     mud-brick and stone. No loose beams ending in mid-air. **Every member follows the
+     building's perspective** (Stefan 2026-10-17): one that projects out from a wall (a porch
+     beam, a brace, a rafter end, a buttress) recedes toward the viewer at the camera's angle;
+     one that runs along a wall stays parallel to that wall's edge. Never a beam that should
+     project outward drawn running along the wall.
   2. **Symmetry where the type expects it:** gables, temple fronts, gates, doorways and paired
      ornaments are mirror-symmetric about the entrance axis (two gable heads the same size and
      pose, the door on the centre line of a temple front). Repeated elements (bays, columns,
