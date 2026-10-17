@@ -535,3 +535,6 @@ about the entrance axis, and repeated elements share width and spacing. One foca
 facade (advisory). Door about 1.3x hero height. Art QA fails pictures that break construction,
 symmetry or scale (QA 14.1, 14.2, 14.4); restraint (14.3) is advisory. Redos of shipped
 buildings are Stefan's call after Art lists the offenders.
+Correction (Stefan, same day): beams in front of a building are fine. The fault is perspective:
+a member meant to project out from the building must not be drawn running along it. Every beam
+follows the building's perspective; loose beams ending in mid-air still fail.
