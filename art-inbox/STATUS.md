@@ -346,3 +346,7 @@ B27 | 2026-10-17T17:50:50.239Z | buildings | started | O-10 rule14 smithies and 
 B27 | 2026-10-17T17:52:13.196Z | buildings | bld_smithy_t1 | partial delivery | O-10 unchanged PNG; name/MIME/size/folder verified. Rule14 QA: all-shingle rafter roof,no roof metal,joined braces,regular posts; one chimney,hearth,anvil,three usable weapons. Near-magenta/oversized framing note. https://drive.google.com/file/d/19sq0VJzEJ-m_XYirj0qZ7HTHMiFY73Ec/view?usp=drivesdk
 
 B27 | 2026-10-17T17:53:48.855Z | buildings | bld_smithy_t2 | partial delivery | O-10 unchanged PNG; metadata verified. Same delivered smithy grown,2 matching chimneys spaced on ridge,2 anvils,better masonry; shingle rafters,no roof metal,repeat joined bays; contained hearth fire,no smoke. Near-magenta/oversized framing note. https://drive.google.com/file/d/1PncUu1dyPrc5UkkFZH3kBHAmc-ijtU3r/view?usp=drivesdk
+
+B27 | 2026-10-17T17:56:51.540Z | buildings | bld_temple_greek_t2 | QA failed; not uploaded | O-10 three attempts:6 columns present,but central spacing stays wider and doorway not precisely on column/pediment axis; rule14.2 failure. Both smithies delivered separately; batch NOT fully uploaded.
+
+B25 | 2026-10-17T17:56:51.540Z | buildings | started | O-10 Egyptian footprint/camera rebuild
