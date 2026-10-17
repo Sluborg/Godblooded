@@ -519,3 +519,9 @@ Go for G13 as a skeleton test only: the base rig sheet (sleeveless torso, upper 
 thigh, shin) and the hands sheet (loose fists L/R, two-layer grip hands: back of hand behind the
 haft, thumb in front), with proportions from the test page. Armour layer sheets and weapons wait
 for the test verdict. Spine stays an option (decided after the test).
+
+## 2026-10-17 Heroes mirror when facing left (Stefan)
+
+Turning left mirrors the whole figure (scaleX -1): the weapon and shield swap hands visually.
+No far-side hand art, no layer swap. G13 still ships both left and right hands, so true
+handedness stays a cheap switch later if the test shows a need.
