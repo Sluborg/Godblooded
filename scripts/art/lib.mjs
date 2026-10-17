@@ -691,6 +691,14 @@ export function splitGrip(img) {
   const gx0 = count.findIndex((c) => c >= peak * 0.3);
   const gx1 = W - 1 - [...count].reverse().findIndex((c) => c >= peak * 0.3);
   const pad = Math.max(2, Math.round((gx1 - gx0 + 1) * 0.15));
+  // Near the haft, its dark anti-aliased fringe counts as haft too.
+  const isFringe = (i, x) =>
+    x >= gx0 - pad &&
+    x <= gx1 + pad &&
+    data[i + 3] > 0 &&
+    data[i + 1] > 40 &&
+    data[i + 1] > data[i] + 25 &&
+    data[i + 1] > data[i + 2] + 25;
   const back = blank(W, H);
   const front = blank(W, H);
   const closed = blank(W, H);
@@ -700,7 +708,7 @@ export function splitGrip(img) {
     let right = false;
     for (let x = 0; x < W; x++) {
       const i = (y * W + x) * 4;
-      if (data[i + 3] === 0 || isGreen(i)) continue;
+      if (data[i + 3] === 0 || isGreen(i) || isFringe(i, x)) continue;
       if (x < gx0 - pad) left = true;
       if (x > gx1 + pad) right = true;
     }
@@ -709,7 +717,7 @@ export function splitGrip(img) {
       if (data[i + 3] === 0) continue;
       // The haft stub and its outline go wherever the hand does not close round it on both sides.
       if (!(left && right) && x >= gx0 - pad && x <= gx1 + pad) continue;
-      if (isGreen(i)) {
+      if (isGreen(i) || isFringe(i, x)) {
         if (left && right) for (let k = 0; k < 4; k++) closed.data[i + k] = dark[k];
         continue;
       }
