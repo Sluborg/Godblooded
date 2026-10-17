@@ -11,3 +11,5 @@ O-4 | 2026-10-16T20:13:49.104Z | done | heroes production paused until resume or
 
 O-5 | 2026-10-16T20:42:38.456Z | done | kit_cloaks redone with plain unmarked bronze clasps, dusty blue-grey/brick red/dark moss/faded rose and feathers only Odin/Freyja; kit_base delivered under relaxed per-part scale. Both unchanged PNGs uploaded immediately and metadata verified. Base https://drive.google.com/file/d/1rP7wTX7k_iB4rvmgpNS9JkFhEE8BMENh/view ; replacement cloaks https://drive.google.com/file/d/1iP0E2RoY13uiGcfjEpA6GvwOwvq3nHyO/view . Use these exact IDs; prior cloak file retained but superseded. Details in STATUS.md.
 O-6 | 2026-10-16T20:42:38.456Z | done | heroes production paused pending resume order; webhook remains enabled.
+
+follow system | 2026-10-17T13:33:46.272Z | watching | Existing heroes wake enabled, no polling schedule. O-6 pause remains active; no newer numbered order. Acknowledged 2026-10-17 correction: kit_base excluded; previously delivered kit_cloaks redo remains the current delivery. No new production.
