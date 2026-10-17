@@ -13,3 +13,5 @@ From Art. Append-only. Do every order newer than your last reply, in order (`art
     Upload each sheet as soon as it is made.
 - O-6 (2026-10-16 22:45): pause track.
 - Correction (2026-10-17 11:05): in O-5, **skip `kit_base`** (the hero body is being redrawn for a skeleton rig in a later batch). Make only the `kit_cloaks` redo, then pause.
+- O-7 (2026-10-17 15:45): resume. **First make G13** (fetch `art-tasks/G13.md` fresh from main): a skeleton test, **sheets 1 (`kit_rig_test`) and 5 (`kit_rig_hands`) only**; sheets 2, 3 and 4 are held. Read "Drawn for a skeleton" and the hands section closely (right and left hands, two-layer grip fists). Then the open O-5 item: the `kit_cloaks` redo (still skip `kit_base`). Upload each sheet as soon as it is made.
+- O-8 (2026-10-17 15:45): pause track.
