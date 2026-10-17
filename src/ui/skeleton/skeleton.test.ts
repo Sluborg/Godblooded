@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   CARRY_AXE,
+  CARRY_SLIDE,
   CHOP,
   WRIST_LIMIT,
   attackU,
@@ -38,11 +39,11 @@ describe('clips', () => {
   const close = (got: number[], want: number[]) =>
     got.forEach((v, i) => expect(v).toBeCloseTo(want[i], 9));
   it('samples the first and last key at the ends', () => {
-    close(sampleKeys(CHOP.keys, 0), [0.2, 0.96, CARRY_AXE, 0, 0]);
-    close(sampleKeys(CHOP.keys, 1), [0.2, 0.96, CARRY_AXE, 0, 0]);
+    close(sampleKeys(CHOP.keys, 0), [-0.1, 0.96, CARRY_AXE, 0, 0, CARRY_SLIDE, WRIST_LIMIT]);
+    close(sampleKeys(CHOP.keys, 1), [-0.1, 0.96, CARRY_AXE, 0, 0, CARRY_SLIDE, WRIST_LIMIT]);
   });
   it('hits a key exactly at its time', () => {
-    close(sampleKeys(CHOP.keys, 0.44), [0.5, 0.8, 3.0, 11, 0.5]);
+    close(sampleKeys(CHOP.keys, 0.44), [0.55, 0.95, 3.0, 11, 0.45, 0, 0.96]);
   });
   it('lands the contact key on the sim hit, whatever the windup length', () => {
     for (const lead of [0.2, 0.45, 0.9]) {

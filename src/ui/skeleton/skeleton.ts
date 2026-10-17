@@ -74,7 +74,8 @@ export function geomOf(b: Bones, over: Partial<Pick<Geom, 'sh' | 'hipX' | 'skirt
 }
 
 // A keyframe: time (0..1 of the clip), hand (x, y from the shoulder in arm lengths), weapon angle,
-// hips forward (units), lean (rad), and the easing INTO this key.
+// hips forward (units), lean (rad), grip slide (0 = the grip the weapon is painted with, 1 = the
+// hand slid up to the head of the haft), the wrist limit (rad), and the easing INTO this key.
 export type Key = readonly [
   t: number,
   hx: number,
@@ -82,6 +83,8 @@ export type Key = readonly [
   axe: number,
   dx: number,
   lean: number,
+  slide: number,
+  wrist: number,
   ease: EaseName,
 ];
 
@@ -93,44 +96,50 @@ export interface Clip {
   behind: readonly [from: number, to: number];
 }
 
-// The axe chop: from the carry at the side, the axe is cocked up behind the head, struck down in
-// front (the hand low and forward, the body leaning and dipping), held for the hit pause and carried
-// through back to the carry. The contact key is the moment of the sim's `hit`. The wrist limit
-// keeps the head of the axe about waist high at best; a deeper lean and dip take it lower.
+// The axe chop: from the carry at the side (arm hanging, hand slid up the haft so the head hangs
+// near the knee), the axe is cocked up behind the head, struck down in front (hand low and forward,
+// body leaning and dipping), held for the hit pause and carried through back to the carry. The
+// contact key is the moment of the sim's `hit`. The wrist bends 40 degrees, 55 in the contact
+// window (Lead 2026-10-17).
 export const CARRY_AXE = 3;
+export const CARRY_SLIDE = 0.6;
+export const WRIST_STRIKE = 0.96;
 export const CHOP: Clip = {
   keys: [
-    [0.0, 0.2, 0.96, CARRY_AXE, 0, 0, 'inOut'],
-    [0.34, -0.58, -0.78, -1.25, -4, -0.1, 'in'],
-    [0.44, 0.5, 0.8, 3.0, 11, 0.5, 'out'],
-    [0.52, 0.5, 0.8, 3.0, 11, 0.5, 'out'],
-    [0.68, 0.42, 0.9, 3.0, 11, 0.45, 'inOut'],
-    [1.0, 0.2, 0.96, CARRY_AXE, 0, 0, 'inOut'],
+    [0.0, -0.1, 0.96, CARRY_AXE, 0, 0, CARRY_SLIDE, WRIST_LIMIT, 'inOut'],
+    [0.34, -0.58, -0.78, -1.25, -4, -0.1, 0, WRIST_LIMIT, 'in'],
+    [0.44, 0.55, 0.95, 3.0, 11, 0.45, 0, WRIST_STRIKE, 'out'],
+    [0.52, 0.55, 0.95, 3.0, 11, 0.45, 0, WRIST_STRIKE, 'out'],
+    [0.68, 0.42, 0.95, 3.0, 11, 0.4, 0.4, WRIST_LIMIT, 'inOut'],
+    [1.0, -0.1, 0.96, CARRY_AXE, 0, 0, CARRY_SLIDE, WRIST_LIMIT, 'inOut'],
   ],
   contact: [2, 3],
   behind: [0.08, 0.4],
 };
 
-export type KeyValues = [hx: number, hy: number, axe: number, dx: number, lean: number];
+export type KeyValues = [
+  hx: number,
+  hy: number,
+  axe: number,
+  dx: number,
+  lean: number,
+  slide: number,
+  wrist: number,
+];
 
 // The keyed values at clip time `t` (0..1).
 export function sampleKeys(keys: readonly Key[], t: number): KeyValues {
   const first = keys[0];
   const last = keys[keys.length - 1];
-  const vals = (k: Key): KeyValues => [k[1], k[2], k[3], k[4], k[5]];
+  const vals = (k: Key): KeyValues => [k[1], k[2], k[3], k[4], k[5], k[6], k[7]];
   if (t <= first[0]) return vals(first);
   for (let i = 1; i < keys.length; i++) {
     const b = keys[i];
     if (t <= b[0]) {
       const a = keys[i - 1];
-      const k = EASE[b[6]]((t - a[0]) / (b[0] - a[0]));
-      return [
-        lerp(a[1], b[1], k),
-        lerp(a[2], b[2], k),
-        lerp(a[3], b[3], k),
-        lerp(a[4], b[4], k),
-        lerp(a[5], b[5], k),
-      ];
+      const k = EASE[b[8]]((t - a[0]) / (b[0] - a[0]));
+      const v = (j: 1 | 2 | 3 | 4 | 5 | 6 | 7) => lerp(a[j], b[j], k);
+      return [v(1), v(2), v(3), v(4), v(5), v(6), v(7)];
     }
   }
   return vals(last);
@@ -149,10 +158,10 @@ export function attackU(clip: Clip, elapsed: number, leadS: number, attackS: num
 // The weapon's angle in the hand, kept within the wrist limit of the forearm: `want` is the angle
 // the clip asks for (0 = up, clockwise), `forearm` the forearm's direction (atan2 of the elbow to
 // the wrist). Returns the haft's rotation to draw (0 = up, clockwise).
-export function weaponAngle(want: number, forearm: number): number {
+export function weaponAngle(want: number, forearm: number, limit = WRIST_LIMIT): number {
   let rel = want + 0.26 - Math.PI / 2 - forearm;
   rel = Math.atan2(Math.sin(rel), Math.cos(rel));
-  rel = clamp(rel, -Math.PI / 2 - WRIST_LIMIT, -Math.PI / 2 + WRIST_LIMIT);
+  rel = clamp(rel, -Math.PI / 2 - limit, -Math.PI / 2 + limit);
   return forearm + rel + Math.PI / 2;
 }
 
@@ -192,6 +201,9 @@ export interface SkeletonPose {
   hf: V2;
   hb: V2;
   axe: number;
+  // Grip slide along the haft (0..1) and the wrist limit in force (rad).
+  slide: number;
+  wrist: number;
   nod: number;
   attack: boolean;
   contact: boolean;
@@ -224,6 +236,8 @@ export function skeletonPose(g: Geom, inp: PoseInput, tune: Tune = TUNE): Skelet
     hf: { x: -0.12 * R, y: g.sh.y + 0.96 * R },
     hb: { x: 0.05 * R, y: g.sh.y + 0.95 * R },
     axe: CARRY_AXE,
+    slide: CARRY_SLIDE,
+    wrist: WRIST_LIMIT,
     nod: 0,
     attack: false,
     contact: false,
@@ -254,19 +268,21 @@ export function skeletonPose(g: Geom, inp: PoseInput, tune: Tune = TUNE): Skelet
     P.lean = 0.05;
     const sw = Math.cos(2 * Math.PI * u);
     const RR = 0.96 * R;
-    const thB = 0.15 + 0.45 * sw;
-    const thF = 0.4 - 0.18 * sw;
+    const thB = 0.1 - 0.3 * sw;
+    const thF = 0.04 + 0.2 * sw;
     P.hb = { x: Math.sin(thB) * RR, y: g.sh.y + Math.cos(thB) * RR };
     P.hf = { x: Math.sin(thF) * RR, y: g.sh.y + Math.cos(thF) * RR };
   }
   if (mode === 'attack') {
     const clip = inp.clip ?? CHOP;
     const u = inp.u ?? t / tune.attackS;
-    const [hx, hy, axe, dx, lean] = sampleKeys(clip.keys, u);
+    const [hx, hy, axe, dx, lean, slide, wrist] = sampleKeys(clip.keys, u);
     const sw = tune.swing;
     P.hf = { x: hx * R * sw, y: g.sh.y + hy * R * sw };
     P.attack = true;
     P.axe = axe * (0.7 + 0.3 * sw);
+    P.slide = slide;
+    P.wrist = wrist;
     P.px = dx * k;
     P.lean = lean;
     // The knees give as he leans into the blow.

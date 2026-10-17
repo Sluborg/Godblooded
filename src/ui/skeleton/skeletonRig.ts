@@ -5,6 +5,7 @@ import Phaser from 'phaser';
 import { partRef, type PartRef } from '../parts/paintedLoad';
 import {
   geomOf,
+  lerp,
   skeletonPose,
   solveLimb,
   weaponAngle,
@@ -53,6 +54,8 @@ export const RIG_SCALE: RigScale = {
 };
 
 const DARK = 0xb4b4b4;
+// Where on the weapon picture (from its head end) the hand sits when slid fully up the haft.
+const HEAD_GRIP = 0.4;
 
 const pv = (r: PartRef, name: string): [number, number] => {
   const p = r.cell.pivots?.[name];
@@ -329,8 +332,23 @@ export class SkeletonRig extends Phaser.GameObjects.Container {
     }
     // The weapon sits in the weapon hand and follows the forearm within the wrist limit; the fist
     // is drawn over it.
-    const wr = weaponAngle(P.axe, wl.a2);
-    this.put('weapon', s.weapon, this.upper, 'grip', wl.end.x, wl.end.y, wr, false, this.sc.weapon);
+    const wr = weaponAngle(P.axe, wl.a2, P.wrist);
+    const wRef = this.ref(s.weapon);
+    // The hand slides up the haft toward the head (slide 1: grip at HEAD_GRIP of the picture).
+    const wGrip = wRef ? pv(wRef, 'grip') : [0.5, 0.75];
+    const origin: [number, number] = [wGrip[0], lerp(wGrip[1], HEAD_GRIP, P.slide)];
+    this.put(
+      'weapon',
+      s.weapon,
+      this.upper,
+      'grip',
+      wl.end.x,
+      wl.end.y,
+      wr,
+      false,
+      this.sc.weapon,
+      origin,
+    );
     this.put(
       'fistW',
       s.fistW,
