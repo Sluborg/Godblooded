@@ -28,9 +28,29 @@ export interface RigSpec {
   fistW: string;
   fistO: string;
   weapon?: string;
-  // The weapon's size against its sheet (1 = as painted).
-  weaponScale?: number;
+  // Sizes of the pieces against their sheets (1 = as painted); defaults: RIG_SCALE.
+  scale?: Partial<RigScale>;
 }
+
+// The pieces are cut at different sizes: the fists, heads and boots are big, the limb pieces small.
+// These bring them to one body (Lead 2026-10-17: head about 0.75 of the torso's width, fist about
+// 1.3 x the forearm, boot about 0.55 of the torso's width, legs 0.31 of the height).
+export interface RigScale {
+  head: number;
+  fist: number;
+  boot: number;
+  leg: number;
+  arm: number;
+  weapon: number;
+}
+export const RIG_SCALE: RigScale = {
+  head: 0.63,
+  fist: 0.4,
+  boot: 0.8,
+  leg: 2.8,
+  arm: 1.3,
+  weapon: 1.1,
+};
 
 const DARK = 0xb4b4b4;
 
@@ -53,6 +73,7 @@ const axis = (r: PartRef, a: string, b: string): number => {
 
 export class SkeletonRig extends Phaser.GameObjects.Container {
   readonly geom: Geom;
+  private readonly sc: RigScale;
   private readonly refs: Record<string, PartRef | null>;
   private readonly imgs = new Map<string, Phaser.GameObjects.Image>();
   private readonly legs: Phaser.GameObjects.Container;
@@ -68,6 +89,7 @@ export class SkeletonRig extends Phaser.GameObjects.Container {
     private readonly tune: Tune = TUNE,
   ) {
     super(scene, 0, 0);
+    this.sc = { ...RIG_SCALE, ...spec.scale };
     const ids = [
       spec.torso,
       spec.upperarm,
@@ -123,18 +145,18 @@ export class SkeletonRig extends Phaser.GameObjects.Container {
     const footH = ((pv(boot, 'ground')[1] - pv(boot, 'ankle')[1]) * boot.cell.h) / boot.ppu;
     return geomOf(
       {
-        upper: span(up, 'shoulder', 'elbow'),
-        fore: span(fore, 'elbow', 'wrist'),
-        thigh: span(thigh, 'hip', 'knee'),
-        shin: span(shin, 'knee', 'ankle'),
-        footH,
+        upper: span(up, 'shoulder', 'elbow') * this.sc.arm,
+        fore: span(fore, 'elbow', 'wrist') * this.sc.arm,
+        thigh: span(thigh, 'hip', 'knee') * this.sc.leg,
+        shin: span(shin, 'knee', 'ankle') * this.sc.leg,
+        footH: footH * this.sc.boot,
         torsoW: w,
         torsoH: h,
       },
       {
         // The weapon-side shoulder is the viewer's right one (x < 0 after the mirror in `update`).
         sh: { x: (shx - 0.5) * w, y: (shy - hry) * h },
-        hipX: ((hlx - hrx) / 2) * w,
+        hipX: Math.max(((hlx - hrx) / 2) * w, 1.6),
         skirt: (1 - hry) * h,
       },
     );
@@ -220,6 +242,7 @@ export class SkeletonRig extends Phaser.GameObjects.Container {
           hip.y,
           l.a1 - axis(th, 'hip', 'knee'),
           i === 0,
+          this.sc.leg,
         );
       if (sh)
         this.put(
@@ -231,8 +254,19 @@ export class SkeletonRig extends Phaser.GameObjects.Container {
           l.mid.y,
           l.a2 - axis(sh, 'knee', 'ankle'),
           i === 0,
+          this.sc.leg,
         );
-      this.put(`bt${i}`, s.boot, this.legs, 'ankle', l.end.x, l.end.y, f.toe, i === 0);
+      this.put(
+        `bt${i}`,
+        s.boot,
+        this.legs,
+        'ankle',
+        l.end.x,
+        l.end.y,
+        f.toe,
+        i === 0,
+        this.sc.boot,
+      );
     }
     this.order(this.legs, ['th0', 'sh0', 'bt0', 'th1', 'sh1', 'bt1']);
 
@@ -261,6 +295,7 @@ export class SkeletonRig extends Phaser.GameObjects.Container {
           sh.y,
           l.a1 - axis(up, 'shoulder', 'elbow'),
           dark,
+          this.sc.arm,
         );
       if (fo)
         this.put(
@@ -272,6 +307,7 @@ export class SkeletonRig extends Phaser.GameObjects.Container {
           l.mid.y,
           l.a2 - axis(fo, 'elbow', 'wrist'),
           dark,
+          this.sc.arm,
         );
       return l;
     };
@@ -289,14 +325,23 @@ export class SkeletonRig extends Phaser.GameObjects.Container {
       const midx = (hx + hrx) / 2;
       this.put('torso', s.torso, this.upper, 'hip_l', 0, 0, 0, false, 1, [midx, hy]);
       const neck = { x: (nx - midx) * (to.cell.w / to.ppu), y: (ny - hy) * (to.cell.h / to.ppu) };
-      this.put('head', s.head, this.upper, 'neck', neck.x, neck.y, P.nod);
+      this.put('head', s.head, this.upper, 'neck', neck.x, neck.y, P.nod, false, this.sc.head);
     }
     // The weapon sits in the weapon hand and follows the forearm within the wrist limit; the fist
     // is drawn over it.
     const wr = weaponAngle(P.axe, wl.a2);
-    const ws = s.weaponScale ?? 1;
-    this.put('weapon', s.weapon, this.upper, 'grip', wl.end.x, wl.end.y, wr, false, ws);
-    this.put('fistW', s.fistW, this.upper, 'wrist', wl.end.x, wl.end.y, wl.a2 - Math.PI / 2);
+    this.put('weapon', s.weapon, this.upper, 'grip', wl.end.x, wl.end.y, wr, false, this.sc.weapon);
+    this.put(
+      'fistW',
+      s.fistW,
+      this.upper,
+      'wrist',
+      wl.end.x,
+      wl.end.y,
+      wl.a2 - Math.PI / 2,
+      false,
+      this.sc.fist,
+    );
     this.put(
       'fistO',
       s.fistO,
@@ -306,6 +351,7 @@ export class SkeletonRig extends Phaser.GameObjects.Container {
       ol.end.y,
       ol.a2 - Math.PI / 2 - 0.42,
       true,
+      this.sc.fist,
     );
     // Order: free arm and its fist behind the torso, then torso, then head and the weapon arm
     // (the weapon cocked behind the head is drawn before it).

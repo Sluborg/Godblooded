@@ -21,6 +21,7 @@ export const WRIST_LIMIT = 0.7;
 
 // The prototype's torso width, the body its constants were tuned on.
 export const REF_TORSO_W = 92;
+export const REF_LEG = 35;
 
 // Bone lengths and the body's fixed offsets, in drawing units.
 export interface Bones {
@@ -47,6 +48,9 @@ export interface Geom extends Bones {
   // Scale of the prototype's numbers (its torso was 92 wide): every fixed distance below is
   // written for that body and multiplied by this.
   k: number;
+  // The same for the legs: the prototype's legs were 35 long (thigh 18 + shin 17), and strides,
+  // steps and the stance are written for that.
+  kl: number;
 }
 
 // `over` replaces the fixed offsets with the real ones read from the kit's pivots.
@@ -62,9 +66,10 @@ export function geomOf(b: Bones, over: Partial<Pick<Geom, 'sh' | 'hipX' | 'skirt
     pel,
     skirt,
     sh: over.sh ?? { x: b.torsoW * 0.42, y: top + b.torsoH * 0.14 - pel },
-    hipX: over.hipX ?? b.torsoW * 0.033,
+    hipX: over.hipX ?? ((b.thigh + b.shin) / REF_LEG) * 3,
     reach: b.upper + b.fore,
     k: b.torsoW / REF_TORSO_W,
+    kl: (b.thigh + b.shin) / REF_LEG,
   };
 }
 
@@ -209,8 +214,8 @@ export function skeletonPose(g: Geom, inp: PoseInput, tune: Tune = TUNE): Skelet
     py: g.pel,
     lean: 0,
     feet: [
-      { x: -g.hipX * 3, y: 0, toe: 0 },
-      { x: g.hipX * 2.7, y: 0, toe: 0 },
+      { x: -9 * g.kl, y: 0, toe: 0 },
+      { x: 8 * g.kl, y: 0, toe: 0 },
     ],
     hf: { x: 0.2 * R, y: g.sh.y + 0.86 * R },
     hb: { x: 0.05 * R, y: g.sh.y + 0.95 * R },
@@ -224,8 +229,8 @@ export function skeletonPose(g: Geom, inp: PoseInput, tune: Tune = TUNE): Skelet
   const k = g.k;
   P.py += Math.sin(t * 2.4) * 0.5 * k;
   if (mode === 'walk') {
-    const St = tune.stride * k;
-    const H = 7 * k;
+    const St = tune.stride * g.kl;
+    const H = 7 * g.kl;
     const u = (inp.walkPh / (Math.PI * 2)) % 1;
     for (const i of [0, 1] as const) {
       const v = (u + i * 0.5) % 1;
@@ -263,9 +268,9 @@ export function skeletonPose(g: Geom, inp: PoseInput, tune: Tune = TUNE): Skelet
     P.contact = u > clip.keys[clip.contact[0]][0] && u < clip.keys[clip.contact[1]][0];
     P.behind = u > clip.behind[0] && u < clip.behind[1];
     P.nod = lean * 0.4;
-    P.feet[0].x = -g.hipX * 3 - dx * k;
+    P.feet[0].x = -9 * g.kl - dx * k;
     const step = clamp((u - 0.3) / 0.16, 0, 1);
-    P.feet[1].y = -5 * k * Math.sin(Math.PI * step);
+    P.feet[1].y = -5 * g.kl * Math.sin(Math.PI * step);
     P.hb = { x: (-4 - lean * 20) * k, y: g.sh.y + 0.93 * R };
   }
   if (mode === 'hurt') {
@@ -275,8 +280,8 @@ export function skeletonPose(g: Geom, inp: PoseInput, tune: Tune = TUNE): Skelet
     P.py += 2 * k * kk;
     P.nod = -0.15 * kk;
     P.flash = t < 0.16 ? 1 - t / 0.16 : 0;
-    P.feet[0].x = -g.hipX * 3 + 2.4 * k * kk;
-    P.feet[1].x = g.hipX * 2.7 + 4.8 * k * kk;
+    P.feet[0].x = -9 * g.kl + 2.4 * g.kl * kk;
+    P.feet[1].x = 8 * g.kl + 4.8 * g.kl * kk;
     P.hf = { x: 4 * k, y: g.sh.y + 0.8 * R };
     P.hb = { x: -10 * k * kk, y: g.sh.y + 0.7 * R };
   }
