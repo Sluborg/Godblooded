@@ -915,6 +915,60 @@
       "source": "G11"
     },
     {
+      "id": "kit_rig_grips",
+      "kind": "kit",
+      "tier": null,
+      "view": null,
+      "file": "kits/kit_rig_grips.png",
+      "anchorX": 0.5,
+      "anchorY": 0.5,
+      "pxPerUnit": 16,
+      "cells": {
+        "hand_grip_r_back": {
+          "x": 8,
+          "y": 8,
+          "w": 155,
+          "h": 144,
+          "pivots": {
+            "wrist": [0.1, 0.5],
+            "grip": [0.678, 0.5]
+          }
+        },
+        "hand_grip_r_front": {
+          "x": 171,
+          "y": 8,
+          "w": 155,
+          "h": 144,
+          "pivots": {
+            "wrist": [0.1, 0.5],
+            "grip": [0.678, 0.5]
+          }
+        },
+        "hand_grip_l_back": {
+          "x": 334,
+          "y": 8,
+          "w": 156,
+          "h": 144,
+          "pivots": {
+            "wrist": [0.9, 0.5],
+            "grip": [0.321, 0.5]
+          }
+        },
+        "hand_grip_l_front": {
+          "x": 498,
+          "y": 8,
+          "w": 156,
+          "h": 144,
+          "pivots": {
+            "wrist": [0.9, 0.5],
+            "grip": [0.321, 0.5]
+          }
+        }
+      },
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "G13"
+    },
+    {
       "id": "kit_rig_hands",
       "kind": "kit",
       "tier": null,
