@@ -1,12 +1,12 @@
 // Dev: records the animation test clips (idle, walk, attack, hurt at 1x) on the real map, at game
 // zoom (1x) and 2x zoom. Nothing here ships.
-//   node scripts/anim-record.mjs [unit ...]        units from anim-test/units.json (default: all)
+//   node scripts/anim-record.mjs [unit ...]        units from anim-test/units.json, or the file in $UNITS (default: all)
 // Output: anim-test/out/<unit>-z<zoom>.{webp,gif} and docs/screenshots/anim-test-* (see the end).
 import { spawn, spawnSync } from 'node:child_process';
 import { mkdirSync, readFileSync, rmSync, writeFileSync, existsSync, statSync } from 'node:fs';
 import { chromium } from 'playwright-core';
 
-const units = JSON.parse(readFileSync('anim-test/units.json', 'utf8'));
+const units = JSON.parse(readFileSync(process.env.UNITS ?? 'anim-test/units.json', 'utf8'));
 const wanted = process.argv.slice(2);
 const list = wanted.length ? units.filter((u) => wanted.includes(u.name)) : units;
 const OUT = 'anim-test/out';

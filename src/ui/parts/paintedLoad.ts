@@ -55,5 +55,11 @@ export function kitOf(scene: Phaser.Scene, lookId: string): Kit | null {
   const mode: KitMode =
     asked === 'floating' || asked === 'bent' ? asked : (combo.mode ?? 'floating');
   if (!kitComplete(parts, mode)) return null;
-  return { parts, layers: pick(combo.layers, all), build: BUILDS[combo.build ?? 'standard'], mode };
+  return {
+    parts,
+    layers: pick(combo.layers, all),
+    build: BUILDS[combo.build ?? 'standard'],
+    mode,
+    footSpread: combo.footSpread,
+  };
 }
