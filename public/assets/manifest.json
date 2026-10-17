@@ -835,6 +835,73 @@
       "source": "G13"
     },
     {
+      "id": "kit_rig_test",
+      "kind": "kit",
+      "tier": null,
+      "view": null,
+      "file": "kits/kit_rig_test.png",
+      "anchorX": 0.5,
+      "anchorY": 0.5,
+      "pxPerUnit": 16,
+      "cells": {
+        "torso_mail": {
+          "x": 8,
+          "y": 8,
+          "w": 256,
+          "h": 330,
+          "pivots": {
+            "neck": [0.5, 0.05],
+            "shoulder_r": [0.08, 0.14],
+            "shoulder_l": [0.92, 0.14],
+            "hip_r": [0.47, 0.88],
+            "hip_l": [0.53, 0.88]
+          }
+        },
+        "upperarm_mail": {
+          "x": 272,
+          "y": 8,
+          "w": 29,
+          "h": 80,
+          "pivots": {
+            "shoulder": [0.5, 0.08],
+            "elbow": [0.5, 0.92]
+          }
+        },
+        "forearm_bracer": {
+          "x": 309,
+          "y": 8,
+          "w": 26,
+          "h": 64,
+          "pivots": {
+            "elbow": [0.5, 0.08],
+            "wrist": [0.5, 0.92]
+          }
+        },
+        "thigh_wool": {
+          "x": 343,
+          "y": 8,
+          "w": 45,
+          "h": 48,
+          "pivots": {
+            "hip": [0.5, 0.08],
+            "knee": [0.5, 0.92]
+          }
+        },
+        "shin_wrap": {
+          "x": 396,
+          "y": 8,
+          "w": 40,
+          "h": 48,
+          "pivots": {
+            "knee": [0.5, 0.08],
+            "ankle": [0.5, 0.92]
+          }
+        }
+      },
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "G13"
+    },
+    {
       "id": "mon_draugr_t1_front",
       "kind": "mon",
       "tier": 1,
