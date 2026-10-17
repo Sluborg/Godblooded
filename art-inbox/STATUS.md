@@ -299,3 +299,5 @@ G12 | 2026-10-16T20:42:36.244Z | heroes | kit_base, kit_cloaks | uploaded | O-5 
 B19 | 2026-10-17T09:01:06.845Z | buildings | started | O-4 porch edit; source Drive 1KjUGx6LdioocoSQGHcspR5EjstpmIGm4
 
 B19 | 2026-10-17T09:02:55.310Z | buildings | bld_townhall_t2 | uploaded | O-4 porch fix: unchanged built-in edit, 1254x1254 PNG, 2266246 bytes; replaced existing Drive file in place, metadata verified. Projecting shingled gabled roof on two carved front posts, door recessed behind; main roof, dragons, stone base, banners and camera preserved. Full-size QA pass; near-magenta and approx90% width are pipeline notes. https://drive.google.com/file/d/1KjUGx6LdioocoSQGHcspR5EjstpmIGm4/view
+
+B25 | 2026-10-17T09:02:55.310Z | buildings | started | O-6 Greek temple camera correction
