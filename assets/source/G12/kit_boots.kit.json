@@ -1,0 +1,36 @@
+{
+  "id": "kit_boots",
+  "batch": "G12",
+  "upload": "assets/source/G12/kit_boots.png",
+  "pxPerUnit": 16,
+  "scale": 1,
+  "parts": [
+    {
+      "cell": "boot_heavy_1",
+      "box": [140, 100, 650, 430],
+      "pivots": {
+        "ankle": [0.35, 0.15],
+        "ground": [0.5, 0.95]
+      },
+      "width": 11
+    },
+    {
+      "cell": "boot_light_1",
+      "box": [940, 100, 1440, 430],
+      "pivots": {
+        "ankle": [0.35, 0.15],
+        "ground": [0.5, 0.95]
+      },
+      "width": 11
+    },
+    {
+      "cell": "boot_robe_1",
+      "box": [140, 590, 650, 920],
+      "pivots": {
+        "ankle": [0.35, 0.15],
+        "ground": [0.5, 0.95]
+      },
+      "width": 11
+    }
+  ]
+}
