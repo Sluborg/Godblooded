@@ -313,7 +313,7 @@ export class SkeletonRig extends Phaser.GameObjects.Container {
     };
     // Strikes reach across the body; the free hand hangs a little outside its shoulder.
     const reachX = P.attack ? g.sh.x * 0.9 : 0;
-    const out = Math.sign(oSh.x) * 0.08 * g.reach;
+    const out = Math.sign(oSh.x) * 0.2 * g.reach;
     const wl = arm('w', wSh, { x: wSh.x + P.hf.x + reachX, y: P.hf.y }, false);
     const ol = arm('o', oSh, { x: oSh.x + out + P.hb.x * 0.7, y: P.hb.y }, true);
     // Torso, head.

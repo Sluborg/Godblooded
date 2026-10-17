@@ -93,15 +93,19 @@ export interface Clip {
   behind: readonly [from: number, to: number];
 }
 
-// The axe chop (prototype ATK table). The contact key is the moment of the sim's `hit`.
+// The axe chop: from the carry at the side, the axe is cocked up behind the head, struck down in
+// front (the hand low and forward, the body leaning and dipping), held for the hit pause and carried
+// through back to the carry. The contact key is the moment of the sim's `hit`. The wrist limit
+// keeps the head of the axe about waist high at best; a deeper lean and dip take it lower.
+export const CARRY_AXE = 3;
 export const CHOP: Clip = {
   keys: [
-    [0.0, 0.2, 0.86, 0.3, 0, 0, 'inOut'],
+    [0.0, 0.2, 0.96, CARRY_AXE, 0, 0, 'inOut'],
     [0.34, -0.58, -0.78, -1.25, -4, -0.1, 'in'],
-    [0.44, 0.78, -0.04, 1.35, 11, 0.2, 'out'],
-    [0.52, 0.78, -0.04, 1.35, 11, 0.2, 'out'],
-    [0.68, 0.66, 0.32, 1.75, 11, 0.24, 'inOut'],
-    [1.0, 0.2, 0.86, 0.3, 0, 0, 'inOut'],
+    [0.44, 0.5, 0.8, 3.0, 11, 0.5, 'out'],
+    [0.52, 0.5, 0.8, 3.0, 11, 0.5, 'out'],
+    [0.68, 0.42, 0.9, 3.0, 11, 0.45, 'inOut'],
+    [1.0, 0.2, 0.96, CARRY_AXE, 0, 0, 'inOut'],
   ],
   contact: [2, 3],
   behind: [0.08, 0.4],
@@ -217,9 +221,9 @@ export function skeletonPose(g: Geom, inp: PoseInput, tune: Tune = TUNE): Skelet
       { x: -9 * g.kl, y: 0, toe: 0 },
       { x: 8 * g.kl, y: 0, toe: 0 },
     ],
-    hf: { x: 0.2 * R, y: g.sh.y + 0.86 * R },
+    hf: { x: -0.12 * R, y: g.sh.y + 0.96 * R },
     hb: { x: 0.05 * R, y: g.sh.y + 0.95 * R },
-    axe: 0.3,
+    axe: CARRY_AXE,
     nod: 0,
     attack: false,
     contact: false,
@@ -265,6 +269,8 @@ export function skeletonPose(g: Geom, inp: PoseInput, tune: Tune = TUNE): Skelet
     P.axe = axe * (0.7 + 0.3 * sw);
     P.px = dx * k;
     P.lean = lean;
+    // The knees give as he leans into the blow.
+    P.py += lean * 4 * (g.torsoW / 16);
     P.contact = u > clip.keys[clip.contact[0]][0] && u < clip.keys[clip.contact[1]][0];
     P.behind = u > clip.behind[0] && u < clip.behind[1];
     P.nod = lean * 0.4;
