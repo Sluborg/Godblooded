@@ -19,7 +19,10 @@ for (const z of [1, 2]) {
     '-i',
     `${OUT}/frames-${u}-z${z}/%03d.png`,
   ]);
-  const stack = UNITS.map((_, i) => `[${i}:v]`).join('') + `hstack=${UNITS.length},scale=1600:-1`;
+  // Units may be framed differently (a taller box for the minotaur): bring all to one height first.
+  const fit = UNITS.map((_, i) => `[${i}:v]scale=-2:300[s${i}]`).join(';');
+  const stack =
+    `${fit};` + UNITS.map((_, i) => `[s${i}]`).join('') + `hstack=${UNITS.length},scale=1600:-2`;
   ff([
     ...inputs,
     '-filter_complex',
@@ -48,13 +51,18 @@ const KEYS = ['004', '030', '050', '057', '064', '078'];
 const rows = UNITS.map((u) => {
   const inputs = KEYS.flatMap((k) => ['-i', `${OUT}/frames-${u}-z2/${k}.png`]);
   const f = `${OUT}/row-${u}.png`;
-  ff([...inputs, '-filter_complex', `hstack=${KEYS.length}`, f]);
+  ff([
+    ...inputs,
+    '-filter_complex',
+    `${KEYS.map((_, i) => `[${i}:v]scale=-2:300[s${i}]`).join(';')};${KEYS.map((_, i) => `[s${i}]`).join('')}hstack=${KEYS.length}`,
+    f,
+  ]);
   return f;
 });
 ff([
   ...rows.flatMap((r) => ['-i', r]),
   '-filter_complex',
-  `vstack=${rows.length},scale=2400:-1`,
+  `${rows.map((_, i) => `[${i}:v]scale=2400:-2[r${i}]`).join(';')};${rows.map((_, i) => `[r${i}]`).join('')}vstack=${rows.length}`,
   `${DOCS}/anim-test-poses.png`,
 ]);
 for (const f of [
