@@ -38,6 +38,12 @@ still fails, do not upload it: report the item and the fault instead.
     carving, no dragon heads); a pantheon symbol stands for the whole pantheon, never one god.
 13. **No grain:** no noise, film grain or speckle texture anywhere; every figure and monster reads
     at a glance. Several figures together never share one pose.
+14. **Buildings built for real** (STYLE "Buildings", Stefan 2026-10-17): every beam, post and
+    brace carries load and meets a joint or the foundation, no metal straps on turf or shingle
+    roofs, no loose leaning beams (14.1); gables, temple fronts, gates and paired ornaments are
+    mirror-symmetric about the entrance, repeated bays, columns and windows match (14.2); one
+    focal ornament per facade (14.3); a door is about 1.3 times a hero's height (14.4). A
+    building that breaks 14.1, 14.2 or 14.4 fails.
 
 **Not faults** (Art fixes these in the pipeline; never redo or withhold an image for them, just
 note them in the log): a background that is near the key colour instead of exact (it must be

@@ -65,6 +65,20 @@ painted in; busy piles of props; a temple that is only a gate.
   are real, usable weapons. A building shows its function (a temple has an inside you could
   walk into, a smithy has a forge and an anvil you could use).
 - **Clear over busy:** few, chunky props; a clear silhouette beats lots of small detail.
+- **Buildings: real construction, symmetry, restraint, scale** (Stefan 2026-10-17: "I see a lot
+  of AI slop on buildings. I want realistic constructions and good symmetry when expected"):
+  1. **Real construction:** every beam, post and brace carries load and meets another member at a
+     visible joint or rests on the foundation. Nothing floats, nothing is bolted on for
+     decoration. Period-true methods: Norse turf or shingle roofs on rafters with **no metal
+     bands or straps**, stave and log joinery; Greek post-and-lintel in stone; Egyptian battered
+     mud-brick and stone. No loose diagonal beams leaning on walls or ending in mid-air.
+  2. **Symmetry where the type expects it:** gables, temple fronts, gates, doorways and paired
+     ornaments are mirror-symmetric about the entrance axis (two gable heads the same size and
+     pose, the door on the centre line of a temple front). Repeated elements (bays, columns,
+     windows, posts, wall bracing) have the same width, spacing and pattern.
+  3. **Restraint:** one focal ornament per facade (a carved gable, a banner pair). No clutter, no
+     random extra beams, straps, rivets or banners.
+  4. **Scale:** a door is about 1.3 times a hero's height; steps and windows are sized to match.
 - **No painted effects:** smoke, sparks, flying embers, magic glow and auras are drawn by the
   game, never into a picture. Fire in a hearth or brazier and lit windows are fine; a column of
   smoke is not. Higher tiers show richer build (stone, carving, gilding), not effects.
