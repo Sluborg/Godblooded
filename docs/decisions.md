@@ -538,3 +538,17 @@ buildings are Stefan's call after Art lists the offenders.
 Correction (Stefan, same day): beams in front of a building are fine. The fault is perspective:
 a member meant to project out from the building must not be drawn running along it. Every beam
 follows the building's perspective; loose beams ending in mid-air still fail.
+
+## 2026-10-17 Round 7-8 verdicts: building redos go, grip-hole fix, cloaks rethink (Stefan)
+
+- Buildings: "If they are truly illogical, then they should be remade." Go for redos of
+  town hall t1 and t2, smithy t1 and t2 and Greek temple t2 under the building rules; the new
+  town hall t1 replaces the style anchor once approved. B25 Greek temple t1: redo with the new
+  rules, painted at the Egyptian temple's camera (his pick).
+- Kit hands: Stefan flagged the round grip hole on the draugr and troll parts ("Intended?
+  Otherwise 5"). Fix (kit_monster_grips, G13 grip method, incl. the shipped minotaur hand) is a
+  defect correction of approved kits.
+- Cloaks redo rated 2: they only work on heroes who don't raise their arms. Cloaks must hang
+  from the shoulders down the back, behind the arms, so the skeleton's arms move freely.
+- Troll 3: two left feet. Draugr 4. Town hall t2 porch 2 (see building rules).
+- Minotaur in game 2: hooves point backwards.
