@@ -85,7 +85,7 @@ export const HERO_KITS: Readonly<Record<string, KitCombo>> = {
   // A monster's look (`mon_<type>`): the same slots, on the compact floating rig. His hooves stand
   // closer together than the code figure's stance (animation test, Lead).
   mon_minotaur: {
-    footSpread: 0.6,
+    footSpread: 1.3,
     parts: {
       torso: 'torso_minotaur',
       head: 'head_minotaur',
