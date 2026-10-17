@@ -238,3 +238,28 @@ describe('hand and boot', () => {
     expect(front.y + by).toBeCloseTo(pose.f1.y * (44 / 32), 4);
   });
 });
+
+describe('grip pair and closed fist', () => {
+  const pair = (): Kit => {
+    const k = kit({
+      weapon: part(28, 168, { grip: [0.5, 0.88] }),
+      hand: part(24, 24, { wrist: [0.1, 0.5], grip: [0.7, 0.5] }),
+      fist: part(24, 24, { wrist: [0.1, 0.5], grip: [0.7, 0.5] }),
+      boot: part(40, 24, { ankle: [0.3, 0.1], ground: [0.4, 0.95] }),
+    });
+    return { ...k, mode: 'floating', layers: { hand: part(24, 24, { wrist: [0.1, 0.5] }) } };
+  };
+  it('draws the haft between the back and the front half of the weapon hand', () => {
+    const k = pair();
+    const draws = layout(k, pose);
+    const at = (p: KitPart | undefined) => draws.findIndex((d) => d.part === p);
+    expect(at(k.parts.hand)).toBeGreaterThanOrEqual(0);
+    expect(at(k.parts.hand)).toBeLessThan(at(k.parts.weapon));
+    expect(at(k.parts.weapon)).toBeLessThan(at(k.layers.hand));
+  });
+  it('draws the closed fist for the empty off hand, with no grip front over it', () => {
+    const k = pair();
+    const far = layout(k, pose).filter((d) => d.far && d.pivot === 'wrist');
+    expect(far.map((d) => d.part)).toEqual([k.parts.fist]);
+  });
+});
