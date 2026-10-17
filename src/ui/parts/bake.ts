@@ -33,6 +33,14 @@ export interface BakedSet {
   lastUsed: number;
 }
 
+// Painted pictures are finely detailed: bake their frames denser (pixels per drawing unit) than the
+// code shapes, or they upscale to mush on a phone. 29 frames in 6 atlas rows: about 2.5 MB per
+// look at 1.5, 6.9 MB at 2.5. With 8 or more painted looks on screen that is 50 MB or more of
+// canvas textures on a phone: measure before the hero kits go live (or lower this on low-memory
+// devices).
+// code shapes, or they upscale to mush on a phone. 29 frames in 6 atlas rows: about 2.5 MB per look at 1.5, 6.9 MB at 2.5. With 8 or more painted looks on screen that is 50 MB or more of canvas textures on a phone: measure before the hero kits go live (or lower this on low-memory devices).
+export const KIT_BAKE = 2.5;
+
 const POSES: PoseName[] = ['idle', 'walk', 'attack', 'ko'];
 const sets = new Map<string, BakedSet>();
 
@@ -43,18 +51,18 @@ export function ensureHeroSet(scene: Phaser.Scene, id: string, def: PartsDef, ti
     have.lastUsed = scene.time.now;
     return have;
   }
-  const k = pxPerUnit();
+  // A painted look (a kit combo in data/heroKits.ts) is drawn from its pictures on the same rig.
+  // The tax collector's look carries a sack size (0 to 2) and names the kit it would use.
+  const sack =
+    typeof def.sack === 'number' ? (Math.min(2, Math.max(0, def.sack)) as 0 | 1 | 2) : -1;
+  const kit = kitOf(scene, typeof def.kit === 'string' ? def.kit : id);
+  const k = kit ? Math.max(pxPerUnit(), KIT_BAKE) : pxPerUnit();
   const fw = Math.ceil(FRAME_W * k);
   const fh = Math.ceil(FRAME_H * k);
   const total = POSES.reduce((n, p) => n + FRAME_COUNT[p], 0);
   const rows = Math.ceil(total / COLS);
   const atlas = `parts_${id}`;
   if (scene.textures.exists(atlas)) scene.textures.remove(atlas);
-  // A painted look (a kit combo in data/heroKits.ts) is drawn from its pictures on the same rig.
-  // The tax collector's look carries a sack size (0 to 2) and names the kit it would use.
-  const sack =
-    typeof def.sack === 'number' ? (Math.min(2, Math.max(0, def.sack)) as 0 | 1 | 2) : -1;
-  const kit = kitOf(scene, typeof def.kit === 'string' ? def.kit : id);
   const tex = scene.textures.createCanvas(atlas, fw * COLS, fh * rows);
   const frames = { idle: [], walk: [], attack: [], ko: [] } as Record<PoseName, string[]>;
   const set: BakedSet = {
@@ -107,11 +115,27 @@ export function ensureHeroSet(scene: Phaser.Scene, id: string, def: PartsDef, ti
       }
       if (kit) {
         const p = rigPose(u);
+        // The head follows the body a moment late (its own bob and tilt) and nods into a blow: the
+        // pose a fraction of a second earlier, minus the pose now, is the head's offset.
+        const early = {
+          ...u,
+          walkPh: u.walkPh - 0.55,
+          atkT: u.atkT >= 0 ? Math.max(0, u.atkT - 0.07) : u.atkT,
+        };
+        setState({ ctx: c, T: st.time - 0.14, FL: 0 });
+        const q = rigPose(early);
+        setState({ ctx: c, T: st.time, FL: 0 });
+        const into = u.atkT >= 0 ? Math.sin(Math.PI * Math.min(1, u.atkT * 1.15)) : 0;
+        const headOff = {
+          dx: 0.7 * into,
+          dy: (q.bob - p.bob) * 1.5 + 0.35 * into,
+          rot: (q.lean - p.lean) * 1.7 + 0.03 * Math.sin(st.time * 1.1) + 0.05 * into,
+        };
         // The same on-screen size as the code look: the painted figure is 44 units tall, the
         // prototype's is 32, drawn at usc(u) (its scale and the 0.86 unit scale).
         c.save();
         c.scale(kitScale(usc(u)), kitScale(usc(u)));
-        drawKit(c, layout(kit, p, p.armF > 2.0 && u.atkT >= 0), p);
+        drawKit(c, layout(kit, p, p.armF > 2.0 && u.atkT >= 0, headOff), p);
         c.restore();
       } else drawHuman(u);
       if (props) {

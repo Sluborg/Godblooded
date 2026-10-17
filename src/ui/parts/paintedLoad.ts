@@ -36,9 +36,15 @@ const pick = (ids: Partial<Record<KitSlot, string>> | undefined, all: Map<string
   return out;
 };
 
+// Kits registered at run time by look id (the dev animation test, src/dev/animStage.ts): they win
+// over the manifest's combos. Empty in the shipped game.
+export const RUNTIME_KITS = new Map<string, Kit>();
+
 // The kit of a look (`odin_t1`) built from the manifest, or null when the look has no combo or a
 // part it cannot do without has no picture (the code shapes are used then).
 export function kitOf(scene: Phaser.Scene, lookId: string): Kit | null {
+  const runtime = RUNTIME_KITS.get(lookId);
+  if (runtime) return runtime;
   const combo: KitCombo | undefined = kitFor(lookId);
   if (!combo) return null;
   const all = partsById(scene);

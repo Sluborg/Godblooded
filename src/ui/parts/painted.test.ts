@@ -4,6 +4,7 @@ import {
   HIP,
   bodyPoint,
   kitComplete,
+  keepOffGround,
   kitScale,
   layout,
   solveTwoBone,
@@ -72,6 +73,21 @@ describe('solveTwoBone', () => {
     const back = solveTwoBone({ x: 0, y: 0 }, { x: 0, y: 12 }, 8, 8, (p) => -p.x);
     expect(front.mid.x).toBeGreaterThan(0);
     expect(back.mid.x).toBeLessThan(0);
+  });
+});
+
+describe('keepOffGround', () => {
+  // A weapon 20 units tall, gripped 15 units from its far end.
+  const axe = part(16, 160, { grip: [0.5, 0.75] });
+  const upLen = 0.75 * (160 / 8);
+  it('leaves a swing that stays above the ground alone', () => {
+    expect(keepOffGround(axe, -20, 0.5)).toBe(0.5);
+    expect(keepOffGround(axe, -20, -2)).toBe(-2);
+  });
+  it('turns a blow that would bury the head back to the ground line', () => {
+    const r = keepOffGround(axe, -12, 2.8);
+    expect(r).toBeLessThan(2.8);
+    expect(-12 - upLen * Math.cos(r)).toBeLessThanOrEqual(0);
   });
 });
 

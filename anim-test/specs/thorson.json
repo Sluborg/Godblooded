@@ -1,0 +1,27 @@
+{
+  "name": "thorson",
+  "src": "g7_thorson",
+  "look": "thor_t1",
+  "kind": "hero",
+  "god": "thor",
+  "type": "thor",
+  "body": 0,
+  "neck": [620, 440],
+  "headPoly": [
+    [470, 330],
+    [490, 200],
+    [560, 150],
+    [640, 145],
+    [710, 200],
+    [722, 300],
+    [702, 385],
+    [662, 440],
+    [600, 460],
+    [540, 425],
+    [500, 385]
+  ],
+  "weapon": { "comp": 1, "fist": [918, 690], "rotate": -20 },
+  "offhand": { "kind": "fist", "comp": 4, "centre": [310, 740] },
+  "boot": { "comp": 2 },
+  "ground": 1112
+}

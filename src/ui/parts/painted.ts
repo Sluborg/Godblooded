@@ -34,6 +34,8 @@ export interface Kit {
   layers: PartMap;
   build: Build;
   mode: KitMode;
+  // How far apart the feet stand, as a factor on the rig's stance (1: as the code figure).
+  footSpread?: number;
 }
 
 // Pivot fallbacks (fractions) when a cell does not name one.
@@ -175,7 +177,26 @@ const ang = (v: V2): number => Math.atan2(v.y, v.x);
 // Places every part for a pose, in draw order: cloak, back leg, back arm, torso, head, headgear,
 // off-hand, front leg, front arm with the weapon; a weapon cocked behind the head goes before the
 // head. A worn layer is drawn right after the part it covers with the same placement.
-export function layout(kit: Kit, p: RigPose, raised = false): Draw[] {
+// A weapon swung down ends with its head on the ground line in front of the fighter, never below
+// it: turns the weapon back (about its grip) until its far end is at ground level (y 0 is the feet).
+export function keepOffGround(weapon: KitPart, gripY: number, rot: number): number {
+  const [, gy] = pivot(weapon, 'grip');
+  const up = gy * (weapon.cell.h / weapon.ppu);
+  if (up <= 0) return rot;
+  const c = Math.min(1, Math.max(-1, (gripY + 0.5) / up));
+  // The far end is at gripY - up * cos(rot): it must stay above the ground, cos(rot) >= c.
+  if (Math.cos(rot) >= c) return rot;
+  return Math.sign(rot || 1) * Math.acos(c);
+}
+
+// The head's own motion on the neck: an offset (drawing units) and a tilt (radians) on top of the body's.
+export interface HeadOff {
+  dx: number;
+  dy: number;
+  rot: number;
+}
+
+export function layout(kit: Kit, p: RigPose, raised = false, headOff?: HeadOff): Draw[] {
   const out: Draw[] = [];
   const { parts, layers, build } = kit;
   const floating = kit.mode === 'floating';
@@ -325,7 +346,8 @@ export function layout(kit: Kit, p: RigPose, raised = false): Draw[] {
     far: false,
   });
   // The prototype's f0 is the back foot, f1 the front one.
-  drawLeg('hip_b', { x: p.f0.x * PROTO_K, y: p.f0.y * PROTO_K }, true);
+  const fs = kit.footSpread ?? 1;
+  drawLeg('hip_b', { x: p.f0.x * PROTO_K * fs, y: p.f0.y * PROTO_K }, true);
   const back = arm('shoulder_b', hand(p.hb), true);
   // A shield replaces the off-hand: it is drawn at the off-hand socket and no hand shows (a shield
   // part carries a `strap` pivot; any other off-hand item is held by a visible hand).
@@ -340,7 +362,7 @@ export function layout(kit: Kit, p: RigPose, raised = false): Draw[] {
     inBody: true,
     far: false,
   });
-  drawLeg('hip_f', { x: p.f1.x * PROTO_K, y: p.f1.y * PROTO_K }, false);
+  drawLeg('hip_f', { x: p.f1.x * PROTO_K * fs, y: p.f1.y * PROTO_K }, false);
   // The front arm, with the weapon in its hand drawn under the hand.
   const fr = arm('shoulder_f', hand(p.hf), false);
   const frontDraws: Draw[] = [];
@@ -353,7 +375,7 @@ export function layout(kit: Kit, p: RigPose, raised = false): Draw[] {
       pivot: 'grip',
       x: fr.grip.x,
       y: fr.grip.y,
-      rot: p.wa,
+      rot: keepOffGround(weapon, fr.grip.y, p.wa),
       sx: 1,
       sy: 1,
       inBody: true,
@@ -365,11 +387,12 @@ export function layout(kit: Kit, p: RigPose, raised = false): Draw[] {
   frontDraws.push(...fr.draws);
   // A weapon cocked behind the head is drawn before the head.
   if (raised) out.push(...frontDraws);
+  const ho = headOff ?? { dx: 0, dy: 0, rot: 0 };
   push('head', head, {
     pivot: 'neck',
-    x: neck.x,
-    y: neck.y,
-    rot: 0,
+    x: neck.x + ho.dx,
+    y: neck.y + ho.dy,
+    rot: ho.rot,
     sx: hsc,
     sy: hsc,
     inBody: true,
@@ -378,11 +401,13 @@ export function layout(kit: Kit, p: RigPose, raised = false): Draw[] {
   const gear = parts.headgear;
   if (gear && head) {
     const [bx, by] = offsetIn(head, 'neck', 'brow', hsc, hsc);
+    const c = Math.cos(ho.rot);
+    const sn = Math.sin(ho.rot);
     push('headgear', gear, {
       pivot: 'brow',
-      x: neck.x + bx,
-      y: neck.y + by,
-      rot: 0,
+      x: neck.x + ho.dx + bx * c - by * sn,
+      y: neck.y + ho.dy + bx * sn + by * c,
+      rot: ho.rot,
       sx: hsc,
       sy: hsc,
       inBody: true,
