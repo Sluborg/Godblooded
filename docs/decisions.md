@@ -532,5 +532,6 @@ Building art must show plausible, period-true construction: every beam, post and
 load and meets a joint or the foundation; no decorative straps, floating beams or clutter.
 Symmetric types (gables, temple fronts, gates, doorways, paired ornaments) are mirror-symmetric
 about the entrance axis, and repeated elements share width and spacing. One focal ornament per
-facade. Door about 1.3x hero height. Art QA fails pictures that break this. Redos of shipped
+facade (advisory). Door about 1.3x hero height. Art QA fails pictures that break construction,
+symmetry or scale (QA 14.1, 14.2, 14.4); restraint (14.3) is advisory. Redos of shipped
 buildings are Stefan's call after Art lists the offenders.
