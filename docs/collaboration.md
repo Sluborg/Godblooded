@@ -116,3 +116,5 @@ directly. A question for Stefan goes to Lead by `send_message` (ChatGPT chats wr
 skip that item; Art relays it to Lead). Lead posts it on the Questions tab of the Art Verdicts
 page (https://claude.ai/artifact/TNTyhAUSmpoduTGwjZDryP), reads the answer there and relays it
 back. Include the options and your recommendation so Lead can post it as a pick.
+Lead's own questions go there too (Stefan, 2026-10-17): every go or decision Lead needs is a
+card on the Questions tab with a plain explanation, the options and a pick, not only a chat line.
