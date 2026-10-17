@@ -6,3 +6,6 @@ O-1 | 2026-10-15 21:29 UTC | done | bld_plot https://drive.google.com/file/d/1rt
 
 O-2 | 2026-10-15T21:30:22.539Z | done | B19 bld_townhall_t2; B20 bld_temple_greek_t1, bld_temple_egyptian_t1; all unchanged PNG uploads verified and logged
 O-3 | 2026-10-15T21:30:22.539Z | done | buildings production paused until resume; PR3 new-commit watch enabled, order-aware prompt updated; no further batches
+
+O-4 | 2026-10-17T09:02:55.310Z | done | B19 bld_townhall_t2 porch edit uploaded and verified; projecting gabled roof and two carved posts. https://drive.google.com/file/d/1KjUGx6LdioocoSQGHcspR5EjstpmIGm4/view
+O-5 | 2026-10-17T09:02:55.310Z | done | pause acknowledged; proceeding only because later O-6 explicitly resumes.
