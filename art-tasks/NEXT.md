@@ -24,6 +24,7 @@ log; never a **Draft** (Art is still waiting on Stefan). Art sets a batch to Don
 | G11   | monsters  | `G11.md` | Compact-rig monsters: draugr and troll, whole and parts                          | 4      | Ready  |
 | V3    | monsters  | `V3.md`  | Minotaur t1: straight axe haft (edit of V2)                                      | 1      | Void   |
 | V2    | monsters  | `V2.md`  | Redo minotaur t1: a real two-handed grip                                         | 1      | Void   |
+| G13   | heroes    | `G13.md` | Skeleton test: mail body pieces + R/L hands (sheets 1 and 5)                     | 2      | Ready  |
 | G12   | heroes    | `G12.md` | Hero kit from G7, first batch: 11 sheets, 41 parts                               | 11     | Ready  |
 | G7    | heroes    | `G7.md`  | Hero look test: 8 compact heroes, different mixes (nothing ships)                | 8      | Done   |
 | G1    | heroes    | `G1.md`  | Compact hero kit: Grim, 3 more faces, 3 headgear (after G7)                      | 2      | Void   |

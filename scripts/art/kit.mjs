@@ -33,7 +33,8 @@ const raw = readPng(spec.upload);
 const { key } = detectKey(raw);
 if (!key) throw new Error(`${spec.upload}: border is not a flat green or magenta key`);
 const keyed = keyOut(raw, key);
-const GAP = 4;
+// At least 8 px between parts so mipmapped downscales (Scene) never bleed one part into the next.
+const GAP = 8;
 const cut = spec.parts.map((p) => {
   const [x0, y0, x1, y1] = p.box;
   const w = x1 - x0 + 1;
