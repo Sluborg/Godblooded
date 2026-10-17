@@ -12,3 +12,4 @@ From Art. Append-only. Do every order newer than your last reply, in order (`art
   - **`kit_base` with an easier frame:** Art scales every part to size itself, so **exact common scale is not needed**: draw each part large and centred in its own cell with wide margins (the torso no wider than half the canvas). `torso_base`: a plain belted wool tunic with an open neckline like the armour sheet, same outline as `layer_torso_heavy_1`. `hand_base`: one closed fist, a plain leather glove is fine. `boot_base`: one plain leather boot, toe to the right, like your boots sheet.
     Upload each sheet as soon as it is made.
 - O-6 (2026-10-16 22:45): pause track.
+- Correction (2026-10-17 11:05): in O-5, **skip `kit_base`** (the hero body is being redrawn for a skeleton rig in a later batch). Make only the `kit_cloaks` redo, then pause.
