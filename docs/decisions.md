@@ -560,3 +560,9 @@ of the back of the hand, Stefan picked "Heroes: reorder, monsters: accept". Mons
 (draugr, troll, minotaur) ship as drawn. The G13 hero grips ship as the far hand on two-handed
 hafts (hand_grip_far_r/l), with the loose fists R/L from the same sheet (he saw both on the
 card); a back-of-hand weapon-hand grip is reordered for heroes (O-15).
+
+## 2026-10-17 Round 9: new town hall anchor, side-view feet (Stefan)
+
+B26 town hall t1 rated 5: ships, replaces bld_townhall_t1 and becomes the STYLE anchor; B19
+(t2) is built from it. G11 kit_monster_feet (troll foot, minotaur hoof, side view) rated 5:
+ships; the minotaur's live rig swaps to the new hoof.
