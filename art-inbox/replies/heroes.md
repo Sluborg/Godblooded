@@ -15,3 +15,7 @@ O-6 | 2026-10-16T20:42:38.456Z | done | heroes production paused pending resume 
 follow system | 2026-10-17T13:33:46.272Z | watching | Existing heroes wake enabled, no polling schedule. O-6 pause remains active; no newer numbered order. Acknowledged 2026-10-17 correction: kit_base excluded; previously delivered kit_cloaks redo remains the current delivery. No new production.
 
 follow system | 2026-10-17T13:44:05.958Z | watching | Existing heroes wake enabled without polling; reading O-7 and O-8; proceeding with G13 sheets 1 and 5, then cloaks redo.
+
+O-7 | 2026-10-17T13:53:14.215Z | skipped | Executed 3 attempts each for kit_rig_test, kit_rig_hands and kit_cloaks; all withheld under QA. Rig common scale fails; two-layer hands fail registration/anatomy; corrected cloaks drift from painted pixel style. No uploads; detailed faults in STATUS.md. Held sheets2/3/4 and kit_base not made.
+question | G13 | Common scale and hand layer registration remain unreliable after3 attempts. Options: relaxed per-piece scale with Art registration, or revised isolated-piece generation brief. My pick: withhold current sheets and pause under O-8; request revised brief before further generation.
+O-8 | 2026-10-17T13:53:14.215Z | done | heroes production paused until resume; existing heroes event wake remains enabled, no polling.
