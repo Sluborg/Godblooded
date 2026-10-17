@@ -7,3 +7,9 @@ dev-dist/
 !.vscode/extensions.json
 npm-debug.log*
 smoke-out/
+
+# Dev animation test (scripts/anim-*.mjs): Art's source pictures and everything generated stay local.
+/anim-test/src/
+/anim-test/out/
+/anim-test/*/
+!/anim-test/specs/

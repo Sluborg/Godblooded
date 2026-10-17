@@ -23,7 +23,7 @@ export type PoseName = 'idle' | 'walk' | 'attack' | 'ko';
 export const FRAME_COUNT: Readonly<Record<PoseName, number>> = {
   idle: 8,
   walk: 6,
-  attack: 6,
+  attack: 12,
   ko: 3,
 };
 
@@ -47,10 +47,21 @@ export function walkFrame(stepT: number): number {
   return Math.floor((f < 0 ? f + 1 : f) * FRAME_COUNT.walk) % FRAME_COUNT.walk;
 }
 
+// The strike lands at this share of the swing (the prototype's SWING.std `hit`), and the frame at
+// contact is held for a moment (a tiny hit-stop: the blow has weight).
+const HIT_AT = 0.62;
+const HIT_STOP = 0.06;
+
 // `progress` runs 0..1 through the swing.
 export function attackFrame(progress: number): number {
   const p = Math.min(1, Math.max(0, progress));
-  return Math.min(FRAME_COUNT.attack - 1, Math.round(p * (FRAME_COUNT.attack - 1)));
+  const q =
+    p < HIT_AT
+      ? p
+      : p < HIT_AT + HIT_STOP
+        ? HIT_AT
+        : HIT_AT + ((p - HIT_AT - HIT_STOP) * (1 - HIT_AT)) / (1 - HIT_AT - HIT_STOP);
+  return Math.min(FRAME_COUNT.attack - 1, Math.round(q * (FRAME_COUNT.attack - 1)));
 }
 
 // `koK` runs 0..1 as the unit falls.
