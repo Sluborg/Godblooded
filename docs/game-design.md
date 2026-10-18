@@ -136,8 +136,8 @@ behind). The off hand swings free until the guard. Two-handed grip: the weapon f
 hand; the second ball hand sits on a grip point on the haft (a keyframed fraction, so it can
 slide). A two-handed weapon takes the shield slot. A shield sits on the off ball hand.
 
-Hands are plain balls, so there is no grip art: the haft passes behind the near hand ball and in
-front of the far one.
+Hands are plain balls, so there is no grip art: every weapon haft is drawn behind the ball hands
+that hold it (Stefan, 2026-10-18). A shield is the exception: it covers its hand ball.
 
 ## Gods and paths
 
