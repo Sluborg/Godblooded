@@ -118,3 +118,6 @@ page (https://claude.ai/artifact/TNTyhAUSmpoduTGwjZDryP), reads the answer there
 back. Include the options and your recommendation so Lead can post it as a pick.
 Lead's own questions go there too (Stefan, 2026-10-17): every go or decision Lead needs is a
 card on the Questions tab with a plain explanation, the options and a pick, not only a chat line.
+A this-or-that comparison (A versus B, front versus back, option 1, 2 or 3) is always a Questions
+card with named options, never an item rated 1 to 5 (Stefan, 2026-10-19). Items on the Items tab
+are single things to rate, and each note starts with "RATE:" and says exactly what to judge.
