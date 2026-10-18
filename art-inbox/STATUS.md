@@ -356,3 +356,5 @@ B25 | 2026-10-17T18:00:18.591Z | buildings | bld_temple_greek_t1 | QA failed; no
 G13 | 2026-10-17T18:23:21.934Z | heroes | started | O-16 kit_rig_grips only; run 9c6e0ee0.
 
 G13 | 2026-10-17T18:26:43.016Z | heroes | kit_rig_grips | uploaded | O-16 complete; unchanged built-in PNG1254x1254,1413333bytes; Drive metadata verified name/MIME/size/parent. Two mirrored weapon grips, broad dorsal hand/knuckles face viewer, fingers curl behind haft, thumb at top, right cuff screen-left and left cuff screen-right. Collinear flat green haft above/below each fist. Full-size QA checked anatomy, layering, pixel clusters, top-left lighting and clear margins. Near-magenta RGB239,15,240 is pipeline note; Art to validate layer extraction/registration. https://drive.google.com/file/d/16F2BwH0gtKxKI6vf62jLkzx-usFfbxGr/view?usp=drivesdk . First Drive call returned internal error; retry succeeded. No resizing/cropping/conversion/recompression. Production paused under O-16; webhook unchanged.
+
+B27 | 2026-10-18T01:48:35.740Z | buildings | started | O-11 bld_smithy_t2 only; bigger building/annex,straight roof,one anvil; temples parked
