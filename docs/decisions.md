@@ -645,3 +645,20 @@ need to be adjusted to not be only torsos." Go for a small test batch:
 
 Lead's reading of "not only torsos" (Stefan may veto). Test batch only: a few heads and bodies,
 judged on Scene's compact-rig clip, not as single pictures.
+
+## 2026-10-18 Hero style target: between the prototype and G7 (Stefan, go)
+
+Stefan, pointing at the compact prototype units in today's game (round body, big head, ball
+hands and feet): "I want them more like this. This is the style. But body ball nicer, and head
+nice. Hands and feet kept as balls. So a middle ground between the above and the G7. G7 is
+slightly too realistic." The blob-head/whole-body order (c137bd9) is stopped; its sheets stay
+unused.
+
+- **Shape:** the prototype's: a round body ball, a big head, ball hands and ball feet that float
+  and move in code. No legs and no torso-with-legs.
+- **Finish:** the head and the body ball painted nicer, between the prototype's flat cartoon and
+  G7's realism: G7's palette, gear and grim adult faces, with simpler forms and fewer details.
+- **Hands and feet:** stay simple balls (code-drawn or a plain painted ball).
+- **First step:** Art makes the axeman at three finish levels between prototype and G7 (about a
+  quarter, half and three quarters toward G7), assembled by Scene at game size, so Stefan picks
+  the level before a full set is made.
