@@ -16,6 +16,7 @@ const MIN_SPLASH_MS = 1600;
 export class BootScene extends Phaser.Scene {
   private fill!: Phaser.GameObjects.Rectangle;
   private started = 0;
+  private readonly done = { loaded: false, opened: false };
 
   constructor() {
     super('Boot');
@@ -27,8 +28,11 @@ export class BootScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor(COLORS.background);
     this.drawBar();
     // Until the art arrives the splash is the dusk gradient and the wordmark.
-    loadManifest(this, () => this.finish(), {
+    // The title opens once the interface kit is in; this scene stays alive (hidden) so the loader
+    // keeps streaming the rest of the art, and stops itself when it is all in.
+    loadManifest(this, () => this.stopWhenDone('loaded'), {
       onSplashReady: () => this.showSplash(),
+      onTitleReady: () => this.finish(),
       onProgress: (p) => this.fill.setScale(Math.max(0.02, p), 1),
     });
   }
@@ -86,12 +90,24 @@ export class BootScene extends Phaser.Scene {
     });
   }
 
+  private openTitle(): void {
+    this.scene.launch('Title');
+    this.scene.setVisible(false);
+    this.stopWhenDone('opened');
+  }
+
+  // Stops once the art is all in AND the title is open (either can come first).
+  private stopWhenDone(what: 'loaded' | 'opened'): void {
+    this.done[what] = true;
+    if (this.done.loaded && this.done.opened) this.scene.stop();
+  }
+
   private finish(): void {
     const wait = Math.max(0, MIN_SPLASH_MS - (this.time.now - this.started));
     this.time.delayedCall(wait, () => {
       this.cameras.main.fadeOut(300, 0, 0, 0);
       this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () =>
-        this.scene.start('Title'),
+        this.openTitle(),
       );
     });
   }
