@@ -111,7 +111,7 @@ const carry = (s: Stance): Ch =>
     : s === 'dagger'
       ? mk({ hfx: 6, hfy: -9, wa: 0.5 })
       : s === 'sword'
-        ? mk({ hfx: 6.5, hfy: -9, wa: 0.6, hbx: 5, hby: -11 })
+        ? mk({ hfx: 6.5, hfy: -9, wa: 0.6, hbx: -5, hby: -11 })
         : s === 'spear'
           ? mk({ hfx: 5, hfy: -10, wa: -0.55, hbx: 5, hby: -11 })
           : mk({ hfx: 3, hfy: -13, wa: -1.0, hbx: -5, hby: -10 });
@@ -128,7 +128,7 @@ const guard = (s: Stance): Ch => {
       hfx: 1.5,
       hfy: -17,
       wa: -1.15,
-      hbx: 8,
+      hbx: -3,
       hby: -11,
       f0x: 3.5,
       f1x: -2.5,
@@ -195,7 +195,7 @@ function attack(s: Stance, t: number): { ch: Ch; dur: number; hitAt: number } {
   const D = s === 'sword' ? 0.8 : 0.9;
   const wind =
     s === 'sword'
-      ? mk({ ...g, hfx: -1.5, hfy: -22, wa: -1.55, lean: -0.14, dx: -1.5, hbx: 7, cape: -1 })
+      ? mk({ ...g, hfx: -1.5, hfy: -22, wa: -1.55, lean: -0.14, dx: -1.5, hbx: -3, cape: -1 })
       : mk({ ...g, hfx: -2, hfy: -25, wa: -1.75, lean: -0.15, dx: -1.8, cape: -1 });
   const hit =
     s === 'sword'
@@ -206,7 +206,7 @@ function attack(s: Stance, t: number): { ch: Ch; dur: number; hitAt: number } {
           wa: 1.5,
           lean: 0.18,
           dx: 2.5,
-          hbx: 10,
+          hbx: -1,
           hby: -12,
           cape: 5,
           f1x: 0.5,
@@ -265,7 +265,7 @@ const backHand = (c: Ch): Ch => {
   return {
     ...c,
     hfx: c.hfx - 8 + 6 * u,
-    hbx: 6.5,
+    hbx: 6.5 + u * 2.5,
     hby: -10 + c.bob * 0.3,
     wb: 0,
   };

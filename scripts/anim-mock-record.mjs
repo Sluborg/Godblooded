@@ -57,6 +57,20 @@ const pair = (h) => [
 CLIPS.pair_thorson = { heroes: pair(HERO.thorson), mode: 'solo', frames: 84, w: 700, h: 340 };
 CLIPS.pair_tyr2 = { heroes: pair(H2.tyr2), mode: 'solo', frames: 84, w: 700, h: 340 };
 CLIPS.pair_anubis = { heroes: pair(H2.anubis), mode: 'solo', frames: 84, w: 700, h: 340 };
+CLIPS.pair_thorson_sh = {
+  heroes: pair({ ...HERO.thorson, kit: 'hs_thorson_sh' }),
+  mode: 'solo',
+  frames: 84,
+  w: 700,
+  h: 340,
+};
+CLIPS.pair_anubis_sh = {
+  heroes: pair({ ...H2.anubis, kit: 'hs_anubis_sh' }),
+  mode: 'solo',
+  frames: 84,
+  w: 700,
+  h: 340,
+};
 const wanted = process.argv.slice(2);
 const names = wanted.length ? wanted : Object.keys(CLIPS);
 const OUT = 'anim-test/out';
