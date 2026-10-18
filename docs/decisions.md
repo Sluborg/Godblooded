@@ -681,3 +681,13 @@ body skin." Go for two pictures built on docs/reference/hero-style-anchor-thorso
 shapes and pose: (A) head and body slightly more realistic in texture and skin; (B) the anchor's
 head unchanged, a cooler and more detailed body outfit (gear, cloth, metal). Judged as pictures
 on Art Verdicts.
+
+## 2026-10-18 Hero style anchors, grim and adult (Stefan)
+
+Stefan's own examples, made grimmer and adult: docs/reference/hero-style-anchor-thor-grim.png
+(Thor's son: armour plates and mail on the body ball, fur collar, red cape, hammer) and
+docs/reference/hero-style-anchor-odin-grim.png (Odin's daughter: eyepatch, raven-feather collar,
+knotwork, raven staff). They supersede hero-style-anchor-thorson.png. Rules carried over: big head,
+round body ball, plain ball hands and feet; adult grim faces; a strong god colour on the body so
+heroes read at game size. Not every hero wears a cape. Stefan is generating more heroes in his own
+chat before the style is settled and Art is ordered.
