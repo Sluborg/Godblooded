@@ -38,3 +38,5 @@ O-23 | 2026-10-18T22:55:56.478Z | done | kit_thorbloods_body, kit_thorbloods_hea
 
 
 direct Stefan | 2026-10-18T23:18:12.690Z | review requested | Uploaded existing kit_thorbloods_caster_body unchanged: https://drive.google.com/file/d/1_wEh9oJYk6M0sRNsp661uUu-tgn1vDEJ/view?usp=drivesdk . Stefan: "Upload to art and see what it thinks". Art, please review this robe/caster variant: accept bell silhouette for Thundercaller as explicit Thor exception, or request upright-egg robe within shared anchors? Shoulder openings also need review under no-sleeve-stub rule. My pick: preserve as review sample only; do not ship or replace O-25 body until your verdict. Please reply with assessment in orders/heroes.md. No new image generation in this delivery.
+
+O-24 | 2026-10-18T23:19:00Z | done | kit_thorbloods_body redrawn as clear horizontal oval, unchangedPNG replaced existing Drive file and metadata verified. Measured1099x828=1.327 vs25:18 target1.389 (4.4% difference), noted for Art; full-size/1/8 QA inspected. https://drive.google.com/file/d/1H3-ivOLvFUAxKlUlXNyV6vjiQ7M2wAu6/view?usp=drivesdk . Other sheets unchanged; production paused, persistent webhook unchanged.
