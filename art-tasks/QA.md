@@ -46,13 +46,14 @@ still fails, do not upload it: report the item and the fault instead.
     mirror-symmetric about the entrance, repeated bays, columns and windows match (14.2); one
     focal ornament per facade (14.3); a door is about 1.3 times a hero's height (14.4). A
     building that breaks 14.1, 14.2 or 14.4 fails.
-15. **Heroes as settled** (STYLE "Heroes", Stefan 2026-10-18): a big head about a third of the
-    figure on a round body ball; no arms, legs or sleeve stubs; at least 40 percent of the ball
-    visible (15.1); a grim adult face with the stylised features (big round ears, short round
-    nose, heavy brows), never cute (15.2); each piece on its own layer, the cape painted neutral
-    light grey, the god's motif only on that god's body (15.3); weapon hafts behind the hand
-    balls, a shield over its hand, shields painted face-on toward the viewer, weapons with a clean
-    haft and no hand (15.4). A hero piece that breaks 15.1, 15.2 or 15.3 fails.
+15. **Heroes as settled** (STYLE "Heroes", Stefan 2026-10-18 and 2026-10-19): a big head about a
+    third of the figure on a body that is a ball, bell, barrel or tattered shape inside the shared box,
+    with no arms, legs or sleeve stubs (15.1); a grim adult face with the stylised features (big round
+    ears, short round nose, heavy brows), never cute (15.2); each piece on its own layer, the cape
+    painted neutral light grey, the god's motif only on that god's body (15.3); the weapon painted
+    hand-neutral with a clean haft, behind the hand balls; a shield painted angled 3/4 toward the
+    viewer, face showing, for the front hand (15.4). A hero piece that breaks 15.1, 15.2 or 15.3
+    fails.
 
 **Not faults** (Art fixes these in the pipeline; never redo or withhold an image for them, just
 note them in the log): a background that is near the key colour instead of exact (it must be
