@@ -35,3 +35,6 @@ question | B27 | Generator still moves the two unconstrainedbraziers despite equ
 
 
 O-15 | 2026-10-18T06:07:01.186Z | done | bld_temple_greek_t2 painted as edit of NEWblockoutwithlockedbraziers,thirdattemptpassedownfullsizeQA14/50-50overlay. Sixcolumns,door,rooflines,stepsandbothbrazierpositions preserved; identicalbronze tripods feetonbottomstep,lowcontainedfire,marble/flutes/terracotta/laurel/bronzeroofstatue. UnchangedPNG1767807bytes replacedexistingDrivefile,name/MIME/size/parent verified. Artstylecheck note: flame silhouettes remain stronglytriangular likeblockout. No manual/script imagefix,diagnosticoverlaysonly; t1untouched. Productionpausedasordered; persistentwebhook unchanged. https://drive.google.com/file/d/1bTvJmBcbD6f5Ac9AS5Xm2wkPFw6mWyUw/view?usp=drivesdk
+
+
+O-16 | 2026-10-18T16:45:55.127Z | done | bld_temple_greek_t1 newrunfromoriginalblockout,firstattemptownQA14/50-50overlaypassed. Entrancedarkandopen top-to-bottom withclearwalkablefloor,no statue or brazier or props; alloriginalbuildingedges/fourcolumns/gaps/steps preserved. UnchangedPNG1953038bytes replacedexistingDrivefile,name/MIME/size/parent verified. t2andsmithyt2 untouched. No manual/scriptimagefix; productionpausedasordered,persistentwebhook unchanged. https://drive.google.com/file/d/1QJcczw2AA6hZ-LKmCpYTCI7vcG2eXjVe/view?usp=drivesdk
