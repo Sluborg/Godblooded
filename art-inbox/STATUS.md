@@ -381,3 +381,6 @@ B27 | 2026-10-18T04:00:11.379Z | buildings | bld_temple_greek_t2 | uploaded | O-
 
 
 B27 | 2026-10-18T04:59:09.472Z | buildings | started | O-14 temple t2 only, redo from original blockout with braziers in front of columns2and5; prior O-13 finished,Art requests correction; run6b1243d0
+
+
+B27 | 2026-10-18T05:06:01.634Z | buildings | bld_temple_greek_t2 | QA failed; not uploaded | O-14 three new imagegen edits from original blockout. Attempt1 liftedfrontapex andbraziers too high; attempt2 retainedbuildinggeometry butpairedforwardoffsets still unequal (about15px horizontal mismatch); attempt3 matchedpairseparation better butfeet rest onhigherstep ratherthanrequestedbottomstep,roofstatue/pedimentdetails drift. Full-size and50/50 blockoutoverlay checked each. No manual/script image repairs; onlydiagnosticoverlays. No new PNG uploaded or Drivefile replaced; existingO-13t2 remainsrejected,notredelivered. t1 untouched/ArtQApassed. Productionpaused underO-14.
