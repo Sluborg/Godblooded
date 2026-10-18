@@ -150,9 +150,9 @@
       "view": null,
       "file": "buildings/bld_smithy_t2.png",
       "anchorX": 0.5,
-      "anchorY": 0.798,
+      "anchorY": 0.736,
       "license": "own (ChatGPT, Stefan's account)",
-      "source": "B9"
+      "source": "B27"
     },
     {
       "id": "bld_temple_aesir_t1",
@@ -216,9 +216,9 @@
       "view": null,
       "file": "buildings/bld_temple_greek_t2.png",
       "anchorX": 0.5,
-      "anchorY": 0.799,
+      "anchorY": 0.71,
       "license": "own (ChatGPT, Stefan's account)",
-      "source": "B9"
+      "source": "B27"
     },
     {
       "id": "bld_tower_t1",
