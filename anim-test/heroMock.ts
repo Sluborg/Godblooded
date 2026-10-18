@@ -28,10 +28,17 @@ const loadImage = (src: string): Promise<HTMLImageElement> =>
     img.src = src;
   });
 
+interface PartJson {
+  file: string;
+  w: number;
+  h: number;
+  pivots: Record<string, [number, number]>;
+}
+
 export async function loadKit(name: string): Promise<Kit> {
   const json = await (await fetch(`/anim-test/${name}/kit.json`)).json();
   const parts: Record<string, KitPart> = {};
-  for (const [slot, spec] of Object.entries(json.parts) as [string, any][]) {
+  for (const [slot, spec] of Object.entries(json.parts) as [string, PartJson][]) {
     parts[slot] = {
       img: await loadImage(`/anim-test/${name}/${spec.file}`),
       cell: { x: 0, y: 0, w: spec.w, h: spec.h, pivots: spec.pivots },
@@ -41,32 +48,41 @@ export async function loadKit(name: string): Promise<Kit> {
   return { parts: parts as Kit['parts'], layers: {}, build: BUILDS.standard, mode: 'floating' };
 }
 
-// ---------- keyframes ----------
-type Key = [t: number, v: number];
 const ease = (u: number) => u * u * (3 - 2 * u);
-function track(keys: Key[], t: number): number {
-  if (t <= keys[0][0]) return keys[0][1];
-  for (let i = 1; i < keys.length; i++) {
-    if (t <= keys[i][0]) {
-      const [t0, v0] = keys[i - 1];
-      const [t1, v1] = keys[i];
-      return t1 === t0 ? v1 : v0 + (v1 - v0) * ease((t - t0) / (t1 - t0));
-    }
-  }
-  return keys[keys.length - 1][1];
-}
-
 // The channels of a pose (prototype units, x forward, y up is negative).
 interface Ch {
-  hfx: number; hfy: number; wa: number;
-  hbx: number; hby: number; wb: number;
-  lean: number; dx: number; bob: number;
-  f0x: number; f0y: number; f1x: number; f1y: number;
-  cape: number; hem: number;
+  hfx: number;
+  hfy: number;
+  wa: number;
+  hbx: number;
+  hby: number;
+  wb: number;
+  lean: number;
+  dx: number;
+  bob: number;
+  f0x: number;
+  f0y: number;
+  f1x: number;
+  f1y: number;
+  cape: number;
+  hem: number;
 }
 const base = (): Ch => ({
-  hfx: 6.5, hfy: -9, wa: 0.4, hbx: -6, hby: -9, wb: 0, lean: 0, dx: 0, bob: 0,
-  f0x: 0, f0y: 0, f1x: 0, f1y: 0, cape: 2, hem: 0,
+  hfx: 6.5,
+  hfy: -9,
+  wa: 0.4,
+  hbx: -6,
+  hby: -9,
+  wb: 0,
+  lean: 0,
+  dx: 0,
+  bob: 0,
+  f0x: 0,
+  f0y: 0,
+  f1x: 0,
+  f1y: 0,
+  cape: 2,
+  hem: 0,
 });
 const lerpCh = (a: Ch, b: Ch, u: number): Ch => {
   const o = {} as Ch;
@@ -88,9 +104,19 @@ const carry = (s: Stance): Ch =>
 const guard = (s: Stance): Ch => {
   if (s === 'staff')
     return mk({ hfx: 8, hfy: -14, wa: 0.25, hbx: 9, hby: -22, f0x: 3, f1x: -2.5, lean: 0.04 });
-  if (s === 'dagger') return mk({ hfx: 8, hfy: -9, wa: 0.95, hbx: -5, hby: -11, f1x: 3, f0x: -2.5, lean: 0.05 });
+  if (s === 'dagger')
+    return mk({ hfx: 8, hfy: -9, wa: 0.95, hbx: -5, hby: -11, f1x: 3, f0x: -2.5, lean: 0.05 });
   if (s === 'sword')
-    return mk({ hfx: 1.5, hfy: -17, wa: -1.15, hbx: 8, hby: -11, f0x: 3.5, f1x: -2.5, lean: -0.02 });
+    return mk({
+      hfx: 1.5,
+      hfy: -17,
+      wa: -1.15,
+      hbx: 8,
+      hby: -11,
+      f0x: 3.5,
+      f1x: -2.5,
+      lean: -0.02,
+    });
   return mk({ hfx: 2, hfy: -18, wa: -0.95, hbx: -4, hby: -11, f0x: 3.5, f1x: -2.5, lean: -0.02 });
 };
 
@@ -102,21 +128,47 @@ function attack(s: Stance, t: number): { ch: Ch; dur: number; hitAt: number } {
     const pull = mk({ ...g, hfx: 3.5, hfy: -10, wa: 0.75, lean: -0.05, dx: -1 });
     const stab = mk({ ...g, hfx: 14.5, hfy: -12, wa: 1.45, lean: 0.1, dx: 2.5, cape: 6 });
     const ch =
-      t < 0.12 ? lerpCh(g, pull, ease(t / 0.12))
-      : t < 0.2 ? lerpCh(pull, stab, ease((t - 0.12) / 0.08))
-      : t < 0.26 ? stab
-      : lerpCh(stab, g, ease(Math.min(1, (t - 0.26) / 0.29)));
+      t < 0.12
+        ? lerpCh(g, pull, ease(t / 0.12))
+        : t < 0.2
+          ? lerpCh(pull, stab, ease((t - 0.12) / 0.08))
+          : t < 0.26
+            ? stab
+            : lerpCh(stab, g, ease(Math.min(1, (t - 0.26) / 0.29)));
     return { ch, dur: D, hitAt: 0.2 };
   }
   if (s === 'staff') {
     const D = 1.0;
-    const wind = mk({ ...g, hfx: 3.5, hfy: -21, wa: -0.45, hbx: 5, hby: -27, lean: -0.1, dx: -1.5, cape: -1 });
-    const cast = mk({ ...g, hfx: 13, hfy: -17, wa: 0.95, hbx: 17, hby: -25, lean: 0.1, dx: 2, cape: 6 });
+    const wind = mk({
+      ...g,
+      hfx: 3.5,
+      hfy: -21,
+      wa: -0.45,
+      hbx: 5,
+      hby: -27,
+      lean: -0.1,
+      dx: -1.5,
+      cape: -1,
+    });
+    const cast = mk({
+      ...g,
+      hfx: 13,
+      hfy: -17,
+      wa: 0.95,
+      hbx: 17,
+      hby: -25,
+      lean: 0.1,
+      dx: 2,
+      cape: 6,
+    });
     const ch =
-      t < 0.4 ? lerpCh(g, wind, ease(t / 0.4))
-      : t < 0.5 ? lerpCh(wind, cast, ease((t - 0.4) / 0.1))
-      : t < 0.62 ? cast
-      : lerpCh(cast, g, ease(Math.min(1, (t - 0.62) / 0.38)));
+      t < 0.4
+        ? lerpCh(g, wind, ease(t / 0.4))
+        : t < 0.5
+          ? lerpCh(wind, cast, ease((t - 0.4) / 0.1))
+          : t < 0.62
+            ? cast
+            : lerpCh(cast, g, ease(Math.min(1, (t - 0.62) / 0.38)));
     return { ch, dur: D, hitAt: 0.5 };
   }
   // hammer chop and sword slash: from the back.
@@ -127,17 +179,32 @@ function attack(s: Stance, t: number): { ch: Ch; dur: number; hitAt: number } {
       : mk({ ...g, hfx: -2, hfy: -25, wa: -1.75, lean: -0.15, dx: -1.8, cape: -1 });
   const hit =
     s === 'sword'
-      ? mk({ ...g, hfx: 12, hfy: -13, wa: 1.9, lean: 0.2, dx: 3, hbx: 10, hby: -12, cape: 6, f1x: 0.5 })
+      ? mk({
+          ...g,
+          hfx: 12,
+          hfy: -13,
+          wa: 1.9,
+          lean: 0.2,
+          dx: 3,
+          hbx: 10,
+          hby: -12,
+          cape: 6,
+          f1x: 0.5,
+        })
       : mk({ ...g, hfx: 11, hfy: -9, wa: 1.55, lean: 0.22, dx: 3.5, cape: 6, f0x: 5, f1x: -1.5 });
   const tw = 0.3;
   const th = 0.36;
   const ts = th + 0.1;
   const ch =
-    t < tw ? lerpCh(g, wind, ease(t / tw))
-    : t < th ? wind
-    : t < ts ? lerpCh(wind, hit, ease((t - th) / (ts - th)))
-    : t < ts + 0.09 ? hit
-    : lerpCh(hit, g, ease(Math.min(1, (t - ts - 0.09) / (D - ts - 0.09))));
+    t < tw
+      ? lerpCh(g, wind, ease(t / tw))
+      : t < th
+        ? wind
+        : t < ts
+          ? lerpCh(wind, hit, ease((t - th) / (ts - th)))
+          : t < ts + 0.09
+            ? hit
+            : lerpCh(hit, g, ease(Math.min(1, (t - ts - 0.09) / (D - ts - 0.09))));
   return { ch, dur: D, hitAt: ts };
 }
 
@@ -171,10 +238,19 @@ function idleCh(s: Stance, t: number, phase: number): Ch {
 }
 
 const toPose = (c: Ch): RigPose => ({
-  bob: c.bob, lean: c.lean, dx: c.dx, sy: 1,
-  hf: { x: c.hfx, y: c.hfy }, hb: { x: c.hbx, y: c.hby }, wa: c.wa, wb: c.wb,
-  f0: { x: c.f0x, y: c.f0y }, f1: { x: c.f1x, y: c.f1y },
-  rot: 0, cape: c.cape, hem: c.hem,
+  bob: c.bob,
+  lean: c.lean,
+  dx: c.dx,
+  sy: 1,
+  hf: { x: c.hfx, y: c.hfy },
+  hb: { x: c.hbx, y: c.hby },
+  wa: c.wa,
+  wb: c.wb,
+  f0: { x: c.f0x, y: c.f0y },
+  f1: { x: c.f1x, y: c.f1y },
+  rot: 0,
+  cape: c.cape,
+  hem: c.hem,
 });
 
 // ---------- scene ----------
@@ -210,11 +286,18 @@ export class Mock {
     ctx.fillStyle = '#7f9450';
     ctx.fillRect(0, 0, w, h);
     const groundY = h * 0.72;
-    const scroll = clip === 'line' ? t * 40 * scale * 0.45 : t >= 1.2 && t < 3 ? (t - 1.2) * 40 * scale * 0.45 : t >= 3 ? 1.8 * 40 * scale * 0.45 : 0;
+    const scroll =
+      clip === 'line'
+        ? t * 40 * scale * 0.45
+        : t >= 1.2 && t < 3
+          ? (t - 1.2) * 40 * scale * 0.45
+          : t >= 3
+            ? 1.8 * 40 * scale * 0.45
+            : 0;
     ctx.strokeStyle = '#5d7434';
     ctx.lineWidth = 1.1 * Math.max(1, scale / 1.2);
     for (let n = 0; n < 90; n++) {
-      const x = (((rngv(n) * w * 1.4 - scroll) % (w * 1.4)) + w * 1.4) % (w * 1.4) - w * 0.2;
+      const x = ((((rngv(n) * w * 1.4 - scroll) % (w * 1.4)) + w * 1.4) % (w * 1.4)) - w * 0.2;
       const y = rngv(n + 500) * h;
       const s = 3 * scale * (0.7 + rngv(n + 900) * 0.6);
       ctx.beginPath();
@@ -257,7 +340,10 @@ export class Mock {
       const raised = ch.wa < -1.1;
       const kit = hero.kit;
       const draws = layout(kit, pose, raised, undefined);
-      const cx = w * (clip === 'line' ? 0.5 : 0.4) + (clip === 'line' ? (k - (n - 1) / 2) * gap * scale : 0) + (clip === 'line' ? 0 : 0);
+      const cx =
+        w * (clip === 'line' ? 0.5 : 0.4) +
+        (clip === 'line' ? (k - (n - 1) / 2) * gap * scale : 0) +
+        (clip === 'line' ? 0 : 0);
       const cy = groundY + (clip === 'line' ? (k % 2 ? 7 : -7) * scale * 0.5 : 0);
       ctx.save();
       ctx.translate(cx, cy);
@@ -317,4 +403,4 @@ export class Mock {
     return c.toDataURL('image/png');
   }
 }
-(window as any).MockClass = Mock;
+(window as unknown as { MockClass: typeof Mock }).MockClass = Mock;
