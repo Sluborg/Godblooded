@@ -699,3 +699,22 @@ party's colour (the existing party colour in the scene), and its finish rises wi
 level (plain wool, trimmed with an emblem, rich with fur and glow). The god's colour moves to the
 body and head. For production the cape is its own layer, painted neutral light grey so the game
 tints it per party, and it sways in code. Open: whether heroes without a party wear no cape.
+
+## 2026-10-18 Hero style settled (Stefan)
+
+"Yes. Settle." The hero style is the one in Stefan's seven examples in docs/reference
+(hero-style-anchor-thor-grim, hero-style-anchor-odin-grim, hero-style-tyr, -loki, -freyja, -athena,
+-anubis), animated on the compact rig in Scene's mock (scene/hero-style-mock). Rules:
+
+- **Shape:** big head (about a third of the figure), round body ball, floating ball hands (skin
+  tone) and ball feet (leather), no arms or legs. The ball stays visible (at least 40 percent).
+- **Face:** stylised chibi features (oversized round ears, short rounded nose, heavy simple brows),
+  grim and adult, not realistic proportions.
+- **Finish:** smooth painted game art with real texture on cloth, leather, metal and hair.
+- **Kit:** body per god (colour and motif), head per hero (both genders), weapon per path with 3
+  tiers, cape per party (painted neutral, tinted in game, finish by party level), shield optional.
+  Hero level shows through the weapon tier and code auras, not the body.
+- **Layering:** weapon hafts behind all hand balls; a shield covers its hand.
+- **Small fixes noted:** no sleeve stubs (Tyr), motifs stay with their god (Loki's owl brooches).
+
+Production waits for Stefan's go on a first batch (Questions tab).
