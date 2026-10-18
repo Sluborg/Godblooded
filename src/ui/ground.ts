@@ -1,5 +1,8 @@
 import Phaser from 'phaser';
 import { gradeRgb } from './parts/partsStyle';
+import { bake, textureScale } from './bake';
+import { CELL, dirtOutline, dirtPlan, tintGrid } from './groundVariation';
+import type { Pt } from './organic';
 
 // Plain grass ground (Stefan's taste test, docs/decisions.md 2026-10-14): one flat green with
 // small tufts and a few flowers, from the style prototype (docs/reference/style-test.html,
@@ -78,6 +81,19 @@ export function gradedHex(hex: string): string {
 }
 
 const TILE_KEY = 'ground_tile';
+// Sparse pebbles on the tile (a few per 512 px), pale stones with a dark underside.
+const PEBBLES = 7;
+export function pebblePlan(
+  size: number = GROUND.tileSize,
+  seed = 4417,
+): { x: number; y: number; s: number }[] {
+  const r = rng(seed);
+  return Array.from({ length: PEBBLES }, () => ({
+    x: r() * size,
+    y: r() * size,
+    s: 0.8 + r() * 0.9,
+  }));
+}
 
 function drawTuft(c: CanvasRenderingContext2D, t: Tuft, ox: number, oy: number, col: string): void {
   const x = t.x + ox;
@@ -102,6 +118,9 @@ export function makeGround(
   scene: Phaser.Scene,
   width: number,
   height: number,
+  seed: number,
+  hall: Pt,
+  spots: readonly Pt[],
 ): Phaser.GameObjects.Image[] {
   const size = GROUND.tileSize;
   if (scene.textures.exists(TILE_KEY)) scene.textures.remove(TILE_KEY);
@@ -137,12 +156,64 @@ export function makeGround(
           c.arc(x - 0.5, y - 0.5, 0.6, 0, Math.PI * 2);
           c.fill();
         }
+    for (const p of pebblePlan(size)) {
+      c.fillStyle = 'rgba(40,34,24,0.5)';
+      c.beginPath();
+      c.ellipse(p.x + 0.4, p.y + 0.9, 2.2 * p.s, 1.2 * p.s, 0, 0, Math.PI * 2);
+      c.fill();
+      c.fillStyle = gradedHex('#a9a493');
+      c.beginPath();
+      c.ellipse(p.x, p.y, 2 * p.s, 1.3 * p.s, 0, 0, Math.PI * 2);
+      c.fill();
+      c.fillStyle = 'rgba(255,255,240,0.45)';
+      c.beginPath();
+      c.ellipse(p.x - 0.5, p.y - 0.4, 0.8 * p.s, 0.4 * p.s, 0, 0, Math.PI * 2);
+      c.fill();
+    }
+    // The tile is shown in CELL-sized pieces, so each can take its own corner tints.
+    const per = size / CELL;
+    for (let i = 0; i < per; i++)
+      for (let j = 0; j < per; j++) tex.add(`c${i}_${j}`, 0, i * CELL, j * CELL, CELL, CELL);
     tex.refresh();
   }
+  // One image per CELL; the tint of each corner comes from the seeded tone map, so grass patches
+  // drift from plain green to lusher, drier or yellowed over a few cells, with no extra drawing.
   const images: Phaser.GameObjects.Image[] = [];
-  for (let y = 0; y < height; y += size)
-    for (let x = 0; x < width; x += size)
-      images.push(scene.add.image(x, y, TILE_KEY).setOrigin(0, 0).setDepth(-1));
+  const grid = tintGrid(seed, width, height);
+  const per = size / CELL;
+  for (let j = 0; j < grid.rows; j++)
+    for (let i = 0; i < grid.cols; i++) {
+      const at = (a: number, b: number) => grid.nodes[(j + b) * (grid.cols + 1) + i + a];
+      images.push(
+        scene.add
+          .image(i * CELL, j * CELL, TILE_KEY, `c${i % per}_${j % per}`)
+          .setOrigin(0, 0)
+          .setDepth(-1)
+          .setTint(at(0, 0), at(1, 0), at(0, 1), at(1, 1)),
+      );
+    }
+  // Worn bare earth, baked once per variant and placed by the seeded plan.
+  for (const d of dirtPlan(seed, hall, spots)) {
+    const img = bake(scene, `dirt:${d.variant}`, 64, 64, (g) => {
+      const pts = dirtOutline(d.variant);
+      for (const [k, col, a] of [
+        [60, 0xa08558, 0.3],
+        [47, 0x8e7549, 0.32],
+        [32, 0x7d663f, 0.26],
+      ] as const)
+        g.fillStyle(col, a).fillPoints(
+          pts.map((p) => ({ x: p.x * k, y: p.y * k })),
+          true,
+        );
+    });
+    const k = 1 / textureScale(img.texture.key);
+    img
+      .setPosition(d.x, d.y)
+      .setRotation(d.rot)
+      .setScale((d.rx / 64) * k, (d.ry / 64) * k)
+      .setAlpha(d.alpha)
+      .setDepth(-0.9);
+  }
   return images;
 }
 
