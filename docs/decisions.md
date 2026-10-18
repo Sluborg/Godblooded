@@ -672,3 +672,12 @@ a chunky beard and stern brows; a round body ball with belt and cape; plain ball
 feet; a simple chunky weapon. This replaces "middle ground toward G7" (a137d27) as the target. He
 is now testing how much detail this style can carry before it stops working, and will bring the
 results. Art's O-19 (G7-direction finish levels) is held until then.
+
+## 2026-10-18 Anchor variants: two tests (Stefan, go)
+
+"I think the body can be even more detailed. Try one version with slightly more realistic head
+and body, as in texture and skin. Keep shapes. And one version with the same head but a cooler
+body skin." Go for two pictures built on docs/reference/hero-style-anchor-thorson.png, same
+shapes and pose: (A) head and body slightly more realistic in texture and skin; (B) the anchor's
+head unchanged, a cooler and more detailed body outfit (gear, cloth, metal). Judged as pictures
+on Art Verdicts.
