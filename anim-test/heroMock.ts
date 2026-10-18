@@ -41,7 +41,84 @@ interface PartJson {
   pivots: Record<string, [number, number]>;
 }
 
+interface SheetCell {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  pivots: Record<string, [number, number]>;
+}
+interface SheetsJson {
+  [sheet: string]: { file: string; ppu: number; cells: Record<string, SheetCell> };
+}
+
+// A Thorblood from the shipped kit sheets (art/ship-thorbloods, copied to anim-test/thorbloods):
+// `tb:<head>:<weapon>[:<headScale>]`, e.g. `tb:m1:hammer_t1:0.85`. Hands and boots are code balls
+// (the ones cut for the Thor's son mock), the cape is tinted to the party blue.
+async function loadThorblood(spec: string): Promise<Kit> {
+  const [, head, weapon, hs] = spec.split(':');
+  const sheets = (await (await fetch('/anim-test/thorbloods/sheets.json')).json()) as SheetsJson;
+  const imgs = new Map<string, HTMLImageElement>();
+  const part = async (sheet: string, cell: string): Promise<KitPart> => {
+    let img = imgs.get(sheet);
+    if (!img) {
+      img = await loadImage(`/anim-test/thorbloods/${sheet}.png`);
+      imgs.set(sheet, img);
+    }
+    const c = sheets[sheet].cells[cell];
+    return {
+      img,
+      cell: { x: c.x, y: c.y, w: c.w, h: c.h, pivots: c.pivots },
+      ppu: sheets[sheet].ppu,
+    };
+  };
+  const tint = async (p: KitPart, color: string): Promise<KitPart> => {
+    const c = document.createElement('canvas');
+    c.width = p.cell.w;
+    c.height = p.cell.h;
+    const g = c.getContext('2d') as CanvasRenderingContext2D;
+    const draw = () =>
+      g.drawImage(p.img, p.cell.x, p.cell.y, p.cell.w, p.cell.h, 0, 0, p.cell.w, p.cell.h);
+    draw();
+    g.globalCompositeOperation = 'multiply';
+    g.fillStyle = color;
+    g.fillRect(0, 0, c.width, c.height);
+    g.globalCompositeOperation = 'destination-in';
+    draw();
+    return {
+      img: c,
+      cell: { x: 0, y: 0, w: c.width, h: c.height, pivots: p.cell.pivots },
+      ppu: p.ppu,
+    };
+  };
+  const ball = await (await fetch('/anim-test/hs_thorson/kit.json')).json();
+  const ballPart = async (name: 'hand' | 'boot'): Promise<KitPart> => {
+    const b = ball.parts[name] as PartJson;
+    return {
+      img: await loadImage(`/anim-test/hs_thorson/${b.file}`),
+      cell: { x: 0, y: 0, w: b.w, h: b.h, pivots: b.pivots },
+      ppu: ball.ppu,
+    };
+  };
+  const weaponSheet = weapon.startsWith('thunderstaff') ? 'kit_thunderstaff' : 'kit_hammer';
+  const parts: Record<string, KitPart> = {
+    torso: await part('kit_thorbloods_body', 'body_thorblood'),
+    head: await part('kit_thorbloods_heads', `head_thorblood_${head}`),
+    cloak: await tint(await part('kit_capes_neutral', 'cape_neutral'), '#4f78c4'),
+    weapon: await part(weaponSheet, weapon),
+    hand: await ballPart('hand'),
+    boot: await ballPart('boot'),
+  };
+  return {
+    parts: parts as Kit['parts'],
+    layers: {},
+    build: { ...BUILDS.standard, head: hs ? Number(hs) : 0.85 },
+    mode: 'floating',
+  };
+}
+
 export async function loadKit(name: string): Promise<Kit> {
+  if (name.startsWith('tb:')) return loadThorblood(name);
   const json = await (await fetch(`/anim-test/${name}/kit.json`)).json();
   const parts: Record<string, KitPart> = {};
   for (const [slot, spec] of Object.entries(json.parts) as [string, PartJson][]) {

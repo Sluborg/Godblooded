@@ -102,6 +102,47 @@ CLIPS.anubis_sh_unused = {
   h: 340,
 };
 CLIPS.loki2 = { heroes: [{ ...H2.loki2, side: 'back' }], mode: 'solo', frames: 84, w: 440, h: 340 };
+// Thorbloods from the real kit sheets (art/ship-thorbloods): weapon on the back hand for everyone.
+const tb = (head, weapon, extra = {}) => ({
+  kit: `tb:${head}:${weapon}`,
+  stance: weapon.startsWith('thunderstaff') ? 'staff' : 'hammer',
+  side: weapon.startsWith('thunderstaff') ? 'front' : 'back',
+  x: 0,
+  phase: 0,
+  glow: [130, 190, 255],
+  ...extra,
+});
+CLIPS.tb_solo = { heroes: [tb('m1', 'hammer_t1')], mode: 'solo', frames: 84, w: 440, h: 340 };
+CLIPS.tb_staff = {
+  heroes: [tb('f2', 'thunderstaff_t1')],
+  mode: 'solo',
+  frames: 84,
+  w: 440,
+  h: 340,
+};
+CLIPS.tb_tiers = {
+  heroes: [
+    tb('m1', 'hammer_t1', { x: -105 }),
+    tb('f1', 'hammer_t2', { x: -35 }),
+    tb('m2', 'hammer_t3', { x: 35 }),
+  ],
+  mode: 'solo',
+  frames: 84,
+  w: 800,
+  h: 340,
+};
+CLIPS.tb_party = {
+  heroes: [
+    tb('m1', 'hammer_t1', { x: -66, y: 4, phase: 0 }),
+    tb('f1', 'hammer_t2', { x: -22, y: -4, phase: 0.9 }),
+    tb('m2', 'thunderstaff_t1', { x: 22, y: 4, phase: 1.8 }),
+    tb('f2', 'thunderstaff_t2', { x: 66, y: -4, phase: 2.7 }),
+  ],
+  mode: 'line',
+  frames: 60,
+  w: 640,
+  h: 340,
+};
 const wanted = process.argv.slice(2);
 const names = wanted.length ? wanted : Object.keys(CLIPS);
 const OUT = 'anim-test/out';
