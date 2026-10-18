@@ -50,6 +50,7 @@ async function record(u, zoom) {
     async ({ u, zoom }) => {
       const { AnimStage, registerAnimKit } = await import('/src/dev/animStage.ts');
       if (u.kit) await registerAnimKit(u.kit);
+      if (u.party) for (const m of u.party) await registerAnimKit(m.kit);
       const game = window.__game;
       const map = game.scene.getScene('Map');
       map.registry.set('speed', 0);
@@ -62,14 +63,21 @@ async function record(u, zoom) {
           const d = Math.min(...pts.map((p) => Math.hypot(p.x - x, p.y - y)));
           if (d > best.d) best = { x, y, d };
         }
-      const stage = new AnimStage(map, game, {
-        kind: u.kind,
-        god: u.god,
-        path: u.path,
-        tier: u.tier,
-        type: u.type,
-        zoom,
-      });
+      const Stage = u.party ? (await import('/anim-test/partyStage.ts')).PartyStage : AnimStage;
+      const stage = new Stage(
+        map,
+        game,
+        u.party
+          ? { members: u.party, zoom, gap: u.gap, lookUp: u.lookUp }
+          : {
+              kind: u.kind,
+              god: u.god,
+              path: u.path,
+              tier: u.tier,
+              type: u.type,
+              zoom,
+            },
+      );
       stage.start(best);
       window.__stage = stage;
       return stage.total;
@@ -80,7 +88,7 @@ async function record(u, zoom) {
   rmSync(dir, { recursive: true, force: true });
   mkdirSync(dir, { recursive: true });
   const box = u.box ?? { w: 400, h: 300 };
-  for (let i = 0; i < total; i++) {
+  for (let i = 0; i < Math.min(total, u.frames ?? total); i++) {
     const url = await page.evaluate((box) => {
       window.__stage.step();
       return window.__stage.grab(box);
@@ -125,7 +133,7 @@ function encode(dir, base) {
 }
 
 for (const u of list) {
-  for (const zoom of [1, 2]) {
+  for (const zoom of u.zooms ?? [1, 2]) {
     const dir = await record(u, zoom);
     const base = `${OUT}/${u.name}-z${zoom}`;
     encode(dir, base);
