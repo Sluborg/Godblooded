@@ -360,3 +360,6 @@ G13 | 2026-10-17T18:26:43.016Z | heroes | kit_rig_grips | uploaded | O-16 comple
 B27 | 2026-10-18T01:48:35.740Z | buildings | started | O-11 bld_smithy_t2 only; bigger building/annex,straight roof,one anvil; temples parked
 
 B27 | 2026-10-18T01:52:11.466Z | buildings | bld_smithy_t2 | uploaded | O-11 redo only, NOT complete B27 batch (temples parked). Unchanged built-in1254x1254 PNG2239790bytes; existing Drive file replaced in place; name/MIME/size/parent verified. Same approved t1 forge with substantial attached covered quench/cooling bay; exactlyONE anvil,2 matching chimneys symmetrically spaced on main block. Second attempt corrected main ridge/eave directions to parallel depth edges; separate planar lean-to below main eave,straight shingle rows,joined supports on foundation,no roof metal. Own full-size QA14 passed. Pipeline notes: near-magenta key,oversized framing. https://drive.google.com/file/d/1PncUu1dyPrc5UkkFZH3kBHAmc-ijtU3r/view?usp=drivesdk
+
+
+B25/B27 | 2026-10-18T02:50:57.304Z | buildings | started | O-12 two-step Greek temples t1 then t2; run6317e570
