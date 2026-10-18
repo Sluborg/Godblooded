@@ -1,0 +1,320 @@
+// Dev only: the hero style animation mock. Draws the compact rig (src/ui/parts/painted.ts layout and
+// drawKit) from keyframed poses that follow the weapon stance table (docs/game-design.md "Hero
+// animation: compact rig and weapon stances"), on a plain grass patch, one canvas frame at a time.
+// scripts/anim-mock-record.mjs loads this page and grabs the frames. Nothing here ships.
+import { BUILDS } from '/src/data/heroKits';
+import { drawKit, layout, pivot, PROTO_K } from '/src/ui/parts/painted';
+import type { Kit, KitPart, RigPose } from '/src/ui/parts/painted';
+
+type Stance = 'hammer' | 'sword' | 'dagger' | 'staff';
+export interface MockHero {
+  kit: string;
+  stance: Stance;
+  // Where it stands in a line (kit units) and its walk phase.
+  x: number;
+  phase: number;
+}
+interface Loaded {
+  kit: Kit;
+  stance: Stance;
+  weapon: KitPart | undefined;
+}
+
+const loadImage = (src: string): Promise<HTMLImageElement> =>
+  new Promise((ok, bad) => {
+    const img = new Image();
+    img.onload = () => ok(img);
+    img.onerror = () => bad(new Error(`cannot load ${src}`));
+    img.src = src;
+  });
+
+export async function loadKit(name: string): Promise<Kit> {
+  const json = await (await fetch(`/anim-test/${name}/kit.json`)).json();
+  const parts: Record<string, KitPart> = {};
+  for (const [slot, spec] of Object.entries(json.parts) as [string, any][]) {
+    parts[slot] = {
+      img: await loadImage(`/anim-test/${name}/${spec.file}`),
+      cell: { x: 0, y: 0, w: spec.w, h: spec.h, pivots: spec.pivots },
+      ppu: json.ppu,
+    };
+  }
+  return { parts: parts as Kit['parts'], layers: {}, build: BUILDS.standard, mode: 'floating' };
+}
+
+// ---------- keyframes ----------
+type Key = [t: number, v: number];
+const ease = (u: number) => u * u * (3 - 2 * u);
+function track(keys: Key[], t: number): number {
+  if (t <= keys[0][0]) return keys[0][1];
+  for (let i = 1; i < keys.length; i++) {
+    if (t <= keys[i][0]) {
+      const [t0, v0] = keys[i - 1];
+      const [t1, v1] = keys[i];
+      return t1 === t0 ? v1 : v0 + (v1 - v0) * ease((t - t0) / (t1 - t0));
+    }
+  }
+  return keys[keys.length - 1][1];
+}
+
+// The channels of a pose (prototype units, x forward, y up is negative).
+interface Ch {
+  hfx: number; hfy: number; wa: number;
+  hbx: number; hby: number; wb: number;
+  lean: number; dx: number; bob: number;
+  f0x: number; f0y: number; f1x: number; f1y: number;
+  cape: number; hem: number;
+}
+const base = (): Ch => ({
+  hfx: 6.5, hfy: -9, wa: 0.4, hbx: -6, hby: -9, wb: 0, lean: 0, dx: 0, bob: 0,
+  f0x: 0, f0y: 0, f1x: 0, f1y: 0, cape: 2, hem: 0,
+});
+const lerpCh = (a: Ch, b: Ch, u: number): Ch => {
+  const o = {} as Ch;
+  for (const k of Object.keys(a) as (keyof Ch)[]) o[k] = a[k] + (b[k] - a[k]) * u;
+  return o;
+};
+const mk = (o: Partial<Ch>): Ch => ({ ...base(), ...o });
+
+// Carry (walking / idle) per stance: weapon at the side; the staff on the shoulder.
+const carry = (s: Stance): Ch =>
+  s === 'staff'
+    ? mk({ hfx: 4.5, hfy: -17, wa: -1.35, hbx: -5.5, hby: -10 })
+    : s === 'dagger'
+      ? mk({ hfx: 6, hfy: -9, wa: 0.5 })
+      : s === 'sword'
+        ? mk({ hfx: 6.5, hfy: -9, wa: 0.45, hbx: 5, hby: -11 })
+        : mk({ hfx: 6.5, hfy: -9, wa: 0.3 });
+// Guard: hammer and sword cocked back, dagger front low, staff front; lead foot per the table.
+const guard = (s: Stance): Ch => {
+  if (s === 'staff')
+    return mk({ hfx: 8, hfy: -14, wa: 0.25, hbx: 9, hby: -22, f0x: 3, f1x: -2.5, lean: 0.04 });
+  if (s === 'dagger') return mk({ hfx: 8, hfy: -9, wa: 0.95, hbx: -5, hby: -11, f1x: 3, f0x: -2.5, lean: 0.05 });
+  if (s === 'sword')
+    return mk({ hfx: 1.5, hfy: -17, wa: -1.15, hbx: 8, hby: -11, f0x: 3.5, f1x: -2.5, lean: -0.02 });
+  return mk({ hfx: 2, hfy: -18, wa: -0.95, hbx: -4, hby: -11, f0x: 3.5, f1x: -2.5, lean: -0.02 });
+};
+
+// The attack: windup, strike, hit pause, follow-through. Returns the channels and the hit time.
+function attack(s: Stance, t: number): { ch: Ch; dur: number; hitAt: number } {
+  const g = guard(s);
+  if (s === 'dagger') {
+    const D = 0.55;
+    const pull = mk({ ...g, hfx: 3.5, hfy: -10, wa: 0.75, lean: -0.05, dx: -1 });
+    const stab = mk({ ...g, hfx: 14.5, hfy: -12, wa: 1.45, lean: 0.1, dx: 2.5, cape: 6 });
+    const ch =
+      t < 0.12 ? lerpCh(g, pull, ease(t / 0.12))
+      : t < 0.2 ? lerpCh(pull, stab, ease((t - 0.12) / 0.08))
+      : t < 0.26 ? stab
+      : lerpCh(stab, g, ease(Math.min(1, (t - 0.26) / 0.29)));
+    return { ch, dur: D, hitAt: 0.2 };
+  }
+  if (s === 'staff') {
+    const D = 1.0;
+    const wind = mk({ ...g, hfx: 3.5, hfy: -21, wa: -0.45, hbx: 5, hby: -27, lean: -0.1, dx: -1.5, cape: -1 });
+    const cast = mk({ ...g, hfx: 13, hfy: -17, wa: 0.95, hbx: 17, hby: -25, lean: 0.1, dx: 2, cape: 6 });
+    const ch =
+      t < 0.4 ? lerpCh(g, wind, ease(t / 0.4))
+      : t < 0.5 ? lerpCh(wind, cast, ease((t - 0.4) / 0.1))
+      : t < 0.62 ? cast
+      : lerpCh(cast, g, ease(Math.min(1, (t - 0.62) / 0.38)));
+    return { ch, dur: D, hitAt: 0.5 };
+  }
+  // hammer chop and sword slash: from the back.
+  const D = s === 'sword' ? 0.8 : 0.9;
+  const wind =
+    s === 'sword'
+      ? mk({ ...g, hfx: -1.5, hfy: -22, wa: -1.55, lean: -0.14, dx: -1.5, hbx: 7, cape: -1 })
+      : mk({ ...g, hfx: -2, hfy: -25, wa: -1.75, lean: -0.15, dx: -1.8, cape: -1 });
+  const hit =
+    s === 'sword'
+      ? mk({ ...g, hfx: 12, hfy: -13, wa: 1.9, lean: 0.2, dx: 3, hbx: 10, hby: -12, cape: 6, f1x: 0.5 })
+      : mk({ ...g, hfx: 11, hfy: -9, wa: 1.55, lean: 0.22, dx: 3.5, cape: 6, f0x: 5, f1x: -1.5 });
+  const tw = 0.3;
+  const th = 0.36;
+  const ts = th + 0.1;
+  const ch =
+    t < tw ? lerpCh(g, wind, ease(t / tw))
+    : t < th ? wind
+    : t < ts ? lerpCh(wind, hit, ease((t - th) / (ts - th)))
+    : t < ts + 0.09 ? hit
+    : lerpCh(hit, g, ease(Math.min(1, (t - ts - 0.09) / (D - ts - 0.09))));
+  return { ch, dur: D, hitAt: ts };
+}
+
+// Idle: carry with a slow bob and cape sway; walk: feet on one line, toes lift, hands swing a little.
+function walkCh(s: Stance, t: number, phase: number): Ch {
+  const c = carry(s);
+  const w = t * 2 * Math.PI * 1.55 + phase;
+  const step = Math.sin(w);
+  c.f0x = step * 5;
+  c.f1x = -step * 5;
+  c.f0y = -Math.max(0, Math.cos(w)) * 1.8;
+  c.f1y = -Math.max(0, -Math.cos(w)) * 1.8;
+  c.bob = -Math.abs(Math.sin(w)) * 0.9;
+  c.lean = 0.05;
+  c.cape = 5 + 2 * Math.sin(w * 2 + 0.6);
+  c.hem = 2 * Math.sin(w * 2);
+  c.hfy += Math.sin(w * 2) * 0.35;
+  if (s !== 'staff') c.hby += Math.sin(w) * 0.5;
+  else {
+    c.hbx += step * 2.2;
+  }
+  return c;
+}
+function idleCh(s: Stance, t: number, phase: number): Ch {
+  const c = carry(s);
+  c.bob = Math.sin(t * 2.2 + phase) * 0.3;
+  c.cape = 1.5 + 1.4 * Math.sin(t * 1.7 + phase);
+  c.hem = Math.sin(t * 1.3 + phase);
+  c.hfy += Math.sin(t * 2.2 + phase + 0.5) * 0.25;
+  return c;
+}
+
+const toPose = (c: Ch): RigPose => ({
+  bob: c.bob, lean: c.lean, dx: c.dx, sy: 1,
+  hf: { x: c.hfx, y: c.hfy }, hb: { x: c.hbx, y: c.hby }, wa: c.wa, wb: c.wb,
+  f0: { x: c.f0x, y: c.f0y }, f1: { x: c.f1x, y: c.f1y },
+  rot: 0, cape: c.cape, hem: c.hem,
+});
+
+// ---------- scene ----------
+const rngv = (n: number) => {
+  const s = Math.sin(n * 127.1 + 311.7) * 43758.5453;
+  return s - Math.floor(s);
+};
+
+export class Mock {
+  heroes: Loaded[] = [];
+  constructor(
+    readonly canvas: HTMLCanvasElement,
+    readonly specs: MockHero[],
+  ) {}
+  async load(): Promise<void> {
+    for (const s of this.specs) {
+      const kit = await loadKit(s.kit);
+      this.heroes.push({ kit, stance: s.stance, weapon: kit.parts.weapon });
+    }
+  }
+
+  // `clip`: 'solo' (idle 1.2 s, walk 1.8 s, then two attacks) or 'line' (all walk).
+  // `scale`: CSS pixels per kit unit (1.2 at game size, 2.4 at 2x).
+  frame(clip: 'solo' | 'line', i: number, scale: number, w: number, h: number): string {
+    const dpr = 2;
+    const c = this.canvas;
+    c.width = w * dpr;
+    c.height = h * dpr;
+    const ctx = c.getContext('2d') as CanvasRenderingContext2D;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const t = i / 15;
+    // Grass: flat with scrolling tufts while walking.
+    ctx.fillStyle = '#7f9450';
+    ctx.fillRect(0, 0, w, h);
+    const groundY = h * 0.72;
+    const scroll = clip === 'line' ? t * 40 * scale * 0.45 : t >= 1.2 && t < 3 ? (t - 1.2) * 40 * scale * 0.45 : t >= 3 ? 1.8 * 40 * scale * 0.45 : 0;
+    ctx.strokeStyle = '#5d7434';
+    ctx.lineWidth = 1.1 * Math.max(1, scale / 1.2);
+    for (let n = 0; n < 90; n++) {
+      const x = (((rngv(n) * w * 1.4 - scroll) % (w * 1.4)) + w * 1.4) % (w * 1.4) - w * 0.2;
+      const y = rngv(n + 500) * h;
+      const s = 3 * scale * (0.7 + rngv(n + 900) * 0.6);
+      ctx.beginPath();
+      ctx.moveTo(x - s * 0.6, y - s);
+      ctx.lineTo(x, y);
+      ctx.moveTo(x + s * 0.6, y - s);
+      ctx.lineTo(x, y);
+      ctx.stroke();
+    }
+    // The line is centred; a solo hero stands left of centre with a foe ahead.
+    const n = this.heroes.length;
+    const gap = 30;
+    this.heroes.forEach((hero, k) => {
+      const spec = this.specs[k];
+      let ch: Ch;
+      let hitNow = false;
+      let foeX = 0;
+      if (clip === 'line') ch = walkCh(hero.stance, t, spec.phase);
+      else if (t < 1.2) ch = idleCh(hero.stance, t, spec.phase);
+      else if (t < 3) {
+        const tw = t - 1.2;
+        ch = walkCh(hero.stance, tw, spec.phase);
+      } else {
+        // Blend into the guard, then attack twice.
+        const ta = t - 3;
+        const g = guard(hero.stance);
+        const a0 = attack(hero.stance, 0);
+        if (ta < 0.25) ch = lerpCh(walkCh(hero.stance, 1.8, spec.phase), g, ease(ta / 0.25));
+        else {
+          const u = ta - 0.25;
+          const d = a0.dur + 0.18;
+          const phaseT = u % d;
+          const a = attack(hero.stance, Math.min(phaseT, a0.dur));
+          ch = phaseT < a0.dur ? a.ch : g;
+          hitNow = Math.abs(phaseT - a.hitAt) < 0.07;
+        }
+        foeX = hitNow ? -2 : 0;
+      }
+      const pose = toPose(ch);
+      const raised = ch.wa < -1.1;
+      const kit = hero.kit;
+      const draws = layout(kit, pose, raised, undefined);
+      const cx = w * (clip === 'line' ? 0.5 : 0.4) + (clip === 'line' ? (k - (n - 1) / 2) * gap * scale : 0) + (clip === 'line' ? 0 : 0);
+      const cy = groundY + (clip === 'line' ? (k % 2 ? 7 : -7) * scale * 0.5 : 0);
+      ctx.save();
+      ctx.translate(cx, cy);
+      // Ground shadow.
+      ctx.fillStyle = 'rgba(30,40,15,0.28)';
+      ctx.beginPath();
+      ctx.ellipse(2 * scale, 0.5 * scale, 11 * scale, 3.4 * scale, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.scale(scale, scale);
+      drawKit(ctx, draws, pose);
+      // A glow on the staff's orb at a cast.
+      if (hero.stance === 'staff' && t >= 3) {
+        const ta = (t - 3.25) % 1.18;
+        const a = attack('staff', Math.min(Math.max(ta, 0), 1));
+        if (ta >= 0.4 && ta < 1.0) {
+          const wp = hero.weapon as KitPart;
+          const [, gy] = pivot(wp, 'grip');
+          const top = gy * (wp.cell.h / wp.ppu) * 0.9;
+          const hx = a.ch.hfx * PROTO_K;
+          const hy = a.ch.hfy * PROTO_K;
+          const ax = hx + Math.sin(a.ch.wa) * top;
+          const ay = hy - Math.cos(a.ch.wa) * top;
+          const pulse = Math.sin(((ta - 0.4) / 0.6) * Math.PI);
+          const r = 11 * pulse + 2;
+          const grd = ctx.createRadialGradient(ax, ay, 0, ax, ay, r);
+          grd.addColorStop(0, 'rgba(200,235,255,0.95)');
+          grd.addColorStop(1, 'rgba(120,190,255,0)');
+          ctx.fillStyle = grd;
+          ctx.fillRect(ax - r, ay - r, r * 2, r * 2);
+        }
+      }
+      ctx.restore();
+      // A dummy foe ahead of a solo hero, flashing on hits.
+      if (clip === 'solo' && k === 0) {
+        const fx = w * 0.4 + 38 * scale + foeX * scale;
+        ctx.save();
+        ctx.translate(fx, cy);
+        ctx.fillStyle = 'rgba(30,40,15,0.28)';
+        ctx.beginPath();
+        ctx.ellipse(0, 0.5 * scale, 10 * scale, 3 * scale, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = hitNow ? '#f4f0e8' : '#3d4350';
+        ctx.strokeStyle = '#1c1f26';
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.ellipse(0, -11 * scale, 8 * scale, 10 * scale, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = hitNow ? '#f4f0e8' : '#2a2e38';
+        ctx.beginPath();
+        ctx.ellipse(-1 * scale, -22 * scale, 5.5 * scale, 5 * scale, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+      }
+    });
+    return c.toDataURL('image/png');
+  }
+}
+(window as any).MockClass = Mock;
