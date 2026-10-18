@@ -48,6 +48,8 @@ export const BUILDS = {
   broad: { torso: [1.2, 0.98], arm: [0.98, 1.2], leg: [0.96, 1.15], head: 1.03 },
   tall: { torso: [0.98, 1.08], arm: [1.1, 1], leg: [1.1, 1], head: 0.98 },
   short: { torso: [1.04, 0.92], arm: [0.92, 1.05], leg: [0.9, 1.05], head: 1.04 },
+  // The Thorbloods: the painted head is about as wide as the body (23 of 25 units).
+  thorblood: { torso: [1, 1], arm: [1, 1], leg: [1, 1], head: 0.85 },
 } as const satisfies Record<string, Build>;
 export type BuildName = keyof typeof BUILDS;
 
@@ -57,6 +59,10 @@ export interface KitCombo {
   mode?: KitMode;
   // How far apart the feet stand, as a factor on the rig's stance (default 1).
   footSpread?: number;
+  // Hands and feet are drawn as plain code balls (no pictures): the hand skin and boot leather colours.
+  codeBalls?: { skin: string; leather: string };
+  // A slot's picture multiplied by a colour (the neutral cape takes the party colour).
+  tint?: Partial<Record<KitSlot, string>>;
   // Part id per slot, from the kit sheets (`head_hooded`, `weapon_staff`, ...).
   parts: Partial<Record<KitSlot, string>>;
   // Worn item layers over a base part, per slot: a layer has the same pivots as the part it covers
@@ -101,6 +107,8 @@ export const HERO_KITS: Readonly<Record<string, KitCombo>> = {
 // The combo of a look: its own row, a tier 3 look's tier 2 row, then the god's tier 1 row (a path
 // keeps the god's face and body, the path adds gear and effects).
 export function kitFor(lookId: string): KitCombo | undefined {
+  const tb = thorbloodCombo(lookId);
+  if (tb) return tb;
   const tries = [lookId];
   if (lookId.endsWith('_t3')) tries.push(`${lookId.slice(0, -3)}_t2`);
   const god = lookId.split(/[-_]/)[0];
@@ -111,3 +119,41 @@ export function kitFor(lookId: string): KitCombo | undefined {
 
 // The face name of a kit head part id: `head_grim` -> `grim` (Art's portrait is `por_grim`).
 export const faceOf = (headId: string): string => headId.replace(/^head_/, '');
+
+// ---------- Thorbloods (test switch `?heroes=thorbloods`) ----------
+// Thor's sons and daughters from the shipped Thorbloods kit (art/ship-thorbloods): one body ball,
+// four heads, the neutral cape tinted to the party colour, the hammer or the thunderstaff by path
+// and tier, hands and feet as code balls. Off unless the page is opened with `?heroes=thorbloods`.
+export const THORBLOOD_HEADS = ['m1', 'f1', 'm2', 'f2'] as const;
+export const THORBLOOD_PARTY = '#4f78c4';
+
+export function thorbloodsOn(): boolean {
+  return (
+    typeof location !== 'undefined' &&
+    new URLSearchParams(location.search).get('heroes') === 'thorbloods'
+  );
+}
+
+// The head of the `n`-th Thor hero (units take turns).
+export const thorbloodHead = (n: number): string =>
+  THORBLOOD_HEADS[Math.abs(Math.trunc(n)) % THORBLOOD_HEADS.length];
+
+// `thor_t1`, `thor-hammerborn_t2`, `thor-stormcaller_t3`, each optionally `~<head>`.
+export function thorbloodCombo(lookId: string): KitCombo | undefined {
+  if (!thorbloodsOn() || !/^thor([-_]|~)/.test(lookId)) return undefined;
+  const [look, head = THORBLOOD_HEADS[0]] = lookId.split('~');
+  const tier = Math.min(3, Math.max(1, Number(look.match(/_t(\d)$/)?.[1] ?? 1)));
+  const storm = look.includes('stormcaller');
+  return {
+    build: 'thorblood',
+    mode: 'floating',
+    codeBalls: { skin: '#eab48c', leather: '#6b4a2c' },
+    tint: { cloak: THORBLOOD_PARTY },
+    parts: {
+      cloak: 'cape_neutral',
+      torso: 'body_thorblood',
+      head: `head_thorblood_${head}`,
+      weapon: storm ? `thunderstaff_t${tier}` : `hammer_t${tier}`,
+    },
+  };
+}

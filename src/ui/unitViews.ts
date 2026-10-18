@@ -3,9 +3,9 @@ import { GRAYBOX } from '../data/graybox';
 import { lookOf, type UnitLook } from '../data/looks';
 import { bossState } from './bossLook';
 import { bakeRings, bakedScale, type RingSpec } from './bake';
-import { collectorPartsLook, heroPartsLook } from '../data/heroParts';
+import { collectorPartsLook, heroPartsLook, type PartsLook } from '../data/heroParts';
 import { monsterPartsLook } from '../data/monsterParts';
-import { kitFor } from '../data/heroKits';
+import { kitFor, thorbloodHead, thorbloodsOn } from '../data/heroKits';
 import { kitOf } from './parts/paintedLoad';
 import {
   STATUS_LOOK,
@@ -73,6 +73,14 @@ const USE_PARTS =
 const ART_BEATS_PARTS = false;
 // A standard hero is about this tall in the parts drawing units (head to feet).
 const PARTS_HERO_H = 44;
+
+// Test switch `?heroes=thorbloods`: a Thor hero gets one of four Thorblood heads by its unit id, as
+// its own look (`thor_t1~f1`), so each head bakes its own frames.
+function thorbloodLook(look: PartsLook | undefined, u: UnitState): PartsLook | undefined {
+  if (!look || !thorbloodsOn() || u.god !== 'thor') return look;
+  const id = `${look.id}~${thorbloodHead(u.id)}`;
+  return { id, def: { ...look.def, kit: id } };
+}
 const NO_POSE: Pose = { rot: 0, dx: 0, dy: 0, sx: 1, sy: 1 };
 
 const BUBBLE_MS = 2200;
@@ -372,7 +380,7 @@ export class UnitView {
         ? collectorPartsLook(sackSize(u.gold ?? 0, this.carryCap))
         : u.kind === 'monster'
           ? monsterPartsLook(u.type, u.tier)
-          : heroPartsLook(u.god, u.path, u.tier);
+          : thorbloodLook(heroPartsLook(u.god, u.path, u.tier), u);
     if (!look) return this.leaveParts();
     const id = look.id;
     if (id === this.partsId) return true;
