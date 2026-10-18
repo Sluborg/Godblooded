@@ -9,10 +9,10 @@ import { hash, insidePoly } from './organic';
 export const HALL_STYLE = {
   // Picture size relative to the other buildings.
   scale: 1.5,
-  plaza: { w: 420, h: 176, stone: 0x8d8778, light: 0xa8a290, joint: 0x5f5a4e, trim: 0xf2c14e },
-  pole: { x: 178, height: 250, color: 0x4b2e1a, finial: 0xf2c14e },
-  cloth: { color: 0x8a1c2b, trim: 0xf2c14e, w: 66, h: 84 },
-  barWidth: 210,
+  plaza: { w: 504, h: 211, stone: 0x8d8778, light: 0xa8a290, joint: 0x5f5a4e, trim: 0xf2c14e },
+  pole: { x: 214, height: 300, color: 0x4b2e1a, finial: 0xf2c14e },
+  cloth: { color: 0x8a1c2b, trim: 0xf2c14e, w: 79, h: 101 },
+  barWidth: 252,
 } as const;
 
 export function isTownHall(type: string): boolean {

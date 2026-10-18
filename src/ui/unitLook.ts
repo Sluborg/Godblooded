@@ -64,7 +64,7 @@ export function lairArtCandidates(type: string, tier: number): string[] {
 
 // A building picture is scaled to fit a footprint this wide and this tall, in world units (a plot
 // is about 220 apart), so a tall tower and a wide hall both sit on their plot.
-export const BUILDING_FIT = { w: 190, h: 280 };
+export const BUILDING_FIT = { w: 230, h: 340 };
 
 export function buildingScale(picW: number, picH: number): number {
   return Math.min(BUILDING_FIT.w / picW, BUILDING_FIT.h / picH);
