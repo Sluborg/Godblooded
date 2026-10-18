@@ -363,3 +363,6 @@ B27 | 2026-10-18T01:52:11.466Z | buildings | bld_smithy_t2 | uploaded | O-11 red
 
 
 B25/B27 | 2026-10-18T02:50:57.304Z | buildings | started | O-12 two-step Greek temples t1 then t2; run6317e570
+
+
+B25 | 2026-10-18T02:57:00.457Z | buildings | bld_temple_greek_t1 | QA failed; not uploaded | O-12 two-step method: front elevation3 attempts corrected unequal bays; camera step3 attempts still flattens front lintel/pediment relative to step nosings, columns not rigid equal-height projection (QA7/14.1). No manual/script repairs, no PNG uploaded. Proceeding to t2 front grown from new t1 front model.
