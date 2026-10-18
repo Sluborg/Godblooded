@@ -80,7 +80,7 @@ async function record(u, zoom) {
   rmSync(dir, { recursive: true, force: true });
   mkdirSync(dir, { recursive: true });
   const box = u.box ?? { w: 400, h: 300 };
-  for (let i = 0; i < total; i++) {
+  for (let i = 0; i < Math.min(total, u.frames ?? total); i++) {
     const url = await page.evaluate((box) => {
       window.__stage.step();
       return window.__stage.grab(box);
@@ -125,7 +125,7 @@ function encode(dir, base) {
 }
 
 for (const u of list) {
-  for (const zoom of [1, 2]) {
+  for (const zoom of u.zooms ?? [1, 2]) {
     const dir = await record(u, zoom);
     const base = `${OUT}/${u.name}-z${zoom}`;
     encode(dir, base);
