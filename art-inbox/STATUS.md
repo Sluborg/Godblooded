@@ -426,3 +426,6 @@ Thorbloods | 2026-10-18T22:55:54.827Z | heroes | kit_thorbloods_body, kit_thorbl
 
 
 Thorbloods | 2026-10-18T23:18:00Z | heroes | started | O-24 body-only oval redo; run c629b7f0; O-23 delivered, no existing O-24 claim. New drawing 25:18, other sheets unchanged.
+
+
+Thorbloods | 2026-10-18T23:18:12.690Z | heroes | kit_thorbloods_caster_body | uploaded for review | Stefan explicitly requested upload of existing robe variant and Art feedback. Unchanged PNG1254x1254,1686585bytes; Drive name/MIME/size/parent verified. https://drive.google.com/file/d/1_wEh9oJYk6M0sRNsp661uUu-tgn1vDEJ/view?usp=drivesdk . Red wool flared bell robe, iron trim, fur collar, leather belt and Thor hammer boss. REVIEW SAMPLE, not QA-approved replacement: visible shoulder/armhole openings and bell silhouette depart from current Thor ball/barrel family. No hands/feet/weapon/cape; no resizing/cropping/recompression. Does not complete O-25 egg body redo.
