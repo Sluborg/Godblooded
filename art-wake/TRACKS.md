@@ -9,5 +9,5 @@ If your track is listed below, do "run all" (`art-tasks/README.md` on `main`). I
 | --------- | ---------------- | ---------------------------------------------------- |
 | monsters  | 2026-10-17 19:02 | Orders: G11 item 6 side-profile feet, then pause     |
 | buildings | 2026-10-19 00:05 | O-18: temple t1 over v3 blockout, round columns      |
-| heroes    | 2026-10-19 01:20 | O-24: Thorblood body as an oval, then pause          |
+| heroes    | 2026-10-19 01:25 | O-25: Thorblood body as an upright egg, then pause   |
 | ui        | 2026-10-16 21:35 | Orders: U10, G9, flag, Valknut, U1D, U11, then pause |
