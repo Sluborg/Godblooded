@@ -417,3 +417,5 @@ B25 | 2026-10-18T22:00:26.723Z | buildings | bld_temple_greek_t1 | uploaded | O-
 
 
 Thorbloods | 2026-10-18T22:49:29.113Z | heroes | started | O-23 five sheets; direct command from Stefan. New design permits ball/bell/barrel/tattered bodies within fixed rig anchors; O-23 specifies Thor wide oval 25:20, retaining that shape for this set. Run edc38469.
+
+Thorbloods | 2026-10-18T22:52:20.436Z | heroes | kit_thorbloods_body, kit_thorbloods_heads | partial delivery | O-23 unchanged built-in PNGs. Body second attempt removes sleeve-like shoulder sides; continuous squat oval, Thor iron/red/leather/fur and hammer motif. Body https://drive.google.com/file/d/1H3-ivOLvFUAxKlUlXNyV6vjiQ7M2wAu6/view?usp=drivesdk . Heads https://drive.google.com/file/d/16ytTK-cjVXEJwjvobg36N-p0gpym9Bjk/view?usp=drivesdk . Four isolated stylised grim adult heads (m1,m2,f1,f2 row-major), smooth anchor finish, top-left light. QA notes: heads fill most cells; braided m2 beard approaches row boundary but remains separated, mild per-head size variation. Flat near-magenta and framing for pipeline. New STYLE body-shapes/shield-side rules fetched; O-23 wide Thor oval retained. Cape/weapons next.
