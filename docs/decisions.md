@@ -718,3 +718,18 @@ tints it per party, and it sways in code. Open: whether heroes without a party w
 - **Small fixes noted:** no sleeve stubs (Tyr), motifs stay with their god (Loki's owl brooches).
 
 Production waits for Stefan's go on a first batch (Questions tab).
+
+## 2026-10-19 First hero batch: Thorbloods; yard fix; mock notes (Stefan)
+
+- **First production batch (go):** Thor's god first, named **Thorbloods** (not "Thor's sons").
+  Two paths with their own weapon: the **Hammerer** (one-handed hammer) and the
+  **Thundercaller** (a long staff-hammer, hammer head on a staff haft). Kit: 1 body ball, 4 heads
+  (2 men, 2 women), the light-grey party cape, each weapon at 3 tiers. Art's image chat is out of
+  quota until about 23:42; the order waits for it.
+- **Town hall yard (go):** "Fix that brick ground." The grey flagstone grid goes; Lead picked the
+  packed-earth yard (warm trodden earth fading into the grass, a few irregular flagstones by the
+  door, a worn path). Code only.
+- **Mock notes (round 2):** one-handed weapons look wrong hanging down in the walk; a staff should
+  not rest on the opposite shoulder; a caster raises the staff to cast, never punches with it; a
+  spear carried upright is too long (longer than the figure); chops stop earlier; no gap between
+  head and body; no doubled shields. Every board item says exactly what to rate.
