@@ -3,8 +3,14 @@ import { makeGround, releaseGround } from '../ui/ground';
 import { flagAt } from '../ui/flagCard';
 import { getMusic } from '../ui/musicPlayer';
 import Phaser from 'phaser';
-import { COLORS, GAME_HEIGHT, RENDER_SCALE } from '../config';
-import { onViewResize, viewWidth } from '../ui/view';
+import {
+  COLORS,
+  GAME_HEIGHT,
+  RENDER_SCALE,
+  RENDER_SCALE_CEILING,
+  RENDER_SCALE_FORCED,
+} from '../config';
+import { onScaleChange, onViewResize, viewWidth } from '../ui/view';
 import { GRAYBOX } from '../data/graybox';
 import {
   command,
@@ -27,8 +33,9 @@ import {
 } from '../sim/api';
 import { TAX_STYLE, drawCoin, drawPile, popText, tillShown } from '../ui/taxLook';
 import { clearSave, isNewerSave, newSeed, readSave, writeSave } from '../ui/saveStore';
-import { getSettings, updateSettings } from '../ui/settings';
-import { FpsGuard } from '../ui/fpsGuard';
+import { getSettings } from '../ui/settings';
+import { ScaleGovernor } from '../ui/scaleGovernor';
+import { changeRenderScale } from '../ui/refit';
 import { heroLabel, partyColor } from '../ui/partyLook';
 import { readMeta } from '../ui/metaStore';
 import { chosenLean } from '../ui/setupLook';
@@ -40,7 +47,7 @@ import { STYLE } from '../ui/style';
 import { LAIR_UI_DEPTH, LairIndicators, groundScale, plateColor } from '../ui/lairRings';
 import { LairFx } from '../ui/lairFx';
 import { portraitIds } from '../ui/portraits';
-import { bakeRings } from '../ui/bake';
+import { bakeRings, bakedScale } from '../ui/bake';
 import { ensureArt, releaseLazyArt } from '../ui/lazyArt';
 import {
   footprintRing,
@@ -138,7 +145,9 @@ export class MapScene extends Phaser.Scene {
   private resumeWatch = false;
   // Camera mode: by hand, watching the best fight, or following one hero (until it is gone).
   private cam: 'off' | 'watch' | 'unit' = 'off';
-  private fpsGuard: FpsGuard | null = null;
+  private governor: ScaleGovernor | null = null;
+  // Keys of the on-demand pictures already asked for (ui/lazyArt.ts), so sync() does not repeat it.
+  private readonly artAsked = new Set<string>();
   private followId = 0;
   private director = new WatchDirector();
   private readonly sfxFeed = new SfxFeed();
@@ -227,8 +236,14 @@ export class MapScene extends Phaser.Scene {
     this.selectRingFor = 0;
     this.starMarker = null;
     this.events.once('shutdown', () => releaseLazyArt(this));
-    this.fpsGuard = new FpsGuard();
+    this.artAsked.clear();
+    // Live dynamic resolution: off when the scale was forced (?scale=) for a test.
+    this.governor = RENDER_SCALE_FORCED
+      ? null
+      : new ScaleGovernor(RENDER_SCALE, RENDER_SCALE_CEILING);
     this.world = this.startWorld();
+    // This run's lairs are known now: start fetching their pictures before the first frame.
+    for (const l of this.world.lairs) this.askLairArt(l);
     this.registry.set('speed', getSettings().speed);
     const cam = this.cameras.main;
     cam.setSize(Math.round(viewWidth() * RENDER_SCALE), Math.round(GAME_HEIGHT * RENDER_SCALE));
@@ -239,7 +254,7 @@ export class MapScene extends Phaser.Scene {
     makeGround(this, width, height);
     attachCameraControls(this, {
       minZoom: () => this.minZoom(),
-      scale: RENDER_SCALE,
+      scale: () => RENDER_SCALE,
       onTap: (w) => this.events.emit('mapTapped', this.resolveTap(w)),
       onManual: () => this.setWatch(false),
       blocked: (x, y) => this.registry.get('modal') === true || (this.hud()?.blocks(x, y) ?? false),
@@ -250,6 +265,12 @@ export class MapScene extends Phaser.Scene {
       const mid = cam.midPoint.clone();
       this.fitBounds();
       cam.setZoom(Math.max(cam.zoom, this.minZoom() * RENDER_SCALE));
+      cam.centerOn(mid.x, mid.y);
+    });
+    // The render scale stepped (ui/scaleGovernor.ts): the camera keeps its design zoom and spot.
+    onScaleChange(this, (from, to) => {
+      const mid = cam.midPoint.clone();
+      cam.setZoom((cam.zoom / from) * to);
       cam.centerOn(mid.x, mid.y);
     });
     this.offerKey = null;
@@ -683,13 +704,11 @@ export class MapScene extends Phaser.Scene {
     return this.snap;
   }
 
-  // Sharp rendering that runs too slow in the first minute is switched off for the next start.
+  // Dynamic resolution: the render scale steps down while the frame rate is poor and back up when
+  // there is room (ui/scaleGovernor.ts); the settled scale is remembered for the next start.
   private watchFrameRate(time: number): void {
-    if (RENDER_SCALE <= 1 || this.fpsGuard === null) return;
-    if (!this.fpsGuard.frame(time, !document.hidden)) return;
-    this.fpsGuard = null;
-    updateSettings({ sharp: false });
-    this.hud()?.showToast('Sharp mode off for speed; Settings to change', 4500);
+    const next = this.governor?.frame(time, !document.hidden) ?? null;
+    if (next !== null) changeRenderScale(this.game, next);
   }
 
   private hud(): HudScene | null {
@@ -731,9 +750,21 @@ export class MapScene extends Phaser.Scene {
     upgradeCost: number | null;
     upgradeUntilMs?: number;
   }): void {
-    this.wantArt(buildingArtCandidates(b.type, b.tier));
     const next = b.upgradeCost !== null && this.snap.gold >= b.upgradeCost;
-    if (next || b.upgradeUntilMs !== undefined) this.wantArt([`bld_${b.type}_t${b.tier + 1}`]);
+    const upgrading = next || b.upgradeUntilMs !== undefined;
+    // Asked once per type, tier and upgrade state (this runs for every building on every sync).
+    const key = `${b.type}|${b.tier}|${upgrading ? 1 : 0}`;
+    if (this.artAsked.has(key)) return;
+    this.artAsked.add(key);
+    this.wantArt(buildingArtCandidates(b.type, b.tier));
+    if (upgrading) this.wantArt([`bld_${b.type}_t${b.tier + 1}`]);
+  }
+
+  private askLairArt(l: { id: number; type: string; tier: number }): void {
+    const key = `l${l.id}t${l.tier}`;
+    if (this.artAsked.has(key)) return;
+    this.artAsked.add(key);
+    this.wantArt(lairArtCandidates(l.type, l.tier));
   }
 
   private wantArt(ids: readonly string[]): void {
@@ -780,7 +811,7 @@ export class MapScene extends Phaser.Scene {
     for (const l of this.snap.lairs) {
       const key = `l${l.id}`;
       seen.add(key);
-      this.wantArt(lairArtCandidates(l.type, l.tier));
+      this.askLairArt(l);
       if (!this.views.has(key)) this.views.set(key, this.makeLair(l));
       else this.refreshLair(this.views.get(key), l.type, l.tier, l.boss);
       const top = (this.views.get(key)?.getData('top') as number | undefined) ?? 2 * 44;
@@ -1405,9 +1436,8 @@ export class MapScene extends Phaser.Scene {
   // The lair tier in code (monsters-and-bosses.md section 4): the corrupted ground grows, the plate
   // takes the tier colour, and a tier 3 plate pulses slowly (heroes can die here).
   private styleLairTier(view: Phaser.GameObjects.Container, tier: number): void {
-    (view.getData('decal') as Phaser.GameObjects.Image | undefined)?.setScale(
-      groundScale(tier) / RENDER_SCALE,
-    );
+    const decal = view.getData('decal') as Phaser.GameObjects.Image | undefined;
+    decal?.setScale(bakedScale(decal, groundScale(tier)));
     const plate = view.getData('plate') as Phaser.GameObjects.Container | undefined;
     if (!plate) return;
     const label = plate.list[0] as Phaser.GameObjects.Text;

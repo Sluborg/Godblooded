@@ -2,8 +2,7 @@ import Phaser from 'phaser';
 import { GRAYBOX } from '../data/graybox';
 import { lookOf, type UnitLook } from '../data/looks';
 import { bossState } from './bossLook';
-import { bakeRings, type RingSpec } from './bake';
-import { RENDER_SCALE } from '../config';
+import { bakeRings, bakedScale, type RingSpec } from './bake';
 import { collectorPartsLook, heroPartsLook } from '../data/heroParts';
 import { monsterPartsLook } from '../data/monsterParts';
 import { kitFor } from '../data/heroKits';
@@ -1054,8 +1053,8 @@ export class UnitView {
     this.shadow
       .setPosition(fall, 0)
       .setScale(
-        (rx * 2 * 1.45) / 100 / RENDER_SCALE,
-        (UNIT_HEIGHT * this.look.footprint * 0.48) / 50 / RENDER_SCALE,
+        bakedScale(this.shadow, (rx * 2 * 1.45) / 100),
+        bakedScale(this.shadow, (UNIT_HEIGHT * this.look.footprint * 0.48) / 50),
       )
       .setAlpha(Math.max(0, 0.32 - lift));
     // hurt flash: white, then red, on the picture (or the placeholder body)

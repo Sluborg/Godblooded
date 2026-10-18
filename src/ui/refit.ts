@@ -1,6 +1,6 @@
 import type Phaser from 'phaser';
-import { GAME_HEIGHT, RENDER_SCALE } from '../config';
-import { setViewWidth, viewFor } from './view';
+import { GAME_HEIGHT, RENDER_SCALE, saveRenderScale, setRenderScale } from '../config';
+import { notifyScaleChange, setViewWidth, viewFor, viewWidth } from './view';
 
 // The view width (design units) that fills `parent`: its height is the 720 design height, so the
 // width follows the parent's aspect, within 16:9 .. 21:9.
@@ -40,6 +40,20 @@ export function keepFitted(
   if (parent && typeof ResizeObserver !== 'undefined') new ResizeObserver(refit).observe(parent);
   // The first frames of an installed app: the system bars settle after the page starts.
   for (const ms of [100, 400, 1000, 2500]) setTimeout(refit, ms);
+}
+
+// Changes the render scale in a run: the canvas gets the new pixel size, the scenes' cameras the new
+// zoom. Textures and texts already made keep the resolution they were made at (they are sized in
+// design units, so they stay the right size); new ones follow the new scale. Remembers the scale
+// for the next start.
+export function changeRenderScale(game: Phaser.Game, to: number): void {
+  const from = RENDER_SCALE;
+  if (to === from) return;
+  setRenderScale(to);
+  game.scale.setGameSize(Math.round(viewWidth() * to), Math.round(GAME_HEIGHT * to));
+  notifyScaleChange(from, to);
+  game.scale.refresh();
+  saveRenderScale(to);
 }
 
 function viewForGame(game: Phaser.Game): number {

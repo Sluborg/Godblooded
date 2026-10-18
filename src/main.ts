@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { initInstall } from './ui/install';
-import { keepFitted, viewForParent } from './ui/refit';
+import { changeRenderScale, keepFitted, viewForParent } from './ui/refit';
 import { setViewWidth } from './ui/view';
 import { registerSW } from 'virtual:pwa-register';
 import { updateFirst } from './ui/updateFirst';
@@ -103,6 +103,9 @@ function startGame(): void {
   // the headless test runner. Never used by game code.
   if (new URLSearchParams(location.search).has('debug')) {
     (window as unknown as { __game: Phaser.Game }).__game = game;
+    // Lets a test step the render scale by hand, as the governor does.
+    (window as unknown as { __scale: (s: number) => void }).__scale = (s) =>
+      changeRenderScale(game, s);
   }
 
   // Review page for the part-based heroes: ?gallery=thor (see PartsGalleryScene).

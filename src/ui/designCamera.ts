@@ -1,6 +1,6 @@
 import type Phaser from 'phaser';
 import { GAME_HEIGHT, RENDER_SCALE } from '../config';
-import { onViewResize, viewMargin, viewWidth } from './view';
+import { onScaleChange, onViewResize, viewMargin, viewWidth } from './view';
 
 // The canvas has RENDER_SCALE times the design pixels; a scene that lays out in design units zooms
 // its camera by that, anchored so design (0, 0) is the top left corner of the view. Call at the
@@ -25,4 +25,6 @@ export function fitDesignCamera(scene: Phaser.Scene, mode: 'edge' | 'centre' = '
     apply();
     scene.events.emit('relayout');
   });
+  // A scale change only needs the zoom again, not a new layout (the design units are the same).
+  onScaleChange(scene, apply);
 }
