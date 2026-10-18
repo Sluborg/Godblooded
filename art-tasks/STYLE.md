@@ -127,8 +127,9 @@ heroes, the skeleton pieces and `art-tasks/ref/hero-anchor-grim.png` for heroes.
 - **Camera:** top-down 3/4 seen from the lower right, as the anchors.
 - **Pose (every unit): faces RIGHT**, three-quarter toward the lower right; the game mirrors it.
   One front picture per unit; the game does the motion.
-- **Weapon position = the unit's strike** (the batch names it). The strike starts where the weapon
-  is drawn:
+- **Weapon position = the unit's strike** (whole-unit pictures: monsters and older units; **heroes
+  are built from separate pieces, see "Heroes"**: their weapons and shields are painted alone and
+  the game holds them). The strike starts where the weapon is drawn:
 
   | Strike        | Weapons                      | Draw the weapon                                                                                                                                                                  |
   | ------------- | ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
