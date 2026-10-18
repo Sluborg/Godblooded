@@ -100,8 +100,9 @@ export function drawBanners(g: Phaser.GameObjects.Graphics, t: number, still: bo
     g.fillStyle(0x24140a, 0.35).fillEllipse(px + 6, 2, 26, 9);
     g.fillStyle(color, 1).fillRect(px - 4, -height, 8, height);
     g.fillStyle(finial, 1).fillCircle(px, -height - 4, 7);
-    const pts = clothPoints(t + (side === 1 ? 400 : 0), side === 1 ? 1 : -1, still).map((p) => ({
-      x: px + p.x + side * 4,
+    // Both cloths blow the same way, the way the wind does (to the right).
+    const pts = clothPoints(t + (side === 1 ? 400 : 0), 1, still).map((p) => ({
+      x: px + p.x + 4,
       y: -height + 8 + p.y,
     }));
     g.fillStyle(cloth.color, 1).fillPoints(pts, true);
