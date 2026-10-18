@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { DIAG_KEY, formatArtDiag, type ArtDiag } from '../ui/artDiag';
 import { COLORS, GAME_HEIGHT, GAME_WIDTH } from '../config';
-import { ASSETS_KEY, type ManifestAsset } from '../ui/assets';
+import { ASSETS_KEY, whenArtReady, type ManifestAsset } from '../ui/assets';
 import { pickLogoId } from '../ui/assetPriority';
 import { drawBackdrop } from '../ui/backdrop';
 import { canInstall, onInstallChange, promptInstall } from '../ui/install';
@@ -123,15 +123,15 @@ export class TitleScene extends Phaser.Scene {
       this.registry.set('startMode', 'new');
       this.registry.set('runTrials', []);
       this.scene.stop('Hud');
-      this.scene.start('Map');
+      whenArtReady(this, () => this.scene.start('Map'));
       return;
     }
-    this.scene.start('Setup');
+    whenArtReady(this, () => this.scene.start('Setup'));
   }
 
   private openHall(): void {
     this.registry.set('altarReturn', 'Title');
-    this.scene.launch('Altar');
+    whenArtReady(this, () => this.scene.launch('Altar'));
   }
 
   private continueRun(): void {
@@ -144,6 +144,6 @@ export class TitleScene extends Phaser.Scene {
     // After a reload: rebuild the run from the save.
     this.registry.set('startMode', 'continue');
     this.scene.stop('Hud');
-    this.scene.start('Map');
+    whenArtReady(this, () => this.scene.start('Map'));
   }
 }

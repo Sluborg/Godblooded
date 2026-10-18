@@ -9,3 +9,9 @@ export function pickLogoId(ids: Iterable<string>): string | null {
   const logos = [...ids].filter((id) => id === 'ui_logo' || id.startsWith('ui_logo_')).sort();
   return logos[0] ?? null;
 }
+
+// The interface kit (buttons, panels, icons, logo): what the title screen and the menus draw. It
+// loads right after the splash so the title can open while the rest of the art streams in.
+export function isUiAsset(id: string): boolean {
+  return id.startsWith('ui_');
+}
