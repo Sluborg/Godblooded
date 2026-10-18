@@ -766,3 +766,9 @@ From Stefan's Gemini examples (docs/reference/hero-shapes-gemini.jpg):
 tall, like the Thor anchor (about 25 wide by 18 to 20 tall), never a circle. The Thorbloods body
 (about 1.15:1, reads as a circle) is redone as a new picture at the oval ratio; no stretching of the
 delivered one. The heads, cape and weapons stand.
+
+## 2026-10-19 Correction: bodies are EGGS (Stefan)
+
+"Egg." The body is an upright egg, taller than wide (about 20 wide by 25 tall), the broad end at
+the bottom and the narrower end up at the collar; never a circle, never a horizontal oval. This
+replaces the "wider than tall" reading in the entry above. The Thorbloods body is redone as an egg.
