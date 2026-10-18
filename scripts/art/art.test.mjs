@@ -612,4 +612,14 @@ describe('grip split (fist drawn around a green haft)', () => {
     expect(alpha(back, 9, 2)).toBe(0); // the haft stub above the fist goes
     expect(alpha(closed, 9, 2)).toBe(0);
   });
+
+  it('keeps a thumb painted over the haft where the hand is on one side only', () => {
+    const img = gripImage();
+    // A thumb on row 4: from the hand's side (x 5-8) across the haft (x 9-10), nothing right of it.
+    for (let x = 5; x <= 10; x++) img.data.set([150, 100, 60, 255], (4 * 20 + x) * 4);
+    const { front, back } = splitGrip(img);
+    expect(alpha(front, 9, 4)).toBe(255); // the thumb over the haft stays
+    expect(alpha(back, 6, 4)).toBe(255);
+    expect(alpha(front, 9, 2)).toBe(0); // the bare stub above still goes
+  });
 });
