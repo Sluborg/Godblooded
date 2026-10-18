@@ -75,13 +75,12 @@ heroes, the skeleton pieces and `art-tasks/ref/hero-anchor-grim.png` for heroes.
 - **Outline:** a thin dark warm-brown outline around the whole object (as on the anchors), darker
   brown lines between parts. Never thick black ink.
 - **Palette:** earthy and muted like the anchors: umber, ochre, moss, slate, iron grey, bone,
-  dark red. Colour comes from materials (paint on wood, dyed cloth, brass). One accent colour per
-  hero from its divine parent (Thor: storm blue, Loki: green, Freyja: gold, Odin: grey-blue), used
-  on cloth or trim, never neon.
+  dark red. Colour comes from materials (paint on wood, dyed cloth, brass), never neon. Hero
+  colours come from the god and are listed in "Heroes" above.
 - **Figures** (monsters and other non-hero figures): grounded proportions, broad and solid.
   **Adult faces, stern or fierce**, small eyes, no big anime eyes, no blush, no cute smile, no
   princess dresses, no clean shiny costumes. Women are warriors and sorceresses in practical gear
-  (mail, leather, fur, braids), never pretty-princess. **Heroes follow their own rules below.**
+  (mail, leather, fur, braids), never pretty-princess. **Heroes follow their own rules (see "Heroes" above).**
 - **Monsters** are grim and scary: hunched, sharp silhouettes, darker and colder than heroes.
 - **Small on the map:** units show about 30-40 px tall; the silhouette, the weapon and the accent
   colour must carry the read. Chunky gear, no hair-thin detail.
