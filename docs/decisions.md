@@ -759,3 +759,10 @@ From Stefan's Gemini examples (docs/reference/hero-shapes-gemini.jpg):
   weapon is on the BACK hand (cape side) for everyone.
 - **Finish:** keep the smooth painted finish of the Thor and Odin anchors; the grimier Gemini look
   is not adopted. Only its body shapes and shield angle are taken.
+
+## 2026-10-19 Bodies are ovals, not circles (Stefan)
+
+"Need oval bodies. No circles." The round "ball" body shape becomes an oval: clearly wider than
+tall, like the Thor anchor (about 25 wide by 18 to 20 tall), never a circle. The Thorbloods body
+(about 1.15:1, reads as a circle) is redone as a new picture at the oval ratio; no stretching of the
+delivered one. The heads, cape and weapons stand.
