@@ -28,3 +28,7 @@ question | B25/B27 | Two-step method still fails as-generated: rigid facade/step
 
 
 O-13 | 2026-10-18T04:00:11.379Z | done | bld_temple_greek_t1 B25 and bld_temple_greek_t2 B27 painted as edits of supplied exact blockouts,full-size QA14 and50/50 overlay checked; unchangedPNGs individually uploaded,name/MIME/size/parent verified. t1 firstattempt1902230bytes; t2 thirdattempt1745587bytes after preservingoriginalshallowroof/steps andcorrectingbrazierpair tobottomstep. No manual/script image repairs,overlays diagnostic only. Production paused as ordered; persistentwebhook unchanged. t1 https://drive.google.com/file/d/1QJcczw2AA6hZ-LKmCpYTCI7vcG2eXjVe/view?usp=drivesdk ; t2 https://drive.google.com/file/d/1bTvJmBcbD6f5Ac9AS5Xm2wkPFw6mWyUw/view?usp=drivesdk
+
+
+O-14 | 2026-10-18T05:06:01.634Z | skipped | t2 attempted3 times as edits of originalblockout,notfailedpicture. No attempt simultaneously preservedgeometry and passed identicalmirroredbraziers onbottomstep infrontofcolumns2/5. Third improvedsymmetry butmovedbraziers ontohigherstep; withheld. No new PNG upload, no manual/script imagefix; t1 untouched. Productionpaused asordered; persistentwebhook unchanged.
+question | B27 | Generator still moves the two unconstrainedbraziers despite equal-offset instructions. Options: Art adds bothbrazier silhouettes/contactmarks to exactblockout, or revisesplacementbrief. Pick: await newblockout/order withbraziers locked alongsidebuilding; preserveexistingfiles andwithholdfailedattempts, nofurtherretries now.
