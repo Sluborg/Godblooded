@@ -71,8 +71,8 @@ CLIPS.pair_anubis_sh = {
   w: 700,
   h: 340,
 };
-// The hand rule (Stefan 2026-10-19): a shield is always on the back (cape side) hand; with a shield
-// the weapon is in the front hand, without one it is in the back hand.
+// The hand rule (Stefan 2026-10-19, final): the weapon is in the BACK hand (cape side) for everyone;
+// a shield would be on the front hand, angled; no shields in the mock until Art paints one.
 CLIPS.thorson = {
   heroes: [{ ...HERO.thorson, side: 'back' }],
   mode: 'solo',
@@ -94,13 +94,14 @@ CLIPS.thorson_sh = {
   w: 440,
   h: 340,
 };
-CLIPS.anubis_sh = {
+CLIPS.anubis_sh_unused = {
   heroes: [{ ...H2.anubis, kit: 'hs_anubis_sh', side: 'front' }],
   mode: 'solo',
   frames: 84,
   w: 440,
   h: 340,
 };
+CLIPS.loki2 = { heroes: [{ ...H2.loki2, side: 'back' }], mode: 'solo', frames: 84, w: 440, h: 340 };
 const wanted = process.argv.slice(2);
 const names = wanted.length ? wanted : Object.keys(CLIPS);
 const OUT = 'anim-test/out';
