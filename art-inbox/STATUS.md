@@ -378,3 +378,6 @@ B25 | 2026-10-18T03:55:37.094Z | buildings | bld_temple_greek_t1 | uploaded | O-
 
 
 B27 | 2026-10-18T04:00:11.379Z | buildings | bld_temple_greek_t2 | uploaded | O-13 third-attempt paintover of exact supplied t2 blockout,unchanged1254x1254 PNG1745587bytes. Drive name/MIME/size/parent verified. Full-size QA14 plus50/50 diagnostic overlay:6 originalcolumnpositions/gaps,door,shallowpediment,roofplanes/ridge andstep/footprintedges retained. Weatheredmarble/flutes/simplecapitals,straightterracotta tilerows; one lowlaurelrelief,onebronze statue atfrontapex,matchingbronze brazierpair onbottomstep. Attempt1 movedapex/steps,attempt2 correctedgeometry butbraziers too high,attempt3 correctedplacement. No manual/script image repairs; originalgeneratedPNG uploaded. Near-magenta pipeline note. https://drive.google.com/file/d/1bTvJmBcbD6f5Ac9AS5Xm2wkPFw6mWyUw/view?usp=drivesdk . B25 deliveredseparately,otherB27smithiesunchanged; productionpaused underO-13.
+
+
+B27 | 2026-10-18T04:59:09.472Z | buildings | started | O-14 temple t2 only, redo from original blockout with braziers in front of columns2and5; prior O-13 finished,Art requests correction; run6b1243d0
