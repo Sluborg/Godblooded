@@ -615,3 +615,18 @@ most 2x their largest on-screen size.
   wrong (its thumb must point forward, the way the hero faces, not inward at the body);
   shoulders, arms and axe look ugly. Scene fixes and sends a new clip; the live flag waits for a
   4 or 5 at game size.
+
+## 2026-10-18 Heroes: compact rig with painted pieces; skeleton parked (Stefan)
+
+Stefan picked "Compact rig, pretty pieces" (q-hero-build). He prefers the in-game heroes' compact
+rig (small body, simple floating hands and feet moved in code) to the skeleton, which scored 2-3
+over eight rounds ("dolls seem hard to get right"). Heroes get the painted heads (kit_heads_a/b,
+rated 5) and painted bodies on the compact rig; hands and feet stay simple and code-drawn; the
+weapon sits in the floating hand. The skeleton is parked on scene/skeleton and its test parts stay
+shipped but unused. First step uses only shipped art: Scene builds a test clip, Stefan rates it.
+
+## 2026-10-18 Greek temple t1, redo 2: 2 (Stefan)
+
+"Give some more space for the door to breathe." The doorway is clear now but squeezed between
+the middle columns. Next blockout: a wider central bay (classical practice) with a larger door and
+margin around it, still mirror-symmetric about the door axis. New run, no touch-up.
