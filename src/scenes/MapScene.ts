@@ -47,7 +47,7 @@ import { STYLE } from '../ui/style';
 import { LAIR_UI_DEPTH, LairIndicators, groundScale, plateColor } from '../ui/lairRings';
 import { LairFx } from '../ui/lairFx';
 import { portraitIds } from '../ui/portraits';
-import { bakeRings } from '../ui/bake';
+import { bakeRings, bakedScale } from '../ui/bake';
 import {
   footprintRing,
   groundShadow,
@@ -1380,9 +1380,8 @@ export class MapScene extends Phaser.Scene {
   // The lair tier in code (monsters-and-bosses.md section 4): the corrupted ground grows, the plate
   // takes the tier colour, and a tier 3 plate pulses slowly (heroes can die here).
   private styleLairTier(view: Phaser.GameObjects.Container, tier: number): void {
-    (view.getData('decal') as Phaser.GameObjects.Image | undefined)?.setScale(
-      groundScale(tier) / RENDER_SCALE,
-    );
+    const decal = view.getData('decal') as Phaser.GameObjects.Image | undefined;
+    decal?.setScale(bakedScale(decal, groundScale(tier)));
     const plate = view.getData('plate') as Phaser.GameObjects.Container | undefined;
     if (!plate) return;
     const label = plate.list[0] as Phaser.GameObjects.Text;

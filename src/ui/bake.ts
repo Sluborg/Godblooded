@@ -7,6 +7,20 @@ import { RENDER_SCALE } from '../config';
 // Profile 2026-10-14: that triangulation (earcut, indexCurve, GraphicsWebGLRenderer) was the
 // largest cost the game's own code could remove from a frame.
 
+// The render scale a baked texture was made at: it is the last part of its id (`bake:<key>:<r>`).
+// The scale can change in a run (ui/scaleGovernor.ts), so an image that keeps a baked texture must
+// size itself by THIS, not by the live RENDER_SCALE; a texture of another kind counts as the live one.
+export function textureScale(textureKey: string): number {
+  if (!textureKey.startsWith('bake:')) return RENDER_SCALE;
+  const r = Number(textureKey.slice(textureKey.lastIndexOf(':') + 1));
+  return r > 0 ? r : RENDER_SCALE;
+}
+
+// `k` design units per design unit: the image's scale for the texture it shows now.
+export function bakedScale(img: Phaser.GameObjects.Image, k = 1): number {
+  return k / textureScale(img.texture.key);
+}
+
 // An image of what `draw` paints round the point (0, 0), within +-halfW x +-halfH world units.
 // `key` names the picture: the same key reuses the texture, so it must describe everything `draw`
 // does (colours, sizes). The image's origin is that point.

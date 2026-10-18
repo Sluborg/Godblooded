@@ -7,7 +7,7 @@ import { drawWoodSlab } from './woodFrame';
 import { addIcon } from './icons';
 import { getSfx } from './sfxPlayer';
 import { nineSliceArgs } from './nineSlice';
-import { bakeTexture } from './bake';
+import { bakedScale, bakeTexture } from './bake';
 import { RENDER_SCALE } from '../config';
 
 export interface Button {
@@ -157,6 +157,7 @@ export function makeButton(
       else art.clearTint();
     } else if (g) {
       g.setTexture(buttonTexture(scene, w, h, state, !!opts.flat));
+      g.setScale(bakedScale(g));
     }
     // On the kit's grey disabled picture the label is dark ink at full strength: it often says why
     // the button is locked ("needs hall tier 2") and must stay readable.
