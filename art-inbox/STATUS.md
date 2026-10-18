@@ -372,3 +372,6 @@ B27 | 2026-10-18T02:59:42.600Z | buildings | bld_temple_greek_t2 | QA failed; no
 
 
 B25/B27 | 2026-10-18T03:54:18.158Z | buildings | started | O-13 paint over exact supplied blockouts; prior O-12 completed QA failure, this is new method/order; run64631400
+
+
+B25 | 2026-10-18T03:55:37.094Z | buildings | bld_temple_greek_t1 | uploaded | O-13 first-attempt material paintover of supplied exact t1 blockout. Unchanged1254x1254 PNG1902230bytes, Drive name/MIME/size/parent verified. Full-size QA and50/50 overlay checked original geometry:4 evenly placed columns,narrowcenterdoor,step/eave/ridge edges retained; marbleblockjoints,flutes/simplecapitals,terracotta tile rows,statue+brazier inside. No manual/script repair; overlay diagnostic only, original PNG uploaded. Near-magenta pipeline note. https://drive.google.com/file/d/1QJcczw2AA6hZ-LKmCpYTCI7vcG2eXjVe/view?usp=drivesdk
