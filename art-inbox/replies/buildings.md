@@ -38,3 +38,6 @@ O-15 | 2026-10-18T06:07:01.186Z | done | bld_temple_greek_t2 painted as edit of 
 
 
 O-16 | 2026-10-18T16:45:55.127Z | done | bld_temple_greek_t1 newrunfromoriginalblockout,firstattemptownQA14/50-50overlaypassed. Entrancedarkandopen top-to-bottom withclearwalkablefloor,no statue or brazier or props; alloriginalbuildingedges/fourcolumns/gaps/steps preserved. UnchangedPNG1953038bytes replacedexistingDrivefile,name/MIME/size/parent verified. t2andsmithyt2 untouched. No manual/scriptimagefix; productionpausedasordered,persistentwebhook unchanged. https://drive.google.com/file/d/1QJcczw2AA6hZ-LKmCpYTCI7vcG2eXjVe/view?usp=drivesdk
+
+
+O-17 | 2026-10-18T20:04:42.718Z | done | bld_temple_greek_t1 painted from new wide-bay blockout, first attempt. Wider central bay and larger clear open door retained; no statue/brazier/props. Own full-size QA and 50/50 overlay checked. Unchanged PNG 1913199 bytes replaced existing Drive file; name/MIME/size/parent verified. Art review: right-side wall strip beside doorway remains narrow in projection, matching supplied geometry; no independent geometry changes made to enlarge it. No manual/script image fix; other buildings untouched. Production paused as ordered; webhook unchanged. https://drive.google.com/file/d/1QJcczw2AA6hZ-LKmCpYTCI7vcG2eXjVe/view?usp=drivesdk
