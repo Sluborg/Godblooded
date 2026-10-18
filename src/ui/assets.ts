@@ -1,5 +1,7 @@
 import Phaser from 'phaser';
 import type { Strike } from '../data/looks';
+import { GAME_WIDTH } from '../config';
+import { ArtGate } from './artGate';
 import { isSplashAsset, isUiAsset } from './assetPriority';
 import { DIAG_KEY, type ArtDiag } from './artDiag';
 
@@ -55,21 +57,37 @@ export const ART_DONE_KEY = 'artDone';
 export const ART_DONE_EVENT = 'art-done';
 
 // Runs `go` now if all the art is in, else when it arrives (a scene that needs the map's pictures,
-// started from the title while they are still loading).
+// started from the title while they are still loading). One pending action per scene: the latest
+// request wins, one note shows, and a stopped scene never runs it.
+const gates = new WeakMap<Phaser.Scene, ArtGate>();
 export function whenArtReady(scene: Phaser.Scene, go: () => void): void {
-  if (scene.registry.get(ART_DONE_KEY) === true) return go();
-  const note = scene.add
-    .text(scene.scale.gameSize.width / 2, 40, 'Loading the rest of the art…', {
-      fontFamily: 'Georgia, serif',
-      fontSize: '22px',
-      color: '#f2c14e',
-    })
-    .setOrigin(0.5)
-    .setScrollFactor(0)
-    .setDepth(1e5);
-  scene.game.events.once(ART_DONE_EVENT, () => {
-    note.destroy();
-    go();
+  let gate = gates.get(scene);
+  if (!gate) {
+    gate = new ArtGate();
+    gates.set(scene, gate);
+  }
+  const g = gate;
+  g.request(scene.registry.get(ART_DONE_KEY) === true, go, () => {
+    // The note sits in design coordinates like the rest of the title (the design camera centres it).
+    const note = scene.add
+      .text(GAME_WIDTH / 2, 40, 'Loading the rest of the art…', {
+        fontFamily: 'Georgia, serif',
+        fontSize: '22px',
+        color: '#f2c14e',
+      })
+      .setOrigin(0.5)
+      .setDepth(1e5);
+    const arrived = () => {
+      note.destroy();
+      scene.events.off(Phaser.Scenes.Events.SHUTDOWN, stopped);
+      g.release();
+    };
+    const stopped = () => {
+      g.cancel();
+      scene.game.events.off(ART_DONE_EVENT, arrived);
+    };
+    scene.game.events.once(ART_DONE_EVENT, arrived);
+    scene.events.once(Phaser.Scenes.Events.SHUTDOWN, stopped);
   });
 }
 
