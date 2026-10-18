@@ -40,6 +40,26 @@ export function setViewWidth(w: number): boolean {
   return true;
 }
 
+// The render scale changed (the governor stepped it): the canvas has been resized, the cameras need
+// the new zoom. Called with the scale before and after.
+const scaleListeners = new Set<(from: number, to: number) => void>();
+
+export function notifyScaleChange(from: number, to: number): void {
+  [...scaleListeners].forEach((f) => f(from, to));
+}
+
+// Runs `fn` when the render scale changes while this scene lives (the main camera is resized first).
+export function onScaleChange(scene: Phaser.Scene, fn: (from: number, to: number) => void): void {
+  const f = (from: number, to: number) => {
+    scene.cameras.main.setSize(Math.round(width * to), Math.round(GAME_HEIGHT * to));
+    fn(from, to);
+  };
+  scaleListeners.add(f);
+  const off = () => scaleListeners.delete(f);
+  scene.events.once('shutdown', off);
+  scene.events.once('destroy', off);
+}
+
 export function onViewChange(f: () => void): () => void {
   listeners.add(f);
   return () => listeners.delete(f);
