@@ -691,3 +691,11 @@ knotwork, raven staff). They supersede hero-style-anchor-thorson.png. Rules carr
 round body ball, plain ball hands and feet; adult grim faces; a strong god colour on the body so
 heroes read at game size. Not every hero wears a cape. Stefan is generating more heroes in his own
 chat before the style is settled and Art is ordered.
+
+## 2026-10-18 Capes mark the party (Stefan)
+
+"Use capes as party identifier. So put capes on all." Every hero wears a cape; its colour is the
+party's colour (the existing party colour in the scene), and its finish rises with the party's
+level (plain wool, trimmed with an emblem, rich with fur and glow). The god's colour moves to the
+body and head. For production the cape is its own layer, painted neutral light grey so the game
+tints it per party, and it sways in code. Open: whether heroes without a party wear no cape.
