@@ -51,6 +51,11 @@ heroes, the skeleton pieces and `art-tasks/ref/hero-anchor-grim.png` for heroes.
 - **Motifs stay with their god:** never put one god's sign on another god's body (no owls on
   Loki).
 - **Layering:** weapon hafts pass **behind** the hand balls; a shield covers its hand.
+- **Hands** (Stefan 2026-10-19, `docs/game-design.md`): a shield is always on the **back hand**
+  (the cape side), face out; the weapon is on the back hand when there is no shield and on the
+  front hand when there is one. So **shields are painted face-on toward the viewer** in the 3/4
+  view (the painted front shows), and **weapons are painted hand-neutral**: a clean haft or grip,
+  no hand, pointing straight up.
 
 ## The rules
 

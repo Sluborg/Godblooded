@@ -51,7 +51,8 @@ still fails, do not upload it: report the item and the fault instead.
     visible (15.1); a grim adult face with the stylised features (big round ears, short round
     nose, heavy brows), never cute (15.2); each piece on its own layer, the cape painted neutral
     light grey, the god's motif only on that god's body (15.3); weapon hafts behind the hand
-    balls, a shield over its hand (15.4). A hero piece that breaks 15.1, 15.2 or 15.3 fails.
+    balls, a shield over its hand, shields painted face-on toward the viewer, weapons with a clean
+    haft and no hand (15.4). A hero piece that breaks 15.1, 15.2 or 15.3 fails.
 
 **Not faults** (Art fixes these in the pipeline; never redo or withhold an image for them, just
 note them in the log): a background that is near the key colour instead of exact (it must be
