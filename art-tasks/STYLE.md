@@ -35,7 +35,7 @@ The references are Stefan's seven pictures, fetched raw from main:
 heroes, the skeleton pieces and `art-tasks/ref/hero-anchor-grim.png` for heroes.
 
 - **Shape** (Stefan 2026-10-19, "Body shapes"): a **big head, about a third of the figure**, on a
-  compact body in one of **four shapes**: **ball** (the default), **bell** (a robe or skirt flaring
+  compact body in one of **four shapes**: **oval** (the default: a horizontal oval, **wider than tall, about 25 by 18 to 20, never a circle**; Stefan 2026-10-19: "Need oval bodies. No circles."), **bell** (a robe or skirt flaring
   to the hem), **barrel** (heavy armour, straight-sided) or **tattered** (a ragged cloak with a torn
   hem). Every shape fits the **same box** and keeps the **same anchor points** (the hand points at
   shoulder height, the feet under the hem on one line), so the game moves them all alike. **Floating
@@ -44,7 +44,7 @@ heroes, the skeleton pieces and `art-tasks/ref/hero-anchor-grim.png` for heroes.
   In the shared box the **hem sits on the bottom edge** (the ball feet peek out under it) and the
   collar reaches the top so the chin hides the join; keep brooches and crests **clear of the two
   hand spots** at shoulder height on either side. Each god's bodies keep one shape family
-  (Thorbloods: ball or barrel).
+  (Thorbloods: oval or barrel).
 - **Face:** stylised features (oversized round ears, a short rounded nose, heavy simple brows),
   **grim and adult**, never cute; not realistic proportions. Both genders.
 - **Finish:** smooth painted game art with real texture on cloth, leather, metal and hair (this
