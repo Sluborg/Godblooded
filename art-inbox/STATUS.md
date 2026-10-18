@@ -396,3 +396,6 @@ B25 | 2026-10-18T16:43:51.560Z | buildings | started | O-16 t1only,originalblock
 
 
 B25 | 2026-10-18T16:45:55.127Z | buildings | bld_temple_greek_t1 | uploaded | O-16 first-attempt NEWpaintover fromoriginalt1blockout sha7527570b9b4e45b658ab33906026f3e61e4ce5e4. Unchanged1254squarePNG1953038bytes,existingDrivefile replacedinplace; name/MIME/size/parent verified. Full-sizeQA14 and50/50overlay checked fourcolumns/gaps,door,rooflines,steps/footprint preserved. Clearopen darkinterior fromdoorlinteltothreshold,emptyrecedingfloor; nostatue,nobrazier,noprops anywhere. Marbleblockjoints/flutes/simplecapitals/terracottarows retained. No manual/scriptimagefix,overlaydiagnostic only. Near-magenta keypipeline note. t2andsmithies untouched. https://drive.google.com/file/d/1QJcczw2AA6hZ-LKmCpYTCI7vcG2eXjVe/view?usp=drivesdk . ProductionpausedunderO-16.
+
+
+B25 | 2026-10-18T20:02:43.693Z | buildings | started | O-17: t1 from NEW wide-bay blockout; larger clear doorway and wall margins; run ac807570
