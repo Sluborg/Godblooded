@@ -31,6 +31,9 @@ export interface RigSpec {
   // The weapon hand as a grip pair (hand_grip_r_back, hand_grip_r_front): the back half is drawn
   // behind the weapon and the front half over it, instead of the plain `fistW`.
   gripW?: readonly [back: string, front: string];
+  // A cape (kit_capes: cape_thor, ...): a back layer behind the torso and both arms, hanging from
+  // its `neck` pivot on the torso's neck.
+  cape?: string;
   weapon?: string;
   // Sizes of the pieces against their sheets (1 = as painted); defaults: RIG_SCALE.
   scale?: Partial<RigScale>;
@@ -48,6 +51,8 @@ export interface RigScale {
   weapon: number;
   // How far the head sits down on the neck, as a fraction of the head's height (Stefan 2026-10-18).
   headDrop: number;
+  // The cape's size against its sheet.
+  cape: number;
 }
 export const RIG_SCALE: RigScale = {
   head: 0.63,
@@ -57,6 +62,7 @@ export const RIG_SCALE: RigScale = {
   arm: 1.3,
   weapon: 1,
   headDrop: 0.12,
+  cape: 1.2,
 };
 
 // The arms are sized against the legs, not by a multiplier (Stefan 2026-10-18, "tiny stick arms,
@@ -118,6 +124,7 @@ export class SkeletonRig extends Phaser.GameObjects.Container {
       spec.fistW,
       spec.fistO,
       ...(spec.weapon ? [spec.weapon] : []),
+      ...(spec.cape ? [spec.cape] : []),
     ];
     this.refs = {};
     for (const id of ids) this.refs[id] = partRef(scene, id);
@@ -365,6 +372,19 @@ export class SkeletonRig extends Phaser.GameObjects.Container {
       const midx = (hx + hrx) / 2;
       this.put('torso', s.torso, this.upper, 'hip_l', 0, 0, 0, false, 1, [midx, hy]);
       const neck = { x: (nx - midx) * (to.cell.w / to.ppu), y: (ny - hy) * (to.cell.h / to.ppu) };
+      // The cape hangs from the neck behind everything and trails the lean and the lunge.
+      if (s.cape)
+        this.put(
+          'cape',
+          s.cape,
+          this.upper,
+          'neck',
+          neck.x,
+          neck.y,
+          -P.lean * 0.6 - P.px * 0.012,
+          false,
+          this.sc.cape,
+        );
       const headH = (this.ref(s.head)?.cell.h ?? 0) / (this.ref(s.head)?.ppu ?? 1);
       this.put(
         'head',
@@ -447,7 +467,7 @@ export class SkeletonRig extends Phaser.GameObjects.Container {
     // (the weapon cocked behind the head is drawn before it).
     const hands = pair ? ['gripB', 'weapon', 'gripF'] : ['weapon', 'fistW'];
     const tail = P.behind ? ['wu', 'wf', ...hands, 'head'] : ['head', 'wu', 'wf', ...hands];
-    this.order(this.upper, ['ou', 'of', 'fistO', 'torso', ...tail]);
+    this.order(this.upper, [...(s.cape ? ['cape'] : []), 'ou', 'of', 'fistO', 'torso', ...tail]);
     return P;
   }
 
