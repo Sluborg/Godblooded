@@ -437,6 +437,23 @@ export class Mock {
       const isP = (d: Draw, key: keyof Kit['parts']) => d.part === kit.parts[key];
       const pick = (f: (d: Draw) => boolean) => laid.filter(f);
       const behindHead = ch.wa < -0.9;
+      // The shield covers its hand ball: that hand sits BEHIND the shield (decisions 02388fb).
+      const shieldHand: Draw[] =
+        kit.parts.offhand?.cell.pivots?.strap && kit.parts.hand
+          ? [
+              {
+                part: kit.parts.hand,
+                pivot: 'wrist',
+                x: pose.hb.x * PROTO_K,
+                y: pose.hb.y * PROTO_K,
+                rot: 0,
+                sx: 1,
+                sy: 1,
+                inBody: true,
+                far: false,
+              },
+            ]
+          : [];
       const draws: Draw[] = [
         ...pick((d) => isP(d, 'cloak')),
         ...pick((d) => isP(d, 'boot') && d.far),
@@ -444,6 +461,7 @@ export class Mock {
         ...pick((d) => isP(d, 'boot') && !d.far),
         ...(behindHead ? pick((d) => isP(d, 'weapon')) : []),
         ...pick((d) => isP(d, 'head')),
+        ...shieldHand,
         ...pick((d) => isP(d, 'offhand')),
         ...(behindHead ? [] : pick((d) => isP(d, 'weapon'))),
         ...pick((d) => isP(d, 'hand') && d.far).map((d) => ({ ...d, far: false })),
