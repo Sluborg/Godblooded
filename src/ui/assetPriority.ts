@@ -15,3 +15,18 @@ export function pickLogoId(ids: Iterable<string>): string | null {
 export function isUiAsset(id: string): boolean {
   return id.startsWith('ui_');
 }
+
+// The pictures loaded on demand: building tiers 2 and up, and every lair.
+export function isDeferredAsset(id: string): boolean {
+  return /^bld_lair_/.test(id) || /^bld_.+_t[2-9]$/.test(id);
+}
+
+// The ids still to fetch: known to the manifest, not in the texture cache, not asked for already.
+export function missingIds(
+  ids: readonly string[],
+  known: (id: string) => boolean,
+  loaded: (id: string) => boolean,
+  requested: ReadonlySet<string>,
+): string[] {
+  return [...new Set(ids)].filter((id) => known(id) && !loaded(id) && !requested.has(id));
+}

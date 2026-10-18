@@ -41,6 +41,7 @@ import { LAIR_UI_DEPTH, LairIndicators, groundScale, plateColor } from '../ui/la
 import { LairFx } from '../ui/lairFx';
 import { portraitIds } from '../ui/portraits';
 import { bakeRings } from '../ui/bake';
+import { ensureArt, releaseLazyArt } from '../ui/lazyArt';
 import {
   footprintRing,
   groundShadow,
@@ -225,6 +226,7 @@ export class MapScene extends Phaser.Scene {
     this.selectRing = null;
     this.selectRingFor = 0;
     this.starMarker = null;
+    this.events.once('shutdown', () => releaseLazyArt(this));
     this.fpsGuard = new FpsGuard();
     this.world = this.startWorld();
     this.registry.set('speed', getSettings().speed);
@@ -720,6 +722,40 @@ export class MapScene extends Phaser.Scene {
     return best;
   }
 
+  // Pictures that load on demand (ui/lazyArt.ts): a building's own tier when it stands at it, and
+  // the next tier as soon as its upgrade is affordable or under way, so it is in when it is built.
+  // Each id is asked for once; the view shows the tier below until the picture arrives.
+  private wantBuildingArt(b: {
+    type: string;
+    tier: number;
+    upgradeCost: number | null;
+    upgradeUntilMs?: number;
+  }): void {
+    this.wantArt(buildingArtCandidates(b.type, b.tier));
+    const next = b.upgradeCost !== null && this.snap.gold >= b.upgradeCost;
+    if (next || b.upgradeUntilMs !== undefined) this.wantArt([`bld_${b.type}_t${b.tier + 1}`]);
+  }
+
+  private wantArt(ids: readonly string[]): void {
+    ensureArt(this, ids, (got) => this.artArrived(got));
+  }
+
+  // New pictures came in: a building standing in its fallback picture is rebuilt with the right
+  // one (its view is replaced on the next sync), a lair styles itself again.
+  private artArrived(ids: readonly string[]): void {
+    const got = new Set(ids);
+    for (const b of this.snap.buildings) {
+      const want = buildingArtCandidates(b.type, b.tier)[0];
+      const key = `b${b.id}t${b.tier}`;
+      const view = this.views.get(key);
+      if (view && got.has(want) && view.getData('art') !== want) {
+        view.destroy();
+        this.views.delete(key);
+      }
+    }
+    for (const l of this.snap.lairs) this.views.get(`l${l.id}`)?.setData('tier', 0);
+  }
+
   // Creates, moves and removes one view per snapshot entity, keyed by kind and sim id.
   private sync(dtMs = 0): void {
     const seen = new Set<string>();
@@ -727,6 +763,7 @@ export class MapScene extends Phaser.Scene {
       // The tier is part of the key: a tier-up replaces the view with the next picture.
       const key = `b${b.id}t${b.tier}`;
       seen.add(key);
+      this.wantBuildingArt(b);
       if (!this.views.has(key)) this.views.set(key, this.makeBuilding(b.type, b.tier, b.pos));
       const top = (this.views.get(key)?.getData('top') as number | undefined) ?? BUILDING_SIZE;
       const hall = isTownHall(b.type);
@@ -743,6 +780,7 @@ export class MapScene extends Phaser.Scene {
     for (const l of this.snap.lairs) {
       const key = `l${l.id}`;
       seen.add(key);
+      this.wantArt(lairArtCandidates(l.type, l.tier));
       if (!this.views.has(key)) this.views.set(key, this.makeLair(l));
       else this.refreshLair(this.views.get(key), l.type, l.tier, l.boss);
       const top = (this.views.get(key)?.getData('top') as number | undefined) ?? 2 * 44;
@@ -1319,6 +1357,7 @@ export class MapScene extends Phaser.Scene {
         .setData('top', o.y * img.height * k - FOOT_Y)
         .setData('w', img.width * k)
         .setData('h', img.height * k)
+        .setData('art', art)
         .setDepth(footprintDepth(pos.y, img.width * k));
     }
     const body = this.add
