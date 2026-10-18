@@ -2,7 +2,7 @@
 
 **One style** (Stefan, `docs/decisions.md` "Playtest run 2", 2026-10-14). The painted buildings
 are the anchor; every new picture must look like it came from the same hand. This replaces the
-big-head cartoon taste test; never draw cartoon again. Every batch quotes this page.
+big-head cartoon taste test; never draw cartoon again (heroes are the one exception: Stefan settled a big-head hero style on 2026-10-18, see "Heroes"). Every batch quotes this page.
 
 **Quality: every image passes `art-tasks/QA.md` before upload** (redo up to 3 times, then
 report the fault instead of uploading).
@@ -12,7 +12,7 @@ only references. Copy their palette, thin dark-brown outline, top-left light and
 
 | Picture (`public/assets/...` unless noted)  | Copy from it                                           |
 | ------------------------------------------- | ------------------------------------------------------ |
-| `art-tasks/ref/hero-anchor-grim.png`        | **every hero**: proportions, face, materials, detail   |
+| `docs/reference/hero-style-*.png` (7)       | **every hero** (settled 2026-10-18): see "Heroes"      |
 | `buildings/bld_townhall_t1.png` (5)         | the style itself, built for real (rule 14, 2026-10-17) |
 | `buildings/bld_lair_labyrinth_t1.png` (5)   | grim ruin: stone, braziers, bones, mood                |
 | `units/mon_jackal-man_t1_front.png` (5)     | a figure: anatomy, grip on the weapon, trim            |
@@ -26,6 +26,31 @@ only references. Copy their palette, thin dark-brown outline, top-left light and
 **Do not copy** (Stefan's notes on the rest): impossible logs, beams or extra bits on the back of
 buildings; weapons that could not be used; hands that do not really grip; static smoke or sparks
 painted in; busy piles of props; a temple that is only a gate.
+
+## Heroes (settled by Stefan, 2026-10-18, `docs/decisions.md` "Hero style settled")
+
+The references are Stefan's seven pictures, fetched raw from main:
+`docs/reference/hero-style-anchor-thor-grim.png`, `-anchor-odin-grim.png`, `-tyr.png`,
+`-loki.png`, `-freyja.png`, `-athena.png`, `-anubis.png`. Match them; they replace the G7
+heroes, the skeleton pieces and `art-tasks/ref/hero-anchor-grim.png` for heroes.
+
+- **Shape:** a **big head, about a third of the figure**, on a **round body ball**; **floating ball
+  hands** (plain skin tone) and **ball feet** (plain leather) drawn by the game. **No arms, no legs,
+  no sleeve stubs.** The ball stays readable as a ball: **at least 40 percent of it visible**,
+  never hidden by the cape, a shield or the hands.
+- **Face:** stylised features (oversized round ears, a short rounded nose, heavy simple brows),
+  **grim and adult**, never cute; not realistic proportions. Both genders.
+- **Finish:** smooth painted game art with real texture on cloth, leather, metal and hair (this
+  replaces "painted pixel art" for heroes only); top-left light; the thin dark warm-brown
+  outline; no grain.
+- **Kit, one layer each:** the **body ball per god** (that god's colour and motif: Thor red and
+  iron, Odin grey-blue and ravens, Loki green and serpents, Freyja gold and amber); the **head
+  per hero**; the **weapon per path at 3 tiers**; the **cape per party**, painted **neutral light
+  grey** so the game tints it, its finish rising with the party's level; a shield is optional.
+  Hero level shows through the weapon tier and the game's auras, not through the body.
+- **Motifs stay with their god:** never put one god's sign on another god's body (no owls on
+  Loki).
+- **Layering:** weapon hafts pass **behind** the hand balls; a shield covers its hand.
 
 ## The rules
 
@@ -53,10 +78,10 @@ painted in; busy piles of props; a temple that is only a gate.
   dark red. Colour comes from materials (paint on wood, dyed cloth, brass). One accent colour per
   hero from its divine parent (Thor: storm blue, Loki: green, Freyja: gold, Odin: grey-blue), used
   on cloth or trim, never neon.
-- **Figures:** grounded heroic proportions like Grim, **about 6 to 7 heads tall**, broad
-  and solid. **Adult faces, stern or fierce**, small eyes, no big anime eyes, no blush, no cute
-  smile, no chibi, no princess dresses, no clean shiny costumes. Women are warriors and
-  sorceresses in practical gear (mail, leather, fur, braids), never pretty-princess.
+- **Figures** (monsters and other non-hero figures): grounded proportions, broad and solid.
+  **Adult faces, stern or fierce**, small eyes, no big anime eyes, no blush, no cute smile, no
+  princess dresses, no clean shiny costumes. Women are warriors and sorceresses in practical gear
+  (mail, leather, fur, braids), never pretty-princess. **Heroes follow their own rules below.**
 - **Monsters** are grim and scary: hunched, sharp silhouettes, darker and colder than heroes.
 - **Small on the map:** units show about 30-40 px tall; the silhouette, the weapon and the accent
   colour must carry the read. Chunky gear, no hair-thin detail.
