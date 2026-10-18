@@ -733,3 +733,14 @@ Production waits for Stefan's go on a first batch (Questions tab).
   not rest on the opposite shoulder; a caster raises the staff to cast, never punches with it; a
   spear carried upright is too long (longer than the figure); chops stop earlier; no gap between
   head and body; no doubled shields. Every board item says exactly what to rate.
+
+## 2026-10-19 Shield and weapon hands (Stefan)
+
+"Shields look odd in front. They should be facing away from the hero, we would see the backside.
+So when there's a shield, we need it to be at the back." Rule:
+
+- **A shield is always on the back hand** (the cape side), face out, so the viewer sees its painted
+  front. It covers that hand.
+- **The weapon goes on the back hand when there is no shield** (Stefan rated the back-hand hammer
+  and khopesh 4): cocked behind the body, crossing it in the strike.
+- **With a shield, the weapon goes on the front hand.**
