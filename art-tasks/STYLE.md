@@ -35,7 +35,7 @@ The references are Stefan's seven pictures, fetched raw from main:
 heroes, the skeleton pieces and `art-tasks/ref/hero-anchor-grim.png` for heroes.
 
 - **Shape** (Stefan 2026-10-19, "Body shapes"): a **big head, about a third of the figure**, on a
-  compact body in one of **four shapes**: **egg** (the default: an **upright egg, taller than wide, about 20 wide by 25 tall, broad end at the bottom, narrower under the collar**; never a circle, never a lying oval; Stefan 2026-10-19: "Egg."), **bell** (a robe or skirt flaring
+  compact body in one of **four shapes**: **egg** (the default: **slightly eggy**, only a little taller than wide, **14 wide by 16 tall** like the prototype heroes in the game, broad end at the bottom, a little narrower under the collar; never a circle, never a lying oval, never a tall egg; Stefan 2026-10-19), **bell** (a robe or skirt flaring
   to the hem), **barrel** (heavy armour, straight-sided) or **tattered** (a ragged cloak with a torn
   hem). Every shape fits the **same box** and keeps the **same anchor points** (the hand points at
   shoulder height, the feet under the hem on one line), so the game moves them all alike. **Floating
