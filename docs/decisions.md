@@ -769,6 +769,6 @@ delivered one. The heads, cape and weapons stand.
 
 ## 2026-10-19 Correction: bodies are EGGS (Stefan)
 
-"Egg." The body is an upright egg, taller than wide (about 20 wide by 25 tall), the broad end at
-the bottom and the narrower end up at the collar; never a circle, never a horizontal oval. This
+"Egg." The body is an upright egg, only slightly taller than wide, exactly like the prototype hero
+in the game today (14 wide by 16 tall, Stefan: "slightly eggy"), the broad end at the bottom and the narrower end up at the collar; never a circle, never a horizontal oval. This
 replaces the "wider than tall" reading in the entry above. The Thorbloods body is redone as an egg.
