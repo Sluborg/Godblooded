@@ -54,10 +54,14 @@ export function toneAt(seed: number, x: number, y: number): Tone {
 
 // The tint (0xRRGGBB, multiplied over the tile) for a tone. The shifts are small: yellowed grass
 // loses blue, dry grass loses a little green, lush grass loses red.
+// How strongly the big tone zones show: Stefan found them too visible (2026-10-18), the variation
+// is meant to be small scale, so this is only a faint drift.
+export const TONE_STRENGTH = 0.4;
 export function tintFor(t: Tone): number {
-  const r = 255 - Math.round(t.lush * 34 + t.dry * 4);
-  const g = 255 - Math.round(t.dry * 14);
-  const b = 255 - Math.round(t.dry * 62 + t.lush * 30);
+  const k = TONE_STRENGTH;
+  const r = 255 - Math.round((t.lush * 34 + t.dry * 4) * k);
+  const g = 255 - Math.round(t.dry * 14 * k);
+  const b = 255 - Math.round((t.dry * 62 + t.lush * 30) * k);
   return (r << 16) | (g << 8) | b;
 }
 
@@ -108,7 +112,7 @@ export function dirtPlan(seed: number, hall: Pt, spots: readonly Pt[]): DirtPatc
       ry: 18 + r(k++) * 20,
       rot: (r(k++) - 0.5) * 0.7,
       variant: Math.floor(r(k++) * DIRT_VARIANTS),
-      alpha: 0.5 + r(k++) * 0.25,
+      alpha: 0.22 + r(k++) * 0.12,
     });
   }
   // Paths: small patches spaced along the line hall to plot, thinner towards the plot.
@@ -123,7 +127,7 @@ export function dirtPlan(seed: number, hall: Pt, spots: readonly Pt[]): DirtPatc
         ry: 11 + r(k++) * 11,
         rot: Math.atan2(s.y - hall.y, s.x - hall.x) * 0.5 + (r(k++) - 0.5) * 0.4,
         variant: Math.floor(r(k++) * DIRT_VARIANTS),
-        alpha: 0.38 + r(k++) * 0.22,
+        alpha: 0.16 + r(k++) * 0.1,
       });
     }
   }
@@ -133,4 +137,87 @@ export function dirtPlan(seed: number, hall: Pt, spots: readonly Pt[]): DirtPatc
 // The outline of a dirt patch variant, around (0, 0) in a unit-radius frame (scaled by rx, ry).
 export function dirtOutline(variant: number): Pt[] {
   return blobPoints(0, 0, 1, 1, 300 + variant * 17, 0.28, 26);
+}
+
+// ---------- small details: clumps, clover, flower clusters, bare spots ----------
+
+export type DecalKind =
+  'clumpD' | 'clumpL' | 'clover' | 'flowerW' | 'flowerY' | 'flowerP' | 'flowerR' | 'bare';
+export const DECAL_KINDS: readonly DecalKind[] = [
+  'clumpD',
+  'clumpL',
+  'clover',
+  'flowerW',
+  'flowerY',
+  'flowerP',
+  'flowerR',
+  'bare',
+];
+export const DECAL_VARIANTS = 3;
+// Roughly one small detail per 80 x 80 world units, jittered, so a few per screen at game zoom.
+export const DECAL_CELL = 80;
+
+export interface Decal {
+  x: number;
+  y: number;
+  kind: DecalKind;
+  variant: number;
+  flip: boolean;
+  s: number;
+}
+export interface Keepout {
+  x: number;
+  y: number;
+  rx: number;
+  ry: number;
+}
+
+// Where the small details go: seeded jitter on a grid, kinds by weight, none under `keep` (the town
+// hall's plaza and the buildings, which cover the ground anyway).
+export function decalPlan(
+  seed: number,
+  width: number,
+  height: number,
+  keep: readonly Keepout[] = [],
+): Decal[] {
+  const out: Decal[] = [];
+  const cols = Math.ceil(width / DECAL_CELL);
+  const rows = Math.ceil(height / DECAL_CELL);
+  const weights: [DecalKind, number][] = [
+    ['clumpD', 0.32],
+    ['clumpL', 0.22],
+    ['clover', 0.14],
+    ['flowerW', 0.07],
+    ['flowerY', 0.07],
+    ['flowerP', 0.06],
+    ['flowerR', 0.06],
+    ['bare', 0.06],
+  ];
+  for (let j = 0; j < rows; j++)
+    for (let i = 0; i < cols; i++) {
+      const n = seed * 11 + i * 73 + j * 191;
+      if (hash(n) > 0.74) continue;
+      const x = (i + hash(n + 1)) * DECAL_CELL;
+      const y = (j + hash(n + 2)) * DECAL_CELL;
+      if (x > width || y > height) continue;
+      if (keep.some((k) => ((x - k.x) / k.rx) ** 2 + ((y - k.y) / k.ry) ** 2 < 1)) continue;
+      let u = hash(n + 3);
+      let kind = weights[0][0];
+      for (const [kd, w] of weights) {
+        if (u < w) {
+          kind = kd;
+          break;
+        }
+        u -= w;
+      }
+      out.push({
+        x,
+        y,
+        kind,
+        variant: Math.floor(hash(n + 4) * DECAL_VARIANTS),
+        flip: hash(n + 5) < 0.5,
+        s: 0.85 + hash(n + 6) * 0.35,
+      });
+    }
+  return out;
 }

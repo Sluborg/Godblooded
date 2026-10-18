@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { CELL, DIRT_VARIANTS, dirtPlan, tintFor, tintGrid, toneAt } from './groundVariation';
+import {
+  CELL,
+  DECAL_KINDS,
+  DIRT_VARIANTS,
+  decalPlan,
+  dirtPlan,
+  tintFor,
+  tintGrid,
+  toneAt,
+} from './groundVariation';
 
 const chan = (c: number) => [(c >> 16) & 255, (c >> 8) & 255, c & 255];
 
@@ -48,8 +57,27 @@ describe('dirtPlan', () => {
     for (const d of a) {
       expect(Math.hypot(d.x - hall.x, d.y - hall.y)).toBeLessThan(560);
       expect(d.variant).toBeLessThan(DIRT_VARIANTS);
-      expect(d.alpha).toBeGreaterThan(0.2);
-      expect(d.alpha).toBeLessThan(0.9);
+      expect(d.alpha).toBeGreaterThan(0.1);
+      expect(d.alpha).toBeLessThan(0.4);
     }
+  });
+});
+
+describe('decalPlan', () => {
+  it('is seeded, in bounds, spread over all kinds and keeps out of the keepouts', () => {
+    const keep = [{ x: 1500, y: 1000, rx: 230, ry: 110 }];
+    const a = decalPlan(9, 3000, 2000, keep);
+    expect(decalPlan(9, 3000, 2000, keep)).toEqual(a);
+    expect(decalPlan(10, 3000, 2000, keep)).not.toEqual(a);
+    expect(a.length).toBeGreaterThan(450);
+    expect(a.length).toBeLessThan(900);
+    for (const d of a) {
+      expect(d.x).toBeGreaterThanOrEqual(0);
+      expect(d.x).toBeLessThanOrEqual(3000);
+      expect(d.y).toBeGreaterThanOrEqual(0);
+      expect(d.y).toBeLessThanOrEqual(2000);
+      expect(((d.x - 1500) / 230) ** 2 + ((d.y - 1000) / 110) ** 2).toBeGreaterThanOrEqual(1);
+    }
+    for (const k of DECAL_KINDS) expect(a.some((d) => d.kind === k)).toBe(true);
   });
 });
