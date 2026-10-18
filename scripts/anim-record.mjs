@@ -39,6 +39,10 @@ async function record(u, zoom) {
   await page.waitForFunction(() => window.__game?.scene.isActive('Title'), null, {
     timeout: 40000,
   });
+  // The title opens before the rest of the art has loaded; the map needs all of it.
+  await page.waitForFunction(() => window.__game.registry.get('artDone') === true, null, {
+    timeout: 120000,
+  });
   await page.evaluate(() => window.__game.scene.getScene('Title').scene.start('Map'));
   await page.waitForFunction(() => window.__game.scene.isActive('Map'));
   await sleep(600);

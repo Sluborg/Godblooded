@@ -139,9 +139,9 @@
       "view": null,
       "file": "buildings/bld_smithy_t1.png",
       "anchorX": 0.5,
-      "anchorY": 0.799,
+      "anchorY": 0.784,
       "license": "own (ChatGPT, Stefan's account)",
-      "source": "B7"
+      "source": "B27"
     },
     {
       "id": "bld_smithy_t2",
@@ -260,9 +260,9 @@
       "view": null,
       "file": "buildings/bld_townhall_t2.png",
       "anchorX": 0.5,
-      "anchorY": 0.791,
+      "anchorY": 0.773,
       "license": "own (ChatGPT, Stefan's account)",
-      "source": "B9"
+      "source": "B19"
     },
     {
       "id": "hero_freyja_t1_front",
@@ -623,6 +623,56 @@
       },
       "license": "own (ChatGPT, Stefan's account)",
       "source": "G12"
+    },
+    {
+      "id": "kit_capes",
+      "kind": "kit",
+      "tier": null,
+      "view": null,
+      "file": "kits/kit_capes.png",
+      "anchorX": 0.5,
+      "anchorY": 0.5,
+      "pxPerUnit": 16,
+      "cells": {
+        "cape_odin": {
+          "x": 8,
+          "y": 8,
+          "w": 288,
+          "h": 347,
+          "pivots": {
+            "neck": [0.5, 0.04]
+          }
+        },
+        "cape_thor": {
+          "x": 304,
+          "y": 8,
+          "w": 288,
+          "h": 340,
+          "pivots": {
+            "neck": [0.5, 0.04]
+          }
+        },
+        "cape_loki": {
+          "x": 600,
+          "y": 8,
+          "w": 288,
+          "h": 356,
+          "pivots": {
+            "neck": [0.5, 0.04]
+          }
+        },
+        "cape_freyja": {
+          "x": 896,
+          "y": 8,
+          "w": 288,
+          "h": 341,
+          "pivots": {
+            "neck": [0.5, 0.04]
+          }
+        }
+      },
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "G14"
     },
     {
       "id": "kit_heads_a",

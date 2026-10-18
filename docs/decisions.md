@@ -576,3 +576,26 @@ and for kit_rig_grips (back-of-hand weapon grips, per f18cace). Stefan rates the
 a whole on the skeleton test, not as single pictures. Scene ports the skeleton to the dev
 AnimStage first, then behind a ?rig=skeleton flag on one hero. Spec: game-design.md "Hero
 animation: skeleton and weapon stances".
+
+## 2026-10-18 Round 10 verdicts (Stefan)
+
+- Skeleton clip (axeman, v6): 3 at 2x, 2 at game size. Arms too skinny; head sits too high
+  (lower it on the neck); the chop may stop earlier, not at the bottom (shorter swing). Legs
+  "sort of work". Scene tunes; the live flag waits for a passing clip.
+- G14 back capes: 4, ship. Stefan asked why front-view capes when units are seen from the side;
+  answer: the hero rig is a front-facing torso with side-view limbs, so a back cape shows as edges
+  either side and below the skirt (Lead).
+- B19 town hall t2: 4, ship. B27 smithy t1: 4, ship. Smithy t2: 2 ("only adds another anvil and
+  a weirder crooked roof"): redo, clearly bigger than t1, straight roof.
+- Greek temples t1 and t2 (Stefan, 2026-10-18): redo, no hand or script fixes on a failed
+  picture. Art changes the method (new approach in the prompt) rather than retrying the same one.
+
+## 2026-10-18 Performance: keep the skeleton, fix fill rate and startup (Lead)
+
+Scene's perf pass (scene/perf-startup): the skeleton rig costs the same as today's heroes (one
+extra draw call for 20 rigs, negligible bone math), so the skeleton stays. Lag sources are fill
+rate (cost scales with render scale squared), a heavy startup (8.4 MB, 54 MB of textures before
+the title) and the PWA running the old build first on deploy days. Fixes: the title opens after
+the splash and UI kit while the rest streams in; FpsGuard becomes live dynamic resolution (2 down
+to 1.25); the PWA applies a waiting update before the heavy load; textures are downscaled to at
+most 2x their largest on-screen size.

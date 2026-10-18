@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { MIN_TOUCH, RENDER_SCALE, TAP_SLOP } from '../config';
-import { bakeTexture } from './bake';
+import { bakedScale, bakeTexture } from './bake';
 import type { Button } from './button';
 import { addIcon } from './icons';
 import { getSfx } from './sfxPlayer';
@@ -126,10 +126,12 @@ export function makeHudButton(
       // Lit: a warm gold wash over the brown while the button is switched on.
       if (active && state !== 'pressed') art.setTint(0xffd98a);
       else art.clearTint();
-    } else
-      bg?.setTexture(
+    } else if (bg) {
+      bg.setTexture(
         plate(scene, pw, ph, state === 'pressed' ? 'pressed' : active ? 'active' : 'normal'),
       );
+      bg.setScale(bakedScale(bg));
+    }
     container.setScale(state === 'pressed' ? 0.95 : 1);
   };
   hit.on('pointerdown', () => {
