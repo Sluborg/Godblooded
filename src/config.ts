@@ -45,7 +45,9 @@ function sharpOff(): boolean {
   }
 }
 
-function detectRenderScale(): number {
+// The scale the screen could use (its density and fit, capped), before the speed the last run
+// settled at. The live governor (ui/scaleGovernor.ts) never goes above this.
+function deviceRenderScale(): number {
   if (typeof window === 'undefined') return 1;
   const forced = Number(new URLSearchParams(window.location.search).get('scale'));
   if (forced >= 1 && forced <= 4) return forced;
@@ -53,8 +55,44 @@ function detectRenderScale(): number {
   return computeRenderScale(window.devicePixelRatio || 1, window.innerWidth, window.innerHeight);
 }
 
-export const RENDER_SCALE = detectRenderScale();
+// The scale the last run settled at (the governor stepped down to it on a slow screen), read from
+// storage: the next start begins there instead of at the top and stepping down again.
+const SCALE_KEY = 'godblooded.scale.v1';
+function savedRenderScale(): number | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const v = Number(window.localStorage.getItem(SCALE_KEY));
+    return v >= 1 && v <= RENDER_SCALE_MAX ? v : null;
+  } catch {
+    return null;
+  }
+}
+export function saveRenderScale(v: number): void {
+  try {
+    window.localStorage.setItem(SCALE_KEY, String(v));
+  } catch {
+    // storage unavailable: the next start begins at the device's scale
+  }
+}
+
+export const RENDER_SCALE_CEILING = deviceRenderScale();
+// `?scale=` forces a value (tests, measurements): the governor stays off then.
+export const RENDER_SCALE_FORCED =
+  typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('scale');
+
+// Live: the governor changes it in a run (setRenderScale); importers see the current value, so only
+// code that reads it at call time follows (a value computed at load stays at the start scale).
+export let RENDER_SCALE = RENDER_SCALE_FORCED
+  ? RENDER_SCALE_CEILING
+  : Math.min(RENDER_SCALE_CEILING, savedRenderScale() ?? RENDER_SCALE_CEILING);
 
 // How far a press may travel and still be a tap: 10 design pixels, which are RENDER_SCALE times as
 // many canvas pixels (Phaser pointers report canvas pixels).
-export const TAP_SLOP = 10 * RENDER_SCALE;
+export let TAP_SLOP = 10 * RENDER_SCALE;
+
+// Changes the scale for the rest of the run (call through ui/refit.ts changeRenderScale, which also
+// resizes the canvas and re-fits the cameras).
+export function setRenderScale(v: number): void {
+  RENDER_SCALE = v;
+  TAP_SLOP = 10 * v;
+}
