@@ -383,6 +383,7 @@ export class Mock {
       const spec = this.specs[k];
       let ch: Ch;
       let hitNow = false;
+      let castT = -1;
       let foeX = 0;
       if (clip === 'line') ch = walkCh(hero.stance, t, spec.phase);
       else if (t < 1.2) ch = idleCh(hero.stance, t, spec.phase);
@@ -402,6 +403,7 @@ export class Mock {
           const a = attack(hero.stance, Math.min(phaseT, a0.dur));
           ch = phaseT < a0.dur ? a.ch : g;
           hitNow = Math.abs(phaseT - a.hitAt) < 0.07;
+          if (phaseT < a0.dur) castT = phaseT;
         }
         foeX = hitNow ? -2 : 0;
       }
@@ -464,8 +466,8 @@ export class Mock {
       drawKit(ctx, draws, pose);
       if (this.measure) (this.vis[k] ??= []).push(ballVisible(kit, draws, pose));
       // A glow on the staff's orb at a cast.
-      if (hero.stance === 'staff' && t >= 3) {
-        const ta = (t - 3.25) % 1.18;
+      if (hero.stance === 'staff' && castT >= 0) {
+        const ta = castT;
         const a = attack('staff', Math.min(Math.max(ta, 0), 1));
         if (ta >= 0.4 && ta < 1.0) {
           const wp = hero.weapon as KitPart;
@@ -476,7 +478,7 @@ export class Mock {
           const ax = hx + Math.sin(a.ch.wa) * top;
           const ay = hy - Math.cos(a.ch.wa) * top;
           const pulse = Math.sin(((ta - 0.4) / 0.6) * Math.PI);
-          const r = 11 * pulse + 2;
+          const r = 14 * pulse + 3;
           const grd = ctx.createRadialGradient(ax, ay, 0, ax, ay, r);
           const [gr, gg, gb] = spec.glow ?? [150, 205, 255];
           grd.addColorStop(
