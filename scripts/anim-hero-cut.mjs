@@ -8,7 +8,7 @@
 import sharp from 'sharp';
 import { mkdirSync, writeFileSync } from 'node:fs';
 
-const O = 120; // the specs below are in the coordinates of a 120 px offset crop (see the grid sheets)
+let O = 120; // the specs below are in the coordinates of a 120 px offset crop (see the grid sheets)
 const P = (pts) => pts.map(([x, y]) => [x + O, y + O]);
 
 // Per hero: source picture, the rig look it is registered under, and where things are (crop coords).
@@ -292,6 +292,415 @@ const HEROES = {
       refBelow: true,
     },
   },
+  // The second set (hero-style-*.png from the five-hero batch): coordinates are the picture's own (off 0).
+  tyr2: {
+    off: 0,
+    src: 'docs/reference/hero-style-tyr.png',
+    look: 'tyr2',
+    hands: { front: { c: [1005, 733], r: 77 }, back: null },
+    feet: [
+      { c: [510, 1030], rx: 93, ry: 85 },
+      { c: [822, 1025], rx: 93, ry: 80 },
+    ],
+    ball: { c: [715, 795], rx: 197, ry: 213 },
+    head: [
+      [490, 420],
+      [500, 340],
+      [560, 260],
+      [640, 205],
+      [730, 195],
+      [810, 230],
+      [855, 300],
+      [860, 380],
+      [850, 450],
+      [835, 520],
+      [800, 570],
+      [740, 590],
+      [690, 580],
+      [650, 545],
+      [620, 560],
+      [570, 545],
+      [520, 540],
+      [470, 520],
+      [435, 480],
+    ],
+    neck: [690, 585],
+    brow: [740, 420],
+    cape: [
+      [300, 560],
+      [420, 520],
+      [520, 545],
+      [560, 600],
+      [520, 700],
+      [480, 880],
+      [420, 960],
+      [330, 1000],
+      [230, 985],
+      [120, 930],
+      [60, 880],
+      [30, 820],
+      [90, 740],
+      [200, 640],
+    ],
+    clasp: [560, 585],
+    shield: { c: [381, 780], rx: 149, ry: 195 },
+    weapon: {
+      polys: [
+        [
+          [1130, 100],
+          [1250, 100],
+          [1250, 300],
+          [1160, 560],
+          [1150, 700],
+          [1060, 650],
+          [1020, 720],
+          [1010, 880],
+          [930, 880],
+          [930, 800],
+          [960, 720],
+          [960, 590],
+          [1020, 500],
+          [1100, 300],
+        ],
+      ],
+      axis: [
+        [1210, 150],
+        [965, 845],
+      ],
+      refBelow: true,
+    },
+  },
+  loki2: {
+    off: 0,
+    src: 'docs/reference/hero-style-loki.png',
+    look: 'loki2',
+    keepGreen: true,
+    floodTol: 26,
+    hands: { front: { c: [1000, 762], r: 77 }, back: { c: [410, 762], r: 82 } },
+    feet: [
+      { c: [510, 1052], rx: 90, ry: 85 },
+      { c: [808, 1045], rx: 88, ry: 78 },
+    ],
+    ball: { c: [680, 839], rx: 235, ry: 180 },
+    head: [
+      [380, 540],
+      [380, 470],
+      [440, 370],
+      [445, 330],
+      [500, 280],
+      [580, 240],
+      [650, 230],
+      [740, 250],
+      [830, 300],
+      [880, 370],
+      [895, 450],
+      [895, 540],
+      [880, 590],
+      [850, 610],
+      [800, 625],
+      [740, 640],
+      [690, 620],
+      [640, 590],
+      [600, 600],
+      [560, 590],
+      [500, 560],
+      [440, 570],
+    ],
+    neck: [770, 605],
+    brow: [770, 480],
+    cape: [
+      [300, 600],
+      [430, 580],
+      [540, 600],
+      [580, 660],
+      [490, 720],
+      [470, 820],
+      [480, 900],
+      [470, 970],
+      [400, 1010],
+      [300, 1000],
+      [200, 960],
+      [150, 940],
+      [70, 860],
+      [55, 810],
+      [100, 740],
+      [180, 680],
+      [240, 630],
+    ],
+    clasp: [560, 640],
+    weapon: {
+      polys: [
+        [
+          [1090, 130],
+          [1180, 140],
+          [1210, 300],
+          [1215, 450],
+          [1200, 600],
+          [1170, 700],
+          [1100, 720],
+          [1060, 760],
+          [1020, 830],
+          [1000, 900],
+          [950, 925],
+          [930, 880],
+          [940, 830],
+          [1000, 760],
+          [1010, 700],
+          [1000, 640],
+          [1000, 560],
+          [1040, 470],
+          [1070, 300],
+        ],
+      ],
+      axis: [
+        [1150, 150],
+        [965, 880],
+      ],
+      refBelow: true,
+    },
+  },
+  freyja: {
+    off: 0,
+    src: 'docs/reference/hero-style-freyja.png',
+    look: 'freyja',
+    hands: { front: { c: [977, 700], r: 70 }, back: { c: [460, 788], r: 78 } },
+    feet: [
+      { c: [492, 1020], rx: 87, ry: 80 },
+      { c: [788, 1005], rx: 83, ry: 75 },
+    ],
+    ball: { c: [680, 830], rx: 208, ry: 170 },
+    head: [
+      [390, 420],
+      [440, 300],
+      [520, 235],
+      [620, 205],
+      [730, 215],
+      [820, 270],
+      [845, 380],
+      [830, 460],
+      [840, 520],
+      [800, 560],
+      [770, 590],
+      [740, 600],
+      [700, 620],
+      [650, 625],
+      [620, 700],
+      [630, 780],
+      [650, 860],
+      [620, 900],
+      [580, 890],
+      [560, 820],
+      [540, 700],
+      [550, 620],
+      [520, 540],
+      [450, 540],
+      [400, 500],
+    ],
+    neck: [700, 600],
+    brow: [720, 460],
+    cape: [
+      [310, 600],
+      [420, 550],
+      [520, 570],
+      [560, 600],
+      [530, 660],
+      [480, 760],
+      [480, 870],
+      [460, 950],
+      [380, 990],
+      [300, 1000],
+      [220, 970],
+      [140, 935],
+      [60, 860],
+      [50, 820],
+      [130, 760],
+      [230, 670],
+      [300, 610],
+    ],
+    clasp: [520, 600],
+    weapon: {
+      polys: [
+        [
+          [960, 100],
+          [1190, 100],
+          [1190, 330],
+          [1140, 335],
+          [1050, 320],
+          [960, 330],
+        ],
+        [
+          [1050, 320],
+          [1140, 335],
+          [960, 1010],
+          [870, 990],
+        ],
+      ],
+      axis: [
+        [1090, 150],
+        [905, 990],
+      ],
+    },
+  },
+  athena: {
+    off: 0,
+    src: 'docs/reference/hero-style-athena.png',
+    look: 'athena',
+    figTop: 215,
+    hands: { front: { c: [972, 765], r: 72 }, back: null },
+    feet: [
+      { c: [518, 1050], rx: 85, ry: 80 },
+      { c: [790, 1045], rx: 78, ry: 70 },
+    ],
+    ball: { c: [685, 835], rx: 208, ry: 190 },
+    head: [
+      [380, 420],
+      [400, 300],
+      [470, 200],
+      [580, 110],
+      [700, 70],
+      [820, 100],
+      [880, 150],
+      [870, 215],
+      [800, 260],
+      [830, 330],
+      [870, 420],
+      [850, 520],
+      [840, 570],
+      [800, 620],
+      [740, 640],
+      [690, 630],
+      [650, 600],
+      [600, 640],
+      [560, 650],
+      [520, 640],
+      [470, 620],
+      [420, 590],
+      [390, 500],
+    ],
+    neck: [730, 630],
+    brow: [740, 520],
+    cape: [
+      [310, 610],
+      [420, 590],
+      [520, 640],
+      [540, 700],
+      [500, 860],
+      [520, 960],
+      [440, 1000],
+      [330, 1005],
+      [230, 980],
+      [150, 930],
+      [100, 850],
+      [90, 820],
+      [160, 760],
+      [250, 690],
+    ],
+    clasp: [540, 650],
+    shield: { c: [372, 805], rx: 118, ry: 182 },
+    weapon: {
+      polys: [
+        [
+          [1050, 70],
+          [1190, 70],
+          [1110, 420],
+          [1010, 720],
+          [945, 1000],
+          [895, 1110],
+          [860, 1085],
+          [905, 900],
+          [960, 700],
+          [1040, 350],
+        ],
+      ],
+      axis: [
+        [1160, 90],
+        [880, 1100],
+      ],
+    },
+  },
+  anubis: {
+    off: 0,
+    src: 'docs/reference/hero-style-anubis.png',
+    look: 'anubis',
+    hands: { front: { c: [922, 750], r: 68 }, back: { c: [468, 757], r: 78 } },
+    feet: [
+      { c: [490, 985], rx: 82, ry: 75 },
+      { c: [757, 975], rx: 82, ry: 68 },
+    ],
+    ball: { c: [640, 800], rx: 215, ry: 160 },
+    head: [
+      [405, 520],
+      [440, 400],
+      [480, 330],
+      [500, 230],
+      [560, 150],
+      [590, 230],
+      [640, 310],
+      [680, 290],
+      [730, 200],
+      [745, 180],
+      [765, 250],
+      [790, 350],
+      [800, 440],
+      [805, 520],
+      [810, 590],
+      [790, 620],
+      [700, 645],
+      [620, 640],
+      [590, 600],
+      [560, 590],
+      [470, 560],
+      [410, 540],
+    ],
+    neck: [700, 630],
+    brow: [720, 450],
+    cape: [
+      [330, 580],
+      [420, 545],
+      [530, 545],
+      [590, 600],
+      [520, 660],
+      [460, 730],
+      [420, 830],
+      [430, 930],
+      [380, 945],
+      [300, 925],
+      [200, 900],
+      [120, 860],
+      [80, 830],
+      [110, 780],
+      [210, 690],
+      [280, 620],
+    ],
+    clasp: [500, 600],
+    weapon: {
+      polys: [
+        [
+          [1080, 130],
+          [1230, 150],
+          [1235, 350],
+          [1190, 500],
+          [1120, 610],
+          [1010, 680],
+          [980, 720],
+          [960, 780],
+          [900, 900],
+          [830, 925],
+          [830, 880],
+          [880, 800],
+          [920, 700],
+          [990, 640],
+          [1060, 520],
+          [1120, 300],
+        ],
+      ],
+      axis: [
+        [1130, 170],
+        [870, 900],
+      ],
+      refBelow: true,
+    },
+  },
 };
 
 const FIG_H_UNITS = 46; // the figure (hair top to boot bottom) is this many rig units tall
@@ -308,6 +717,7 @@ const inPoly = (x, y, poly) => {
 const inEll = (x, y, c, rx, ry) => ((x - c[0]) / rx) ** 2 + ((y - c[1]) / ry) ** 2 <= 1;
 
 async function cut(id, spec, partyHex) {
+  O = spec.off ?? 120;
   const { data, info } = await sharp(spec.src)
     .ensureAlpha()
     .raw()
@@ -493,7 +903,7 @@ async function cut(id, spec, partyHex) {
     return { buf: out, w, h, ox: x0, oy: y0 };
   };
 
-  const top = Math.min(...spec.head.map((p) => p[1]));
+  const top = spec.figTop ?? Math.min(...spec.head.map((p) => p[1]));
   const feetBottom = Math.max(...feet.map((f) => f.cy + f.ry));
   const ppu = (feetBottom - top) / FIG_H_UNITS;
   const dir = `anim-test/hs_${id}${partyHex ? '_party' : ''}`;
@@ -627,13 +1037,29 @@ async function cut(id, spec, partyHex) {
   const axisX = Math.round(fwd(b[0], b[1])[0]);
   const rpx = (x, y) => (y * rw + x) * 4;
   // Haft width at a reference row just above the hand.
-  const refY = spec.weapon.refBelow
+  let refY = spec.weapon.refBelow
     ? Math.min(rh - 3, Math.round(hc[1] + hF.r + 8))
     : Math.max(2, Math.round(hc[1] - hF.r - 6));
-  let hx0 = axisX,
-    hx1 = axisX;
-  while (rot[rpx(hx0 - 1, refY) + 3] > 100 && axisX - hx0 < 60) hx0--;
-  while (rot[rpx(hx1 + 1, refY) + 3] > 100 && hx1 - axisX < 60) hx1++;
+  // Move the reference row out of the hole to where the haft is really there.
+  const hasHaft = (y) => {
+    let n = 0;
+    for (let x = axisX - 120; x <= axisX + 120; x++)
+      if (x >= 0 && x < rw && rot[rpx(x, y) + 3] > 100) n++;
+    return n >= 24;
+  };
+  for (let n = 0; n < 200 && !hasHaft(refY); n++) refY += spec.weapon.refBelow ? 1 : -1;
+  refY += spec.weapon.refBelow ? 12 : -12;
+  // Start on the haft itself: the axis may be a little off it.
+  let sx = axisX;
+  for (let d = 0; d < 140 && rot[rpx(sx, refY) + 3] <= 100; d++) {
+    if (rot[rpx(axisX + d, refY) + 3] > 100) sx = axisX + d;
+    else if (rot[rpx(axisX - d, refY) + 3] > 100) sx = axisX - d;
+  }
+  let hx0 = sx,
+    hx1 = sx;
+  while (rot[rpx(hx0 - 1, refY) + 3] > 100 && sx - hx0 < 70) hx0--;
+  while (rot[rpx(hx1 + 1, refY) + 3] > 100 && hx1 - sx < 70) hx1++;
+  if (process.env.DBG) console.log(id, { refY, axisX, sx, hx0, hx1, hc, r: hF.r, rh, rw });
   const yFrom = spec.weapon.refBelow ? Math.round(hc[1] - hF.r - 6) : refY + 1;
   const yTo = spec.weapon.refBelow ? refY - 1 : Math.min(rh - 1, Math.round(hc[1] + hF.r + 36));
   for (let y = yFrom; y <= yTo; y++)
@@ -694,7 +1120,9 @@ async function cut(id, spec, partyHex) {
 const args = process.argv.slice(2);
 const pi = args.indexOf('--party');
 const party = pi >= 0 ? args.splice(pi, 2)[1] : null;
-const ids = args.length ? args : ['thorson', 'odin', 'tyr', 'loki'];
+const ids = args.length
+  ? args
+  : ['thorson', 'odin', 'tyr', 'loki', 'tyr2', 'loki2', 'freyja', 'athena', 'anubis'];
 for (const id of ids) {
   await cut(id, HEROES[id], null);
   if (party) await cut(id, HEROES[id], party);

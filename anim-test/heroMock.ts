@@ -6,13 +6,16 @@ import { BUILDS } from '/src/data/heroKits';
 import { drawKit, layout, pivot, PROTO_K } from '/src/ui/parts/painted';
 import type { Kit, KitPart, RigPose } from '/src/ui/parts/painted';
 
-type Stance = 'hammer' | 'sword' | 'dagger' | 'staff';
+type Stance = 'hammer' | 'sword' | 'dagger' | 'staff' | 'spear';
 export interface MockHero {
   kit: string;
   stance: Stance;
   // Where it stands in a line (kit units) and its walk phase.
   x: number;
+  y?: number;
   phase: number;
+  // Glow colour of a cast (r, g, b); the staffs have one.
+  glow?: [number, number, number];
 }
 interface Loaded {
   kit: Kit;
@@ -99,11 +102,15 @@ const carry = (s: Stance): Ch =>
       ? mk({ hfx: 6, hfy: -9, wa: 0.5 })
       : s === 'sword'
         ? mk({ hfx: 6.5, hfy: -9, wa: 0.45, hbx: 5, hby: -11 })
-        : mk({ hfx: 6.5, hfy: -9, wa: 0.3 });
+        : s === 'spear'
+          ? mk({ hfx: 6.5, hfy: -9, wa: 0.2, hbx: 5, hby: -11 })
+          : mk({ hfx: 6.5, hfy: -9, wa: 0.3 });
 // Guard: hammer and sword cocked back, dagger front low, staff front; lead foot per the table.
 const guard = (s: Stance): Ch => {
   if (s === 'staff')
     return mk({ hfx: 8, hfy: -14, wa: 0.25, hbx: 9, hby: -22, f0x: 3, f1x: -2.5, lean: 0.04 });
+  if (s === 'spear')
+    return mk({ hfx: -1, hfy: -10, wa: 0.85, hbx: 8, hby: -12, f0x: 3.5, f1x: -2.5, lean: 0.02 });
   if (s === 'dagger')
     return mk({ hfx: 8, hfy: -9, wa: 0.95, hbx: -5, hby: -11, f1x: 3, f0x: -2.5, lean: 0.05 });
   if (s === 'sword')
@@ -123,6 +130,31 @@ const guard = (s: Stance): Ch => {
 // The attack: windup, strike, hit pause, follow-through. Returns the channels and the hit time.
 function attack(s: Stance, t: number): { ch: Ch; dur: number; hitAt: number } {
   const g = guard(s);
+  if (s === 'spear') {
+    const D = 0.85;
+    const pull = mk({ ...g, hfx: -4, hfy: -9, wa: 0.95, lean: -0.1, dx: -1.5, cape: -1 });
+    const thrust = mk({
+      ...g,
+      hfx: 17,
+      hfy: -12,
+      wa: 1.4,
+      lean: 0.18,
+      dx: 4.5,
+      hbx: 10,
+      cape: 6,
+      f0x: 5.5,
+      f1x: -1.5,
+    });
+    const ch =
+      t < 0.3
+        ? lerpCh(g, pull, ease(t / 0.3))
+        : t < 0.4
+          ? lerpCh(pull, thrust, ease((t - 0.3) / 0.1))
+          : t < 0.5
+            ? thrust
+            : lerpCh(thrust, g, ease(Math.min(1, (t - 0.5) / 0.35)));
+    return { ch, dur: D, hitAt: 0.4 };
+  }
   if (s === 'dagger') {
     const D = 0.55;
     const pull = mk({ ...g, hfx: 3.5, hfy: -10, wa: 0.75, lean: -0.05, dx: -1 });
@@ -310,7 +342,11 @@ export class Mock {
     // The line is centred; a solo hero stands left of centre with a foe ahead.
     const n = this.heroes.length;
     const gap = 42;
-    this.heroes.forEach((hero, k) => {
+    const order = this.heroes
+      .map((_, i) => i)
+      .sort((a, b) => (this.specs[a].y ?? 0) - (this.specs[b].y ?? 0));
+    order.forEach((k) => {
+      const hero = this.heroes[k];
       const spec = this.specs[k];
       let ch: Ch;
       let hitNow = false;
@@ -339,12 +375,24 @@ export class Mock {
       const pose = toPose(ch);
       const raised = ch.wa < -1.1;
       const kit = hero.kit;
-      const draws = layout(kit, pose, raised, undefined);
+      const laid = layout(kit, pose, raised, undefined);
+      // The haft is drawn behind every ball hand that holds it (Stefan): a two-handed weapon's far
+      // hand goes after the weapon, in front of it. A shield stays in front of its hand.
+      const draws = [...laid];
+      if (hero.stance === 'staff') {
+        const iw = draws.findIndex((d) => d.part === kit.parts.weapon);
+        const ifar = draws.findIndex((d) => d.part === kit.parts.hand && d.far);
+        if (iw >= 0 && ifar >= 0 && ifar < iw) {
+          const [far] = draws.splice(ifar, 1);
+          draws.splice(iw, 0, far);
+        }
+      }
       const cx =
         w * (clip === 'line' ? 0.5 : 0.4) +
-        (clip === 'line' ? (k - (n - 1) / 2) * gap * scale : 0) +
-        (clip === 'line' ? 0 : 0);
-      const cy = groundY + (clip === 'line' ? (k % 2 ? 7 : -7) * scale * 0.5 : 0);
+        (clip === 'line'
+          ? (spec.x !== undefined && spec.x !== 0 ? spec.x : (k - (n - 1) / 2) * gap) * scale
+          : 0);
+      const cy = groundY + (clip === 'line' ? (spec.y ?? (k % 2 ? 4 : -4)) * scale * 0.5 : 0);
       ctx.save();
       ctx.translate(cx, cy);
       // Ground shadow.
@@ -369,8 +417,12 @@ export class Mock {
           const pulse = Math.sin(((ta - 0.4) / 0.6) * Math.PI);
           const r = 11 * pulse + 2;
           const grd = ctx.createRadialGradient(ax, ay, 0, ax, ay, r);
-          grd.addColorStop(0, 'rgba(200,235,255,0.95)');
-          grd.addColorStop(1, 'rgba(120,190,255,0)');
+          const [gr, gg, gb] = spec.glow ?? [150, 205, 255];
+          grd.addColorStop(
+            0,
+            `rgba(${Math.min(255, gr + 60)},${Math.min(255, gg + 40)},${Math.min(255, gb + 20)},0.95)`,
+          );
+          grd.addColorStop(1, `rgba(${gr},${gg},${gb},0)`);
           ctx.fillStyle = grd;
           ctx.fillRect(ax - r, ay - r, r * 2, r * 2);
         }

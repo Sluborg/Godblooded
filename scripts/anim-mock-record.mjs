@@ -12,6 +12,23 @@ const HERO = {
   tyr: { kit: 'hs_tyr', stance: 'sword', x: 0, phase: 0 },
   loki: { kit: 'hs_loki', stance: 'dagger', x: 0, phase: 0 },
 };
+const H2 = {
+  tyr2: { kit: 'hs_tyr2', stance: 'sword', x: 0, phase: 0 },
+  loki2: { kit: 'hs_loki2', stance: 'dagger', x: 0, phase: 0 },
+  freyja: { kit: 'hs_freyja', stance: 'staff', x: 0, phase: 0, glow: [255, 170, 50] },
+  athena: { kit: 'hs_athena', stance: 'spear', x: 0, phase: 0 },
+  anubis: { kit: 'hs_anubis', stance: 'sword', x: 0, phase: 0 },
+};
+const five = ['tyr2', 'loki2', 'freyja', 'athena', 'anubis'].map((n, i) => ({
+  ...H2[n],
+  x: (i - 2) * 44 || 0.01,
+  y: 6,
+  phase: i * 0.9,
+}));
+const second = [
+  { ...HERO.thorson, x: -22, y: -26, phase: 0.4 },
+  { ...HERO.odin, x: 22, y: -26, phase: 1.3 },
+];
 const line = (suf) =>
   ['thorson', 'odin', 'tyr', 'loki'].map((n, i) => ({
     ...HERO[n],
@@ -19,6 +36,13 @@ const line = (suf) =>
     phase: i * 0.9,
   }));
 const CLIPS = {
+  tyr2: { heroes: [H2.tyr2], mode: 'solo', frames: 84, w: 440, h: 340 },
+  loki2: { heroes: [H2.loki2], mode: 'solo', frames: 84, w: 440, h: 340 },
+  freyja: { heroes: [H2.freyja], mode: 'solo', frames: 84, w: 440, h: 340 },
+  athena: { heroes: [H2.athena], mode: 'solo', frames: 84, w: 440, h: 340 },
+  anubis: { heroes: [H2.anubis], mode: 'solo', frames: 84, w: 440, h: 340 },
+  party5: { heroes: five, mode: 'line', frames: 60, w: 760, h: 340 },
+  party5_two: { heroes: [...five, ...second], mode: 'line', frames: 60, w: 760, h: 340 },
   thorson: { heroes: [HERO.thorson], mode: 'solo', frames: 84, w: 440, h: 340 },
   odin: { heroes: [HERO.odin], mode: 'solo', frames: 84, w: 440, h: 340 },
   tyr: { heroes: [HERO.tyr], mode: 'solo', frames: 84, w: 440, h: 340 },

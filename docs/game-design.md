@@ -101,14 +101,16 @@ armor as saturating curves capped at 90%; attack time from weapon base reduced b
 knockout by default, permadeath on a knockout by a boss or in a tier 3 lair). Sim may simplify for the graybox and
 says so in `docs/decisions.md`.
 
-## Hero animation: skeleton and weapon stances
+## Hero animation: compact rig and weapon stances
 
-Decided 2026-10-17 (decisions 1453417, ccbaa89). Heroes are cut-out figures on a bone rig: hips,
-torso, head; per arm shoulder, upper arm, forearm, hand; per leg hip, thigh, shin, foot. Arms and
-legs use two-bone IK; clips are keyframed data with easing and run on the sim's windup and hit
-events. Facing left mirrors the whole figure. The weapon is fixed in the grip hand; the wrist
-bends at most about 40 degrees. Prototype: `docs/reference/skeleton-test.tpl.html` (stand-in
-art; the shipped kit_rig_test, kit_rig_hands and G12 heads/boots replace it).
+Decided 2026-10-18 (decisions 3edcaa2, e83363f, b0800d1); the 2026-10-17 skeleton rig is parked.
+Heroes are a big head, a round body ball, a cape, and floating ball hands and ball feet with no
+arms or legs, moved in code. Style anchors: `docs/reference/hero-style-anchor-thor-grim.png` and
+`-odin-grim.png`. Kit: the body carries the god (its colour and motif), the head the individual
+and gender, the weapon the path, and the cape the party (party colour, finish rising with party
+level). A hero's level shows through a better weapon and code auras and effects, not the body.
+Clips are keyframed data with easing and run on the sim's windup and hit events. Facing left
+mirrors the whole figure. The weapon is fixed to its ball hand.
 
 Clips per hero: idle, walk (feet pass each other on one line, toes lift a little, mostly
 horizontal travel), attack (wind-up, hit pause, follow-through), hurt. Walk uses the carry pose
@@ -128,15 +130,14 @@ in front in the guard stance.
 | Spear                | 2     | on the shoulder | back, at the hip | off-hand foot | long thrust, front hand slides along the shaft                            |
 | Staff                | 2     | on the shoulder | back or front    | off-hand foot | swing from the back; thrust or cast from the front                        |
 
-Two-handed carry: the weapon hand is raised to the shoulder, elbow bent and low, fist just in
-front of the same shoulder; the blade or haft lies on top of the shoulder pointing back, nearly
-level and tilting up behind (axe head above and behind). The off hand swings free until the
-guard. Two-handed grip: the weapon follows the main hand; the second hand has a grip point on
-the haft (a keyframed fraction, so it can slide) and its arm reaches it by IK. A two-handed
-weapon takes the shield slot.
+Two-handed carry: the weapon hand floats just in front of the shoulder; the blade or haft lies
+on top of the shoulder pointing back, nearly level and tilting up behind (axe head above and
+behind). The off hand swings free until the guard. Two-handed grip: the weapon follows the main
+hand; the second ball hand sits on a grip point on the haft (a keyframed fraction, so it can
+slide). A two-handed weapon takes the shield slot. A shield sits on the off ball hand.
 
-Grip art: the weapon hand shows the back of the hand (fingers behind the haft, thumb in front);
-the far hand on a two-handed haft shows the fingers side (decisions f18cace).
+Hands are plain balls, so there is no grip art: every weapon haft is drawn behind the ball hands
+that hold it (Stefan, 2026-10-18). A shield is the exception: it covers its hand ball.
 
 ## Gods and paths
 
