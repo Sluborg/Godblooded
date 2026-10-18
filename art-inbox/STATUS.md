@@ -414,3 +414,6 @@ B25 | 2026-10-18T21:58:32.479Z | buildings | started | O-18: NEW v3 blockout, ap
 
 
 B25 | 2026-10-18T22:00:26.723Z | buildings | bld_temple_greek_t1 | uploaded | O-18 first-attempt paintover of NEW v3 blockout sha f66e22b0caa0872098c708858569aea44cc29b5f, not an earlier temple. Unchanged 1254x1254 PNG 1896210 bytes replaced existing Drive file; name/MIME/size/parent verified. Full-size QA14 and 50/50 diagnostic overlay checked roof apex/ridge, door, four columns/gaps, shallow porch and steps. Front apex x~438 and door center x~447 retained from supplied geometry (about9px difference, line passes through door middle region). All four shafts read round with vertical flutes, curved shading, square plinths and simple capitals. Clear empty dark interior, no statue/brazier/props; marble block joints and straight terracotta rows. No manual/script image repair; overlay diagnostic only. Near-magenta pipeline note. Other buildings untouched; production paused under O-18. https://drive.google.com/file/d/1QJcczw2AA6hZ-LKmCpYTCI7vcG2eXjVe/view?usp=drivesdk
+
+
+Thorbloods | 2026-10-18T22:49:29.113Z | heroes | started | O-23 five sheets; direct command from Stefan. New design permits ball/bell/barrel/tattered bodies within fixed rig anchors; O-23 specifies Thor wide oval 25:20, retaining that shape for this set. Run edc38469.
