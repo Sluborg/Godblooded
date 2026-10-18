@@ -589,3 +589,13 @@ animation: skeleton and weapon stances".
   a weirder crooked roof"): redo, clearly bigger than t1, straight roof.
 - Greek temples t1 and t2 (Stefan, 2026-10-18): redo, no hand or script fixes on a failed
   picture. Art changes the method (new approach in the prompt) rather than retrying the same one.
+
+## 2026-10-18 Performance: keep the skeleton, fix fill rate and startup (Lead)
+
+Scene's perf pass (scene/perf-startup): the skeleton rig costs the same as today's heroes (one
+extra draw call for 20 rigs, negligible bone math), so the skeleton stays. Lag sources are fill
+rate (cost scales with render scale squared), a heavy startup (8.4 MB, 54 MB of textures before
+the title) and the PWA running the old build first on deploy days. Fixes: the title opens after
+the splash and UI kit while the rest streams in; FpsGuard becomes live dynamic resolution (2 down
+to 1.25); the PWA applies a waiting update before the heavy load; textures are downscaled to at
+most 2x their largest on-screen size.
