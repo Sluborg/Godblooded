@@ -616,6 +616,7 @@ const HEROES = {
         [1160, 90],
         [880, 1100],
       ],
+      cutBelow: 190,
     },
   },
   anubis: {
@@ -930,6 +931,12 @@ async function cut(id, spec, partyHex) {
   // The painted balls cover bits of the ball: those pixels need new colour, the others are kept.
   const holeMask = new Uint8Array(W * H);
   for (let i = 0; i < W * H; i++) holeMask[i] = holes[i] && ballRegion(i % W, (i / W) | 0) ? 1 : 0;
+  // The painted shield on the body goes too: the shield is its own piece (no double shield).
+  if (spec.shield) {
+    const sc = S(spec.shield.c);
+    for (let i = 0; i < W * H; i++)
+      if (inEll(i % W, (i / W) | 0, sc, spec.shield.rx + 10, spec.shield.ry + 10)) holeMask[i] = 1;
+  }
   for (let i = 0; i < W * H; i++) if (holeMask[i]) body[i * 4 + 3] = 0;
   inpaint(body, holeMask, (x, y) => inEll(x, y, bc, spec.ball.rx * 0.98, spec.ball.ry * 0.93));
   await save('torso', trim(body), {
@@ -937,6 +944,9 @@ async function cut(id, spec, partyHex) {
     neck: S(spec.neck),
     ...(spec.clasp ? { clasp: S(spec.clasp) } : {}),
   });
+  // The head must overlap the top of the ball (no floating head): the neck socket is at least a
+  // little inside the ball.
+  parts.torso.pivots.neck[1] = Math.max(parts.torso.pivots.neck[1], 0.08);
 
   // Head: the polygon, hands cut out of it.
   const head = piece((x, y) => (inPoly(x, y, spec.head) && !holes[y * W + x] ? 1 : 0));
@@ -947,13 +957,19 @@ async function cut(id, spec, partyHex) {
     let cape = piece((x, y) =>
       inPoly(x, y, spec.cape) &&
       !inPoly(x, y, spec.head) &&
-      !inEll(x, y, bc, spec.ball.rx * 0.96, spec.ball.ry * 0.96)
+      !inEll(x, y, bc, spec.ball.rx * 0.96, spec.ball.ry * 0.96) &&
+      !(spec.shield && inEll(x, y, S(spec.shield.c), spec.shield.rx + 8, spec.shield.ry + 8))
         ? 1
         : 0,
     );
     const capeHole = new Uint8Array(W * H);
     for (let i = 0; i < W * H; i++)
-      if (holes[i] && inPoly(i % W, (i / W) | 0, spec.cape)) {
+      if (
+        (holes[i] ||
+          (spec.shield &&
+            inEll(i % W, (i / W) | 0, S(spec.shield.c), spec.shield.rx + 8, spec.shield.ry + 8))) &&
+        inPoly(i % W, (i / W) | 0, spec.cape)
+      ) {
         capeHole[i] = 1;
         cape[i * 4 + 3] = 0;
       }
@@ -1067,6 +1083,11 @@ async function cut(id, spec, partyHex) {
       if (rot[rpx(x, y) + 3] > 100) continue;
       for (let k = 0; k < 4; k++) rot[rpx(x, y) + k] = rot[rpx(x, refY) + k];
     }
+  // A weapon cut short below the grip (the spear's butt must not reach below the feet).
+  if (spec.weapon.cutBelow) {
+    const yCut = Math.round(hc[1] + spec.weapon.cutBelow);
+    for (let y = yCut; y < rh; y++) for (let x = 0; x < rw; x++) rot[rpx(x, y) + 3] = 0;
+  }
   // Trim the rotated weapon again.
   let tx0 = rw,
     ty0 = rh,

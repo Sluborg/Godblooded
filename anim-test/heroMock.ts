@@ -107,14 +107,14 @@ const stick = (c: Ch, d: number): Ch => ({
 // Carry (walking / idle) per stance: weapon at the side; the staff on the shoulder.
 const carry = (s: Stance): Ch =>
   s === 'staff'
-    ? mk({ hfx: 3, hfy: -13, wa: -1.25, hbx: -5.5, hby: -10 })
+    ? mk({ hfx: 10, hfy: -8, wa: 0.1, hbx: -5.5, hby: -10 })
     : s === 'dagger'
       ? mk({ hfx: 6, hfy: -9, wa: 0.5 })
       : s === 'sword'
         ? mk({ hfx: 6.5, hfy: -9, wa: 0.6, hbx: 5, hby: -11 })
         : s === 'spear'
-          ? mk({ hfx: 6.5, hfy: -9, wa: 0.2, hbx: 5, hby: -11 })
-          : mk({ hfx: 3.5, hfy: -8, wa: -2.55, hbx: -5, hby: -10 });
+          ? mk({ hfx: 5, hfy: -10, wa: -0.55, hbx: 5, hby: -11 })
+          : mk({ hfx: 3, hfy: -13, wa: -1.0, hbx: -5, hby: -10 });
 // Guard: hammer and sword cocked back, dagger front low, staff front; lead foot per the table.
 const guard = (s: Stance): Ch => {
   if (s === 'staff')
@@ -180,38 +180,16 @@ function attack(s: Stance, t: number): { ch: Ch; dur: number; hitAt: number } {
     return { ch, dur: D, hitAt: 0.2 };
   }
   if (s === 'staff') {
-    const D = 1.0;
-    const wind = mk({
-      ...g,
-      hfx: 3.5,
-      hfy: -21,
-      wa: -0.45,
-      hbx: 5,
-      hby: -27,
-      lean: -0.1,
-      dx: -1.5,
-      cape: -1,
-    });
-    const cast = mk({
-      ...g,
-      hfx: 13,
-      hfy: -17,
-      wa: 0.95,
-      hbx: 17,
-      hby: -25,
-      lean: 0.1,
-      dx: 2,
-      cape: 6,
-    });
+    const D = 1.2;
+    // Raised high to cast: the staff up above the head, held, the glow at its top.
+    const up = mk({ ...g, hfx: 6, hfy: -31, wa: 0.0, lean: -0.05, dx: -0.5, cape: 1 });
     const ch =
-      t < 0.4
-        ? lerpCh(g, wind, ease(t / 0.4))
-        : t < 0.5
-          ? lerpCh(wind, cast, ease((t - 0.4) / 0.1))
-          : t < 0.62
-            ? cast
-            : lerpCh(cast, g, ease(Math.min(1, (t - 0.62) / 0.38)));
-    return { ch: stick(ch, 7 + 4 * Math.sin(Math.PI * Math.min(1, t / 0.5))), dur: D, hitAt: 0.5 };
+      t < 0.45
+        ? lerpCh(g, up, ease(t / 0.45))
+        : t < 0.95
+          ? up
+          : lerpCh(up, g, ease(Math.min(1, (t - 0.95) / 0.25)));
+    return { ch: stick(ch, 9), dur: D, hitAt: 0.5 };
   }
   // hammer chop and sword slash: from the back.
   const D = s === 'sword' ? 0.8 : 0.9;
@@ -223,14 +201,14 @@ function attack(s: Stance, t: number): { ch: Ch; dur: number; hitAt: number } {
     s === 'sword'
       ? mk({
           ...g,
-          hfx: 12,
-          hfy: -13,
-          wa: 1.9,
-          lean: 0.2,
-          dx: 3,
+          hfx: 11,
+          hfy: -10,
+          wa: 1.5,
+          lean: 0.18,
+          dx: 2.5,
           hbx: 10,
           hby: -12,
-          cape: 6,
+          cape: 5,
           f1x: 0.5,
         })
       : mk({ ...g, hfx: 11, hfy: -9, wa: 1.55, lean: 0.22, dx: 3.5, cape: 6, f0x: 5, f1x: -1.5 });
@@ -264,6 +242,7 @@ function walkCh(s: Stance, t: number, phase: number): Ch {
   c.cape = 5 + 2 * Math.sin(w * 2 + 0.6);
   c.hem = 2 * Math.sin(w * 2);
   c.hfy += Math.sin(w * 2) * 0.35;
+  if (s === 'staff') c.wa += Math.sin(w) * 0.07;
   if (s !== 'staff') c.hby += Math.sin(w) * 0.5;
   else {
     c.hbx += step * 2.2;
@@ -436,7 +415,7 @@ export class Mock {
       // the haft behind EVERY ball hand, and the hands (both) in front of everything else.
       const isP = (d: Draw, key: keyof Kit['parts']) => d.part === kit.parts[key];
       const pick = (f: (d: Draw) => boolean) => laid.filter(f);
-      const behindHead = ch.wa < -0.9;
+      const behindHead = ch.wa < -0.9 || (hero.stance === 'spear' && ch.wa < -0.3);
       // The shield covers its hand ball: that hand sits BEHIND the shield (decisions 02388fb).
       const shieldHand: Draw[] =
         kit.parts.offhand?.cell.pivots?.strap && kit.parts.hand
