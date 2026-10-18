@@ -599,3 +599,19 @@ the title) and the PWA running the old build first on deploy days. Fixes: the ti
 the splash and UI kit while the rest streams in; FpsGuard becomes live dynamic resolution (2 down
 to 1.25); the PWA applies a waiting update before the heavy load; textures are downscaled to at
 most 2x their largest on-screen size.
+
+## 2026-10-18 Round 11 verdicts (Stefan)
+
+- B27 Greek temple t2 (blockout method): 5, ship. Stefan asked about shadows: in game every
+  building already casts a soft low-sun ground shadow to the lower right (`groundShadow`); the
+  dark preview backdrop hides it.
+- B27 smithy t2 redo: 4, ship.
+- B25 Greek temple t1 (blockout method): 3, "the statue blocks the entrance". Redo from the same
+  blockout with the doorway clear (statue deeper inside or gone). New run, no touch-up.
+- Capes on the skeleton: 1, "really ugly, skip them". Heroes wear no capes; Scene drops the cape
+  slot from the rig. The shipped G14 cape files stay unused (no breaking change).
+- Skeleton v7: 2 and 2 (T-rex arms, axe not in the hand). Skeleton v8: 3 at 2x, 2 at game size,
+  2 for the close-ups. Notes: the axe is not in the hand at game size; the off hand is turned
+  wrong (its thumb must point forward, the way the hero faces, not inward at the body);
+  shoulders, arms and axe look ugly. Scene fixes and sends a new clip; the live flag waits for a
+  4 or 5 at game size.
