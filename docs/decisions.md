@@ -587,3 +587,5 @@ animation: skeleton and weapon stances".
   either side and below the skirt (Lead).
 - B19 town hall t2: 4, ship. B27 smithy t1: 4, ship. Smithy t2: 2 ("only adds another anvil and
   a weirder crooked roof"): redo, clearly bigger than t1, straight roof.
+- Greek temples t1 and t2 (Stefan, 2026-10-18): redo, no hand or script fixes on a failed
+  picture. Art changes the method (new approach in the prompt) rather than retrying the same one.
