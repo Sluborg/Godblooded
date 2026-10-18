@@ -369,3 +369,6 @@ B25 | 2026-10-18T02:57:00.457Z | buildings | bld_temple_greek_t1 | QA failed; no
 
 
 B27 | 2026-10-18T02:59:42.600Z | buildings | bld_temple_greek_t2 | QA failed; not uploaded | O-12 step1 front elevation3 attempts. Six columns present and door centered, but middle bay remains wider than otherfour: final centers approximately128,316,510,744,940,1128 (gaps188,194,234,196,188); fails14.2. Did not advance to step2 because front symmetry/equal-spacing gate not passed. No manual/script image repairs and no Drive upload. Both temples withheld; production paused under O-12.
+
+
+B25/B27 | 2026-10-18T03:54:18.158Z | buildings | started | O-13 paint over exact supplied blockouts; prior O-12 completed QA failure, this is new method/order; run64631400
