@@ -92,9 +92,9 @@ const FOOT_Y = -6;
 // How long the camera takes to show the levelled party before its cards come up.
 const FOCUS_MS = 700;
 const TARGET_RADIUS = 70;
-const PLOT_SIZE = 120;
+const PLOT_SIZE = 144;
 const INTEREST_MAX = 8;
-const PLOT_RADIUS = 110;
+const PLOT_RADIUS = 132;
 
 // The camera's start zoom: 0.7 shows 1830 x 1030 world units on a 1280 x 720 screen, enough for the
 // plot ring (about 1040 x 760) with the buildings on it.
