@@ -387,3 +387,6 @@ B27 | 2026-10-18T05:06:01.634Z | buildings | bld_temple_greek_t2 | QA failed; no
 
 
 B27 | 2026-10-18T06:02:46.198Z | buildings | started | O-15 new blockout includes lockedbraziers; t2only; previousO-14finished; run4cfa5230
+
+
+B27 | 2026-10-18T06:07:01.186Z | buildings | bld_temple_greek_t2 | uploaded | O-15 thirdattempt originalnewblockout paintover (blockoutsha37f8ce9a48c2d3a05347326c989560d6f5f26ba9). Unchanged1254square PNG1767807bytes,existingDrivefile replacedinplace; name/MIME/size/parent verified. Full-sizeQA14 and50/50overlay checked: originalroofapex/ridge/edges,sixcolumns/gaps/door/steps unchanged; matchingtripodbraziers inside suppliedboxes withfeet atlockedbottomstepcontacts,containedlowfires. Mutedmarbleblockjoints/flutes/simplecapitals,terracottarows,onelaurelrelief,onesmallbronzeroofstatue. Attempts1/2 movedroofapex,withheld. No manual/script image repair,overlays diagnostic only. Artreview note: flamescloselyretainblockout'striangularsilhouettes; near-magenta keypipeline note. t1unchanged. https://drive.google.com/file/d/1bTvJmBcbD6f5Ac9AS5Xm2wkPFw6mWyUw/view?usp=drivesdk . ProductionpausedunderO-15.
