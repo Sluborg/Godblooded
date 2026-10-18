@@ -41,6 +41,10 @@ heroes, the skeleton pieces and `art-tasks/ref/hero-anchor-grim.png` for heroes.
   shoulder height, the feet under the hem on one line), so the game moves them all alike. **Floating
   ball hands** (plain skin tone) and **ball feet** (plain leather) are drawn by the game. **No arms,
   no legs, no sleeve stubs.**
+  In the shared box the **hem sits on the bottom edge** (the ball feet peek out under it) and the
+  collar reaches the top so the chin hides the join; keep brooches and crests **clear of the two
+  hand spots** at shoulder height on either side. Each god's bodies keep one shape family
+  (Thorbloods: ball or barrel).
 - **Face:** stylised features (oversized round ears, a short rounded nose, heavy simple brows),
   **grim and adult**, never cute; not realistic proportions. Both genders.
 - **Finish:** smooth painted game art with real texture on cloth, leather, metal and hair (this
@@ -123,8 +127,9 @@ heroes, the skeleton pieces and `art-tasks/ref/hero-anchor-grim.png` for heroes.
 - **Camera:** top-down 3/4 seen from the lower right, as the anchors.
 - **Pose (every unit): faces RIGHT**, three-quarter toward the lower right; the game mirrors it.
   One front picture per unit; the game does the motion.
-- **Weapon position = the unit's strike** (the batch names it). The strike starts where the weapon
-  is drawn:
+- **Weapon position = the unit's strike** (whole-unit pictures: monsters and older units; **heroes
+  are built from separate pieces, see "Heroes"**: their weapons and shields are painted alone and
+  the game holds them). The strike starts where the weapon is drawn:
 
   | Strike        | Weapons                      | Draw the weapon                                                                                                                                                                  |
   | ------------- | ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
