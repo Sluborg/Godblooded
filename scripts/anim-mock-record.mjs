@@ -85,6 +85,10 @@ for (const name of names) {
     await window.mock.load();
   }, c.heroes);
   for (const zoom of [1, 2]) {
+    await page.evaluate((on) => {
+      window.mock.measure = on;
+      window.mock.vis = [];
+    }, zoom === 1);
     const dir = `${OUT}/frames-hsm_${name}-z${zoom}`;
     rmSync(dir, { recursive: true, force: true });
     mkdirSync(dir, { recursive: true });
@@ -98,6 +102,18 @@ for (const name of names) {
         Buffer.from(url.split(',')[1], 'base64'),
       );
     }
+    if (zoom === 1)
+      console.log(
+        name,
+        'ball visible',
+        JSON.stringify(
+          await page.evaluate(() =>
+            window.mock
+              .visStats()
+              .map((s) => ({ min: +s.min.toFixed(2), mean: +s.mean.toFixed(2) })),
+          ),
+        ),
+      );
     const base = `${OUT}/hsm_${name}-z${zoom}`;
     run([
       '-framerate',

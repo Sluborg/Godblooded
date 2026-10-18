@@ -4,7 +4,7 @@
 // scripts/anim-mock-record.mjs loads this page and grabs the frames. Nothing here ships.
 import { BUILDS } from '/src/data/heroKits';
 import { drawKit, layout, pivot, PROTO_K } from '/src/ui/parts/painted';
-import type { Kit, KitPart, RigPose } from '/src/ui/parts/painted';
+import type { Draw, Kit, KitPart, RigPose } from '/src/ui/parts/painted';
 
 type Stance = 'hammer' | 'sword' | 'dagger' | 'staff' | 'spear';
 export interface MockHero {
@@ -94,21 +94,28 @@ const lerpCh = (a: Ch, b: Ch, u: number): Ch => {
 };
 const mk = (o: Partial<Ch>): Ch => ({ ...base(), ...o });
 
+// The staff's second hand sits on the haft, `d` prototype units from the main hand along it.
+const stick = (c: Ch, d: number): Ch => ({
+  ...c,
+  hbx: c.hfx + Math.sin(c.wa) * d,
+  hby: c.hfy - Math.cos(c.wa) * d,
+});
+
 // Carry (walking / idle) per stance: weapon at the side; the staff on the shoulder.
 const carry = (s: Stance): Ch =>
   s === 'staff'
-    ? mk({ hfx: 4.5, hfy: -17, wa: -1.35, hbx: -5.5, hby: -10 })
+    ? mk({ hfx: 3, hfy: -13, wa: -1.25, hbx: -5.5, hby: -10 })
     : s === 'dagger'
       ? mk({ hfx: 6, hfy: -9, wa: 0.5 })
       : s === 'sword'
-        ? mk({ hfx: 6.5, hfy: -9, wa: 0.45, hbx: 5, hby: -11 })
+        ? mk({ hfx: 6.5, hfy: -9, wa: 0.6, hbx: 5, hby: -11 })
         : s === 'spear'
           ? mk({ hfx: 6.5, hfy: -9, wa: 0.2, hbx: 5, hby: -11 })
-          : mk({ hfx: 6.5, hfy: -9, wa: 0.3 });
+          : mk({ hfx: 3.5, hfy: -8, wa: -2.55, hbx: -5, hby: -10 });
 // Guard: hammer and sword cocked back, dagger front low, staff front; lead foot per the table.
 const guard = (s: Stance): Ch => {
   if (s === 'staff')
-    return mk({ hfx: 8, hfy: -14, wa: 0.25, hbx: 9, hby: -22, f0x: 3, f1x: -2.5, lean: 0.04 });
+    return stick(mk({ hfx: 8, hfy: -14, wa: 0.25, f0x: 3, f1x: -2.5, lean: 0.04 }), 8);
   if (s === 'spear')
     return mk({ hfx: -1, hfy: -10, wa: 0.85, hbx: 8, hby: -12, f0x: 3.5, f1x: -2.5, lean: 0.02 });
   if (s === 'dagger')
@@ -201,7 +208,7 @@ function attack(s: Stance, t: number): { ch: Ch; dur: number; hitAt: number } {
           : t < 0.62
             ? cast
             : lerpCh(cast, g, ease(Math.min(1, (t - 0.62) / 0.38)));
-    return { ch, dur: D, hitAt: 0.5 };
+    return { ch: stick(ch, 7 + 4 * Math.sin(Math.PI * Math.min(1, t / 0.5))), dur: D, hitAt: 0.5 };
   }
   // hammer chop and sword slash: from the back.
   const D = s === 'sword' ? 0.8 : 0.9;
@@ -291,12 +298,43 @@ const rngv = (n: number) => {
   return s - Math.floor(s);
 };
 
+// The share of the body ball still visible with everything drawn over it (head, hands, boots,
+// weapon, shield): the style rule says at least 40 percent.
+function ballVisible(kit: Kit, draws: Draw[], pose: RigPose): number {
+  const idx = draws.findIndex((d) => d.part === kit.parts.torso);
+  if (idx < 0) return 1;
+  const c = document.createElement('canvas');
+  c.width = 260;
+  c.height = 260;
+  const ctx = c.getContext('2d', { willReadFrequently: true }) as CanvasRenderingContext2D;
+  const count = () => {
+    const a = ctx.getImageData(0, 0, 260, 260).data;
+    let n = 0;
+    for (let i = 3; i < a.length; i += 4) if (a[i] > 128) n++;
+    return n;
+  };
+  ctx.setTransform(4, 0, 0, 4, 130, 200);
+  drawKit(ctx, [draws[idx]], pose);
+  const a0 = count();
+  ctx.globalCompositeOperation = 'destination-out';
+  drawKit(ctx, draws.slice(idx + 1), pose);
+  return a0 ? count() / a0 : 1;
+}
+
 export class Mock {
   heroes: Loaded[] = [];
+  measure = false;
+  vis: number[][] = [];
   constructor(
     readonly canvas: HTMLCanvasElement,
     readonly specs: MockHero[],
   ) {}
+  visStats(): { min: number; mean: number }[] {
+    return this.vis.map((v) => ({
+      min: Math.min(...v),
+      mean: v.reduce((a, b) => a + b, 0) / v.length,
+    }));
+  }
   async load(): Promise<void> {
     for (const s of this.specs) {
       const kit = await loadKit(s.kit);
@@ -402,6 +440,7 @@ export class Mock {
       ctx.fill();
       ctx.scale(scale, scale);
       drawKit(ctx, draws, pose);
+      if (this.measure) (this.vis[k] ??= []).push(ballVisible(kit, draws, pose));
       // A glow on the staff's orb at a cast.
       if (hero.stance === 'staff' && t >= 3) {
         const ta = (t - 3.25) % 1.18;
