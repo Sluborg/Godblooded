@@ -23,8 +23,8 @@ const CLIPS = {
   odin: { heroes: [HERO.odin], mode: 'solo', frames: 84, w: 440, h: 340 },
   tyr: { heroes: [HERO.tyr], mode: 'solo', frames: 84, w: 440, h: 340 },
   loki: { heroes: [HERO.loki], mode: 'solo', frames: 84, w: 440, h: 340 },
-  lineup: { heroes: line(''), mode: 'line', frames: 60, w: 520, h: 340 },
-  lineup_party: { heroes: line('_party'), mode: 'line', frames: 60, w: 520, h: 340 },
+  lineup: { heroes: line(''), mode: 'line', frames: 60, w: 600, h: 340 },
+  lineup_party: { heroes: line('_party'), mode: 'line', frames: 60, w: 600, h: 340 },
 };
 const wanted = process.argv.slice(2);
 const names = wanted.length ? wanted : Object.keys(CLIPS);

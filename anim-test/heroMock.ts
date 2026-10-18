@@ -309,7 +309,7 @@ export class Mock {
     }
     // The line is centred; a solo hero stands left of centre with a foe ahead.
     const n = this.heroes.length;
-    const gap = 30;
+    const gap = 42;
     this.heroes.forEach((hero, k) => {
       const spec = this.specs[k];
       let ch: Ch;
