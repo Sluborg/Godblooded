@@ -662,3 +662,13 @@ unused.
 - **First step:** Art makes the axeman at three finish levels between prototype and G7 (about a
   quarter, half and three quarters toward G7), assembled by Scene at game size, so Stefan picks
   the level before a full set is made.
+
+## 2026-10-18 Hero style anchor: the prettified prototype Thor's son (Stefan)
+
+Stefan tried examples in his own image chat: G7-style heads and bodies made into balls do not
+work ("it can't be the old styles as balls"). His best is a prettified prototype Thor's son
+(docs/reference/hero-style-anchor-thorson.png): smooth, softly shaded painted look; big head with
+a chunky beard and stern brows; a round body ball with belt and cape; plain ball hands and
+feet; a simple chunky weapon. This replaces "middle ground toward G7" (a137d27) as the target. He
+is now testing how much detail this style can carry before it stops working, and will bring the
+results. Art's O-19 (G7-direction finish levels) is held until then.
