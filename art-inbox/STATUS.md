@@ -366,3 +366,6 @@ B25/B27 | 2026-10-18T02:50:57.304Z | buildings | started | O-12 two-step Greek t
 
 
 B25 | 2026-10-18T02:57:00.457Z | buildings | bld_temple_greek_t1 | QA failed; not uploaded | O-12 two-step method: front elevation3 attempts corrected unequal bays; camera step3 attempts still flattens front lintel/pediment relative to step nosings, columns not rigid equal-height projection (QA7/14.1). No manual/script repairs, no PNG uploaded. Proceeding to t2 front grown from new t1 front model.
+
+
+B27 | 2026-10-18T02:59:42.600Z | buildings | bld_temple_greek_t2 | QA failed; not uploaded | O-12 step1 front elevation3 attempts. Six columns present and door centered, but middle bay remains wider than otherfour: final centers approximately128,316,510,744,940,1128 (gaps188,194,234,196,188); fails14.2. Did not advance to step2 because front symmetry/equal-spacing gate not passed. No manual/script image repairs and no Drive upload. Both temples withheld; production paused under O-12.
