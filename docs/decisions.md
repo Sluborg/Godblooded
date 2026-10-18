@@ -630,3 +630,18 @@ shipped but unused. First step uses only shipped art: Scene builds a test clip, 
 "Give some more space for the door to breathe." The doorway is clear now but squeezed between
 the middle columns. Next blockout: a wider central bay (classical practice) with a larger door and
 margin around it, still mirror-symmetric about the door axis. New run, no touch-up.
+
+## 2026-10-18 Hero pieces for the compact rig: blob heads, whole bodies (Stefan, go)
+
+"Maybe the heads rated 5 are too detailed? I want some blobbified versions of them. And bodies
+need to be adjusted to not be only torsos." Go for a small test batch:
+
+- **Blob heads:** simplified versions of the rated-5 heads (kit_heads_a/b): same characters, chunky
+  shapes, few big colour areas, clear silhouette and face read at game size, no fine linework or
+  texture noise. Painted, not flat vector, but a simple shape language matching the compact rig.
+- **Whole bodies:** one body piece from shoulders to the hem or legs (tunic, belt, trousers or
+  skirt), not a bare torso. The floating hands and feet sit just off its edges. Same simplified
+  shape language as the heads.
+
+Lead's reading of "not only torsos" (Stefan may veto). Test batch only: a few heads and bodies,
+judged on Scene's compact-rig clip, not as single pictures.
