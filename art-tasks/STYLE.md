@@ -34,16 +34,19 @@ The references are Stefan's seven pictures, fetched raw from main:
 `-loki.png`, `-freyja.png`, `-athena.png`, `-anubis.png`. Match them; they replace the G7
 heroes, the skeleton pieces and `art-tasks/ref/hero-anchor-grim.png` for heroes.
 
-- **Shape:** a **big head, about a third of the figure**, on a **round body ball**; **floating ball
-  hands** (plain skin tone) and **ball feet** (plain leather) drawn by the game. **No arms, no legs,
-  no sleeve stubs.** The ball stays readable as a ball: **at least 40 percent of it visible**,
-  never hidden by the cape, a shield or the hands.
+- **Shape** (Stefan 2026-10-19, "Body shapes"): a **big head, about a third of the figure**, on a
+  compact body in one of **four shapes**: **ball** (the default), **bell** (a robe or skirt flaring
+  to the hem), **barrel** (heavy armour, straight-sided) or **tattered** (a ragged cloak with a torn
+  hem). Every shape fits the **same box** and keeps the **same anchor points** (the hand points at
+  shoulder height, the feet under the hem on one line), so the game moves them all alike. **Floating
+  ball hands** (plain skin tone) and **ball feet** (plain leather) are drawn by the game. **No arms,
+  no legs, no sleeve stubs.**
 - **Face:** stylised features (oversized round ears, a short rounded nose, heavy simple brows),
   **grim and adult**, never cute; not realistic proportions. Both genders.
 - **Finish:** smooth painted game art with real texture on cloth, leather, metal and hair (this
   replaces "painted pixel art" for heroes only); top-left light; the thin dark warm-brown
   outline; no grain.
-- **Kit, one layer each:** the **body ball per god** (that god's colour and motif: Thor red and
+- **Kit, one layer each:** the **body per god** (that god's colour and motif: Thor red and
   iron, Odin grey-blue and ravens, Loki green and serpents, Freyja gold and amber); the **head
   per hero**; the **weapon per path at 3 tiers**; the **cape per party**, painted **neutral light
   grey** so the game tints it, its finish rising with the party's level; a shield is optional.
@@ -51,11 +54,13 @@ heroes, the skeleton pieces and `art-tasks/ref/hero-anchor-grim.png` for heroes.
 - **Motifs stay with their god:** never put one god's sign on another god's body (no owls on
   Loki).
 - **Layering:** weapon hafts pass **behind** the hand balls; a shield covers its hand.
-- **Hands** (Stefan 2026-10-19, `docs/game-design.md`): a shield is always on the **back hand**
-  (the cape side), face out; the weapon is on the back hand when there is no shield and on the
-  front hand when there is one. So **shields are painted face-on toward the viewer** in the 3/4
-  view (the painted front shows), and **weapons are painted hand-neutral**: a clean haft or grip,
-  no hand, pointing straight up.
+- **Hands** (Stefan 2026-10-19, "Body shapes, shield angle, finish"): the **weapon is always on
+  the back hand** (the cape side). A **shield is on the front hand**, held out at the side and
+  **angled about 3/4 toward the viewer** so its painted face shows. Weapons are painted
+  **hand-neutral**: a clean haft or grip, no hand, pointing straight up. Shields are painted at that
+  3/4 angle, face toward the viewer.
+- **Finish stays the anchors'** (Thor and Odin): smooth and painted. The grimier look of
+  `docs/reference/hero-shapes-gemini.jpg` is not adopted; only its body shapes and shield angle are.
 
 ## The rules
 
