@@ -64,7 +64,8 @@ export default defineConfig({
   build: { chunkSizeWarningLimit: 2000 },
   plugins: [
     VitePWA({
-      registerType: 'autoUpdate',
+      // 'prompt': the plugin never reloads the page by itself; src/main.ts reloads at start-up only.
+      registerType: 'prompt',
       injectRegister: false,
       includeAssets: ['apple-touch-icon.png'],
       manifest: {
@@ -100,6 +101,11 @@ export default defineConfig({
           },
         ],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+        // Files whose NAME carries a content hash (vite's bundles) need no revision; everything else
+        // under assets/ (the art, ui, audio and the manifest are copied as they are) must get one, or
+        // an installed copy never refetches a changed picture. The plugin's default skips all of
+        // assets/, which left every unhashed art file with `revision: null`.
+        dontCacheBustURLsMatching: /^assets\/[^/]+-[\w-]{8}\.(js|css)$/,
         cleanupOutdatedCaches: true,
         clientsClaim: true,
         skipWaiting: true,
