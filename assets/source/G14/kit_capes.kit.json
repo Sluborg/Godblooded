@@ -1,0 +1,41 @@
+{
+  "id": "kit_capes",
+  "batch": "G14",
+  "upload": "assets/source/G14/kit_capes.png",
+  "pxPerUnit": 16,
+  "scale": 1,
+  "parts": [
+    {
+      "cell": "cape_odin",
+      "box": [90, 40, 560, 605],
+      "pivots": {
+        "neck": [0.5, 0.04]
+      },
+      "width": 18
+    },
+    {
+      "cell": "cape_thor",
+      "box": [690, 35, 1175, 605],
+      "pivots": {
+        "neck": [0.5, 0.04]
+      },
+      "width": 18
+    },
+    {
+      "cell": "cape_loki",
+      "box": [90, 645, 560, 1220],
+      "pivots": {
+        "neck": [0.5, 0.04]
+      },
+      "width": 18
+    },
+    {
+      "cell": "cape_freyja",
+      "box": [690, 645, 1175, 1215],
+      "pivots": {
+        "neck": [0.5, 0.04]
+      },
+      "width": 18
+    }
+  ]
+}
