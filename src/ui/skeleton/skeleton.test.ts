@@ -43,7 +43,7 @@ describe('clips', () => {
     close(sampleKeys(CHOP.keys, 1), [-0.1, 0.96, CARRY_AXE, 0, 0, CARRY_SLIDE, WRIST_LIMIT]);
   });
   it('hits a key exactly at its time', () => {
-    close(sampleKeys(CHOP.keys, 0.44), [0.3, 0.98, 3.6, 11, 0.5, 0, 0.96]);
+    close(sampleKeys(CHOP.keys, 0.44), [0.55, 0.85, 3.0, 11, 0.4, 0, WRIST_LIMIT]);
   });
   it('lands the contact key on the sim hit, whatever the windup length', () => {
     for (const lead of [0.2, 0.45, 0.9]) {

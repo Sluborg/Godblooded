@@ -46,6 +46,10 @@ export interface RigScale {
   leg: number;
   arm: number;
   weapon: number;
+  // The arm pieces' width against their length (they are cut thin), and how far the head sits down
+  // on the neck, as a fraction of the head's height (Stefan 2026-10-18).
+  armW: number;
+  headDrop: number;
 }
 export const RIG_SCALE: RigScale = {
   head: 0.63,
@@ -54,6 +58,8 @@ export const RIG_SCALE: RigScale = {
   leg: 2.8,
   arm: 1.3,
   weapon: 1,
+  armW: 1.6,
+  headDrop: 0.12,
 };
 
 const DARK = 0xb4b4b4;
@@ -193,6 +199,7 @@ export class SkeletonRig extends Phaser.GameObjects.Container {
     dark = false,
     scale = 1,
     origin?: [number, number],
+    widthK = 1,
   ): void {
     const im = this.img(key, id, parent);
     const r = this.ref(id);
@@ -201,7 +208,7 @@ export class SkeletonRig extends Phaser.GameObjects.Container {
     im.setOrigin(fx, fy)
       .setPosition(x, y)
       .setRotation(rot)
-      .setScale(scale / r.ppu);
+      .setScale((scale * widthK) / r.ppu, scale / r.ppu);
     if (dark) im.setTint(DARK);
     else im.clearTint();
     im.setVisible(true);
@@ -302,6 +309,8 @@ export class SkeletonRig extends Phaser.GameObjects.Container {
           l.a1 - axis(up, 'shoulder', 'elbow'),
           dark,
           this.sc.arm,
+          undefined,
+          this.sc.armW,
         );
       if (fo)
         this.put(
@@ -314,6 +323,8 @@ export class SkeletonRig extends Phaser.GameObjects.Container {
           l.a2 - axis(fo, 'elbow', 'wrist'),
           dark,
           this.sc.arm,
+          undefined,
+          this.sc.armW,
         );
       return l;
     };
@@ -331,7 +342,18 @@ export class SkeletonRig extends Phaser.GameObjects.Container {
       const midx = (hx + hrx) / 2;
       this.put('torso', s.torso, this.upper, 'hip_l', 0, 0, 0, false, 1, [midx, hy]);
       const neck = { x: (nx - midx) * (to.cell.w / to.ppu), y: (ny - hy) * (to.cell.h / to.ppu) };
-      this.put('head', s.head, this.upper, 'neck', neck.x, neck.y, P.nod, false, this.sc.head);
+      const headH = (this.ref(s.head)?.cell.h ?? 0) / (this.ref(s.head)?.ppu ?? 1);
+      this.put(
+        'head',
+        s.head,
+        this.upper,
+        'neck',
+        neck.x,
+        neck.y + this.sc.headDrop * headH * this.sc.head,
+        P.nod,
+        false,
+        this.sc.head,
+      );
     }
     // The weapon sits in the weapon hand and follows the forearm within the wrist limit. A grip pair
     // wraps the haft (back half, weapon, front half) with the hand's grip point on the haft; the

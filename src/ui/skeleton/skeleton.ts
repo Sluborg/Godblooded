@@ -102,14 +102,14 @@ export interface Clip {
 // window (Lead 2026-10-17).
 export const CARRY_AXE = 3;
 export const CARRY_SLIDE = 0;
-export const WRIST_STRIKE = 0.96;
+export const WRIST_STRIKE = WRIST_LIMIT;
 export const CHOP: Clip = {
   keys: [
     [0.0, -0.1, 0.96, CARRY_AXE, 0, 0, CARRY_SLIDE, WRIST_LIMIT, 'inOut'],
     [0.34, -0.58, -0.78, -1.25, -4, -0.1, 0, WRIST_LIMIT, 'in'],
-    [0.44, 0.3, 0.98, 3.6, 11, 0.5, 0, WRIST_STRIKE, 'out'],
-    [0.52, 0.3, 0.98, 3.6, 11, 0.5, 0, WRIST_STRIKE, 'out'],
-    [0.68, 0.25, 0.98, 3.4, 11, 0.45, 0, WRIST_LIMIT, 'inOut'],
+    [0.44, 0.55, 0.85, 3.0, 11, 0.4, 0, WRIST_STRIKE, 'out'],
+    [0.5, 0.55, 0.85, 3.0, 11, 0.4, 0, WRIST_STRIKE, 'out'],
+    [0.78, -0.1, 0.96, CARRY_AXE, 0, 0, CARRY_SLIDE, WRIST_LIMIT, 'inOut'],
     [1.0, -0.1, 0.96, CARRY_AXE, 0, 0, CARRY_SLIDE, WRIST_LIMIT, 'inOut'],
   ],
   contact: [2, 3],
@@ -285,7 +285,7 @@ export function skeletonPose(g: Geom, inp: PoseInput, tune: Tune = TUNE): Skelet
     P.px = dx * k;
     P.lean = lean;
     // The knees give as he leans into the blow.
-    P.py += lean * 4 * (g.torsoW / 16);
+    P.py += lean * 2 * (g.torsoW / 16);
     P.contact = u > clip.keys[clip.contact[0]][0] && u < clip.keys[clip.contact[1]][0];
     P.behind = u > clip.behind[0] && u < clip.behind[1];
     P.nod = lean * 0.4;
