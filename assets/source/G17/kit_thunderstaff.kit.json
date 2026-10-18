@@ -1,0 +1,30 @@
+{
+  "id": "kit_thunderstaff",
+  "batch": "G17",
+  "upload": "assets/source/G17/kit_thunderstaff.png",
+  "pxPerUnit": 16,
+  "scale": 0.589,
+  "parts": [
+    {
+      "cell": "thunderstaff_t1",
+      "box": [120, 60, 360, 1200],
+      "pivots": {
+        "grip": [0.5, 0.72]
+      }
+    },
+    {
+      "cell": "thunderstaff_t2",
+      "box": [480, 50, 760, 1200],
+      "pivots": {
+        "grip": [0.5, 0.72]
+      }
+    },
+    {
+      "cell": "thunderstaff_t3",
+      "box": [860, 40, 1190, 1200],
+      "pivots": {
+        "grip": [0.5, 0.72]
+      }
+    }
+  ]
+}

@@ -675,6 +675,70 @@
       "source": "G14"
     },
     {
+      "id": "kit_capes_neutral",
+      "kind": "kit",
+      "tier": null,
+      "view": null,
+      "file": "kits/kit_capes_neutral.png",
+      "anchorX": 0.5,
+      "anchorY": 0.5,
+      "pxPerUnit": 16,
+      "cells": {
+        "cape_neutral": {
+          "x": 8,
+          "y": 8,
+          "w": 416,
+          "h": 348,
+          "pivots": {
+            "clasp": [0.92, 0.03]
+          }
+        }
+      },
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "G17"
+    },
+    {
+      "id": "kit_hammer",
+      "kind": "kit",
+      "tier": null,
+      "view": null,
+      "file": "kits/kit_hammer.png",
+      "anchorX": 0.5,
+      "anchorY": 0.5,
+      "pxPerUnit": 16,
+      "cells": {
+        "hammer_t1": {
+          "x": 8,
+          "y": 8,
+          "w": 154,
+          "h": 448,
+          "pivots": {
+            "grip": [0.5, 0.72]
+          }
+        },
+        "hammer_t2": {
+          "x": 170,
+          "y": 8,
+          "w": 168,
+          "h": 459,
+          "pivots": {
+            "grip": [0.5, 0.72]
+          }
+        },
+        "hammer_t3": {
+          "x": 346,
+          "y": 8,
+          "w": 199,
+          "h": 479,
+          "pivots": {
+            "grip": [0.5, 0.72]
+          }
+        }
+      },
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "G17"
+    },
+    {
       "id": "kit_heads_a",
       "kind": "kit",
       "tier": null,
@@ -1156,6 +1220,126 @@
       },
       "license": "own (ChatGPT, Stefan's account)",
       "source": "G13"
+    },
+    {
+      "id": "kit_thorbloods_body",
+      "kind": "kit",
+      "tier": null,
+      "view": null,
+      "file": "kits/kit_thorbloods_body.png",
+      "anchorX": 0.5,
+      "anchorY": 0.5,
+      "pxPerUnit": 16,
+      "cells": {
+        "body_thorblood": {
+          "x": 8,
+          "y": 8,
+          "w": 400,
+          "h": 348,
+          "pivots": {
+            "hip": [0.5, 0.5],
+            "neck": [0.56, 0.06],
+            "clasp": [0.2, 0.1]
+          }
+        }
+      },
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "G17"
+    },
+    {
+      "id": "kit_thorbloods_heads",
+      "kind": "kit",
+      "tier": null,
+      "view": null,
+      "file": "kits/kit_thorbloods_heads.png",
+      "anchorX": 0.5,
+      "anchorY": 0.5,
+      "pxPerUnit": 16,
+      "cells": {
+        "head_thorblood_m1": {
+          "x": 8,
+          "y": 8,
+          "w": 433,
+          "h": 442,
+          "pivots": {
+            "neck": [0.7, 0.88],
+            "brow": [0.7, 0.5]
+          }
+        },
+        "head_thorblood_m2": {
+          "x": 449,
+          "y": 8,
+          "w": 422,
+          "h": 469,
+          "pivots": {
+            "neck": [0.7, 0.88],
+            "brow": [0.7, 0.5]
+          }
+        },
+        "head_thorblood_f1": {
+          "x": 879,
+          "y": 8,
+          "w": 427,
+          "h": 423,
+          "pivots": {
+            "neck": [0.7, 0.88],
+            "brow": [0.7, 0.5]
+          }
+        },
+        "head_thorblood_f2": {
+          "x": 1314,
+          "y": 8,
+          "w": 386,
+          "h": 447,
+          "pivots": {
+            "neck": [0.7, 0.88],
+            "brow": [0.7, 0.5]
+          }
+        }
+      },
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "G17"
+    },
+    {
+      "id": "kit_thunderstaff",
+      "kind": "kit",
+      "tier": null,
+      "view": null,
+      "file": "kits/kit_thunderstaff.png",
+      "anchorX": 0.5,
+      "anchorY": 0.5,
+      "pxPerUnit": 16,
+      "cells": {
+        "thunderstaff_t1": {
+          "x": 8,
+          "y": 8,
+          "w": 105,
+          "h": 640,
+          "pivots": {
+            "grip": [0.5, 0.72]
+          }
+        },
+        "thunderstaff_t2": {
+          "x": 121,
+          "y": 8,
+          "w": 132,
+          "h": 648,
+          "pivots": {
+            "grip": [0.5, 0.72]
+          }
+        },
+        "thunderstaff_t3": {
+          "x": 261,
+          "y": 8,
+          "w": 166,
+          "h": 653,
+          "pivots": {
+            "grip": [0.5, 0.72]
+          }
+        }
+      },
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "G17"
     },
     {
       "id": "mon_draugr_t1_front",
