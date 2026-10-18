@@ -50,6 +50,13 @@ const CLIPS = {
   lineup: { heroes: line(''), mode: 'line', frames: 60, w: 600, h: 340 },
   lineup_party: { heroes: line('_party'), mode: 'line', frames: 60, w: 600, h: 340 },
 };
+const pair = (h) => [
+  { ...h, x: -62, label: 'front hand', side: 'front' },
+  { ...h, x: 38, label: 'back hand', side: 'back' },
+];
+CLIPS.pair_thorson = { heroes: pair(HERO.thorson), mode: 'solo', frames: 84, w: 700, h: 340 };
+CLIPS.pair_tyr2 = { heroes: pair(H2.tyr2), mode: 'solo', frames: 84, w: 700, h: 340 };
+CLIPS.pair_anubis = { heroes: pair(H2.anubis), mode: 'solo', frames: 84, w: 700, h: 340 };
 const wanted = process.argv.slice(2);
 const names = wanted.length ? wanted : Object.keys(CLIPS);
 const OUT = 'anim-test/out';

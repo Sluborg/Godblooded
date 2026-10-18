@@ -14,6 +14,9 @@ export interface MockHero {
   x: number;
   y?: number;
   phase: number;
+  // Which ball hand holds a one-handed weapon: the front one (default) or the back one, next to the cape.
+  side?: 'front' | 'back';
+  label?: string;
   // Glow colour of a cast (r, g, b); the staffs have one.
   glow?: [number, number, number];
 }
@@ -276,6 +279,19 @@ function idleCh(s: Stance, t: number, phase: number): Ch {
   return c;
 }
 
+// The weapon in the BACK hand (next to the cape): the hand stays further back and crosses over the
+// body in the strike; the free hand takes the front side.
+const backHand = (c: Ch): Ch => {
+  const u = Math.min(1, Math.max(0, (c.hfx + 2) / 13));
+  return {
+    ...c,
+    hfx: c.hfx - 8 + 6 * u,
+    hbx: 6.5,
+    hby: -10 + c.bob * 0.3,
+    wb: 0,
+  };
+};
+
 const toPose = (c: Ch): RigPose => ({
   bob: c.bob,
   lean: c.lean,
@@ -410,23 +426,32 @@ export class Mock {
         }
         foeX = hitNow ? -2 : 0;
       }
+      if (spec.side === 'back') ch = backHand(ch);
       const pose = toPose(ch);
-      const raised = ch.wa < -1.1;
       const kit = hero.kit;
-      const laid = layout(kit, pose, raised, undefined);
-      // The haft is drawn behind every ball hand that holds it (Stefan): a two-handed weapon's far
-      // hand goes after the weapon, in front of it. A shield stays in front of its hand.
-      const draws = [...laid];
-      if (hero.stance === 'staff') {
-        const iw = draws.findIndex((d) => d.part === kit.parts.weapon);
-        const ifar = draws.findIndex((d) => d.part === kit.parts.hand && d.far);
-        if (iw >= 0 && ifar >= 0 && ifar < iw) {
-          const [far] = draws.splice(ifar, 1);
-          draws.splice(iw, 0, far);
-        }
-      }
+      const laid = layout(kit, pose, false, undefined);
+      // One fixed draw order for the whole clip (Stefan: a hand must not swap layers): cloak, back
+      // boot, body ball, front boot, then head; a weapon cocked back or carried on the shoulder
+      // goes behind the head, any other in front of it; the shield in front of the head and body;
+      // the haft behind EVERY ball hand, and the hands (both) in front of everything else.
+      const isP = (d: Draw, key: keyof Kit['parts']) => d.part === kit.parts[key];
+      const pick = (f: (d: Draw) => boolean) => laid.filter(f);
+      const behindHead = ch.wa < -0.9;
+      const draws: Draw[] = [
+        ...pick((d) => isP(d, 'cloak')),
+        ...pick((d) => isP(d, 'boot') && d.far),
+        ...pick((d) => isP(d, 'torso')),
+        ...pick((d) => isP(d, 'boot') && !d.far),
+        ...(behindHead ? pick((d) => isP(d, 'weapon')) : []),
+        ...pick((d) => isP(d, 'head')),
+        ...pick((d) => isP(d, 'offhand')),
+        ...(behindHead ? [] : pick((d) => isP(d, 'weapon'))),
+        ...pick((d) => isP(d, 'hand') && d.far).map((d) => ({ ...d, far: false })),
+        ...pick((d) => isP(d, 'hand') && !d.far),
+      ];
       const cx =
         w * (clip === 'line' ? 0.5 : 0.4) +
+        (clip === 'solo' ? (spec.x ?? 0) * scale : 0) +
         (clip === 'line'
           ? (spec.x !== undefined && spec.x !== 0 ? spec.x : (k - (n - 1) / 2) * gap) * scale
           : 0);
@@ -468,8 +493,8 @@ export class Mock {
       }
       ctx.restore();
       // A dummy foe ahead of a solo hero, flashing on hits.
-      if (clip === 'solo' && k === 0) {
-        const fx = w * 0.4 + 38 * scale + foeX * scale;
+      if (clip === 'solo') {
+        const fx = cx + 38 * scale + foeX * scale;
         ctx.save();
         ctx.translate(fx, cy);
         ctx.fillStyle = 'rgba(30,40,15,0.28)';
@@ -489,6 +514,15 @@ export class Mock {
         ctx.fill();
         ctx.stroke();
         ctx.restore();
+      }
+      if (spec.label) {
+        ctx.fillStyle = 'rgba(255,255,255,0.92)';
+        ctx.strokeStyle = 'rgba(30,30,20,0.8)';
+        ctx.lineWidth = 3;
+        ctx.font = `bold ${Math.round(9 * scale)}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.strokeText(spec.label, cx + 8 * scale, cy - 62 * scale);
+        ctx.fillText(spec.label, cx + 8 * scale, cy - 62 * scale);
       }
     });
     return c.toDataURL('image/png');
