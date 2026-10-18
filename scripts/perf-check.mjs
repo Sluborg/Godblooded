@@ -94,26 +94,28 @@ const poll = setInterval(async () => {
 await waitScene('Title');
 clearInterval(poll);
 const tTitle = Date.now() - t0;
-const res = await page.evaluate(() => {
-  const e = performance.getEntriesByType('resource');
-  return {
-    n: e.length,
-    kb: Math.round(e.reduce((a, r) => a + (r.encodedBodySize || 0), 0) / 1024),
-    jsMs: Math.round(performance.getEntriesByType('navigation')[0].domContentLoadedEventEnd),
-  };
+const cost = async () => ({
+  res: await page.evaluate(() => {
+    const e = performance.getEntriesByType('resource');
+    return {
+      n: e.length,
+      kb: Math.round(e.reduce((a, r) => a + (r.encodedBodySize || 0), 0) / 1024),
+    };
+  }),
+  tex: await page.evaluate(() => {
+    const g = window.__game;
+    let n = 0;
+    let px = 0;
+    for (const k of g.textures.getTextureKeys()) {
+      const im = g.textures.get(k).getSourceImage?.();
+      n++;
+      if (im && im.width) px += im.width * im.height;
+    }
+    const bld = g.textures.getTextureKeys().filter((k) => k.startsWith('bld_')).length;
+    return { n, mb: Math.round((px * 4) / 1048576), bld };
+  }),
 });
-const tex = await page.evaluate(() => {
-  const g = window.__game;
-  let n = 0;
-  let px = 0;
-  for (const k of g.textures.getTextureKeys()) {
-    const t = g.textures.get(k);
-    const im = t.getSourceImage?.();
-    n++;
-    if (im && im.width) px += im.width * im.height;
-  }
-  return { n, mb: Math.round((px * 4) / 1048576) };
-});
+const atTitle = await cost();
 const top = async (label) => {
   if (!PROFILE) return;
   const { profile } = await cdp.send('Profiler.stop');
@@ -139,6 +141,7 @@ await page.waitForFunction(
     timeout: 120000,
   },
 );
+const atDone = await cost();
 await page.evaluate(() => window.__game.scene.getScene('Title').scene.start('Map'));
 const t1 = Date.now();
 await waitScene('Map');
@@ -181,7 +184,15 @@ for (const [at, d] of long) per[Math.floor(at / 1000)] = (per[Math.floor(at / 10
 console.log('main-thread long-task ms per second since navigation:', JSON.stringify(per));
 console.log(
   JSON.stringify(
-    { throttle: THROTTLE, tBootMs: tBoot, tTitleMs: tTitle, tMapMs: tMap, res, tex, map: sample },
+    {
+      throttle: THROTTLE,
+      tBootMs: tBoot,
+      tTitleMs: tTitle,
+      tMapMs: tMap,
+      atTitle,
+      atBootArtDone: atDone,
+      map: sample,
+    },
     null,
     1,
   ),

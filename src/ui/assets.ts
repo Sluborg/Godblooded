@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import type { Strike } from '../data/looks';
 import { GAME_WIDTH } from '../config';
 import { ArtGate } from './artGate';
-import { isSplashAsset, isUiAsset } from './assetPriority';
+import { isDeferredAsset, isSplashAsset, isUiAsset } from './assetPriority';
 import { DIAG_KEY, type ArtDiag } from './artDiag';
 
 export interface ManifestAsset {
@@ -127,7 +127,8 @@ export function loadManifest(scene: Phaser.Scene, done: () => void, hooks: LoadH
       ?.assets ?? []) as ManifestAsset[];
     for (const a of all) rows.set(a.id, a);
     // Music rows stay in `rows` for the music player but are not images.
-    const assets = all.filter((a) => a.kind !== 'mus');
+    // Building tiers 2 and up and the lairs load when a run needs them (ui/lazyArt.ts).
+    const assets = all.filter((a) => a.kind !== 'mus' && !isDeferredAsset(a.id));
     diag.expected = assets.length;
     const splash = assets.filter((a) => isSplashAsset(a.id));
     const ui = assets.filter((a) => !isSplashAsset(a.id) && isUiAsset(a.id));
