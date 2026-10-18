@@ -744,3 +744,18 @@ So when there's a shield, we need it to be at the back." Rule:
 - **The weapon goes on the back hand when there is no shield** (Stefan rated the back-hand hammer
   and khopesh 4): cocked behind the body, crossing it in the strike.
 - **With a shield, the weapon goes on the front hand.**
+
+## 2026-10-19 Body shapes, shield angle, finish (Stefan: "Follow your recs on all")
+
+From Stefan's Gemini examples (docs/reference/hero-shapes-gemini.jpg):
+
+- **Body shapes:** not every body is round. Allowed shapes: ball, bell (robe or skirt), barrel
+  (heavy armour), tattered (ragged cloak). Every body fits the same box and keeps the same anchor
+  points (hand points at shoulder height, feet under the hem on one line), so the rig moves all of
+  them alike. Thorbloods stay ball or barrel. Replaces the "round body ball" and 40 percent ball
+  rule of 02388fb.
+- **Shield and weapon hands (replaces the 2026-10-19 hand rule):** the shield is on the FRONT hand,
+  always angled about 3/4 toward the viewer so its painted face shows, held out at the side. The
+  weapon is on the BACK hand (cape side) for everyone.
+- **Finish:** keep the smooth painted finish of the Thor and Odin anchors; the grimier Gemini look
+  is not adopted. Only its body shapes and shield angle are taken.

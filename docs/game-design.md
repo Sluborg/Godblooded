@@ -137,9 +137,9 @@ hand; the second ball hand sits on a grip point on the haft (a keyframed fractio
 slide). A two-handed weapon takes the shield slot. A shield sits on the off ball hand.
 
 Hands are plain balls, so there is no grip art: every weapon haft is drawn behind the ball hands
-that hold it (Stefan, 2026-10-18). A shield is the exception: it covers its hand ball. A shield is always on the back hand (the cape
-side), face out; the weapon takes the back hand when there is no shield and the front hand when
-there is one (decisions 2026-10-19).
+that hold it (Stefan, 2026-10-18). A shield is the exception: it covers its hand ball. The shield is on the front hand, angled about 3/4 toward the viewer so its face shows; the
+weapon is on the back hand (the cape side) for every hero. Bodies may be a ball, bell, barrel or
+tattered shape inside one fixed box with fixed hand and foot anchors (decisions 2026-10-19).
 
 ## Gods and paths
 
