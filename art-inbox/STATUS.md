@@ -384,3 +384,6 @@ B27 | 2026-10-18T04:59:09.472Z | buildings | started | O-14 temple t2 only, redo
 
 
 B27 | 2026-10-18T05:06:01.634Z | buildings | bld_temple_greek_t2 | QA failed; not uploaded | O-14 three new imagegen edits from original blockout. Attempt1 liftedfrontapex andbraziers too high; attempt2 retainedbuildinggeometry butpairedforwardoffsets still unequal (about15px horizontal mismatch); attempt3 matchedpairseparation better butfeet rest onhigherstep ratherthanrequestedbottomstep,roofstatue/pedimentdetails drift. Full-size and50/50 blockoutoverlay checked each. No manual/script image repairs; onlydiagnosticoverlays. No new PNG uploaded or Drivefile replaced; existingO-13t2 remainsrejected,notredelivered. t1 untouched/ArtQApassed. Productionpaused underO-14.
+
+
+B27 | 2026-10-18T06:02:46.198Z | buildings | started | O-15 new blockout includes lockedbraziers; t2only; previousO-14finished; run4cfa5230
