@@ -9,8 +9,8 @@ export const HALL_STYLE = {
   // Picture size relative to the other buildings.
   scale: 1.5,
   plaza: { w: 504, h: 211, stone: 0x8d8778, light: 0xa8a290, joint: 0x5f5a4e, trim: 0xf2c14e },
-  pole: { x: 214, height: 300, color: 0x4b2e1a, finial: 0xf2c14e },
-  cloth: { color: 0x8a1c2b, trim: 0xf2c14e, w: 79, h: 101 },
+  pole: { x: 214, height: 250, color: 0x4b2e1a, finial: 0xf2c14e },
+  cloth: { color: 0x8a1c2b, trim: 0xf2c14e, w: 56, h: 70 },
   barWidth: 252,
 } as const;
 
@@ -145,15 +145,23 @@ export function drawBanners(g: Phaser.GameObjects.Graphics, t: number, still: bo
   g.clear();
   for (const side of [-1, 1] as const) {
     const px = side * x;
-    g.fillStyle(0x24140a, 0.35).fillEllipse(px + 6, 2, 26, 9);
-    g.fillStyle(color, 1).fillRect(px - 4, -height, 8, height);
-    g.fillStyle(finial, 1).fillCircle(px, -height - 4, 7);
+    // The pole: a slim shaft with a lit edge and a small finial; no ground shadow (Stefan: ugly).
+    g.fillStyle(color, 1).fillRect(px - 3, -height, 6, height);
+    g.fillStyle(0x7a5532, 0.8).fillRect(px - 3, -height, 2, height);
+    g.fillStyle(finial, 1).fillCircle(px, -height - 3, 5);
     // Both cloths blow the same way, the way the wind does (to the right).
     const pts = clothPoints(t + (side === 1 ? 400 : 0), 1, still).map((p) => ({
-      x: px + p.x + 4,
-      y: -height + 8 + p.y,
+      x: px + p.x + 3,
+      y: -height + 6 + p.y,
     }));
     g.fillStyle(cloth.color, 1).fillPoints(pts, true);
-    g.lineStyle(3, cloth.trim, 0.95).strokePoints(pts, true);
+    // Cloth shading: the folds follow the wave, alternate light and dark bands across the cloth.
+    const n = pts.length / 2;
+    for (let i = 0; i < n - 1; i++) {
+      const quad = [pts[i], pts[i + 1], pts[pts.length - 2 - i], pts[pts.length - 1 - i]];
+      const dark = i % 2 === 0;
+      g.fillStyle(dark ? 0x3a0a12 : 0xd45a66, dark ? 0.22 : 0.16).fillPoints(quad, true);
+    }
+    g.lineStyle(2, cloth.trim, 0.9).strokePoints(pts, true);
   }
 }

@@ -23,23 +23,23 @@ describe('tone map', () => {
     expect(g.rows).toBe(Math.ceil(2000 / CELL));
     expect(g.nodes.length).toBe((g.cols + 1) * (g.rows + 1));
   });
-  it('stays subtle: no channel falls below 160, most of the map stays near plain green', () => {
+  it('stays subtle: no channel falls below 140, most of the map stays near plain green', () => {
     const g = tintGrid(3, 3000, 2000);
-    for (const n of g.nodes) for (const v of chan(n)) expect(v).toBeGreaterThanOrEqual(160);
+    for (const n of g.nodes) for (const v of chan(n)) expect(v).toBeGreaterThanOrEqual(140);
     // Most of the map is close to plain green (every channel within 24 of full), some is not.
     const near = g.nodes.filter((n) => chan(n).every((v) => v >= 231)).length / g.nodes.length;
-    expect(near).toBeGreaterThan(0.4);
+    expect(near).toBeGreaterThan(0.2);
     expect(near).toBeLessThan(0.98);
   });
   it('tones lie in 0..1 and no tone is a plain tint', () => {
     for (let i = 0; i < 50; i++) {
       const t = toneAt(5, i * 60, i * 37);
-      for (const v of [t.dry, t.lush]) {
+      for (const v of [t.dry, t.lush, t.dark]) {
         expect(v).toBeGreaterThanOrEqual(0);
         expect(v).toBeLessThanOrEqual(1);
       }
     }
-    expect(tintFor({ dry: 0, lush: 0 })).toBe(0xffffff);
+    expect(tintFor({ dry: 0, lush: 0, dark: 0 })).toBe(0xffffff);
   });
 });
 

@@ -92,6 +92,10 @@ export function gradedHex(hex: string): string {
 const TILE_KEY = 'ground_tile';
 const DECAL_KEY = 'ground_decals';
 // One atlas of the small details, drawn at 2 px per world unit: a row of DECAL_VARIANTS per kind.
+const hexA = (hex: string, a: number): string => {
+  const n = parseInt(hex.slice(1), 16);
+  return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
+};
 const DW = 64;
 const DH = 44;
 
@@ -149,6 +153,26 @@ function drawDecal(
       c.fillStyle = gradedHex('#f3efe0');
       c.beginPath();
       c.arc(cx + (r() - 0.5) * 30, base - 10 - r() * 8, 1.8, 0, Math.PI * 2);
+      c.fill();
+    }
+  } else if (kind === 'moss') {
+    // A soft dark-green mossy patch: layered ragged blobs, darker in the middle.
+    for (const [k, col, a] of [
+      [1, '#4a6a2c', 0.3],
+      [0.72, '#3d5a24', 0.34],
+      [0.42, '#33501f', 0.36],
+    ] as const) {
+      c.beginPath();
+      for (let i = 0; i < 12; i++) {
+        const ang = (i / 12) * Math.PI * 2;
+        const rr = k * (1 + (r() - 0.5) * 0.5);
+        const px = cx + Math.cos(ang) * 24 * rr;
+        const py = base - 8 + Math.sin(ang) * 9 * rr;
+        if (i) c.lineTo(px, py);
+        else c.moveTo(px, py);
+      }
+      c.closePath();
+      c.fillStyle = hexA(gradedHex(col), a);
       c.fill();
     }
   } else if (kind === 'bare') {

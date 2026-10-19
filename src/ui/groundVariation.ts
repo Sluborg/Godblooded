@@ -10,7 +10,7 @@ import { blobPoints, hash, type Pt } from './organic';
 // over at least this far, and a patch of one tone is two to four cells across.
 export const CELL = 256;
 // Wavelength of the biggest tone patches, in world units.
-const WAVE = 900;
+const WAVE = 560;
 
 // A smooth value noise in [0, 1]: random heights on a lattice, smoothstep between them.
 function valueNoise(seed: number, x: number, y: number): number {
@@ -36,9 +36,11 @@ function fbm(seed: number, x: number, y: number): number {
 }
 
 export interface Tone {
-  // How dry or yellowed (0 = none, 1 = most) and how lush (0 = none, 1 = most) the grass is here.
+  // How dry or yellowed (0 = none, 1 = most), how lush (0 = none, 1 = most) and how darkly shaded the
+  // grass is here.
   dry: number;
   lush: number;
+  dark: number;
 }
 
 // The grass tone at a world point. Only the ends of each noise count, so most of the map stays the
@@ -49,19 +51,20 @@ export function toneAt(seed: number, x: number, y: number): Tone {
   return {
     dry: edge(fbm(seed * 3 + 1, x, y), 0.52, 0.78),
     lush: edge(fbm(seed * 5 + 2, x + 4000, y - 3000), 0.55, 0.8),
+    dark: edge(fbm(seed * 7 + 3, x - 5000, y + 2500), 0.58, 0.82),
   };
 }
 
 // The tint (0xRRGGBB, multiplied over the tile) for a tone. The shifts are small: yellowed grass
 // loses blue, dry grass loses a little green, lush grass loses red.
-// How strongly the big tone zones show: Stefan found them too visible (2026-10-18), the variation
-// is meant to be small scale, so this is only a faint drift.
-export const TONE_STRENGTH = 0.4;
+// How strongly the tone patches show. Stefan: too visible at 1.0 over 900 units (first try), then
+// "same-same" at 0.4; now medium patches (about 500 units), clearly different greens.
+export const TONE_STRENGTH = 1;
 export function tintFor(t: Tone): number {
   const k = TONE_STRENGTH;
-  const r = 255 - Math.round((t.lush * 34 + t.dry * 4) * k);
-  const g = 255 - Math.round(t.dry * 14 * k);
-  const b = 255 - Math.round((t.dry * 62 + t.lush * 30) * k);
+  const r = 255 - Math.round((t.lush * 40 + t.dry * 4 + t.dark * 30) * k);
+  const g = 255 - Math.round((t.dry * 14 + t.dark * 30) * k);
+  const b = 255 - Math.round((t.dry * 70 + t.lush * 34 + t.dark * 34) * k);
   return (r << 16) | (g << 8) | b;
 }
 
@@ -142,8 +145,9 @@ export function dirtOutline(variant: number): Pt[] {
 // ---------- small details: clumps, clover, flower clusters, bare spots ----------
 
 export type DecalKind =
-  'clumpD' | 'clumpL' | 'clover' | 'flowerW' | 'flowerY' | 'flowerP' | 'flowerR' | 'bare';
+  'moss' | 'clumpD' | 'clumpL' | 'clover' | 'flowerW' | 'flowerY' | 'flowerP' | 'flowerR' | 'bare';
 export const DECAL_KINDS: readonly DecalKind[] = [
+  'moss',
   'clumpD',
   'clumpL',
   'clover',
@@ -184,14 +188,15 @@ export function decalPlan(
   const cols = Math.ceil(width / DECAL_CELL);
   const rows = Math.ceil(height / DECAL_CELL);
   const weights: [DecalKind, number][] = [
-    ['clumpD', 0.32],
-    ['clumpL', 0.22],
-    ['clover', 0.14],
-    ['flowerW', 0.07],
-    ['flowerY', 0.07],
-    ['flowerP', 0.06],
-    ['flowerR', 0.06],
-    ['bare', 0.06],
+    ['moss', 0.08],
+    ['clumpD', 0.3],
+    ['clumpL', 0.2],
+    ['clover', 0.12],
+    ['flowerW', 0.06],
+    ['flowerY', 0.06],
+    ['flowerP', 0.05],
+    ['flowerR', 0.05],
+    ['bare', 0.08],
   ];
   for (let j = 0; j < rows; j++)
     for (let i = 0; i < cols; i++) {
