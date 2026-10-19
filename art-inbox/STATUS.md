@@ -432,3 +432,6 @@ Thorbloods | 2026-10-18T23:18:12.690Z | heroes | kit_thorbloods_caster_body | up
 
 
 Thorbloods | 2026-10-18T23:19:00Z | heroes | kit_thorbloods_body | uploaded | O-24 third-attempt new drawing, unchanged1254x1254 PNG1973161bytes; existing Drive file replaced in place, metadata verified. Clear horizontal oval measured bbox1099x828 ratio1.327 (target25:18=1.389, about4.4% narrower); clearly wider than earlier body, no circle. Full-size QA1/2/4/5/13/15 and1/8 thumbnail checked; continuous armor/mail body,no limbs/hands/feet/cape,red scarf/fur,leather belt with hammer boss. First attempt1.29 ratio; second overflattened; third selected. Near-magenta RGB237,13,238 pipeline note; no stretch,crop,resize or recompression of delivery. Other four O-23 sheets unchanged. https://drive.google.com/file/d/1H3-ivOLvFUAxKlUlXNyV6vjiQ7M2wAu6/view?usp=drivesdk . Production paused under O-24; webhook unchanged.
+
+
+Thorbloods | 2026-10-19T22:39:35.322Z | heroes | started | O-26/O-27 direct command; no saved upright-egg body found, current saved body horizontal. Complete corrected body then collar/hammer/long hammerstaff; run edc38469.
