@@ -441,3 +441,6 @@ Thorbloods | 2026-10-19T22:41:50.999Z | heroes | kit_thorbloods_body, kit_thorbl
 
 
 Thorbloods | 2026-10-19T22:43:01.766Z | heroes | kit_thunderstaff | uploaded | O-27 long two-handed hammerstaff three tiers iron/silver/epic gold, upright clean long hafts storm knotwork no effects. Unchanged1254square PNG1741709bytes, metadata verified https://drive.google.com/file/d/1DLbSpuvr7tK5jJ0k_3emeKKG1S5hgFLl/view . Full-size and1/8 QA inspected; head proportions approximate, Art should set world scale48 vs hammer28. O-28 arrived after all four O-27 uploads:14:16 body already delivered before correction, now superseded; making NEW12:16 collar-free body and narrower collar, preserve completed weapons. Production continues only O-28.
+
+
+Thorbloods | 2026-10-19T22:43:48.704Z | heroes | started | O-28 continuation of same active run edc38469, not a second claim. Slim12:16 collar-free body and collar16w correction; preserve O-27 weapons. First body attempt rejected shoulder pads/triquetra boss, correcting. No additional weapon generation.
