@@ -143,7 +143,8 @@ export function drawBanners(g: Phaser.GameObjects.Graphics, t: number, still: bo
   const { x, height, color, finial } = HALL_STYLE.pole;
   const cloth = HALL_STYLE.cloth;
   g.clear();
-  for (const side of [-1, 1] as const) {
+  // Only the rightmost banner stays (Stefan: remove the decorative flags).
+  for (const side of [1] as const) {
     const px = side * x;
     // The pole: a slim shaft with a lit edge and a small finial; no ground shadow (Stefan: ugly).
     g.fillStyle(color, 1).fillRect(px - 3, -height, 6, height);
