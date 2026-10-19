@@ -435,3 +435,6 @@ Thorbloods | 2026-10-18T23:19:00Z | heroes | kit_thorbloods_body | uploaded | O-
 
 
 Thorbloods | 2026-10-19T22:39:35.322Z | heroes | started | O-26/O-27 direct command; no saved upright-egg body found, current saved body horizontal. Complete corrected body then collar/hammer/long hammerstaff; run edc38469.
+
+
+Thorbloods | 2026-10-19T22:41:50.999Z | heroes | kit_thorbloods_body, kit_thorbloods_collar, kit_hammer | partial delivery | O-26/O-27 unchanged PNGs. Corrected egg body bbox860x988 H/W1.149 (target16/14), broad bottom no sleeve stubs; https://drive.google.com/file/d/15DiaSmnuJ16yWZmfofx_02dAzcYYpVE0/view . Collar open magenta crescent high left/low front, landscape canvas note https://drive.google.com/file/d/1O2FYNl8uKUKaN_mD7ORZWPvUWRqwO5Nt/view . Hammer iron/silver/epic gold three tiers https://drive.google.com/file/d/1JYD3A2_K50j_Rbv8OyNWmgUIuxF0XYq9/view . Supersedes previous same-name body/hammer IDs, retained old versions. Near-magenta/tight weapon framing pipeline notes; staff next.
