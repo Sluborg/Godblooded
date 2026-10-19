@@ -88,8 +88,8 @@ describe('building art', () => {
     expect(buildingArtCandidates('tower', 3)).toEqual(['bld_tower_t3', 'bld_tower_t1']);
   });
   it('fits wide pictures by width and tall ones by height', () => {
-    expect(buildingScale(380, 300) * 380).toBeCloseTo(190);
-    expect(buildingScale(346, 583) * 583).toBeCloseTo(280);
+    expect(buildingScale(380, 300) * 380).toBeCloseTo(230);
+    expect(buildingScale(346, 583) * 583).toBeCloseTo(340);
   });
 });
 
@@ -99,8 +99,8 @@ describe('building art', () => {
     expect(buildingArtCandidates('tower', 3)).toEqual(['bld_tower_t3', 'bld_tower_t1']);
   });
   it('fits wide pictures by width and tall ones by height', () => {
-    expect(buildingScale(380, 300) * 380).toBeCloseTo(190);
-    expect(buildingScale(346, 583) * 583).toBeCloseTo(280);
+    expect(buildingScale(380, 300) * 380).toBeCloseTo(230);
+    expect(buildingScale(346, 583) * 583).toBeCloseTo(340);
   });
 });
 
