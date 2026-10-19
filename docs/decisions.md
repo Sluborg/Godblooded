@@ -772,3 +772,22 @@ delivered one. The heads, cape and weapons stand.
 "Egg." The body is an upright egg, only slightly taller than wide, exactly like the prototype hero
 in the game today (14 wide by 16 tall, Stefan: "slightly eggy"), the broad end at the bottom and the narrower end up at the collar; never a circle, never a horizontal oval. This
 replaces the "wider than tall" reading in the entry above. The Thorbloods body is redone as an egg.
+
+## 2026-10-19 Ratings round (Stefan, rated 2026-10-18 night)
+
+- **Greek temple t1, redo 4:** 4, ship.
+- **Thorbloods heads:** 5, ship. **Party cape:** 4, ship.
+- **Weapon tiers go iron, silver, gold:** hammer 3 and thunderstaff 3 ("Iron silver gold"; "third
+  needs to be much more epic, maybe gold instead of silver"). Redo both weapon sheets with t1
+  iron, t2 silver, t3 gold, t3 clearly epic.
+- **Body:** 2, "I do not like balls, they need to be oval" (handled: slightly egg, 14:16).
+- **Assembled Thorbloods:** 2. "Wait for oval bodies. Neck looks terrible. Need a clever way to
+  make all heads fit. Mantle looks slightly off layering-wise." Scene and Art design a head
+  socket: heads end in a standard neck stub at a fixed anchor, the body's collar is a separate
+  front layer drawn over the neck (under the beard), so any head fits any body.
+- **Thundercaller robe sample:** 4, "maybe? I have a hard time judging individual parts". Show
+  parts assembled on a hero, not alone.
+- **Map:** buildings 1.2x 2 ("ugly bricks and flags"), yard 2 ("ugly shadow flags, ground dull"),
+  ground v2 3 ("better, but colouring is still very same-same"). The town hall flags and their
+  shadows are ugly; the ground needs more colour variety. Next map round shows yard, ground and
+  scale together in one picture.
