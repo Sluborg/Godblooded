@@ -411,6 +411,18 @@ export function layout(kit: Kit, p: RigPose, raised = false, headOff?: HeadOff):
     inBody: true,
     far: false,
   });
+  // The collar (fur and scarf) sits over the head's neck cut: its `socket` pivot on the neck socket,
+  // drawn after the head so every head fits every body (beard and braids stay in the head piece).
+  push('collar', parts.collar, {
+    pivot: 'socket',
+    x: neck.x,
+    y: neck.y,
+    rot: 0,
+    sx: tsx,
+    sy: tsy,
+    inBody: true,
+    far: false,
+  });
   const gear = parts.headgear;
   if (gear && head) {
     const [bx, by] = offsetIn(head, 'neck', 'brow', hsc, hsc);

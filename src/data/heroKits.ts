@@ -9,6 +9,7 @@ export const KIT_SLOTS = [
   'cloak',
   'torso',
   'head',
+  'collar',
   'headgear',
   'upperarm',
   'forearm',
@@ -154,6 +155,7 @@ export function thorbloodCombo(lookId: string): KitCombo | undefined {
       cloak: 'cape_neutral',
       torso: 'body_thorblood',
       head: `head_thorblood_${head}`,
+      collar: 'collar_thorblood',
       weapon: storm ? `thunderstaff_t${tier}` : `hammer_t${tier}`,
     },
   };

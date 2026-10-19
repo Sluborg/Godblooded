@@ -20,6 +20,7 @@ describe('Thorbloods test switch', () => {
       head: 'head_thorblood_f1',
       weapon: 'hammer_t2',
       cloak: 'cape_neutral',
+      collar: 'collar_thorblood',
     });
     expect(kitFor('thor-stormcaller_t3~m2')?.parts.weapon).toBe('thunderstaff_t3');
     expect(kitFor('thor_t1')?.codeBalls).toBeDefined();
