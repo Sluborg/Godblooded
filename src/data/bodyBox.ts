@@ -1,12 +1,12 @@
-// The body box (Stefan 2026-10-19: no circles; then "slightly eggy", the prototype's own 14 : 16 body, broad end down): every hero body shape (egg, bell, barrel, tattered) is painted
+// The body box (Stefan 2026-10-19: no circles; then "slightly eggy" 14 : 16, then narrower again: 12 : 16 = 3 : 4, broad end down): every hero body shape (egg, bell, barrel, tattered) is painted
 // inside ONE fixed box with fixed anchors, so any body plugs into the compact rig the same way and
 // the code can move hands, feet, head and cape without knowing the shape. Art paints to these
 // numbers (ppu 16); the rig reads them. Fractions are of the box, x right, y down from its top left.
 export const BODY_BOX = {
-  // The box in drawing units; at ppu 16 that is 352 x 400 px, the prototype's 14 : 16 body ratio. A
-  // slightly eggy body (broad end at the bottom, a little narrower under the collar) fills it; a bell
-  // or tattered body keeps its hem on the bottom edge.
-  w: 22,
+  // The box in drawing units; at ppu 16 that is 304 x 400 px, a 12 : 16 (3 : 4) body ratio (Stefan:
+  // "more egg, less fat"). A narrow egg body (broad end at the bottom, narrower under the collar)
+  // fills it; a bell or tattered body keeps its hem on the bottom edge.
+  w: 19,
   h: 25,
   ppu: 16,
   // Where the head's chin lands (the head overlaps the body's top by about a unit), where the cape
@@ -18,10 +18,10 @@ export const BODY_BOX = {
   },
   // Where the ball hands rest, at shoulder height, at the egg's sides (back hand on the cape side).
   // Code moves them from here in every pose, so keep important painted detail clear of these two.
-  hands: { back: [0.13, 0.3], front: [0.87, 0.3] },
+  hands: { back: [0.1, 0.3], front: [0.9, 0.3] },
   // The foot line: the ball feet sit under the hem, their centres this far below the box's bottom edge
   // (fraction of the box height), this far apart either side of the centre line.
-  feet: { y: 1.06, spread: 0.14 },
+  feet: { y: 1.06, spread: 0.17 },
 } as const;
 
 // The box in rig coordinates (drawing units, y up is negative, 0 at the ground between the feet): the
