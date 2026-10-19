@@ -805,3 +805,6 @@ replaces the "wider than tall" reading in the entry above. The Thorbloods body i
   - Calmer heads; bodies slimmer (the 14:16 egg); cape raised to the shoulders.
 - **Thundercaller weapon is a hammerstaff:** a long two-handed haft with a big, readable hammer
   head, in iron, silver and gold (added to O-27).
+- **Body is a narrower egg, 3:4 (12:16)** (Stefan: "more egg bodies that make the models less
+  fat"). Replaces 14:16. Same height and anchors, narrower box; broad end down. A 14:16 body
+  from the heroes chat doesn't ship.
