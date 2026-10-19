@@ -1,5 +1,5 @@
 import { SfxFeed, getSfx } from '../ui/sfxPlayer';
-import { makeGround, releaseGround } from '../ui/ground';
+import { cullGround, makeGround, releaseGround } from '../ui/ground';
 import { flagAt } from '../ui/flagCard';
 import { getMusic } from '../ui/musicPlayer';
 import Phaser from 'phaser';
@@ -92,9 +92,9 @@ const FOOT_Y = -6;
 // How long the camera takes to show the levelled party before its cards come up.
 const FOCUS_MS = 700;
 const TARGET_RADIUS = 70;
-const PLOT_SIZE = 120;
+const PLOT_SIZE = 144;
 const INTEREST_MAX = 8;
-const PLOT_RADIUS = 110;
+const PLOT_RADIUS = 132;
 
 // The camera's start zoom: 0.7 shows 1830 x 1030 world units on a 1280 x 720 screen, enough for the
 // plot ring (about 1040 x 760) with the buildings on it.
@@ -251,7 +251,7 @@ export class MapScene extends Phaser.Scene {
     cam.setZoom(Math.max(this.minZoom(), DEFAULT_ZOOM) * RENDER_SCALE);
     cam.centerOn(GRAYBOX.townHall.x, GRAYBOX.townHall.y);
     cam.setBackgroundColor(COLORS.background);
-    makeGround(this, width, height);
+    makeGround(this, width, height, this.world.seed, GRAYBOX.townHall, GRAYBOX.plots ?? []);
     attachCameraControls(this, {
       minZoom: () => this.minZoom(),
       scale: () => RENDER_SCALE,
@@ -311,6 +311,7 @@ export class MapScene extends Phaser.Scene {
 
   update(time: number, deltaMs: number): void {
     this.watchFrameRate(time);
+    cullGround(this);
     const button = (this.registry.get('speed') as number) ?? 1;
     // A path offer open (as of the last snapshot) slows the run to 0.3x, absolute.
     const speed = effectiveSpeed(
