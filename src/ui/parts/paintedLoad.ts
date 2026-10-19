@@ -138,5 +138,6 @@ export function kitOf(scene: Phaser.Scene, lookId: string): Kit | null {
     build: BUILDS[combo.build ?? 'standard'],
     mode,
     footSpread: combo.footSpread,
+    threeQuarter: combo.threeQuarter,
   };
 }

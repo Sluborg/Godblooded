@@ -36,6 +36,10 @@ export interface Kit {
   mode: KitMode;
   // How far apart the feet stand, as a factor on the rig's stance (1: as the code figure).
   footSpread?: number;
+  // A 3/4 body with plain ball hands and feet (Stefan 2026-10-19): the weapon is on the BACK hand
+  // (cape side), behind the body all through a swing; the free hand is the near, front one; the feet
+  // take short synced steps under the hem and the head is locked to the neck.
+  threeQuarter?: boolean;
 }
 
 // Pivot fallbacks (fractions) when a cell does not name one.
@@ -348,7 +352,8 @@ export function layout(kit: Kit, p: RigPose, raised = false, headOff?: HeadOff):
   // Cloak behind everything.
   push('cloak', parts.cloak, {
     pivot: 'clasp',
-    ...sock('clasp'),
+    x: sock('clasp').x,
+    y: sock('clasp').y - (kit.threeQuarter ? 2.5 : 0),
     rot: p.cape * 0.03 + p.hem * 0.02,
     sx: tsx,
     sy: tsy,
@@ -356,29 +361,32 @@ export function layout(kit: Kit, p: RigPose, raised = false, headOff?: HeadOff):
     far: false,
   });
   // The prototype's f0 is the back foot, f1 the front one.
-  const fs = kit.footSpread ?? 1;
-  drawLeg('hip_b', { x: p.f0.x * PROTO_K * fs, y: p.f0.y * PROTO_K }, true);
-  const back = arm('shoulder_b', hand(p.hb), true, true);
+  const tq = !!kit.threeQuarter;
+  const fs = (kit.footSpread ?? 1) * (tq ? 0.6 : 1);
+  // A 3/4 body takes short steps with low lift (the early egg test's walk), both boots under the hem.
+  const stepK = tq ? 0.55 : 1;
+  const liftK = tq ? 0.5 : 1;
+  const foot = (f: V2): V2 => ({
+    x: f.x * PROTO_K * fs * stepK,
+    y: f.y * PROTO_K * liftK + (tq ? 3.6 : 0),
+  });
+  drawLeg('hip_b', foot(p.f0), true);
+  if (tq) drawLeg('hip_f', foot(p.f1), false);
+  // 3/4: the weapon hand is the back one (cape side) and the free hand the front one.
+  const wTarget = tq
+    ? { x: Math.max(-9, Math.min(8, (p.hf.x - 5.5) * 1.6 - 6.5)), y: p.hf.y }
+    : p.hf;
+  const fTarget = tq ? { x: 8.5 - (p.hb.x + 5.5), y: p.hb.y } : p.hb;
+  const back = arm('shoulder_b', hand(tq ? fTarget : p.hb), !tq, true);
   // A shield replaces the off-hand: it is drawn at the off-hand socket and no hand shows (a shield
   // part carries a `strap` pivot; any other off-hand item is held by a visible hand).
   const shield = !!parts.offhand?.cell.pivots?.strap;
-  if (!shield) out.push(...back.draws, ...back.front);
-  push('torso', torso, {
-    pivot: 'hip',
-    ...hipAt,
-    rot: 0,
-    sx: tsx,
-    sy: tsy,
-    inBody: true,
-    far: false,
-  });
-  drawLeg('hip_f', { x: p.f1.x * PROTO_K * fs, y: p.f1.y * PROTO_K }, false);
-  // The front arm, with the weapon in its hand drawn under the hand.
-  const fr = arm('shoulder_f', hand(p.hf), false);
+  const fr = arm('shoulder_f', hand(tq ? wTarget : p.hf), false);
   const frontDraws: Draw[] = [];
   // The weapon is painted pointing straight UP with its grip pivot on the handle; the rig's weapon
   // angle `wa` (0 = up, clockwise) turns it about the grip, which sits on the hand's grip point.
   const weapon = parts.weapon;
+  const weaponDraws: Draw[] = [];
   if (weapon) {
     const w = {
       part: weapon,
@@ -391,9 +399,58 @@ export function layout(kit: Kit, p: RigPose, raised = false, headOff?: HeadOff):
       inBody: true,
       far: false,
     };
-    frontDraws.push(w);
-    if (layers.weapon) frontDraws.push({ ...w, part: layers.weapon });
+    weaponDraws.push(w);
+    if (layers.weapon) weaponDraws.push({ ...w, part: layers.weapon });
   }
+  if (tq) {
+    // The weapon stays on one layer, behind the body; both hand balls are drawn in front of it.
+    out.push(...weaponDraws);
+    if (!shield) out.push(...back.draws, ...back.front);
+    push('torso', torso, {
+      pivot: 'hip',
+      ...hipAt,
+      rot: 0,
+      sx: tsx,
+      sy: tsy,
+      inBody: true,
+      far: false,
+    });
+    const ho2 = headOff ?? { dx: 0, dy: 0, rot: 0 };
+    push('head', head, {
+      pivot: 'neck',
+      x: neck.x + ho2.dx,
+      y: neck.y + ho2.dy,
+      rot: ho2.rot,
+      sx: hsc,
+      sy: hsc,
+      inBody: true,
+      far: false,
+    });
+    push('collar', parts.collar, {
+      pivot: 'socket',
+      x: neck.x,
+      y: neck.y,
+      rot: 0,
+      sx: tsx,
+      sy: tsy,
+      inBody: true,
+      far: false,
+    });
+    out.push(...fr.draws, ...fr.front);
+    return out;
+  }
+  if (!shield) out.push(...back.draws, ...back.front);
+  push('torso', torso, {
+    pivot: 'hip',
+    ...hipAt,
+    rot: 0,
+    sx: tsx,
+    sy: tsy,
+    inBody: true,
+    far: false,
+  });
+  drawLeg('hip_f', foot(p.f1), false);
+  frontDraws.push(...weaponDraws);
   // A grip pair wraps the haft: hand back, weapon, hand front. Any other hand is drawn over it.
   if (fr.front.length) frontDraws.unshift(...fr.draws);
   else frontDraws.push(...fr.draws);

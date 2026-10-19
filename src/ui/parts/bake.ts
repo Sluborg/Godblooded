@@ -125,11 +125,13 @@ export function ensureHeroSet(scene: Phaser.Scene, id: string, def: PartsDef, ti
         const q = rigPose(early);
         setState({ ctx: c, T: st.time, FL: 0 });
         const into = u.atkT >= 0 ? Math.sin(Math.PI * Math.min(1, u.atkT * 1.15)) : 0;
-        const headOff = {
-          dx: 0.7 * into,
-          dy: (q.bob - p.bob) * 1.5 + 0.35 * into,
-          rot: (q.lean - p.lean) * 1.7 + 0.03 * Math.sin(st.time * 1.1) + 0.05 * into,
-        };
+        const headOff = kit.threeQuarter
+          ? { dx: 0, dy: 0, rot: 0 }
+          : {
+              dx: 0.7 * into,
+              dy: (q.bob - p.bob) * 1.5 + 0.35 * into,
+              rot: (q.lean - p.lean) * 1.7 + 0.03 * Math.sin(st.time * 1.1) + 0.05 * into,
+            };
         // The same on-screen size as the code look: the painted figure is 44 units tall, the
         // prototype's is 32, drawn at usc(u) (its scale and the 0.86 unit scale).
         c.save();
