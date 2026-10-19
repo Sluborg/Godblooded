@@ -251,7 +251,7 @@ export class MapScene extends Phaser.Scene {
     cam.setZoom(Math.max(this.minZoom(), DEFAULT_ZOOM) * RENDER_SCALE);
     cam.centerOn(GRAYBOX.townHall.x, GRAYBOX.townHall.y);
     cam.setBackgroundColor(COLORS.background);
-    makeGround(this, width, height);
+    makeGround(this, width, height, this.world.seed, GRAYBOX.townHall, GRAYBOX.plots ?? []);
     attachCameraControls(this, {
       minZoom: () => this.minZoom(),
       scale: () => RENDER_SCALE,
