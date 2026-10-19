@@ -205,9 +205,9 @@
       "view": null,
       "file": "buildings/bld_temple_greek_t1.png",
       "anchorX": 0.5,
-      "anchorY": 0.763,
+      "anchorY": 0.751,
       "license": "own (ChatGPT, Stefan's account)",
-      "source": "B20"
+      "source": "B25"
     },
     {
       "id": "bld_temple_greek_t2",
@@ -673,6 +673,29 @@
       },
       "license": "own (ChatGPT, Stefan's account)",
       "source": "G14"
+    },
+    {
+      "id": "kit_capes_neutral",
+      "kind": "kit",
+      "tier": null,
+      "view": null,
+      "file": "kits/kit_capes_neutral.png",
+      "anchorX": 0.5,
+      "anchorY": 0.5,
+      "pxPerUnit": 16,
+      "cells": {
+        "cape_neutral": {
+          "x": 8,
+          "y": 8,
+          "w": 416,
+          "h": 348,
+          "pivots": {
+            "clasp": [0.92, 0.03]
+          }
+        }
+      },
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "G17"
     },
     {
       "id": "kit_heads_a",
@@ -1156,6 +1179,60 @@
       },
       "license": "own (ChatGPT, Stefan's account)",
       "source": "G13"
+    },
+    {
+      "id": "kit_thorbloods_heads",
+      "kind": "kit",
+      "tier": null,
+      "view": null,
+      "file": "kits/kit_thorbloods_heads.png",
+      "anchorX": 0.5,
+      "anchorY": 0.5,
+      "pxPerUnit": 16,
+      "cells": {
+        "head_thorblood_m1": {
+          "x": 8,
+          "y": 8,
+          "w": 433,
+          "h": 442,
+          "pivots": {
+            "neck": [0.7, 0.88],
+            "brow": [0.7, 0.5]
+          }
+        },
+        "head_thorblood_m2": {
+          "x": 449,
+          "y": 8,
+          "w": 422,
+          "h": 469,
+          "pivots": {
+            "neck": [0.7, 0.88],
+            "brow": [0.7, 0.5]
+          }
+        },
+        "head_thorblood_f1": {
+          "x": 879,
+          "y": 8,
+          "w": 427,
+          "h": 423,
+          "pivots": {
+            "neck": [0.7, 0.88],
+            "brow": [0.7, 0.5]
+          }
+        },
+        "head_thorblood_f2": {
+          "x": 1314,
+          "y": 8,
+          "w": 386,
+          "h": 447,
+          "pivots": {
+            "neck": [0.7, 0.88],
+            "brow": [0.7, 0.5]
+          }
+        }
+      },
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "G17"
     },
     {
       "id": "mon_draugr_t1_front",

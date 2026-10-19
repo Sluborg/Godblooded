@@ -1,0 +1,16 @@
+{
+  "id": "kit_capes_neutral",
+  "batch": "G17",
+  "upload": "assets/source/G17/kit_capes_neutral.png",
+  "pxPerUnit": 16,
+  "scale": 0.374,
+  "parts": [
+    {
+      "cell": "cape_neutral",
+      "box": [50, 130, 1210, 1110],
+      "pivots": {
+        "clasp": [0.92, 0.03]
+      }
+    }
+  ]
+}

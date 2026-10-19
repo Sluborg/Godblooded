@@ -1,0 +1,41 @@
+{
+  "id": "kit_thorbloods_heads",
+  "batch": "G17",
+  "upload": "assets/source/G17/kit_thorbloods_heads.png",
+  "pxPerUnit": 16,
+  "scale": 0.803,
+  "parts": [
+    {
+      "cell": "head_thorblood_m1",
+      "box": [40, 30, 620, 620],
+      "pivots": {
+        "neck": [0.7, 0.88],
+        "brow": [0.7, 0.5]
+      }
+    },
+    {
+      "cell": "head_thorblood_m2",
+      "box": [660, 30, 1225, 642],
+      "pivots": {
+        "neck": [0.7, 0.88],
+        "brow": [0.7, 0.5]
+      }
+    },
+    {
+      "cell": "head_thorblood_f1",
+      "box": [40, 643, 620, 1225],
+      "pivots": {
+        "neck": [0.7, 0.88],
+        "brow": [0.7, 0.5]
+      }
+    },
+    {
+      "cell": "head_thorblood_f2",
+      "box": [660, 643, 1225, 1225],
+      "pivots": {
+        "neck": [0.7, 0.88],
+        "brow": [0.7, 0.5]
+      }
+    }
+  ]
+}
