@@ -1,5 +1,5 @@
 import { SfxFeed, getSfx } from '../ui/sfxPlayer';
-import { makeGround, releaseGround } from '../ui/ground';
+import { cullGround, makeGround, releaseGround } from '../ui/ground';
 import { flagAt } from '../ui/flagCard';
 import { getMusic } from '../ui/musicPlayer';
 import Phaser from 'phaser';
@@ -311,6 +311,7 @@ export class MapScene extends Phaser.Scene {
 
   update(time: number, deltaMs: number): void {
     this.watchFrameRate(time);
+    cullGround(this);
     const button = (this.registry.get('speed') as number) ?? 1;
     // A path offer open (as of the last snapshot) slows the run to 0.3x, absolute.
     const speed = effectiveSpeed(

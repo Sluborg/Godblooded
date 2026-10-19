@@ -259,6 +259,11 @@ function drawTuft(c: CanvasRenderingContext2D, t: Tuft, ox: number, oy: number, 
 
 // Paints the tile once and lays a grid of images sharing it over the map (depth -1). The tile
 // wraps at its edges, so there are no seams. Release it with `releaseGround` on shutdown.
+// The small detail images: Phaser does not cull plain images, so `cullGround` hides the ones outside
+// the camera (review: about 650 transforms a frame otherwise).
+let decalImages: Phaser.GameObjects.Image[] = [];
+let lastView = '';
+
 export function makeGround(
   scene: Phaser.Scene,
   width: number,
@@ -379,19 +384,39 @@ export function makeGround(
       { x: hall.x, y: hall.y, rx: 240, ry: 120 },
       ...spots.map((p) => ({ x: p.x, y: p.y, rx: 80, ry: 55 })),
     ];
-    for (const d of decalPlan(seed, width, height, keep))
-      images.push(
-        scene.add
-          .image(d.x, d.y, DECAL_KEY, `${d.kind}${d.variant}`)
-          .setOrigin(0.5, (DH - 8) / DH)
-          .setScale(0.5 * d.s * (d.flip ? -1 : 1), 0.5 * d.s)
-          .setDepth(-0.97),
-      );
+    decalImages = [];
+    lastView = '';
+    for (const d of decalPlan(seed, width, height, keep)) {
+      const img = scene.add
+        .image(d.x, d.y, DECAL_KEY, `${d.kind}${d.variant}`)
+        .setOrigin(0.5, (DH - 8) / DH)
+        .setScale(0.5 * d.s * (d.flip ? -1 : 1), 0.5 * d.s)
+        .setDepth(-0.97);
+      images.push(img);
+      decalImages.push(img);
+    }
   }
   return images;
 }
 
+// Shows only the small details inside the camera's view (plus a margin); cheap when the view has not
+// moved. Call once a frame.
+export function cullGround(scene: Phaser.Scene): void {
+  const v = scene.cameras.main.worldView;
+  const key = `${Math.round(v.x)},${Math.round(v.y)},${Math.round(v.width)},${Math.round(v.height)}`;
+  if (key === lastView) return;
+  lastView = key;
+  const m = 60;
+  for (const img of decalImages) {
+    img.setVisible(
+      img.x > v.x - m && img.x < v.right + m && img.y > v.y - m && img.y < v.bottom + m + 40,
+    );
+  }
+}
+
 export function releaseGround(scene: Phaser.Scene): void {
+  decalImages = [];
+  lastView = '';
   if (scene.textures.exists(TILE_KEY)) scene.textures.remove(TILE_KEY);
   if (scene.textures.exists(DECAL_KEY)) scene.textures.remove(DECAL_KEY);
 }
