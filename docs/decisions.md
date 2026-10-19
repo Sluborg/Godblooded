@@ -791,3 +791,17 @@ replaces the "wider than tall" reading in the entry above. The Thorbloods body i
   ground v2 3 ("better, but colouring is still very same-same"). The town hall flags and their
   shadows are ugly; the ground needs more colour variety. Next map round shows yard, ground and
   scale together in one picture.
+
+## 2026-10-19 evening: Thorbloods in game and map look rated
+
+- **Map look:** 4 (close and far). Ships: ground variation, 1.2x buildings, earth yard. "Remove
+  the flags, they are just ugly right now, or keep the rightmost one": Scene keeps only the
+  rightmost flag, then the three map branches land.
+- **Thorbloods in the game rig:** 2 on all four clips. Rig fixes for Scene:
+  - Walk: the old cartoon SVG egg test had the best legs and walk by far. Port it: shorter
+    steps, feet moving in step with each other (not two loose circles), feet lower under the body.
+  - Hands placed for the 3/4 view (both hands sat on the left shoulder as if facing the walk).
+  - The weapon stays behind the body through the whole swing (no front-to-back jump).
+  - Calmer heads; bodies slimmer (the 14:16 egg); cape raised to the shoulders.
+- **Thundercaller weapon is a hammerstaff:** a long two-handed haft with a big, readable hammer
+  head, in iron, silver and gold (added to O-27).

@@ -31,6 +31,6 @@ Lead keeps this to one screen. Read it first when resuming.
 
 ## Waiting on Stefan
 
-- Paste into the heroes chat: "Do O-26 now; O-24 and O-25 are cancelled."
-- Art Verdicts: Thorbloods parts, Thundercaller robe sample, Greek temple t1 redo 4, earth yard,
-  buildings 1.2x, ground v2.
+- Heroes chat: check its scheduled task in ChatGPT is on (it should fetch art-wake orders by
+  itself); until then paste "Do O-27 now" after the egg body upload.
+- Next on Art Verdicts: new Thorbloods clips after Scene's rig fixes (walk, hands, swing layer).
