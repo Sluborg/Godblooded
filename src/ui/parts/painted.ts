@@ -374,13 +374,13 @@ export function layout(kit: Kit, p: RigPose, raised = false, headOff?: HeadOff):
   if (tq) drawLeg('hip_f', foot(p.f1), false);
   // 3/4: the weapon hand is the back one (cape side) and the free hand the front one.
   const wTarget = tq
-    ? { x: Math.max(-9, Math.min(8, (p.hf.x - 5.5) * 1.6 - 6.5)), y: p.hf.y }
+    ? { x: Math.max(-9, Math.min(8, (p.hf.x - 5.5) * 1.6 - 7.2)), y: p.hf.y }
     : p.hf;
   // At rest the hammer leans back over the cape-side shoulder so its head pokes out above it, easing
   // back to the prototype's angle as the swing starts.
   const restW = tq ? Math.max(0, 1 - Math.abs(p.wa - 0.55) / 0.35) : 0;
   const wAngle = p.wa - restW * 1.0;
-  const fTarget = tq ? { x: 8.5 - (p.hb.x + 5.5), y: p.hb.y } : p.hb;
+  const fTarget = tq ? { x: 7.7 - (p.hb.x + 5.5), y: p.hb.y } : p.hb;
   const back = arm('shoulder_b', hand(tq ? fTarget : p.hb), !tq, true);
   // A shield replaces the off-hand: it is drawn at the off-hand socket and no hand shows (a shield
   // part carries a `strap` pivot; any other off-hand item is held by a visible hand).

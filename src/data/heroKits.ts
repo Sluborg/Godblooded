@@ -50,8 +50,8 @@ export const BUILDS = {
   tall: { torso: [0.98, 1.08], arm: [1.1, 1], leg: [1.1, 1], head: 0.98 },
   short: { torso: [1.04, 0.92], arm: [0.92, 1.05], leg: [0.9, 1.05], head: 1.04 },
   // The Thorbloods: the painted head is about as wide as the body (23 of 25 units); the torso is
-  // squeezed into a slightly eggy body (22 x 25, the prototype's 14 : 16) until Art's egg body arrives (Stefan: upright eggs, no circles).
-  thorblood: { torso: [0.78, 1.12], arm: [1, 1], leg: [1, 1], head: 0.85 },
+  // squeezed into a narrow egg (18.5 x 25, 12 : 16) until Art's egg body arrives (Stefan: upright eggs, no circles).
+  thorblood: { torso: [0.74, 1.15], arm: [1, 1], leg: [1, 1], head: 0.85 },
 } as const satisfies Record<string, Build>;
 export type BuildName = keyof typeof BUILDS;
 
