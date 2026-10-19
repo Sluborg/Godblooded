@@ -205,9 +205,9 @@
       "view": null,
       "file": "buildings/bld_temple_greek_t1.png",
       "anchorX": 0.5,
-      "anchorY": 0.763,
+      "anchorY": 0.751,
       "license": "own (ChatGPT, Stefan's account)",
-      "source": "B20"
+      "source": "B25"
     },
     {
       "id": "bld_temple_greek_t2",
