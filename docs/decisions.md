@@ -833,3 +833,7 @@ replaces the "wider than tall" reading in the entry above. The Thorbloods body i
   on the template body; each head's fitted scale is now baked into its size, so all heads sit at
   scale 1 (Thorblood heads about 15 u wide; m1 neckless 15.39 x 15.79 u). Body 16 x 26 u, feet
   1.2 u lower; hand and foot sizes locked for every hero. The necked Thorblood man 1 is dropped.
+- **Collar is folded fabric in the party colour** (Stefan, 2026-10-20, answers q-collar-colour):
+  no fur; a folded scarf painted neutral grey and tinted with the cape's party colour, drawn over a
+  plain-topped 16 x 26 egg body, head over the collar. Both feet share one height; hands take the
+  face's skin colour (picked from the face in the Hero Builder) unless gloves are chosen.
