@@ -42,12 +42,14 @@ heroes, the skeleton pieces and `art-tasks/ref/hero-anchor-grim.png` for heroes.
   ball hands** (plain skin tone) and **ball feet** (plain leather) are drawn by the game. **No arms,
   no legs, no sleeve stubs.**
   In the shared box the **hem sits on the bottom edge** (the ball feet peek out under it). **No necks**
-  (Stefan 2026-10-20, "One hero, no necks"): a head **ends at the jaw line and the bottom of the
-  beard**, with no neck, throat, shoulders or collar below it. The egg body carries a **built-in fur
-  ruff** around its top, its back (nape side, left) a little higher than the front; its top is a soft
-  dip that seats the chin and beard, and the game draws the head **over** it. Body `neck` and head
-  `neck` are one point, so any head fits any body. **Head scale:** every head is painted to the same
-  scale, **face height 9 units** (brow line to the bottom of the chin), the whole head about 27 wide,
+  (Stefan 2026-10-20, "One hero, no necks", and his Hero Builder layout): a head **ends at the
+  jaw line and the bottom of the beard**, with no neck, throat, shoulders or collar below it. The egg
+  body has a **plain top** (no painted fur or scarf). A separate **collar** piece (`collar_<family>`)
+  sits on the body top: a **pale fur trim** with a **scarf painted neutral light grey** like the cape,
+  which the game tints in the party colour. The game draws body, collar, then head, so the beard
+  falls over the collar. Body `neck`, collar `socket` and head `neck` are one point, so any head fits
+  any body. **Head scale:** every head is painted to the same scale, **face height about 6 units**
+  (5.8, brow line to the bottom of the chin), the whole head about 17 wide (Stefan's builder scale),
   so a new head drops in without retuning. The body box keeps its height (25) and narrows to the
   egg (19 wide); keep brooches and crests **clear of the two
   hand spots** at shoulder height on either side. Each god's bodies keep one shape family
