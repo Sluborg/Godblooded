@@ -28,7 +28,22 @@ export interface HeroLayout {
   // Back to front.
   order: readonly string[];
   motion: { step: number; lift: number; bob: number; swing: number; speed: number };
+  // The attack as Stefan keys it in the Builder: the back hand (same units and origin as handB) and the
+  // weapon's rotation in degrees at the top of the wind-up and at the hit. Rest is handB and weapon.r.
+  attack?: { raise: AttackKey; strike: AttackKey };
 }
+export interface AttackKey {
+  x: number;
+  y: number;
+  r: number;
+}
+// Share of one attack: rest -> raise, raise -> strike, strike -> rest (smoothstep on each leg).
+export const ATTACK_TIMING = { raise: 0.45, strike: 0.2, back: 0.35 } as const;
+// Used until Stefan saves his own keys.
+export const DEFAULT_ATTACK = {
+  raise: { x: -5, y: -24, r: -70 },
+  strike: { x: 9, y: -9, r: 100 },
+} as const;
 
 // Stefan's "fixed-female-head" layout (Hero Builder, saved 2026-10-20 22:45): the one Thorblood man with a
 // thinner 15 x 26 body, feet lower, the collar drawn between the near hand and the head, a calmer walk. The head

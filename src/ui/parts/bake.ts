@@ -138,7 +138,11 @@ export function ensureHeroSet(scene: Phaser.Scene, id: string, def: PartsDef, ti
         c.scale(kitScale(usc(u)), kitScale(usc(u)));
         drawKit(
           c,
-          layout(kit, p, p.armF > 2.0 && u.atkT >= 0, headOff, { ph: u.walkPh, moving: u.moving }),
+          layout(kit, p, p.armF > 2.0 && u.atkT >= 0, headOff, {
+            ph: u.walkPh,
+            moving: u.moving,
+            atk: u.atkT,
+          }),
           p,
         );
         c.restore();

@@ -2,7 +2,7 @@
 // table: parts at the saved places and sizes, in the saved order, the builder's own walk (feet step
 // and lift, body bob, hand swing) and, for an attack, the prototype's weapon-hand travel mapped on
 // top. Test switch only (`?heroes=thorbloods`).
-import type { HeroLayout } from '../../data/heroLayout';
+import { ATTACK_TIMING, DEFAULT_ATTACK, type HeroLayout } from '../../data/heroLayout';
 import type { Draw, KitPart, RigPose } from './painted';
 
 // The prototype's units to drawing units (as in painted.ts).
@@ -24,12 +24,25 @@ export interface BuilderKit {
   parts: Record<string, KitPart>;
 }
 
+const smooth = (k: number): number => k * k * (3 - 2 * k);
+type Key = { x: number; y: number; r: number };
+const mix = (a: Key, b: Key, k: number): Key => {
+  const e = smooth(Math.max(0, Math.min(1, k)));
+  return { x: a.x + (b.x - a.x) * e, y: a.y + (b.y - a.y) * e, r: a.r + (b.r - a.r) * e };
+};
+// The back hand and weapon angle at attack progress t (0..1).
+function attackKey(rest: Key, k: { raise: Key; strike: Key }, t: number): Key {
+  const { raise, strike, back } = ATTACK_TIMING;
+  if (t < raise) return mix(rest, k.raise, t / raise);
+  if (t < raise + strike) return mix(k.raise, k.strike, (t - raise) / strike);
+  return mix(k.strike, rest, (t - raise - strike) / back);
+}
 const rad = (deg: number | undefined): number => ((deg ?? 0) * Math.PI) / 180;
 
 export function builderLayout(
   b: BuilderKit,
   p: RigPose,
-  motion: { ph: number; moving: boolean },
+  motion: { ph: number; moving: boolean; atk?: number },
 ): Draw[] {
   const L = b.layout;
   const m = L.motion;
@@ -48,14 +61,15 @@ export function builderLayout(
     scaleY = scale,
   ): Draw[] =>
     part ? [{ part, pivot, x, y, rot, sx: scale, sy: scaleY, inBody: false, far: false }] : [];
-  // The weapon hand travels as the prototype's weapon hand does in a swing.
-  const swingX =
-    Math.max(-9, Math.min(8, (p.hf.x - 5.5) * 1.6)) * (L.order.includes('weapon') ? 1 : 0);
-  const swingY = (p.hf.y + 11) * PROTO_K;
-  const attacking = Math.abs(p.wa - 0.55) > 0.05;
+  // The attack runs on Stefan's keys (rest -> raise -> strike -> rest), not the prototype's travel.
+  const atk = motion.atk !== undefined && motion.atk >= 0 ? Math.min(1, motion.atk) : -1;
+  const attacking = atk >= 0;
+  const keys = L.attack ?? DEFAULT_ATTACK;
+  const rest = { x: L.handB.x, y: L.handB.y, r: L.weapon.r ?? 0 };
+  const key = attacking ? attackKey(rest, keys, atk) : rest;
   const hb = {
-    x: L.handB.x + (attacking ? swingX : s * m.swing * 0.6) + lunge,
-    y: L.handB.y + (attacking ? swingY : 0) + bob,
+    x: (attacking ? key.x : L.handB.x + s * m.swing * 0.6) + lunge,
+    y: (attacking ? key.y : L.handB.y) + bob,
   };
   const hf = { x: L.handF.x - s * m.swing + lunge, y: L.handF.y + bob };
   const footF = { x: L.footF.x + s * m.step, y: L.footY - Math.max(0, c) * m.lift };
@@ -93,7 +107,7 @@ export function builderLayout(
       hb.x + L.weapon.x,
       hb.y + L.weapon.y,
       L.weapon.s ?? 1,
-      rad(L.weapon.r) + (attacking ? p.wa - 0.55 : 0),
+      rad(attacking ? key.r : L.weapon.r),
     ),
     handB: one(parts.handB, 'c', hb.x, hb.y, 1, 0),
   };

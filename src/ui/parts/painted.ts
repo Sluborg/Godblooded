@@ -208,7 +208,7 @@ export function layout(
   p: RigPose,
   raised = false,
   headOff?: HeadOff,
-  motion: { ph: number; moving: boolean } = { ph: 0, moving: false },
+  motion: { ph: number; moving: boolean; atk?: number } = { ph: 0, moving: false },
 ): Draw[] {
   if (kit.builder) return builderLayout(kit.builder, p, motion);
   const out: Draw[] = [];

@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
   ALL_HEADS,
+  ATTACK_TIMING,
+  DEFAULT_ATTACK,
   FOOT_UNITS,
   GLOVE_COLOR,
   HAND_UNITS,
@@ -37,5 +39,13 @@ describe('hero layout', () => {
     const known = ['cape', 'footB', 'footF', 'body', 'collar', 'head', 'handF', 'weapon', 'handB'];
     for (const k of ALL_HEADS.order) expect(known).toContain(k);
     expect(ALL_HEADS.order.indexOf('handB')).toBe(ALL_HEADS.order.length - 1);
+  });
+});
+
+describe('attack keys', () => {
+  it("times the legs 45 / 20 / 35 percent and defaults to Stefan's starting keys", () => {
+    expect(ATTACK_TIMING.raise + ATTACK_TIMING.strike + ATTACK_TIMING.back).toBeCloseTo(1, 10);
+    expect(DEFAULT_ATTACK.raise).toEqual({ x: -5, y: -24, r: -70 });
+    expect(DEFAULT_ATTACK.strike).toEqual({ x: 9, y: -9, r: 100 });
   });
 });
