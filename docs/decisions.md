@@ -823,3 +823,9 @@ replaces the "wider than tall" reading in the entry above. The Thorbloods body i
   collar. One standard face size for all heads. Art orders the neckless head and ruff body
   (O-29); Stefan sets the layout in the Hero Builder; Scene builds that one hero to it.
 - **Walk round 2:** 2, "let's nail the narrow scope hero test".
+- **Hero template from Stefan's builder save "best-i-can-do"** (2026-10-20): head scale 0.64 of
+  the neckless m1 (face about 6 u, head about 17 u wide; replaces the 9 u / 27 u above), layer
+  order cape, feet, body, collar, head, front hand, weapon, back hand (head over collar, back hand
+  over the weapon grip). Stefan put a collar back on top of the body; the collar's colour is open
+  (Questions card q-collar-colour), so the "no separate collar" line above is suspended until he
+  answers.
