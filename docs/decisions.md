@@ -837,3 +837,7 @@ replaces the "wider than tall" reading in the entry above. The Thorbloods body i
   no fur; a folded scarf painted neutral grey and tinted with the cape's party colour, drawn over a
   plain-topped 16 x 26 egg body, head over the collar. Both feet share one height; hands take the
   face's skin colour (picked from the face in the Hero Builder) unless gloves are chosen.
+- **Builder saves drive the hero** (2026-10-21): Scene always builds from Stefan's newest Hero
+  Builder save. Newest ("Fixed female head"): body 15 x 26 u, calmer walk (step 3.6, bob 0.5,
+  hand swing 0.4, speed 0.5), heads re-tuned, hand skin picked per face. The attack comes from
+  raise and strike key poses he sets in the builder.
