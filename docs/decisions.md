@@ -817,3 +817,9 @@ replaces the "wider than tall" reading in the entry above. The Thorbloods body i
 - **New plan:** Stefan sets proportions and layering himself in the Hero Builder page
   (https://claude.ai/artifact/11Qt1qALywaqqbk2VRmcWN). Saved layouts (its "layouts" collection)
   are the spec Scene builds the rig to and Art orders bodies to. No new body orders until then.
+- **Narrow scope: one hero, no necks** (Questions card q-one-hero). Until Stefan rates it 5 the
+  only hero in work is Thorblood man 1: egg body, hammer t1-t3, the walk. Heads have no neck
+  (they end at the jaw and beard) and sit into a fur ruff painted on the body's top; no separate
+  collar. One standard face size for all heads. Art orders the neckless head and ruff body
+  (O-29); Stefan sets the layout in the Hero Builder; Scene builds that one hero to it.
+- **Walk round 2:** 2, "let's nail the narrow scope hero test".
