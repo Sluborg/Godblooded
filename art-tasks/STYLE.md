@@ -43,8 +43,10 @@ heroes, the skeleton pieces and `art-tasks/ref/hero-anchor-grim.png` for heroes.
   no legs, no sleeve stubs.**
   In the shared box the **hem sits on the bottom edge** (the ball feet peek out under it). **No necks**
   (Stefan 2026-10-20, "One hero, no necks", and his Hero Builder layout): a head **ends at the
-  jaw line and the bottom of the beard**, with no neck, throat, shoulders or collar below it. A separate **collar** piece (`collar_<family>`) sits on the body top, under the head; its colour
-  and finish, and whether the body top keeps painted fur, are **pending Stefan (q-collar-colour)**.
+  jaw line and the bottom of the beard**, with no neck, throat, shoulders or collar below it. A separate **collar** piece (`collar_<family>`) sits on the body top, under the head; it is **all
+  folded fabric** (a draped scarf or cowl, no fur), painted **neutral light grey** in the same cloth
+  weight and fold style as the cape, so the game tints both in the party colour and they match. The
+  body has a **plain rounded top** under it (no ruff, fur or scarf painted on the body).
   The game draws cape, feet, body, collar, head, front hand, weapon, back hand, so the beard falls
   over the collar. Body `neck`, collar `socket` and head `neck` are one point, so any head fits
   any body. **Head scale:** every head is painted to the same scale, **face height about 5 units**
