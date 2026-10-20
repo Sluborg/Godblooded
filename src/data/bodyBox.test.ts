@@ -2,10 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { BODY_BOX, BODY_BOX_HIP, boxPoint } from './bodyBox';
 
 describe('body box', () => {
-  it('is 256 x 416 px at 16 px per unit, the egg h / w about 1.6', () => {
-    expect(BODY_BOX.w * BODY_BOX.ppu).toBe(256);
+  it('is 240 x 416 px at 16 px per unit, the egg h / w about 1.73', () => {
+    expect(BODY_BOX.w * BODY_BOX.ppu).toBe(240);
     expect(BODY_BOX.h * BODY_BOX.ppu).toBe(416);
-    expect(BODY_BOX.h / BODY_BOX.w).toBeCloseTo(1.6, 1);
+    expect(BODY_BOX.h / BODY_BOX.w).toBeCloseTo(1.73, 1);
   });
   it('keeps every anchor inside the box and the feet just below it', () => {
     for (const f of [

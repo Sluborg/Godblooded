@@ -92,7 +92,7 @@ export async function registerBuilderKits(): Promise<void> {
       const size = HEAD_SIZE[headId];
       const hImg = headImgs[headIds.indexOf(headId)];
       const fit = HEAD_FIT[headId];
-      const layout = { ...L, head: { id: headId, x: fit.x, y: fit.y, s: 1, r: fit.r } };
+      const layout = { ...L, head: { id: headId, x: fit.x, y: fit.y, s: fit.s, r: fit.r } };
       const parts: BuilderKit['parts'] = {
         head: part(
           hImg,

@@ -1,12 +1,12 @@
-// The body box (Stefan 2026-10-19: no circles; then eggs; settled by Stefan's "all-heads" layout, decision 9e11e96: the visible egg IS the box, 16 x 26 u, h/w about 1.6, broad end down): every hero body shape (egg, bell, barrel, tattered) is painted
+// The body box (Stefan 2026-10-19: no circles; then eggs; settled by Stefan's "all-heads" layout, decision 9e11e96: the visible egg IS the box, 15 x 26 u ("fixed-female-head"), h/w about 1.73, broad end down): every hero body shape (egg, bell, barrel, tattered) is painted
 // inside ONE fixed box with fixed anchors, so any body plugs into the compact rig the same way and
 // the code can move hands, feet, head and cape without knowing the shape. Art paints to these
 // numbers (ppu 16); the rig reads them. Fractions are of the box, x right, y down from its top left.
 export const BODY_BOX = {
-  // The box in drawing units; at ppu 16 that is 256 x 416 px. The visible egg fills it (h / w about
+  // The box in drawing units; at ppu 16 that is 240 x 416 px. The visible egg fills it (h / w about
   // 1.6, broad end at the bottom, narrower under the collar); a bell or tattered body keeps its hem
   // on the bottom edge.
-  w: 16,
+  w: 15,
   h: 26,
   ppu: 16,
   // Where the head's chin lands (the head overlaps the body's top by about a unit), where the cape

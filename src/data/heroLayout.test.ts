@@ -20,10 +20,11 @@ describe('hero layout', () => {
     expect(HAND_UNITS).toBe(6);
     expect(FOOT_UNITS).toEqual({ w: 7, h: 3.8 });
   });
-  it('fits every head at scale 1 (the fitted scale is baked into its size)', () => {
+  it('fits every head with a fine-tune scale in the saved range (sizes are normalized in HEAD_SIZE)', () => {
     for (const id of Object.keys(HEAD_SIZE)) {
       expect(HEAD_FIT[id]).toBeDefined();
-      expect(HEAD_FIT[id].s).toBe(1);
+      expect(HEAD_FIT[id].s).toBeGreaterThanOrEqual(0.88);
+      expect(HEAD_FIT[id].s).toBeLessThanOrEqual(1);
     }
     expect(Object.keys(HEAD_FIT).length).toBe(12);
   });
