@@ -11,9 +11,12 @@ import {
 
 describe('hero layout', () => {
   it('keeps hand and foot sizes locked: no per-hero size in a layout, only positions', () => {
-    for (const k of ['handF', 'handB', 'footF', 'footB'] as const) {
+    for (const k of ['handF', 'handB'] as const) {
       expect(Object.keys(ALL_HEADS[k]).sort()).toEqual(['x', 'y']);
     }
+    // Both feet share one height: an x per foot and a single footY.
+    for (const k of ['footF', 'footB'] as const) expect(Object.keys(ALL_HEADS[k])).toEqual(['x']);
+    expect(typeof ALL_HEADS.footY).toBe('number');
     expect(HAND_UNITS).toBe(6);
     expect(FOOT_UNITS).toEqual({ w: 7, h: 3.8 });
   });

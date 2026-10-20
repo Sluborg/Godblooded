@@ -58,8 +58,8 @@ export function builderLayout(
     y: L.handB.y + (attacking ? swingY : 0) + bob,
   };
   const hf = { x: L.handF.x - s * m.swing + lunge, y: L.handF.y + bob };
-  const footF = { x: L.footF.x + s * m.step, y: L.footF.y - Math.max(0, c) * m.lift };
-  const footB = { x: L.footB.x - s * m.step, y: L.footB.y - Math.max(0, -c) * m.lift };
+  const footF = { x: L.footF.x + s * m.step, y: L.footY - Math.max(0, c) * m.lift };
+  const footB = { x: L.footB.x - s * m.step, y: L.footY - Math.max(0, -c) * m.lift };
   const by = (v: number) => v + bob;
   const parts = b.parts;
   const draws: Record<string, Draw[]> = {

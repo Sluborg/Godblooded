@@ -102,7 +102,7 @@ export async function registerBuilderKits(): Promise<void> {
           'neck',
         ),
         body: part(body, body.width, body.height, NATURAL.body, 'c'),
-        collar: part(collar, collar.width, collar.height, NATURAL.collar, 'c'),
+        collar: part(tinted(collar, L.cape.tint), collar.width, collar.height, NATURAL.collar, 'c'),
         cape: part(tinted(cape, L.cape.tint), cape.width, cape.height, NATURAL.cape, 'clasp'),
         // The hammer is 28 units tall: its pixels per unit come from the height.
         weapon: {

@@ -15,12 +15,15 @@ export interface HeroLayout {
   head: PlacedPart & { id: string };
   body: PlacedPart & { kind: string };
   cape: PlacedPart & { tint: string };
+  // The collar is a fabric piece tinted with the party colour like the cape (`cape.tint`).
   collar?: PlacedPart & { kind: string };
-  // Hands and feet: positions only (sizes are the rig constants below).
+  // Hands: positions only (sizes are the rig constants below).
   handF: Pick<PlacedPart, 'x' | 'y'>;
   handB: Pick<PlacedPart, 'x' | 'y'>;
-  footF: Pick<PlacedPart, 'x' | 'y'>;
-  footB: Pick<PlacedPart, 'x' | 'y'>;
+  // Both feet share one height (Stefan 2026-10-20): one `footY`, an x per foot.
+  footY: number;
+  footF: { x: number };
+  footB: { x: number };
   weapon: PlacedPart & { id: string; tier: number };
   // Back to front.
   order: readonly string[];
@@ -37,8 +40,9 @@ export const ALL_HEADS: HeroLayout = {
   collar: { kind: 'painted', x: -1.4, y: -21, s: 1.09, r: 0, w: 16, h: 8.6 },
   handF: { x: 9.5, y: -12.5 },
   handB: { x: -7.5, y: -12.7 },
-  footF: { x: 1.1, y: 1.2 },
-  footB: { x: -0.1, y: 1.2 },
+  footY: 1.2,
+  footF: { x: 1.1 },
+  footB: { x: -0.1 },
   weapon: { id: 'hammer', tier: 0, x: 0.2, y: -0.3, s: 1.01, r: 2 },
   order: ['cape', 'footB', 'footF', 'body', 'handF', 'collar', 'head', 'weapon', 'handB'],
   motion: { step: 3.4, lift: 1.2, bob: 0.6, swing: 1.6, speed: 0.55 },
