@@ -1,0 +1,30 @@
+{
+  "id": "kit_hammer",
+  "batch": "G17",
+  "upload": "assets/source/G17/kit_hammer.png",
+  "pxPerUnit": 16,
+  "scale": 0.42,
+  "parts": [
+    {
+      "cell": "hammer_t1",
+      "box": [30, 120, 391, 1178],
+      "pivots": {
+        "grip": [0.5, 0.72]
+      }
+    },
+    {
+      "cell": "hammer_t2",
+      "box": [403, 95, 800, 1182],
+      "pivots": {
+        "grip": [0.5, 0.72]
+      }
+    },
+    {
+      "cell": "hammer_t3",
+      "box": [808, 65, 1235, 1190],
+      "pivots": {
+        "grip": [0.5, 0.72]
+      }
+    }
+  ]
+}
