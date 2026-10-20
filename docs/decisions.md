@@ -808,3 +808,12 @@ replaces the "wider than tall" reading in the entry above. The Thorbloods body i
 - **Body is a narrower egg, 3:4 (12:16)** (Stefan: "more egg bodies that make the models less
   fat"). Replaces 14:16. Same height and anchors, narrower box; broad end down. A 14:16 body
   from the heroes chat doesn't ship.
+
+## 2026-10-20: weapons ship, body held, Stefan sets proportions in a Hero Builder
+
+- **Hammer and hammerstaff (O-28):** good, ship ("jewels slightly unaligned from head to handle,
+  good enough").
+- **O-28 body and collar:** held ("bodies were awful with those heads").
+- **New plan:** Stefan sets proportions and layering himself in the Hero Builder page
+  (https://claude.ai/artifact/11Qt1qALywaqqbk2VRmcWN). Saved layouts (its "layouts" collection)
+  are the spec Scene builds the rig to and Art orders bodies to. No new body orders until then.
