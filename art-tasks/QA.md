@@ -47,7 +47,7 @@ still fails, do not upload it: report the item and the fault instead.
     focal ornament per facade (14.3); a door is about 1.3 times a hero's height (14.4). A
     building that breaks 14.1, 14.2 or 14.4 fails.
 15. **Heroes as settled** (STYLE "Heroes", Stefan 2026-10-18 and 2026-10-19): a big head about a
-    third of the figure on a body that is a slim upright egg (16 wide by 26 tall, broad end down; never a circle or a lying oval), bell, barrel or tattered shape
+    third of the figure on a body that is a slim upright egg (15 wide by 26 tall, broad end down; never a circle or a lying oval), bell, barrel or tattered shape
     inside the shared box,
     with no arms, legs or sleeve stubs (15.1); a grim adult face with the stylised features (big round
     ears, short round nose, heavy brows), never cute (15.2); each piece on its own layer, the cape
