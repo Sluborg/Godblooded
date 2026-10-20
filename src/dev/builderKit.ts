@@ -3,7 +3,8 @@
 // him from his saved layout (data/heroLayout.ts). Nothing here ships.
 import {
   ALL_HEADS,
-  HEAD_ART,
+  HEAD_PIVOT,
+  HEAD_SIZE,
   HEAD_FIT,
   FOOT_COLOR,
   FOOT_UNITS,
@@ -58,7 +59,7 @@ export async function registerBuilderKits(): Promise<void> {
   const base = ALL_HEADS;
   const dir = '/anim-test/builder';
   const L = base;
-  const headIds = Object.keys(HEAD_ART);
+  const headIds = Object.keys(HEAD_PIVOT);
   const headImgs = await Promise.all(headIds.map((id) => loadImage(`${dir}/${id}.png`)));
   const [body, collar, cape] = await Promise.all([
     loadImage(`${dir}/body_thorblood_ruff.png`),
@@ -87,17 +88,17 @@ export async function registerBuilderKits(): Promise<void> {
       );
       // The head of this unit: the neckless man for the plain look, else the Thorblood head named by
       // the suffix, placed by its own fit.
-      const headId = h ? `head_thorblood_${h}` : 'head_thorblood_m1_nn';
-      const art = HEAD_ART[headId];
+      const headId = h && h !== 'm1' ? `head_thorblood_${h}` : 'head_thorblood_m1_nn';
+      const size = HEAD_SIZE[headId];
       const hImg = headImgs[headIds.indexOf(headId)];
       const fit = HEAD_FIT[headId];
-      const layout = { ...L, head: { id: headId, x: fit.x, y: fit.y, s: fit.s, r: fit.r } };
+      const layout = { ...L, head: { id: headId, x: fit.x, y: fit.y, s: 1, r: fit.r } };
       const parts: BuilderKit['parts'] = {
         head: part(
           hImg,
           hImg.width,
           hImg.height,
-          { w: art.w, pivot: [art.pivot[0], art.pivot[1]] },
+          { w: size.w, pivot: [HEAD_PIVOT[headId][0], HEAD_PIVOT[headId][1]] },
           'neck',
         ),
         body: part(body, body.width, body.height, NATURAL.body, 'c'),

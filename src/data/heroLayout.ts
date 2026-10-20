@@ -31,7 +31,7 @@ export interface HeroLayout {
 // thinner 16 x 26 body, feet lower, the collar drawn between the near hand and the head. The head
 // of the layout itself is placed by `HEAD_FIT` per head (below). The collar is part of this order.
 export const ALL_HEADS: HeroLayout = {
-  head: { id: 'head_thorblood_m1_nn', x: -0.1, y: -20.9, s: 0.57, r: 0 },
+  head: { id: 'head_thorblood_m1_nn', x: -0.1, y: -20.9, s: 1, r: 0 },
   body: { kind: 'ruff', x: 0, y: -14.5, s: 1, r: 0, w: 16, h: 26 },
   cape: { x: -1.8, y: -23, s: 0.85, r: 0, tint: '#a8342f' },
   collar: { kind: 'painted', x: -1.4, y: -21, s: 1.09, r: 0, w: 16, h: 8.6 },
@@ -45,33 +45,45 @@ export const ALL_HEADS: HeroLayout = {
 };
 
 // Where each head sits and how big it is (x, y of its neck pivot in game units, s = scale against its
-// natural size), per head, as Stefan fitted them: the Thorbloods about 0.55 to 0.61, the G12 heads 0.8.
+// natural size), per head, as Stefan fitted them. Each head's fitted scale is baked into its size in
+// HEAD_SIZE (2026-10-20), so every head sits at scale 1.
 export const HEAD_FIT: Readonly<Record<string, { x: number; y: number; s: number; r: number }>> = {
-  head_thorblood_m1_nn: { x: -0.1, y: -20.9, s: 0.57, r: 0 },
-  head_thorblood_m1: { x: 2.6, y: -20.4, s: 0.55, r: 0 },
-  head_thorblood_m2: { x: 2.6, y: -19.9, s: 0.56, r: 0 },
-  head_thorblood_f1: { x: 4.1, y: -20.4, s: 0.56, r: 0 },
-  head_thorblood_f2: { x: 3.1, y: -19.9, s: 0.61, r: 0 },
-  head_a: { x: 1.6, y: -20.4, s: 0.8, r: 0 },
-  head_b: { x: 0.1, y: -19.9, s: 0.8, r: 0 },
-  head_c: { x: 0.1, y: -19.9, s: 0.8, r: 0 },
-  head_d: { x: 1.1, y: -19.4, s: 0.8, r: 0 },
-  head_e: { x: 1.1, y: -19.9, s: 0.8, r: 0 },
-  head_f: { x: 1.6, y: -20.4, s: 0.71, r: 0 },
-  head_g: { x: 1.1, y: -16.4, s: 0.8, r: 0 },
-  head_h: { x: 1.1, y: -17.4, s: 0.64, r: 0 },
+  head_thorblood_m1_nn: { x: -0.1, y: -20.9, s: 1, r: 0 },
+  head_thorblood_m2: { x: 2.6, y: -19.9, s: 1, r: 0 },
+  head_thorblood_f1: { x: 4.1, y: -20.4, s: 1, r: 0 },
+  head_thorblood_f2: { x: 3.1, y: -19.9, s: 1, r: 0 },
+  head_a: { x: 1.6, y: -20.4, s: 1, r: 0 },
+  head_b: { x: 0.1, y: -19.9, s: 1, r: 0 },
+  head_c: { x: 0.1, y: -19.9, s: 1, r: 0 },
+  head_d: { x: 1.1, y: -19.4, s: 1, r: 0 },
+  head_e: { x: 1.1, y: -19.9, s: 1, r: 0 },
+  head_f: { x: 1.6, y: -20.4, s: 1, r: 0 },
+  head_g: { x: 1.1, y: -16.4, s: 1, r: 0 },
+  head_h: { x: 1.1, y: -17.4, s: 1, r: 0 },
 };
 
-// The Thorblood heads' own picture facts: natural width in units (sheet pixels / 16), the picture's
-// aspect (height over width) and the neck pivot (the neckless head's is lower).
-export const HEAD_ART: Readonly<
-  Record<string, { w: number; aspect: number; pivot: readonly [number, number] }>
-> = {
-  head_thorblood_m1_nn: { w: 27, aspect: 719 / 700, pivot: [0.55, 0.86] },
-  head_thorblood_m1: { w: 27.06, aspect: 551 / 539, pivot: [0.7, 0.88] },
-  head_thorblood_m2: { w: 26.4, aspect: 583 / 526, pivot: [0.7, 0.88] },
-  head_thorblood_f1: { w: 26.7, aspect: 527 / 532, pivot: [0.7, 0.88] },
-  head_thorblood_f2: { w: 24.1, aspect: 557 / 481, pivot: [0.7, 0.88] },
+// Each head's canonical size in game units (width x height, the fitted scale baked in, so s = 1) and
+// its neck pivot (fractions of the picture; the neckless head's is lower). The necked m1 is dropped
+// as a duplicate of m1_nn.
+export const HEAD_SIZE: Readonly<Record<string, { w: number; h: number }>> = {
+  head_thorblood_m1_nn: { w: 15.39, h: 15.79 },
+  head_thorblood_m2: { w: 14.77, h: 16.41 },
+  head_thorblood_f1: { w: 14.95, h: 14.81 },
+  head_thorblood_f2: { w: 14.71, h: 17.04 },
+  head_a: { w: 15.2, h: 16.95 },
+  head_b: { w: 15.2, h: 17.15 },
+  head_c: { w: 15.2, h: 16.1 },
+  head_d: { w: 15.2, h: 17.25 },
+  head_e: { w: 15.2, h: 17.4 },
+  head_f: { w: 13.49, h: 17.13 },
+  head_g: { w: 15.2, h: 21.7 },
+  head_h: { w: 12.16, h: 19.28 },
+};
+export const HEAD_PIVOT: Readonly<Record<string, readonly [number, number]>> = {
+  head_thorblood_m1_nn: [0.55, 0.86],
+  head_thorblood_m2: [0.7, 0.88],
+  head_thorblood_f1: [0.7, 0.88],
+  head_thorblood_f2: [0.7, 0.88],
 };
 
 // Rig constants (Stefan 2026-10-20): hand and foot sizes are locked, the same on every hero, with no

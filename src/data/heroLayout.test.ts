@@ -4,7 +4,7 @@ import {
   FOOT_UNITS,
   GLOVE_COLOR,
   HAND_UNITS,
-  HEAD_ART,
+  HEAD_SIZE,
   HEAD_FIT,
   HEAD_SKIN,
 } from './heroLayout';
@@ -17,13 +17,12 @@ describe('hero layout', () => {
     expect(HAND_UNITS).toBe(6);
     expect(FOOT_UNITS).toEqual({ w: 7, h: 3.8 });
   });
-  it('fits every Thorblood head and keeps scales in a sane range', () => {
-    for (const id of Object.keys(HEAD_ART)) {
+  it('fits every head at scale 1 (the fitted scale is baked into its size)', () => {
+    for (const id of Object.keys(HEAD_SIZE)) {
       expect(HEAD_FIT[id]).toBeDefined();
-      expect(HEAD_FIT[id].s).toBeGreaterThan(0.4);
-      expect(HEAD_FIT[id].s).toBeLessThan(1);
+      expect(HEAD_FIT[id].s).toBe(1);
     }
-    expect(Object.keys(HEAD_FIT).length).toBe(13);
+    expect(Object.keys(HEAD_FIT).length).toBe(12);
   });
   it('has a skin tone per head and a glove colour', () => {
     for (const h of ['m1', 'm2', 'f1', 'f2'] as const)
