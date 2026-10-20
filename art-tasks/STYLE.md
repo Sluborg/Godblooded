@@ -35,7 +35,7 @@ The references are Stefan's seven pictures, fetched raw from main:
 heroes, the skeleton pieces and `art-tasks/ref/hero-anchor-grim.png` for heroes.
 
 - **Shape** (Stefan 2026-10-19, "Body shapes"): a **big head, about a third of the figure**, on a
-  compact body in one of **four shapes**: **egg** (the default: a **slim upright egg, 16 wide by 26 tall (height about 1.6 times the width)**, broad end at the bottom, a little narrower at the top; never a circle, never a lying oval; Stefan 2026-10-20, "all-heads" builder fit), **bell** (a robe or skirt flaring
+  compact body in one of **four shapes**: **egg** (the default: a **slim upright egg, 15 wide by 26 tall (height about 1.73 times the width)**, broad end at the bottom, a little narrower at the top; never a circle, never a lying oval; Stefan 2026-10-20, builder fit, Scene BODY_BOX), **bell** (a robe or skirt flaring
   to the hem), **barrel** (heavy armour, straight-sided) or **tattered** (a ragged cloak with a torn
   hem). Every shape fits the **same box** and keeps the **same anchor points** (the hand points at
   shoulder height, the feet under the hem on one line), so the game moves them all alike. **Floating
@@ -52,7 +52,7 @@ heroes, the skeleton pieces and `art-tasks/ref/hero-anchor-grim.png` for heroes.
   any body. **Head scale:** every head is painted to the same scale, **face height about 5 units**
   (5.1, brow line to the bottom of the chin), the whole head about 15 wide and 15 to 17 tall at 16 px
   per unit (Stefan's "all-heads" builder fit; `head_thorblood_m1` is the template),
-  so a new head drops in without retuning. The body box is the egg, **16 wide by 26 tall**; keep brooches and crests **clear of the two
+  so a new head drops in without retuning. The body box is the egg, **15 wide by 26 tall**; keep brooches and crests **clear of the two
   hand spots** at shoulder height on either side. Each god's bodies keep one shape family
   (Thorbloods: egg or barrel).
 - **Face:** stylised features (oversized round ears, a short rounded nose, heavy simple brows),
