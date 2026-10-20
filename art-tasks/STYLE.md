@@ -47,8 +47,9 @@ heroes, the skeleton pieces and `art-tasks/ref/hero-anchor-grim.png` for heroes.
   and finish, and whether the body top keeps painted fur, are **pending Stefan (q-collar-colour)**.
   The game draws cape, feet, body, collar, head, front hand, weapon, back hand, so the beard falls
   over the collar. Body `neck`, collar `socket` and head `neck` are one point, so any head fits
-  any body. **Head scale:** every head is painted to the same scale, **face height about 6 units**
-  (5.8, brow line to the bottom of the chin), the whole head about 17 wide (Stefan's builder scale),
+  any body. **Head scale:** every head is painted to the same scale, **face height about 5 units**
+  (5.1, brow line to the bottom of the chin), the whole head about 15 wide and 15 to 17 tall at 16 px
+  per unit (Stefan's "all-heads" builder fit; `head_thorblood_m1` is the template),
   so a new head drops in without retuning. The body box keeps its height (25) and narrows to the
   egg (19 wide); keep brooches and crests **clear of the two
   hand spots** at shoulder height on either side. Each god's bodies keep one shape family
