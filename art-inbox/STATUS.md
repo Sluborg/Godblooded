@@ -450,3 +450,6 @@ Thorbloods | 2026-10-19T22:44:51.833Z | heroes | kit_thorbloods_body, kit_thorbl
 
 
 Thorblood-m1 | 2026-10-20T19:21:37.033Z | heroes | started | O-29 two pieces only, no prior O-29 claim/delivery; head without neck then12:16 egg body with integrated fur ruff. Run0e7fc798. No older work resumed.
+
+
+Thorblood-m1 | 2026-10-20T19:23:08.705Z | heroes | kit_thorblood_m1_head | partial delivery | O-29 one separate unchanged PNG, neckless m1 from shipped top-left head identity. Hair/jaw closes outline under ear, no neck/throat/shoulders/collar. Smooth finish and top-left light. https://drive.google.com/file/d/1U43Hcx5Y5-LybFbVwwcpKKM8Hf02NAZl/view . Body with integrated ruff next. STYLE main still omits requested new head-scale paragraph; applied O-29 explicit face9/head27 instead.
