@@ -41,11 +41,15 @@ heroes, the skeleton pieces and `art-tasks/ref/hero-anchor-grim.png` for heroes.
   shoulder height, the feet under the hem on one line), so the game moves them all alike. **Floating
   ball hands** (plain skin tone) and **ball feet** (plain leather) are drawn by the game. **No arms,
   no legs, no sleeve stubs.**
-  In the shared box the **hem sits on the bottom edge** (the ball feet peek out under it). **Head
-  socket:** the body has no collar; its top is a plain shoulder line. The **collar is its own
-  piece** (`collar_<family>`), drawn **over** the head: a crescent high at the back of the neck,
-  hiding the head's neck cut, and low and open at the front so beards and braids fall over it. Body
-  `neck`, head `neck` and collar `socket` are one point, so any head fits any body; keep brooches and crests **clear of the two
+  In the shared box the **hem sits on the bottom edge** (the ball feet peek out under it). **No necks**
+  (Stefan 2026-10-20, "One hero, no necks"): a head **ends at the jaw line and the bottom of the
+  beard**, with no neck, throat, shoulders or collar below it. The egg body carries a **built-in fur
+  ruff** around its top, its back (nape side, left) a little higher than the front; its top is a soft
+  dip that seats the chin and beard, and the game draws the head **over** it. Body `neck` and head
+  `neck` are one point, so any head fits any body. **Head scale:** every head is painted to the same
+  scale, **face height 9 units** (brow line to the bottom of the chin), the whole head about 27 wide,
+  so a new head drops in without retuning. The body box keeps its height (25) and narrows to the
+  egg (19 wide); keep brooches and crests **clear of the two
   hand spots** at shoulder height on either side. Each god's bodies keep one shape family
   (Thorbloods: egg or barrel).
 - **Face:** stylised features (oversized round ears, a short rounded nose, heavy simple brows),
