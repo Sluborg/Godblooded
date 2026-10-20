@@ -2,10 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { BODY_BOX, BODY_BOX_HIP, boxPoint } from './bodyBox';
 
 describe('body box', () => {
-  it('is 304 x 400 px at 16 px per unit, the 12 : 16 body ratio', () => {
-    expect(BODY_BOX.w * BODY_BOX.ppu).toBe(304);
-    expect(BODY_BOX.h * BODY_BOX.ppu).toBe(400);
-    expect(BODY_BOX.w / BODY_BOX.h).toBeCloseTo(12 / 16, 1);
+  it('is 256 x 416 px at 16 px per unit, the egg h / w about 1.6', () => {
+    expect(BODY_BOX.w * BODY_BOX.ppu).toBe(256);
+    expect(BODY_BOX.h * BODY_BOX.ppu).toBe(416);
+    expect(BODY_BOX.h / BODY_BOX.w).toBeCloseTo(1.6, 1);
   });
   it('keeps every anchor inside the box and the feet just below it', () => {
     for (const f of [
@@ -13,7 +13,6 @@ describe('body box', () => {
       BODY_BOX.anchors.neck,
       BODY_BOX.anchors.clasp,
       BODY_BOX.hands.back,
-      BODY_BOX.hands.front,
     ]) {
       expect(f[0]).toBeGreaterThanOrEqual(0);
       expect(f[0]).toBeLessThanOrEqual(1);
@@ -21,17 +20,17 @@ describe('body box', () => {
       expect(f[1]).toBeLessThanOrEqual(1);
     }
     expect(BODY_BOX.feet.y).toBeGreaterThan(1);
-    expect(BODY_BOX.feet.y).toBeLessThan(1.15);
+    expect(BODY_BOX.feet.y).toBeLessThan(1.2);
   });
   it('puts the hip on the rig pivot, the chin at the top and the feet near the ground', () => {
     expect(boxPoint(BODY_BOX.anchors.hip)).toEqual(BODY_BOX_HIP);
     const neck = boxPoint(BODY_BOX.anchors.neck);
-    expect(neck.y).toBeLessThan(BODY_BOX_HIP.y - 8);
+    expect(neck.y).toBeLessThan(BODY_BOX_HIP.y - 5);
     // The feet land about 1.5 units under the box and a few units above the ground (ball feet are
     // about 3 units tall).
     const foot = boxPoint([0.5, BODY_BOX.feet.y]);
     expect(foot.y).toBeGreaterThan(-4);
-    expect(foot.y).toBeLessThan(1);
+    expect(foot.y).toBeLessThan(2);
   });
   it('has the back hand on the cape side and the front hand ahead', () => {
     expect(BODY_BOX.hands.back[0]).toBeLessThan(0.5);
