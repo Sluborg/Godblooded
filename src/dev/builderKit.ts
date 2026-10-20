@@ -2,7 +2,9 @@
 // registers the one Thorblood man for every Thor look behind `?heroes=thorbloods`, so the rig draws
 // him from his saved layout (data/heroLayout.ts). Nothing here ships.
 import {
-  BEST_I_CAN_DO,
+  ALL_HEADS,
+  HEAD_ART,
+  HEAD_FIT,
   FOOT_COLOR,
   FOOT_UNITS,
   GLOVE_COLOR,
@@ -53,10 +55,12 @@ function tinted(img: HTMLImageElement, color: string): HTMLCanvasElement {
 }
 
 export async function registerBuilderKits(): Promise<void> {
-  const L = BEST_I_CAN_DO;
+  const base = ALL_HEADS;
   const dir = '/anim-test/builder';
-  const [head, body, collar, cape] = await Promise.all([
-    loadImage(`${dir}/${L.head.id}.png`),
+  const L = base;
+  const headIds = Object.keys(HEAD_ART);
+  const headImgs = await Promise.all(headIds.map((id) => loadImage(`${dir}/${id}.png`)));
+  const [body, collar, cape] = await Promise.all([
     loadImage(`${dir}/body_thorblood_ruff.png`),
     loadImage(`${dir}/collar_o28.png`),
     loadImage(`${dir}/cape_neutral.png`),
@@ -81,8 +85,21 @@ export async function registerBuilderKits(): Promise<void> {
         96,
         96,
       );
+      // The head of this unit: the neckless man for the plain look, else the Thorblood head named by
+      // the suffix, placed by its own fit.
+      const headId = h ? `head_thorblood_${h}` : 'head_thorblood_m1_nn';
+      const art = HEAD_ART[headId];
+      const hImg = headImgs[headIds.indexOf(headId)];
+      const fit = HEAD_FIT[headId];
+      const layout = { ...L, head: { id: headId, x: fit.x, y: fit.y, s: fit.s, r: fit.r } };
       const parts: BuilderKit['parts'] = {
-        head: part(head, head.width, head.height, NATURAL.head, 'neck'),
+        head: part(
+          hImg,
+          hImg.width,
+          hImg.height,
+          { w: art.w, pivot: [art.pivot[0], art.pivot[1]] },
+          'neck',
+        ),
         body: part(body, body.width, body.height, NATURAL.body, 'c'),
         collar: part(collar, collar.width, collar.height, NATURAL.collar, 'c'),
         cape: part(tinted(cape, L.cape.tint), cape.width, cape.height, NATURAL.cape, 'clasp'),
@@ -101,7 +118,7 @@ export async function registerBuilderKits(): Promise<void> {
         layers: {},
         build: BUILDS.standard,
         mode: 'floating',
-        builder: { layout: L, parts },
+        builder: { layout, parts },
       };
       RUNTIME_KITS.set(h ? `${look}~${h}` : look, kit);
     }

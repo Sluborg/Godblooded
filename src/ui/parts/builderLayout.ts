@@ -45,8 +45,9 @@ export function builderLayout(
     y: number,
     scale: number,
     rot: number,
+    scaleY = scale,
   ): Draw[] =>
-    part ? [{ part, pivot, x, y, rot, sx: scale, sy: scale, inBody: false, far: false }] : [];
+    part ? [{ part, pivot, x, y, rot, sx: scale, sy: scaleY, inBody: false, far: false }] : [];
   // The weapon hand travels as the prototype's weapon hand does in a swing.
   const swingX =
     Math.max(-9, Math.min(8, (p.hf.x - 5.5) * 1.6)) * (L.order.includes('weapon') ? 1 : 0);
@@ -72,7 +73,15 @@ export function builderLayout(
     ),
     footB: one(parts.foot, 'c', footB.x, footB.y, 1, 0),
     footF: one(parts.foot, 'c', footF.x, footF.y, 1, 0),
-    body: one(parts.body, 'c', L.body.x + lunge, by(L.body.y), L.body.s ?? 1, rad(L.body.r)),
+    body: one(
+      parts.body,
+      'c',
+      L.body.x + lunge,
+      by(L.body.y),
+      ((L.body.w ?? NATURAL.body.w) / NATURAL.body.w) * (L.body.s ?? 1),
+      rad(L.body.r),
+      ((L.body.h ?? NATURAL.body.h) / NATURAL.body.h) * (L.body.s ?? 1),
+    ),
     collar: L.collar
       ? one(parts.collar, 'c', L.collar.x + lunge, by(L.collar.y), L.collar.s ?? 1, rad(L.collar.r))
       : [],

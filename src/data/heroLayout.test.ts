@@ -1,13 +1,29 @@
 import { describe, expect, it } from 'vitest';
-import { BEST_I_CAN_DO, FOOT_UNITS, HAND_UNITS, HEAD_SKIN, GLOVE_COLOR } from './heroLayout';
+import {
+  ALL_HEADS,
+  FOOT_UNITS,
+  GLOVE_COLOR,
+  HAND_UNITS,
+  HEAD_ART,
+  HEAD_FIT,
+  HEAD_SKIN,
+} from './heroLayout';
 
 describe('hero layout', () => {
   it('keeps hand and foot sizes locked: no per-hero size in a layout, only positions', () => {
     for (const k of ['handF', 'handB', 'footF', 'footB'] as const) {
-      expect(Object.keys(BEST_I_CAN_DO[k]).sort()).toEqual(['x', 'y']);
+      expect(Object.keys(ALL_HEADS[k]).sort()).toEqual(['x', 'y']);
     }
     expect(HAND_UNITS).toBe(6);
     expect(FOOT_UNITS).toEqual({ w: 7, h: 3.8 });
+  });
+  it('fits every Thorblood head and keeps scales in a sane range', () => {
+    for (const id of Object.keys(HEAD_ART)) {
+      expect(HEAD_FIT[id]).toBeDefined();
+      expect(HEAD_FIT[id].s).toBeGreaterThan(0.4);
+      expect(HEAD_FIT[id].s).toBeLessThan(1);
+    }
+    expect(Object.keys(HEAD_FIT).length).toBe(13);
   });
   it('has a skin tone per head and a glove colour', () => {
     for (const h of ['m1', 'm2', 'f1', 'f2'] as const)
@@ -16,7 +32,7 @@ describe('hero layout', () => {
   });
   it('lists every part its order names, back to front, and the collar only if drawn', () => {
     const known = ['cape', 'footB', 'footF', 'body', 'collar', 'head', 'handF', 'weapon', 'handB'];
-    for (const k of BEST_I_CAN_DO.order) expect(known).toContain(k);
-    expect(BEST_I_CAN_DO.order.indexOf('handB')).toBe(BEST_I_CAN_DO.order.length - 1);
+    for (const k of ALL_HEADS.order) expect(known).toContain(k);
+    expect(ALL_HEADS.order.indexOf('handB')).toBe(ALL_HEADS.order.length - 1);
   });
 });
