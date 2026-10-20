@@ -829,3 +829,7 @@ replaces the "wider than tall" reading in the entry above. The Thorbloods body i
   over the weapon grip). Stefan put a collar back on top of the body; the collar's colour is open
   (Questions card q-collar-colour), so the "no separate collar" line above is suspended until he
   answers.
+- **Head sizes normalized** (Stefan, 2026-10-20): his "All heads" builder save fitted every head
+  on the template body; each head's fitted scale is now baked into its size, so all heads sit at
+  scale 1 (Thorblood heads about 15 u wide; m1 neckless 15.39 x 15.79 u). Body 16 x 26 u, feet
+  1.2 u lower; hand and foot sizes locked for every hero. The necked Thorblood man 1 is dropped.
