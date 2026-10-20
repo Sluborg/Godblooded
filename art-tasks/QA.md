@@ -51,7 +51,8 @@ still fails, do not upload it: report the item and the fault instead.
     inside the shared box,
     with no arms, legs or sleeve stubs (15.1); a grim adult face with the stylised features (big round
     ears, short round nose, heavy brows), never cute (15.2); each piece on its own layer, the cape
-    painted neutral light grey, the god's motif only on that god's body (15.3); the weapon painted
+    and the collar painted neutral light grey at the same value (median brightness within about 10 of
+    `cape_neutral`, about 129 of 255), the god's motif only on that god's body (15.3); the weapon painted
     hand-neutral with a clean haft, behind the hand balls; a shield painted angled 3/4 toward the
     viewer, face showing, for the front hand (15.4). A hero piece that breaks 15.1, 15.2 or 15.3
     fails.
