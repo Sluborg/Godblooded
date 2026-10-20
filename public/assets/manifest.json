@@ -698,6 +698,47 @@
       "source": "G17"
     },
     {
+      "id": "kit_hammer",
+      "kind": "kit",
+      "tier": null,
+      "view": null,
+      "file": "kits/kit_hammer.png",
+      "anchorX": 0.5,
+      "anchorY": 0.5,
+      "pxPerUnit": 16,
+      "cells": {
+        "hammer_t1": {
+          "x": 8,
+          "y": 8,
+          "w": 139,
+          "h": 434,
+          "pivots": {
+            "grip": [0.5, 0.72]
+          }
+        },
+        "hammer_t2": {
+          "x": 155,
+          "y": 8,
+          "w": 162,
+          "h": 449,
+          "pivots": {
+            "grip": [0.5, 0.72]
+          }
+        },
+        "hammer_t3": {
+          "x": 325,
+          "y": 8,
+          "w": 176,
+          "h": 465,
+          "pivots": {
+            "grip": [0.5, 0.72]
+          }
+        }
+      },
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "G17"
+    },
+    {
       "id": "kit_heads_a",
       "kind": "kit",
       "tier": null,
@@ -1228,6 +1269,47 @@
           "pivots": {
             "neck": [0.7, 0.88],
             "brow": [0.7, 0.5]
+          }
+        }
+      },
+      "license": "own (ChatGPT, Stefan's account)",
+      "source": "G17"
+    },
+    {
+      "id": "kit_thunderstaff",
+      "kind": "kit",
+      "tier": null,
+      "view": null,
+      "file": "kits/kit_thunderstaff.png",
+      "anchorX": 0.5,
+      "anchorY": 0.5,
+      "pxPerUnit": 16,
+      "cells": {
+        "thunderstaff_t1": {
+          "x": 8,
+          "y": 8,
+          "w": 192,
+          "h": 749,
+          "pivots": {
+            "grip": [0.5, 0.72]
+          }
+        },
+        "thunderstaff_t2": {
+          "x": 208,
+          "y": 8,
+          "w": 209,
+          "h": 753,
+          "pivots": {
+            "grip": [0.5, 0.72]
+          }
+        },
+        "thunderstaff_t3": {
+          "x": 425,
+          "y": 8,
+          "w": 235,
+          "h": 766,
+          "pivots": {
+            "grip": [0.5, 0.72]
           }
         }
       },
