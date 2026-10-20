@@ -459,3 +459,6 @@ Thorblood-m1 | 2026-10-20T19:24:49.082Z | heroes | kit_thorblood_m1_head, kit_th
 
 
 Thorblood-heads | 2026-10-20T20:55:20.000Z | heroes | started | O-30 three neckless heads m2, f1, f2 matched to O-29 m1 scale/framing; new order supersedes paused O-29. Run 6dc073ce.
+
+
+Thorblood-heads | 2026-10-20T21:03:00.000Z | heroes | O-30 interrupted; not uploaded | Generated and visually inspected neckless m2, f1, f2 (m2 corrected once to remove skin neck wedge). Drive upload blocked because runtime reported no primary turn environment and could not materialize generated data URLs as file references. No files uploaded and no O-30 reply appended, so a later run can continue without treating the order as complete. Persistent webhook unchanged.
