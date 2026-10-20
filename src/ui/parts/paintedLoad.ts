@@ -27,7 +27,7 @@ function partsById(scene: Phaser.Scene): Map<string, KitPart> {
 }
 
 // A plain code ball picture (a hand or a boot): a radial-shaded ellipse with a dark rim, `w` x `h` px.
-function ballCanvas(color: string, w: number, h: number): HTMLCanvasElement {
+export function ballCanvas(color: string, w: number, h: number): HTMLCanvasElement {
   const c = document.createElement('canvas');
   c.width = w;
   c.height = h;

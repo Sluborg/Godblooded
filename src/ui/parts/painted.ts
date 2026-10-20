@@ -3,6 +3,7 @@
 // arms and legs (two bones each, in code), places the kit parts on the joints and draws them.
 // bake.ts bakes the frames as before. Effects (glow, aura, trail, ravens) stay in code and are not
 // drawn on painted looks yet. The contract with Art is in docs/asset-spec.md (kit sheets).
+import { builderLayout, type BuilderKit } from './builderLayout';
 import {
   BUILDS,
   KIT_REQUIRED,
@@ -40,6 +41,8 @@ export interface Kit {
   // (cape side), behind the body all through a swing; the free hand is the near, front one; the feet
   // take short synced steps under the hem and the head is locked to the neck.
   threeQuarter?: boolean;
+  // A Hero Builder layout (test switch): the rig draws this hero from it instead of the pose table.
+  builder?: BuilderKit;
 }
 
 // Pivot fallbacks (fractions) when a cell does not name one.
@@ -200,7 +203,14 @@ export interface HeadOff {
   rot: number;
 }
 
-export function layout(kit: Kit, p: RigPose, raised = false, headOff?: HeadOff): Draw[] {
+export function layout(
+  kit: Kit,
+  p: RigPose,
+  raised = false,
+  headOff?: HeadOff,
+  motion: { ph: number; moving: boolean } = { ph: 0, moving: false },
+): Draw[] {
+  if (kit.builder) return builderLayout(kit.builder, p, motion);
   const out: Draw[] = [];
   const { parts, layers, build } = kit;
   const floating = kit.mode === 'floating';

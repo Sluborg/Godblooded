@@ -136,7 +136,11 @@ export function ensureHeroSet(scene: Phaser.Scene, id: string, def: PartsDef, ti
         // prototype's is 32, drawn at usc(u) (its scale and the 0.86 unit scale).
         c.save();
         c.scale(kitScale(usc(u)), kitScale(usc(u)));
-        drawKit(c, layout(kit, p, p.armF > 2.0 && u.atkT >= 0, headOff), p);
+        drawKit(
+          c,
+          layout(kit, p, p.armF > 2.0 && u.atkT >= 0, headOff, { ph: u.walkPh, moving: u.moving }),
+          p,
+        );
         c.restore();
       } else drawHuman(u);
       if (props) {

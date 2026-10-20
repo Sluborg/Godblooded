@@ -51,6 +51,7 @@ async function record(u, zoom) {
   const total = await page.evaluate(
     async ({ u, zoom }) => {
       const { AnimStage, registerAnimKit } = await import('/src/dev/animStage.ts');
+      if (u.builder) await (await import('/src/dev/builderKit.ts')).registerBuilderKits();
       if (u.kit) await registerAnimKit(u.kit);
       if (u.party) for (const m of u.party) if (m.kit) await registerAnimKit(m.kit);
       const game = window.__game;
