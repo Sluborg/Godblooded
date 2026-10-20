@@ -16,10 +16,11 @@ export interface HeroLayout {
   body: PlacedPart & { kind: string };
   cape: PlacedPart & { tint: string };
   collar?: PlacedPart & { kind: string };
-  handF: PlacedPart;
-  handB: PlacedPart;
-  footF: PlacedPart;
-  footB: PlacedPart;
+  // Hands and feet: positions only (sizes are the rig constants below).
+  handF: Pick<PlacedPart, 'x' | 'y'>;
+  handB: Pick<PlacedPart, 'x' | 'y'>;
+  footF: Pick<PlacedPart, 'x' | 'y'>;
+  footB: Pick<PlacedPart, 'x' | 'y'>;
   weapon: PlacedPart & { id: string; tier: number };
   // Back to front.
   order: readonly string[];
@@ -33,11 +34,21 @@ export const BEST_I_CAN_DO: HeroLayout = {
   body: { kind: 'ruff', x: 0, y: -14.5, s: 1, r: 0, w: 19, h: 26 },
   cape: { x: -1.8, y: -23, s: 0.85, r: 0, tint: '#a8342f' },
   collar: { kind: 'painted', x: -1.4, y: -21, s: 1.09, r: 0, w: 16, h: 8.6 },
-  handF: { x: 9.5, y: -12.5, s: 1, w: 6, h: 6 },
-  handB: { x: -7.5, y: -12.7, s: 1, w: 6, h: 6 },
-  footF: { x: 1.1, y: 0.2, w: 7, h: 3.8 },
-  footB: { x: -0.1, y: 0.2, w: 7, h: 3.8 },
+  handF: { x: 9.5, y: -12.5 },
+  handB: { x: -7.5, y: -12.7 },
+  footF: { x: 1.1, y: 0.2 },
+  footB: { x: -0.1, y: 0.2 },
   weapon: { id: 'hammer', tier: 0, x: 0.2, y: -0.3, s: 1.01, r: 2 },
   order: ['cape', 'footB', 'footF', 'body', 'collar', 'head', 'handF', 'weapon', 'handB'],
   motion: { step: 3.4, lift: 1.2, bob: 0.6, swing: 1.6, speed: 0.55 },
 };
+
+// Rig constants (Stefan 2026-10-20): hand and foot sizes are locked, the same on every hero, with no
+// per-hero scale; only their positions vary (the layout's x and y).
+export const HAND_UNITS = 6;
+export const FOOT_UNITS = { w: 7, h: 3.8 } as const;
+// Hands take the face's skin tone per head (sampled from the art), or leather gloves if he picks them.
+export const HEAD_SKIN = { m1: '#d9a77f', m2: '#d8ad89', f1: '#dab18d', f2: '#d0a987' } as const;
+export const GLOVE_COLOR = '#7a5536';
+export const USE_GLOVES = false;
+export const FOOT_COLOR = '#6b4a2c';

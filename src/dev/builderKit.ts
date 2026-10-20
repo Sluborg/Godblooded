@@ -1,7 +1,15 @@
 // Dev only (not imported by the game): loads the Hero Builder pictures from anim-test/builder/ and
 // registers the one Thorblood man for every Thor look behind `?heroes=thorbloods`, so the rig draws
 // him from his saved layout (data/heroLayout.ts). Nothing here ships.
-import { BEST_I_CAN_DO } from '../data/heroLayout';
+import {
+  BEST_I_CAN_DO,
+  FOOT_COLOR,
+  FOOT_UNITS,
+  GLOVE_COLOR,
+  HAND_UNITS,
+  HEAD_SKIN,
+  USE_GLOVES,
+} from '../data/heroLayout';
 import { THORBLOOD_HEADS } from '../data/heroKits';
 import { BUILDS } from '../data/heroKits';
 import { NATURAL, type BuilderKit } from '../ui/parts/builderLayout';
@@ -54,8 +62,7 @@ export async function registerBuilderKits(): Promise<void> {
     loadImage(`${dir}/cape_neutral.png`),
   ]);
   const hammers = await Promise.all([1, 2, 3].map((t) => loadImage(`${dir}/hammer_t${t}.png`)));
-  const hand = ballCanvas('#eab48c', 96, 96);
-  const foot = ballCanvas('#6b4a2c', 112, 61);
+  const foot = ballCanvas(FOOT_COLOR, 112, Math.round((112 * FOOT_UNITS.h) / FOOT_UNITS.w));
   const ball = (cv: HTMLCanvasElement, w: number): KitPart => ({
     img: cv,
     cell: { x: 0, y: 0, w: cv.width, h: cv.height, pivots: { c: [0.5, 0.5] } },
@@ -67,29 +74,36 @@ export async function registerBuilderKits(): Promise<void> {
   for (const look of looks) {
     const tier = Number(look.match(/_t(\d)$/)?.[1] ?? 1);
     const hm = hammers[tier - 1];
-    const parts: BuilderKit['parts'] = {
-      head: part(head, head.width, head.height, NATURAL.head, 'neck'),
-      body: part(body, body.width, body.height, NATURAL.body, 'c'),
-      collar: part(collar, collar.width, collar.height, NATURAL.collar, 'c'),
-      cape: part(tinted(cape, L.cape.tint), cape.width, cape.height, NATURAL.cape, 'clasp'),
-      // The hammer is 28 units tall: its pixels per unit come from the height.
-      weapon: {
-        img: hm,
-        cell: { x: 0, y: 0, w: hm.width, h: hm.height, pivots: { grip: NATURAL.weapon.pivot } },
-        ppu: hm.height / NATURAL.weapon.h,
-      },
-      handF: ball(hand, L.handF.w ?? 6),
-      handB: ball(hand, L.handB.w ?? 6),
-      foot: ball(foot, L.footF.w ?? 7),
-    };
-    // The ball parts are separate pictures per hand/foot size; the feet share one.
-    const kit: Kit = {
-      parts: {},
-      layers: {},
-      build: BUILDS.standard,
-      mode: 'floating',
-      builder: { layout: L, parts },
-    };
-    for (const h of [...THORBLOOD_HEADS, '']) RUNTIME_KITS.set(h ? `${look}~${h}` : look, kit);
+    for (const h of [...THORBLOOD_HEADS, '']) {
+      // The hands take this head's skin tone (or gloves); sizes are the rig's constants.
+      const hand = ballCanvas(
+        USE_GLOVES ? GLOVE_COLOR : HEAD_SKIN[(h || 'm1') as keyof typeof HEAD_SKIN],
+        96,
+        96,
+      );
+      const parts: BuilderKit['parts'] = {
+        head: part(head, head.width, head.height, NATURAL.head, 'neck'),
+        body: part(body, body.width, body.height, NATURAL.body, 'c'),
+        collar: part(collar, collar.width, collar.height, NATURAL.collar, 'c'),
+        cape: part(tinted(cape, L.cape.tint), cape.width, cape.height, NATURAL.cape, 'clasp'),
+        // The hammer is 28 units tall: its pixels per unit come from the height.
+        weapon: {
+          img: hm,
+          cell: { x: 0, y: 0, w: hm.width, h: hm.height, pivots: { grip: NATURAL.weapon.pivot } },
+          ppu: hm.height / NATURAL.weapon.h,
+        },
+        handF: ball(hand, HAND_UNITS),
+        handB: ball(hand, HAND_UNITS),
+        foot: ball(foot, FOOT_UNITS.w),
+      };
+      const kit: Kit = {
+        parts: {},
+        layers: {},
+        build: BUILDS.standard,
+        mode: 'floating',
+        builder: { layout: L, parts },
+      };
+      RUNTIME_KITS.set(h ? `${look}~${h}` : look, kit);
+    }
   }
 }
