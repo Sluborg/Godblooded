@@ -27,7 +27,7 @@ export const TEMPLATE = { size: 1024, unit: 40, ox: 512, oy: 860 };
 export const REF_WIDTH = 15.53;
 export const FIT = 0.1;
 // Where paint may go, in units from the origin (hair box, nose, beard box).
-export const LIMITS = { left: -9.5, right: 9.8, top: -18.9, bottom: 4.5, longBottom: 10.5 };
+export const LIMITS = { left: -9.5, right: 9.8, top: -20, bottom: 4.5, longBottom: 10.5 };
 const UPPER = [-14, -11]; // rows measured for the skull width, in units
 
 // Measures a keyed head image (any square size, framed like the template). Returns
