@@ -857,9 +857,10 @@ replaces the "wider than tall" reading in the entry above. The Thorbloods body i
 
 - **Heroes in 3/4 view** (Stefan, 2026-11-11): heads, bodies, hands and feet are all drawn turned
   about 45 degrees toward the camera, facing right, and mirrored to face left, the usual view for
-  games seen from above at an angle. Faces show both eyes and the mouth; women read as women; the
-  weapon is in the near hand on the cloak side and a shield's face turns to the camera on the other.
+  games seen from above at an angle. Faces show both eyes and the mouth; women read as women; a
+  shield is on the near hand over the body and the weapon in the far hand behind it (see below).
   The cloak is gathered on the shoulders and hangs behind (the worn cloak is retired).
 - **Shield on the near hand** (Stefan, 2026-11-11, replaces the 2026-10-19 hand rule for the 3/4
   heroes): the shield is on the hand closest to the camera, drawn over the body with its face to
-  the camera; the weapon is in the far hand, toward the facing direction, drawn behind the body.
+  the camera; the weapon is in the far hand, toward the facing direction, drawn behind the body. The
+  painted-parts hand rule in `art-tasks/STYLE.md` is superseded (painted hero parts are parked).
