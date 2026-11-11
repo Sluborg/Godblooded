@@ -616,15 +616,15 @@ const BODIES = [
 // ---------- cloaks (one garment: clasped at the front, over the shoulders, down the back) ----------
 // back(b, c, sw) is drawn behind the body, front(b, c, sw) over it. c = party colour, sw = sway
 // of the hem while walking (the part at the shoulders never moves).
-// the cloak is a detail, not the main feature: everything below the shoulders is pulled up to
-// 70 % of its length, so the hem ends around the hips instead of the ground
+// cloak length below the shoulders, as a share of the full drape (1 = down to the calves)
+const CLOAK_LENGTH = 1;
 function lift(top) {
-  return ([x, y]) => [x, y > top + 3 ? top + 3 + (y - top - 3) * 0.7 : y];
+  return ([x, y]) => [x, y > top + 3 ? top + 3 + (y - top - 3) * CLOAK_LENGTH : y];
 }
 const CLOAKS = [
   {
     id: 'cloak-1',
-    rev: 3,
+    rev: 4,
     name: 'Cloak worn',
     front(b, c, sw) {
       const top = bodyTop(b),
@@ -633,6 +633,8 @@ const CLOAKS = [
         base = b.base;
       // like a short travelling cape: it wraps the shoulders and upper arms, then its front edge
       // runs back to the hem behind, so the chest, belt and most of the body stay in view
+      // a cape over the shoulders only: the cut runs just below the shoulder line, so the upper
+      // arms and the body show; behind, it hangs long down the back
       const pts = [
         [fr - 1.4, top + 2.6],
         [fr - 2.6, top + 0.2],
@@ -641,21 +643,25 @@ const CLOAKS = [
         [bk - 1.2, top + 3.4],
         [bk - 2.6 + sw * 0.3, top + 10],
         [bk - 4 + sw, base - 2.2],
-        [bk + 1.6 + sw * 0.8, base - 1.6],
-        [bk + 3.2 + sw * 0.4, top + 11],
-        [0.6, top + 6.6],
-        [fr - 2.6, top + 4.6],
+        [bk + 0.6 + sw * 0.8, base - 1.4],
+        [bk + 1.4 + sw * 0.3, top + 9],
+        [bk + 2.6, top + 4.6],
+        [-1.4, top + 3.8],
+        [2.4, top + 3.4],
+        [fr - 2.4, top + 3.6],
       ].map(L);
       paint(c, C(pts), [bk - 4, top - 1.2, fr - bk + 4, base - top], { grit: 71 });
-      // the lining shows along the front edge; a fold runs from the shoulder down the back
+      // the lining shows along the cut; a fold runs from the shoulder down the back
       stroke(
         tone(c, 0.3),
         0.4,
         [
-          [fr - 2.4, top + 4.2],
-          [0.6, top + 6.8],
-          [bk + 3.2 + sw * 0.4, top + 11.2],
-          [bk + 1.8 + sw * 0.8, base - 1.8],
+          [fr - 2.4, top + 3.8],
+          [2.4, top + 3.6],
+          [-1.4, top + 4],
+          [bk + 2.6, top + 4.8],
+          [bk + 1.4 + sw * 0.3, top + 9.2],
+          [bk + 0.8 + sw * 0.8, base - 1.6],
         ].map(L),
       );
       stroke(
@@ -673,7 +679,7 @@ const CLOAKS = [
   },
   {
     id: 'cloak-2',
-    rev: 2,
+    rev: 3,
     name: 'Cloak thrown back',
     // gathered on top of the shoulders: the body's sides show, the cloak hangs behind
     back(b, c, sw) {
