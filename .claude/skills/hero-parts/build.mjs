@@ -13,6 +13,7 @@ const read = (f) => readFileSync(join(here, f), 'utf8');
 // Painted heads: PNG + JSON pairs from the heads import (scripts/art/head.mjs), embedded as data
 // URIs and appended to HEADS. Pass the folder with --heads <dir>; without it the forge has code
 // heads only. Each head is drawn at its measured box (ox, oy, w, h in units, chin at 0,0).
+const PAINTED_HEIGHT = 19.2;
 function painted(dir) {
   const rows = [];
   if (dir && existsSync(dir))
@@ -25,10 +26,23 @@ function painted(dir) {
       const bytes = readFileSync(png);
       const uri = 'data:image/png;base64,' + bytes.toString('base64');
       // rev follows the picture: a new painting under the same id invalidates old grades
-      const rev = 'p' + createHash('sha1').update(bytes).digest('hex').slice(0, 8);
+      // Size: a painted head taller than PAINTED_HEIGHT (top of hair to bottom of beard, in units;
+      // head_thorblood_01 and the code heads are about 19) is scaled down around the chin, so a
+      // long beard or a tall braid does not make the whole head bigger. Shorter heads keep size.
+      const m = j.measured || { top: j.oy, bottom: j.oy + j.h };
+      const tall = m.bottom - m.top,
+        auto = tall > PAINTED_HEIGHT * 1.02 ? PAINTED_HEIGHT / tall : 1,
+        // "fit" in the JSON is a hand tweak on top of the automatic size (Stefan's eye wins)
+        k = +(auto * (j.fit || 1)).toFixed(3);
+      // rev follows the picture and its size: a new painting or a resize invalidates old grades
+      const rev =
+        'p' +
+        createHash('sha1').update(bytes).digest('hex').slice(0, 8) +
+        (k !== 1 ? '-k' + k : '');
       rows.push({
         id: j.id,
         rev,
+        k,
         name: j.name || 'Painted ' + j.id.split('_').pop(),
         skin: j.skin || '#d9a27c',
         ox: j.ox,
@@ -38,12 +52,14 @@ function painted(dir) {
         uri,
       });
     }
-  return `const PAINTED_READY = Promise.all(${JSON.stringify(rows).replace(/</g, '\\u003c')}.map((r) => {
+  // Painted heads go first in HEADS.
+  return `const PAINTED = ${JSON.stringify(rows).replace(/</g, '\\u003c')}.map((r) => {
   const img = new Image();
   img.src = r.uri;
-  HEADS.push({ ...r, painted: true, img, draw(h) { if (h.img.complete) ctx.drawImage(h.img, h.ox, h.oy, h.w, h.h); } });
-  return img.decode().catch(() => {});
-}));`;
+  return { ...r, painted: true, img, draw(h) { if (h.img.complete) ctx.drawImage(h.img, h.ox * h.k, h.oy * h.k, h.w * h.k, h.h * h.k); } };
+});
+HEADS.unshift(...PAINTED);
+const PAINTED_READY = Promise.all(PAINTED.map((h) => h.img.decode().catch(() => {})));`;
 }
 
 export function bundle(headsDir) {
