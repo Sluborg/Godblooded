@@ -32,9 +32,10 @@ Fetch every repo file fresh, with `?t=<current time>` on the raw URL (cached cop
    reference. Check each against `PROMPT.md` "Check" before you deliver it; redo a failing head up
    to 3 times, then skip it and say why in the done line.
 5. Deliver each head as soon as it passes (see "Delivering"), not at the end.
-   Write **two** progress lines to your replies file, after about a third and about two thirds of
-   the items (4 heads: after head 1 and after head 3), each with how many are uploaded and anything
-   odd: `O-<n> | <date time> | progress | <k> of <m> uploaded <links or paths>; <anything odd>`.
+   Write **at most two** progress lines to your replies file between start and done: one at the
+   halfway point for a short order, or after about a third and two thirds for a longer one, each with
+   how many are uploaded and anything odd:
+   `O-<n> | <date time> | progress | <k> of <m> uploaded <links or paths>; <anything odd>`.
    Keep each run short: deliver, log, pause.
 6. When the order is finished, append:
    `O-<n> | <date time> | done | <file names, each with where it is: drive or repo>`.
