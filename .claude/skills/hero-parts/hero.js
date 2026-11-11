@@ -16,41 +16,40 @@ const S = {
   head: 0,
   body: 0,
   weapon: 0,
+  shield: false,
   tier: 0,
   walk: true,
   atk: false,
-  back: false,
   cape: CAPES.Red,
   atkStart: 0,
 };
-// attack keys [x, y, weapon angle in degrees] for the hand that holds the weapon.
-// near = the hand on the viewer's side (drawn over the body); far = the other hand (behind it).
-const KEYS = {
-  near: { rest: [3.4, -9.8, 62], raise: [-1.6, -22.5, -118], strike: [10, -9, 96] },
-  far: { rest: [5.8, -12.4, -6], raise: [-2.4, -23.5, -128], strike: [9.2, -11, 90] },
-};
+// 3/4 view facing right: the weapon hand is the near hand on the left (the cloak side), the
+// shield hand is on the right, held forward with the shield's face turned to the camera.
+// Attack keys: [x, y, weapon angle in degrees] for the weapon hand.
+const KEYS = { rest: [-6.2, -10.4, -18], raise: [-4.6, -23.6, -150], strike: [7.6, -11.6, 100] };
+const SHIELD_HAND = [6.6, -11.2];
+const STEP = 2.2; // distance between two foot spots, in units
 const ease = (q) => q * q * (3 - 2 * q);
 const lerp3 = (a, b, q) => [
   a[0] + (b[0] - a[0]) * q,
   a[1] + (b[1] - a[1]) * q,
   a[2] + (b[2] - a[2]) * q,
 ];
-const STEP = 2.6; // distance between two foot spots, in units
 function pose(t, phase = 0) {
   const w = (t * 1.5 + phase) * Math.PI * 2,
     walk = S.walk ? 1 : 0;
   const p = {
-    // a full stride: four foot spots A B C D, STEP apart. The back foot travels A B C B A, the
-    // front foot B C D C B, in opposite phase, so the feet pass each other mid-stride.
-    fF: [STEP / 2 + Math.sin(w) * STEP * walk, -1.3 - Math.max(0, Math.cos(w)) * 1.3 * walk],
-    fB: [-STEP / 2 - Math.sin(w) * STEP * walk, -1.3 - Math.max(0, -Math.cos(w)) * 1.3 * walk],
+    // a full stride along the facing direction: four foot spots A B C D, STEP apart. The near
+    // foot travels A B C B A, the far foot B C D C B, in opposite phase.
+    fNear: [-STEP / 2 - Math.sin(w) * STEP * walk, -0.9 - Math.max(0, -Math.cos(w)) * 1.2 * walk],
+    fFar: [STEP / 2 + 0.8 + Math.sin(w) * STEP * walk, -2 - Math.max(0, Math.cos(w)) * 1.2 * walk],
     bob: walk ? -Math.abs(Math.sin(w)) * 0.8 : Math.sin(t * 2.2) * 0.3,
-    swing: Math.sin(w) * 1.4 * walk,
+    swing: Math.sin(w) * 1.2 * walk,
     lean: 0,
     cape: Math.sin(w) * 0.04 * walk + Math.sin(t * 1.3) * 0.02,
     trail: null,
   };
-  const K = S.back ? KEYS.far : KEYS.near;
+  const K = KEYS;
   let hand = K.rest.slice();
   if (S.atk) {
     const u = ((t - S.atkStart) % 1.3) / 1.3;
@@ -69,14 +68,15 @@ function pose(t, phase = 0) {
       hand = lerp3(K.strike, K.rest, q);
       p.lean = 0.13 * (1 - q);
     }
-  } else if (S.back) hand[0] += p.swing * 0.8;
-  else hand[0] -= p.swing * 1.2;
+  } else hand[0] -= p.swing;
   p.hand = hand;
+  p.off = [SHIELD_HAND[0] + p.swing * 0.6, SHIELD_HAND[1]];
   return p;
 }
-// Layers, back to front (side view, facing right):
-//   cloak.back, head.back (hair or braids behind the body), feet, far hand (and its weapon),
-//   body, cloak.front, head (face, hair, beard), weapon, near hand, strike trail.
+// Layers, back to front (3/4 view, facing right):
+//   cloak.back, head.back (hair or braids behind the body), far foot, near foot, body,
+//   cloak.front, shield (or the free hand), weapon raised behind the head, head, weapon,
+//   weapon hand, strike trail.
 function drawHero(c, scale, x0, y0, t, o = {}) {
   ctx = c;
   SC = scale;
@@ -87,15 +87,15 @@ function drawHero(c, scale, x0, y0, t, o = {}) {
     tier = TIER[ti];
   const p = pose(t, o.phase || 0);
   const top = bodyTop(b),
-    headAt = [0.6, top + 1.8];
+    headAt = [0.2, top + 1.8];
   ctx.save();
   ctx.translate(x0, y0);
-  // side view: everything is drawn facing right; face -1 mirrors the whole hero to face left
+  // everything is drawn facing right; face -1 mirrors the whole hero to face left
   ctx.scale(o.face ?? S.face ?? 1, 1);
   ctx.scale(scale, scale);
   ctx.fillStyle = '#00000040';
   ctx.beginPath();
-  ctx.ellipse(0.5, -0.6, 9, 2, 0, 0, 7);
+  ctx.ellipse(0.5, -0.8, 9, 2.2, 0, 0, 7);
   ctx.fill();
   const upper = (fn) => {
     ctx.save();
@@ -106,10 +106,9 @@ function drawHero(c, scale, x0, y0, t, o = {}) {
   };
   const cloak = CLOAKS[S.cloak ?? 0],
     sw = p.cape * 40;
-  // 1. the part of the cloak that hangs behind the body
   upper(() => {
+    // 1. the cloak's drape behind the body, then hair that hangs down the back
     if (cloak.back) cloak.back(b, S.cape, sw);
-    // 2. hair or braids that hang behind the body
     if (h.back) {
       ctx.save();
       ctx.translate(headAt[0], headAt[1]);
@@ -117,11 +116,9 @@ function drawHero(c, scale, x0, y0, t, o = {}) {
       ctx.restore();
     }
   });
-  // 3. feet, toes forward (the body overlaps their tops)
-  for (const f of [p.fB, p.fF])
-    paint(COL.leatherD, E(f[0] + 0.7, f[1], 3.6, 2), [f[0] - 2.9, f[1] - 2, 7.2, 4], {
-      grit: 81,
-    });
+  // 2. feet, the far one first (it stands a little further back)
+  for (const f of [p.fFar, p.fNear])
+    paint(COL.leatherD, E(f[0] + 0.5, f[1], 3.4, 2), [f[0] - 2.9, f[1] - 2, 6.8, 4], { grit: 81 });
   const skin = h.skin,
     hand = p.hand;
   const ball = (x, y) => paint(skin, E(x, y, 2.5, 2.5), [x - 2.5, y - 2.5, 5, 5]);
@@ -141,31 +138,29 @@ function drawHero(c, scale, x0, y0, t, o = {}) {
     wpn.draw(tier, ti);
     ctx.restore();
   };
-  // the empty hand: the far hand peeks out at the chest; in far-hand mode the near hand is empty
-  const empty = S.back ? [3.4 - p.swing * 1.2, -9.8] : [5.8 + p.swing * 0.8, -12.4];
   upper(() => {
-    // 4. far hand, behind the body
-    if (S.back) {
-      weapon();
-      ball(hand[0], hand[1]);
-    } else ball(empty[0], empty[1]);
-    // 5. body
+    // 3. body and the cloak's roll over the shoulders
     b.draw(b);
-    // 6. the cloak over the body: one garment, clasped at the front
     if (cloak.front) cloak.front(b, S.cape, sw);
-    // 7. head; a weapon raised behind the head goes under it
-    const raised = !S.back && hand[2] < -70;
+    // 4. the shield hand, held forward on the right; the shield's face turned to the camera
+    if (S.shield) {
+      ball(p.off[0], p.off[1]);
+      ctx.save();
+      ctx.translate(p.off[0] + 1.4, p.off[1] + 0.4);
+      SHIELDS[0].draw(tier, ti, S.cape);
+      ctx.restore();
+    } else ball(p.off[0], p.off[1]);
+    // 5. head; a weapon raised behind the head goes under it
+    const raised = hand[2] < -70;
     if (raised) weapon();
     ctx.save();
     ctx.translate(headAt[0], headAt[1]);
     h.draw(h);
     ctx.restore();
-    // 8. weapon in the near hand, the hand ball over its grip
-    if (!S.back) {
-      if (!raised) weapon();
-      ball(hand[0], hand[1]);
-    } else ball(empty[0], empty[1]);
-    // 9. strike trail
+    // 6. the weapon in the near hand, the hand ball over its grip
+    if (!raised) weapon();
+    ball(hand[0], hand[1]);
+    // 7. strike trail
     if (p.trail != null && p.trail > 0) {
       ctx.save();
       ctx.globalCompositeOperation = 'lighter';
@@ -173,18 +168,8 @@ function drawHero(c, scale, x0, y0, t, o = {}) {
       ctx.lineWidth = 1.6;
       ctx.lineCap = 'round';
       ctx.beginPath();
-      ctx.arc(7, -15, 13, -1.7, 0.7);
+      ctx.arc(1, -14, 14, -2.2, 0.5);
       ctx.stroke();
-      if (ti === 2) {
-        ctx.strokeStyle = `rgba(120,200,255,${0.6 * p.trail})`;
-        ctx.lineWidth = 0.8;
-        ctx.beginPath();
-        ctx.moveTo(18, -14);
-        ctx.lineTo(15, -10);
-        ctx.lineTo(19, -8);
-        ctx.lineTo(16, -3);
-        ctx.stroke();
-      }
       ctx.restore();
     }
   });
