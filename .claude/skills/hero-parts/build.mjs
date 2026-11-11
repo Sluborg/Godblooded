@@ -31,7 +31,9 @@ function painted(dir) {
       // long beard or a tall braid does not make the whole head bigger. Shorter heads keep size.
       const m = j.measured || { top: j.oy, bottom: j.oy + j.h };
       const tall = m.bottom - m.top,
-        k = tall > PAINTED_HEIGHT * 1.02 ? +(PAINTED_HEIGHT / tall).toFixed(3) : 1;
+        auto = tall > PAINTED_HEIGHT * 1.02 ? PAINTED_HEIGHT / tall : 1,
+        // "fit" in the JSON is a hand tweak on top of the automatic size (Stefan's eye wins)
+        k = +(auto * (j.fit || 1)).toFixed(3);
       // rev follows the picture and its size: a new painting or a resize invalidates old grades
       const rev =
         'p' + createHash('sha1').update(bytes).digest('hex').slice(0, 8) + (k < 1 ? '-k' + k : '');
