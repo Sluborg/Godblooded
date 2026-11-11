@@ -619,12 +619,14 @@ const BODIES = [
 const CLOAKS = [
   {
     id: 'cloak-1',
+    rev: 2,
     name: 'Cloak worn',
-    // wrapped round the shoulders and upper arms; the front edge drops from the clasp to the hem
     front(b, c, sw) {
       const top = bodyTop(b),
         [bk, fr] = bodyReach(b, 7),
         base = b.base;
+      // like a short travelling cape: it wraps the shoulders and upper arms, then its front edge
+      // runs back to the hem behind, so the chest, belt and most of the body stay in view
       const pts = [
         [fr - 1.4, top + 2.6],
         [fr - 2.6, top + 0.2],
@@ -633,26 +635,22 @@ const CLOAKS = [
         [bk - 1.2, top + 3.4],
         [bk - 2.6 + sw * 0.3, top + 10],
         [bk - 4 + sw, base - 2.2],
-        [bk + 1.4 + sw * 0.8, base - 1.2],
-        [-0.4 + sw * 0.5, base - 3.4],
-        [1.8, top + 12],
-        [fr - 2.6, top + 6.4],
+        [bk + 1.6 + sw * 0.8, base - 1.6],
+        [bk + 3.2 + sw * 0.4, top + 11],
+        [0.6, top + 6.6],
+        [fr - 2.6, top + 4.6],
       ];
       paint(c, C(pts), [bk - 4, top - 1.2, fr - bk + 4, base - top], { grit: 71 });
-      // the lining shows along the front edge; folds run from the shoulder down the back
+      // the lining shows along the front edge; a fold runs from the shoulder down the back
       stroke(tone(c, 0.3), 0.4, [
-        [fr - 2.4, top + 3.4],
-        [fr - 2.8, top + 6.6],
-        [1.8, top + 12],
-        [-0.3 + sw * 0.5, base - 3.6],
+        [fr - 2.4, top + 4.2],
+        [0.6, top + 6.8],
+        [bk + 3.2 + sw * 0.4, top + 11.2],
+        [bk + 1.8 + sw * 0.8, base - 1.8],
       ]);
       stroke(tone(c, -0.3), 0.4, [
         [bk + 0.6, top + 3],
         [bk - 2.4 + sw, base - 2.8],
-      ]);
-      stroke(tone(c, -0.3), 0.35, [
-        [-1.6, top + 4],
-        [-2.4 + sw * 0.6, base - 3],
       ]);
       paint(COL.bronze, E(fr - 1.4, top + 2.6, 1.2, 1.2), [fr - 2.6, top + 1.4, 2.4, 2.4], {
         rim: false,
