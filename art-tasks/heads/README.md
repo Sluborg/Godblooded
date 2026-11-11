@@ -32,6 +32,10 @@ Fetch every repo file fresh, with `?t=<current time>` on the raw URL (cached cop
    reference. Check each against `PROMPT.md` "Check" before you deliver it; redo a failing head up
    to 3 times, then skip it and say why in the done line.
 5. Deliver each head as soon as it passes (see "Delivering"), not at the end.
+   After each step, append a short progress line to your replies file:
+   `O-<n> | <date time> | progress | head <k> painted, QA ok, uploading`, then
+   `O-<n> | <date time> | progress | head <k> uploaded <link or path>` (or `head <k> redo: <why>`).
+   Keep each run short: deliver, log, pause.
 6. When the order is finished, append:
    `O-<n> | <date time> | done | <file names, each with where it is: drive or repo>`.
 7. Then do the next newer order, if any. An order ending "then pause" ends the run.
