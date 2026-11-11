@@ -1,0 +1,587 @@
+<title>Thorblood Parts Forge</title>
+<meta name="claude:viewport-fit-sides" content="cover" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Alegreya+Sans+SC:wght@500;700&family=Alegreya+Sans:wght@400;500;700&display=swap"
+/>
+<style>
+  /* Stage on top (sticky on phones), then three rows of part cards to grade and combine. One dark forge look on purpose. */
+  :root {
+    color-scheme: dark;
+    --bg: #1b1915;
+    --panel: #24211c;
+    --raise: #2f2b24;
+    --line: #4a4337;
+    --fg: #ece4d4;
+    --dim: #a99e89;
+    --accent: #d9a441;
+    --accent-ink: #1b1915;
+    --ground: #3d5530;
+    --font-display: 'Alegreya Sans SC', 'Trebuchet MS', sans-serif;
+    --font-body: 'Alegreya Sans', 'Segoe UI', system-ui, sans-serif;
+  }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font: 15px/1.4 var(--font-body);
+  }
+  .app {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-block: 8px 24px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  .stage-wrap {
+    position: sticky;
+    top: env(safe-area-inset-top, 0px);
+    z-index: 5;
+    background: var(--bg);
+    padding-bottom: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .stage {
+    position: relative;
+    height: min(46vh, 380px);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--panel);
+  }
+  #stage {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  .game {
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    background: var(--raise);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 4px 6px 2px;
+  }
+  .game span {
+    font: 500 11px var(--font-display);
+    letter-spacing: 0.06em;
+    color: var(--dim);
+    display: block;
+  }
+  .game canvas {
+    display: block;
+  }
+  .tag {
+    position: absolute;
+    left: 10px;
+    top: 8px;
+    font: 500 12px var(--font-display);
+    letter-spacing: 0.06em;
+    color: var(--dim);
+    pointer-events: none;
+    max-width: 60%;
+  }
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+  }
+  button.b {
+    font: 500 14px var(--font-body);
+    color: var(--fg);
+    background: var(--raise);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 6px 10px;
+    min-height: 36px;
+    cursor: pointer;
+  }
+  button.b[aria-pressed='true'] {
+    background: var(--accent);
+    color: var(--accent-ink);
+    border-color: var(--accent);
+  }
+  button:focus-visible,
+  input:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .swatch {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 2px solid var(--line);
+    cursor: pointer;
+    padding: 0;
+  }
+  .swatch[aria-pressed='true'] {
+    border-color: var(--fg);
+  }
+  h2 {
+    margin: 0;
+    font: 700 14px var(--font-display);
+    letter-spacing: 0.08em;
+    color: var(--accent);
+  }
+  section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .cards {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .card {
+    flex: 0 0 auto;
+    width: 132px;
+    background: var(--panel);
+    border: 2px solid var(--line);
+    border-radius: 8px;
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .card.on {
+    border-color: var(--accent);
+  }
+  .card button.pick {
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    color: var(--fg);
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .card canvas {
+    width: 116px;
+    height: 96px;
+    background: var(--raise);
+    border-radius: 6px;
+  }
+  .card .name {
+    font-weight: 700;
+    font-size: 13px;
+  }
+  .grade {
+    display: flex;
+    gap: 3px;
+  }
+  .grade button {
+    flex: 1;
+    min-width: 0;
+    height: 28px;
+    padding: 0;
+    font: 700 13px var(--font-body);
+    color: var(--dim);
+    background: var(--raise);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .grade button[aria-pressed='true'] {
+    background: var(--accent);
+    color: var(--accent-ink);
+    border-color: var(--accent);
+  }
+  .hint {
+    color: var(--dim);
+    font-size: 13px;
+    margin: 0;
+  }
+  input[type='text'] {
+    flex: 1;
+    min-width: 0;
+    font: 15px var(--font-body);
+    background: var(--raise);
+    color: var(--fg);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 7px;
+  }
+  .combos {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .combos button {
+    text-align: left;
+  }
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    transform: translateX(-50%);
+    background: var(--accent);
+    color: var(--accent-ink);
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-weight: 700;
+    z-index: 20;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .card {
+      transition: none;
+    }
+  }
+</style>
+
+<div class="app">
+  <div class="stage-wrap">
+    <div class="stage">
+      <canvas id="stage" aria-label="The combined Thorblood, animated"></canvas>
+      <div class="tag" id="tag"></div>
+      <div class="game"><span>Game size, tier 1 · 2 · 3</span><canvas id="mini"></canvas></div>
+    </div>
+    <div class="row">
+      <button class="b" id="bWalk" type="button" aria-pressed="true">Walk</button>
+      <button class="b" id="bAtk" type="button" aria-pressed="false">Attack</button>
+      <span class="hint">Tier</span>
+      <span class="row" id="tiers"></span>
+      <button class="b" id="bHand" type="button" aria-pressed="false">Weapon in back hand</button>
+      <span class="row" id="capes"></span>
+    </div>
+  </div>
+
+  <section aria-labelledby="h-heads">
+    <h2 id="h-heads">Heads</h2>
+    <div class="cards" id="heads"></div>
+  </section>
+  <section aria-labelledby="h-bodies">
+    <h2 id="h-bodies">Bodies</h2>
+    <div class="cards" id="bodies"></div>
+  </section>
+  <section aria-labelledby="h-weapons">
+    <h2 id="h-weapons">Weapons</h2>
+    <div class="cards" id="weapons"></div>
+  </section>
+
+  <section aria-labelledby="h-combo">
+    <h2 id="h-combo">Save a combo you like</h2>
+    <p class="hint">
+      Tap a part to put it on the hero. Grade each part 1 to 5. Grades and saved combos go straight
+      to Lead.
+    </p>
+    <div class="row">
+      <input
+        id="note"
+        type="text"
+        maxlength="80"
+        placeholder="Note, e.g. best so far, beard too big"
+      /><button class="b" id="bSave" type="button">Save combo</button>
+    </div>
+    <div class="combos" id="combos"><p class="hint">No combos saved yet.</p></div>
+  </section>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+  'use strict';
+  /*PARTS*/
+  // ---------- stage ----------
+  const cv = document.getElementById('stage'),
+    sctx = cv.getContext('2d');
+  const mini = document.getElementById('mini'),
+    mctx = mini.getContext('2d');
+  function resize() {
+    const r = cv.getBoundingClientRect(),
+      d = devicePixelRatio || 1;
+    cv.width = Math.round(r.width * d);
+    cv.height = Math.round(r.height * d);
+    // game size: a hero is about 36 px tall on a phone (44 units)
+    const g = 36 / 44;
+    mini.style.width = Math.round(g * 3 * 34) + 'px';
+    mini.style.height = Math.round(g * 50) + 'px';
+    mini.width = Math.round(g * 3 * 34 * d);
+    mini.height = Math.round(g * 50 * d);
+  }
+  addEventListener('resize', resize);
+  try {
+    new ResizeObserver(resize).observe(cv);
+  } catch (e) {}
+  function frame(ms) {
+    const t = ms / 1000,
+      d = devicePixelRatio || 1;
+    sctx.setTransform(1, 0, 0, 1, 0, 0);
+    sctx.fillStyle = '#24211c';
+    sctx.fillRect(0, 0, cv.width, cv.height);
+    const gy = cv.height * 0.86;
+    sctx.fillStyle = '#3d5530';
+    sctx.fillRect(0, gy, cv.width, cv.height - gy);
+    const k = Math.min(cv.width / 44, (cv.height * 0.8) / 46);
+    drawHero(sctx, k, cv.width * 0.5, gy, t);
+    mctx.setTransform(1, 0, 0, 1, 0, 0);
+    mctx.clearRect(0, 0, mini.width, mini.height);
+    const g = (36 / 44) * d;
+    mctx.fillStyle = '#3d5530';
+    mctx.fillRect(0, mini.height - 3 * d, mini.width, 3 * d);
+    for (let i = 0; i < 3; i++)
+      drawHero(mctx, g, (17 + i * 34) * g, mini.height - 3 * d, t, { tier: i, phase: i * 0.31 });
+    requestAnimationFrame(frame);
+  }
+
+  // ---------- part cards ----------
+  let db = null;
+  const grades = {};
+  const $ = (id) => document.getElementById(id);
+  function thumb(kind, i) {
+    const c = document.createElement('canvas'),
+      d = devicePixelRatio || 1;
+    c.width = 116 * d;
+    c.height = 96 * d;
+    const x = c.getContext('2d');
+    x.fillStyle = '#2f2b24';
+    x.fillRect(0, 0, c.width, c.height);
+    ctx = x;
+    if (kind === 'head') {
+      SC = 4.4 * d;
+      x.save();
+      x.translate(56 * d, 78 * d);
+      x.scale(SC, SC);
+      HEADS[i].draw(HEADS[i]);
+      x.restore();
+    }
+    if (kind === 'body') {
+      SC = 3.8 * d;
+      x.save();
+      x.translate(58 * d, 90 * d);
+      x.scale(SC, SC);
+      const b = BODIES[i];
+      for (const f of [
+        [-2.4, -1.3],
+        [3, -1.3],
+      ])
+        paint(COL.leatherD, E(f[0], f[1], 3.4, 2), [f[0] - 3.4, f[1] - 2, 6.8, 4]);
+      b.draw(b);
+      x.restore();
+    }
+    if (kind === 'weapon') {
+      SC = 2.6 * d;
+      x.save();
+      x.translate(58 * d, 76 * d);
+      x.scale(SC, SC);
+      for (let ti = 0; ti < 3; ti++) {
+        x.save();
+        x.translate(-10 + ti * 10, 0);
+        WEAPONS[i].draw(TIER[ti], ti);
+        x.restore();
+      }
+      x.restore();
+    }
+    return c;
+  }
+  function buildCards(kind, list, key, boxId) {
+    const box = $(boxId);
+    box.innerHTML = '';
+    list.forEach((part, i) => {
+      const card = document.createElement('div');
+      card.className = 'card' + (S[key] === i ? ' on' : '');
+      const pick = document.createElement('button');
+      pick.type = 'button';
+      pick.className = 'pick';
+      pick.setAttribute('aria-label', 'Use ' + part.name);
+      pick.append(thumb(kind, i));
+      const nm = document.createElement('span');
+      nm.className = 'name';
+      nm.textContent = part.name;
+      pick.append(nm);
+      pick.onclick = () => {
+        S[key] = i;
+        refreshCards();
+      };
+      const gr = document.createElement('div');
+      gr.className = 'grade';
+      for (let s = 1; s <= 5; s++) {
+        const g = document.createElement('button');
+        g.type = 'button';
+        g.textContent = s;
+        g.dataset.s = s;
+        g.setAttribute('aria-label', part.name + ': grade ' + s);
+        g.setAttribute('aria-pressed', String(grades[part.id] === s));
+        g.onclick = () => setGrade(part.id, s);
+        gr.append(g);
+      }
+      card.append(pick, gr);
+      box.append(card);
+    });
+  }
+  function refreshCards() {
+    buildCards('head', HEADS, 'head', 'heads');
+    buildCards('body', BODIES, 'body', 'bodies');
+    buildCards('weapon', WEAPONS, 'weapon', 'weapons');
+    $('tag').textContent =
+      HEADS[S.head].name +
+      ' · ' +
+      BODIES[S.body].name +
+      ' · ' +
+      WEAPONS[S.weapon].name +
+      ' · ' +
+      TIER[S.tier].name;
+  }
+  async function setGrade(id, s) {
+    grades[id] = s;
+    refreshCards();
+    if (!db) {
+      toast('Grades save only when you are signed in');
+      return;
+    }
+    try {
+      await db
+        .collection('grades')
+        .doc(id)
+        .set({ part: id, score: s, at: new Date().toISOString() });
+      toast('Graded ' + s);
+    } catch (e) {
+      toast('Not saved, try again');
+    }
+  }
+  function toast(m) {
+    const t = $('toast');
+    t.textContent = m;
+    t.hidden = false;
+    clearTimeout(toast.h);
+    toast.h = setTimeout(() => (t.hidden = true), 1800);
+  }
+
+  // ---------- controls ----------
+  function press(el, on) {
+    el.setAttribute('aria-pressed', String(on));
+  }
+  $('bWalk').onclick = () => {
+    S.walk = !S.walk;
+    press($('bWalk'), S.walk);
+  };
+  $('bAtk').onclick = () => {
+    S.atk = !S.atk;
+    S.atkStart = performance.now() / 1000;
+    press($('bAtk'), S.atk);
+  };
+  $('bHand').onclick = () => {
+    S.back = !S.back;
+    press($('bHand'), S.back);
+  };
+  TIER.forEach((t, i) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'b';
+    b.textContent = t.name;
+    press(b, i === S.tier);
+    b.onclick = () => {
+      S.tier = i;
+      [...$('tiers').children].forEach((c, j) => press(c, j === i));
+      refreshCards();
+    };
+    $('tiers').append(b);
+  });
+  Object.entries(CAPES).forEach(([n, c]) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'swatch';
+    b.style.background = c;
+    b.setAttribute('aria-label', n + ' cape');
+    press(b, c === S.cape);
+    b.onclick = () => {
+      S.cape = c;
+      [...$('capes').children].forEach((x) => press(x, x === b));
+    };
+    $('capes').append(b);
+  });
+  $('bSave').onclick = async () => {
+    if (!db) {
+      toast('Saving needs you signed in');
+      return;
+    }
+    const combo = {
+      head: HEADS[S.head].id,
+      body: BODIES[S.body].id,
+      weapon: WEAPONS[S.weapon].id,
+      tier: S.tier,
+      backHand: S.back,
+      cape: S.cape,
+      note: $('note').value.trim(),
+      at: new Date().toISOString(),
+    };
+    try {
+      await db.collection('combos').add(combo);
+      $('note').value = '';
+      toast('Combo saved');
+    } catch (e) {
+      toast('Not saved, try again');
+    }
+  };
+  function renderCombos(docs) {
+    const box = $('combos');
+    box.innerHTML = '';
+    if (!docs.length) {
+      box.innerHTML = '<p class="hint">No combos saved yet.</p>';
+      return;
+    }
+    for (const d of docs) {
+      const v = d.data(),
+        b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'b';
+      const name = (arr, id) => (arr.find((p) => p.id === id) || {}).name || id;
+      b.textContent =
+        name(HEADS, v.head) +
+        ' · ' +
+        name(BODIES, v.body) +
+        ' · ' +
+        name(WEAPONS, v.weapon) +
+        (v.note ? ' · ' + v.note : '');
+      b.onclick = () => {
+        S.head = Math.max(
+          0,
+          HEADS.findIndex((p) => p.id === v.head),
+        );
+        S.body = Math.max(
+          0,
+          BODIES.findIndex((p) => p.id === v.body),
+        );
+        S.weapon = Math.max(
+          0,
+          WEAPONS.findIndex((p) => p.id === v.weapon),
+        );
+        refreshCards();
+      };
+      box.append(b);
+    }
+  }
+  (async () => {
+    try {
+      db = await window.claude?.use?.('db');
+      if (!db) return;
+      db.collection('grades').onSnapshot(
+        (snap) => {
+          for (const d of snap.docs) grades[d.id] = d.data().score;
+          refreshCards();
+        },
+        () => {},
+      );
+      db.collection('combos')
+        .orderBy('at', 'desc')
+        .limit(20)
+        .onSnapshot(
+          (snap) => renderCombos(snap.docs),
+          () => {},
+        );
+    } catch (e) {}
+  })();
+
+  refreshCards();
+  resize();
+  requestAnimationFrame(frame);
+</script>
