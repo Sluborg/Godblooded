@@ -34,12 +34,15 @@ const lerp3 = (a, b, q) => [
   a[1] + (b[1] - a[1]) * q,
   a[2] + (b[2] - a[2]) * q,
 ];
+const STEP = 2.6; // distance between two foot spots, in units
 function pose(t, phase = 0) {
   const w = (t * 1.5 + phase) * Math.PI * 2,
     walk = S.walk ? 1 : 0;
   const p = {
-    fF: [3 + Math.sin(w) * 2.1 * walk, -1.3 - Math.max(0, Math.cos(w)) * 1.3 * walk],
-    fB: [-2.4 - Math.sin(w) * 2.1 * walk, -1.3 - Math.max(0, -Math.cos(w)) * 1.3 * walk],
+    // a full stride: four foot spots A B C D, STEP apart. The back foot travels A B C B A, the
+    // front foot B C D C B, in opposite phase, so the feet pass each other mid-stride.
+    fF: [STEP / 2 + Math.sin(w) * STEP * walk, -1.3 - Math.max(0, Math.cos(w)) * 1.3 * walk],
+    fB: [-STEP / 2 - Math.sin(w) * STEP * walk, -1.3 - Math.max(0, -Math.cos(w)) * 1.3 * walk],
     bob: walk ? -Math.abs(Math.sin(w)) * 0.8 : Math.sin(t * 2.2) * 0.3,
     swing: Math.sin(w) * 1.4 * walk,
     lean: 0,
