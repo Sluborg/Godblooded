@@ -675,7 +675,7 @@
     } catch (e) {}
   })();
 
-  refreshCards();
+  PAINTED_READY.then(refreshCards);
   resize();
   requestAnimationFrame(frame);
 </script>
