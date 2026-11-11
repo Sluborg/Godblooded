@@ -639,16 +639,17 @@ describe('head import (heads track)', () => {
         img.data.set([150, 90, 60, 255], (y * 1024 + x) * 4);
     return img;
   }
-  it('accepts a head at the template size and keeps the origin as pivot', async () => {
+  it('accepts a head at the template size with no warnings', async () => {
     const { measureHead, REF_WIDTH } = await import('./head.mjs');
     const m = measureHead(await block(REF_WIDTH));
     expect(m.ok).toBe(true);
     expect(m.scale).toBeCloseTo(1, 1);
+    expect(m.warnings).toEqual([]);
   });
-  it('rejects a head far off the template size instead of stretching it', async () => {
+  it('warns, never rejects, on a head far off the template size', async () => {
     const { measureHead } = await import('./head.mjs');
     const m = measureHead(await block(19));
-    expect(m.ok).toBe(false);
-    expect(m.reason).toMatch(/skull width/);
+    expect(m.ok).toBe(true);
+    expect(m.warnings.join(' ')).toMatch(/skull width/);
   });
 });
