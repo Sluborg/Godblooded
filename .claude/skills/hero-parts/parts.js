@@ -301,20 +301,26 @@ const HEADS = [
 ];
 
 // ---------- bodies (origin = ground, centred) ----------
+// outline points of a body shape (egg, barrel or bell), shared by the path and the mantle fit
+function eggPoints(cx, cy, w, h, kind) {
+  const pts = [];
+  for (let i = 0; i <= 48; i++) {
+    const t = (i / 48) * Math.PI * 2,
+      s = Math.sin(t),
+      py = (s * h) / 2;
+    let px = (Math.cos(t) * w) / 2;
+    if (kind === 'egg') px *= 1 + 0.12 * s;
+    // side view: the chest pushes forward, the back is flatter
+    px *= px > 0 ? 1.06 - 0.08 * s : 0.92;
+    if (kind === 'barrel') px *= 1.06 - 0.12 * s * s;
+    if (kind === 'bell') px *= 0.72 + 0.4 * Math.pow((s + 1) / 2, 1.5);
+    pts.push([cx + px, cy + py]);
+  }
+  return pts;
+}
 function eggPath(cx, cy, w, h, kind) {
   return () => {
-    for (let i = 0; i <= 48; i++) {
-      const t = (i / 48) * Math.PI * 2,
-        s = Math.sin(t),
-        py = (s * h) / 2;
-      let px = (Math.cos(t) * w) / 2;
-      if (kind === 'egg') px *= 1 + 0.12 * s;
-      // side view: the chest pushes forward, the back is flatter
-      px *= px > 0 ? 1.06 - 0.08 * s : 0.92;
-      if (kind === 'barrel') px *= 1.06 - 0.12 * s * s;
-      if (kind === 'bell') px *= 0.72 + 0.4 * Math.pow((s + 1) / 2, 1.5);
-      i ? ctx.lineTo(cx + px, cy + py) : ctx.moveTo(cx + px, cy + py);
-    }
+    eggPoints(cx, cy, w, h, kind).forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
     ctx.closePath();
   };
 }
@@ -346,8 +352,9 @@ const BODIES = [
     w: 15,
     h: 18,
     kind: 'egg',
+    base: -2.5,
     draw(b) {
-      const cy = -2.5 - b.h / 2;
+      const cy = b.base - b.h / 2;
       paint('#77808a', eggPath(0, cy, b.w, b.h, b.kind), [-b.w / 2, cy - b.h / 2, b.w, b.h], {
         grit: 51,
       });
@@ -379,8 +386,9 @@ const BODIES = [
     w: 15,
     h: 18,
     kind: 'egg',
+    base: -2.5,
     draw(b) {
-      const cy = -2.5 - b.h / 2;
+      const cy = b.base - b.h / 2;
       paint(COL.red, eggPath(0, cy, b.w, b.h, b.kind), [-b.w / 2, cy - b.h / 2, b.w, b.h], {
         grit: 52,
       });
@@ -415,8 +423,9 @@ const BODIES = [
     w: 15.5,
     h: 18,
     kind: 'egg',
+    base: -2.5,
     draw(b) {
-      const cy = -2.5 - b.h / 2;
+      const cy = b.base - b.h / 2;
       ctx.save();
       ctx.beginPath();
       eggPath(0, cy, b.w, b.h, b.kind)();
@@ -459,8 +468,9 @@ const BODIES = [
     w: 16,
     h: 19,
     kind: 'bell',
+    base: -2,
     draw(b) {
-      const cy = -2 - b.h / 2;
+      const cy = b.base - b.h / 2;
       paint(COL.cloth, eggPath(0, cy, b.w, b.h, b.kind), [-b.w / 2, cy - b.h / 2, b.w, b.h], {
         grit: 55,
       });
@@ -505,8 +515,9 @@ const BODIES = [
     w: 16,
     h: 17,
     kind: 'barrel',
+    base: -3,
     draw(b) {
-      const cy = -3 - b.h / 2;
+      const cy = b.base - b.h / 2;
       paint(COL.leather, eggPath(0, cy, b.w, b.h, b.kind), [-b.w / 2, cy - b.h / 2, b.w, b.h], {
         grit: 56,
       });
@@ -534,7 +545,19 @@ const BODIES = [
     },
   },
 ];
-const bodyTop = (b) => -2.5 - b.h; // where the head sits
+const bodyTop = (b) => b.base - b.h; // where the head sits
+// the body's widest reach (front and back) over its top rows, so the mantle always covers it
+function bodyReach(b, rows) {
+  const top = bodyTop(b);
+  let front = 0,
+    back = 0;
+  for (const [x, y] of eggPoints(0, b.base - b.h / 2, b.w, b.h, b.kind))
+    if (y <= top + rows) {
+      front = Math.max(front, x);
+      back = Math.min(back, x);
+    }
+  return [back, front];
+}
 
 // ---------- weapons (origin = grip, haft points up) ----------
 function head(x, y, w, h, t, gemOn) {

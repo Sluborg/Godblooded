@@ -58,7 +58,10 @@ The scripts are plain browser JavaScript, concatenated in the order kit, parts, 
 
 Back to front: cape, `head.back` (hair or braids that hang behind the body), feet, far hand (and
 its weapon in far-hand mode), body, the cape's drape over the back shoulder, head (face, hair,
-beard), weapon, near hand, strike trail. A head that has hair falling down the back puts it in
+beard), weapon, near hand, strike trail. The mantle (the cape's shoulder
+piece) always covers the top of the body: `hero.js` measures each body's widest reach over its
+top rows (`bodyReach`) and makes the mantle a unit wider, so no body shows above or beside it.
+A body may have any shape below the mantle. A head that has hair falling down the back puts it in
 an optional `back(h)` function so it never covers the body. Beards end on the upper chest (no
 lower than about +4 from the chin). `face: -1` mirrors the whole hero to face left.
 

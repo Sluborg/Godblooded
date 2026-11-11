@@ -166,22 +166,35 @@ function drawHero(c, scale, x0, y0, t, o = {}) {
     } else ball(empty[0], empty[1]);
     // 5. body
     b.draw(b);
-    // 6. the cape's drape over the back shoulder, pinned at the throat
+    // 6. the mantle: the cape's shoulder piece, over the whole top of the body and always wider
+    //    than it, so no body ever shows above or beside it; it hangs lower at the back
+    const [bk, fr] = bodyReach(b, 7),
+      mb = bk - 1,
+      mf = fr + 1;
     paint(
       S.cape,
       C([
-        [3.6, top + 1.8],
-        [0, top + 0.8],
-        [-4.6, top + 1.8],
-        [-7, top + 5],
-        [-5.6, top + 6.2],
-        [-2, top + 4.6],
-        [2.4, top + 4.4],
+        [mb - 0.4, top + 7.8],
+        [mb, top + 3],
+        [mb + 2.8, top - 0.6],
+        [0, top - 1.8],
+        [mf - 2.6, top - 0.8],
+        [mf, top + 2.4],
+        [mf + 0.2, top + 5.4],
+        [mf - 3, top + 6.4],
+        [0, top + 6.6],
+        [mb + 3, top + 7.6],
       ]),
-      [-7, top + 0.8, 10.6, 5.4],
+      [mb - 0.4, top - 1.8, mf - mb + 0.6, 9.6],
       { grit: 72 },
     );
-    paint(COL.bronze, E(3, top + 3.2, 1.1, 1.1), [1.9, top + 2.1, 2.2, 2.2], { rim: false });
+    stroke(tone(S.cape, -0.3), 0.35, [
+      [mb + 2.4, top + 2],
+      [mb + 1.6, top + 6.8],
+    ]);
+    paint(COL.bronze, E(mf - 2.2, top + 1.6, 1.1, 1.1), [mf - 3.3, top + 0.5, 2.2, 2.2], {
+      rim: false,
+    });
     // 7. head; a weapon raised behind the head goes under it
     const raised = !S.back && hand[2] < -70;
     if (raised) weapon();
