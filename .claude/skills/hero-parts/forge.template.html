@@ -252,6 +252,7 @@
       <span class="hint">Tier</span>
       <span class="row" id="tiers"></span>
       <button class="b" id="bHand" type="button" aria-pressed="false">Weapon in back hand</button>
+      <button class="b" id="bFace" type="button" aria-pressed="false">Face left</button>
       <span class="row" id="capes"></span>
     </div>
   </div>
@@ -468,6 +469,10 @@
     S.atk = !S.atk;
     S.atkStart = performance.now() / 1000;
     press($('bAtk'), S.atk);
+  };
+  $('bFace').onclick = () => {
+    S.face = S.face === 1 ? -1 : 1;
+    press($('bFace'), S.face === -1);
   };
   $('bHand').onclick = () => {
     S.back = !S.back;

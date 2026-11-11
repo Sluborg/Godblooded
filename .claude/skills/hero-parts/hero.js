@@ -11,6 +11,7 @@ const CAPES = {
   Purple: '#5f3c86',
 };
 const S = {
+  face: 1,
   head: 0,
   body: 0,
   weapon: 0,
@@ -22,8 +23,8 @@ const S = {
   atkStart: 0,
 };
 const KEYS = {
-  front: { rest: [8, -10.5, 38], raise: [1.5, -23.5, -128], strike: [11.6, -8.6, 98] },
-  back: { rest: [-7.4, -11.6, -22], raise: [-6, -24.5, -140], strike: [9.4, -10, 92] },
+  front: { rest: [7.2, -10.4, 38], raise: [1.5, -23.5, -128], strike: [11.6, -8.6, 98] },
+  back: { rest: [-6.2, -11.6, -22], raise: [-6, -24.5, -140], strike: [9.4, -10, 92] },
 };
 const ease = (q) => q * q * (3 - 2 * q);
 const lerp3 = (a, b, q) => [
@@ -78,6 +79,8 @@ function drawHero(c, scale, x0, y0, t, o = {}) {
   const p = pose(t, o.phase || 0);
   ctx.save();
   ctx.translate(x0, y0);
+  // side view: everything is drawn facing right; face -1 mirrors the whole hero to face left
+  ctx.scale(o.face ?? S.face ?? 1, 1);
   ctx.scale(scale, scale);
   // ground shadow
   ctx.fillStyle = '#00000040';
@@ -118,7 +121,7 @@ function drawHero(c, scale, x0, y0, t, o = {}) {
   ctx.restore();
   // feet (the body overlaps their tops)
   for (const f of [p.fB, p.fF])
-    paint(COL.leatherD, E(f[0], f[1], 3.4, 2), [f[0] - 3.4, f[1] - 2, 6.8, 4], {
+    paint(COL.leatherD, E(f[0] + 0.7, f[1], 3.6, 2), [f[0] - 2.9, f[1] - 2, 7.2, 4], {
       rim: true,
       grit: 81,
     });
@@ -146,7 +149,7 @@ function drawHero(c, scale, x0, y0, t, o = {}) {
         rim: true,
       });
     };
-  const freeHand = S.back ? [7.6 - p.swing, -11.2] : [-7.4 + p.swing * 0.6, -11.6];
+  const freeHand = S.back ? [6.8 - p.swing, -10.8] : [-6.2 + p.swing * 0.6, -11.6];
   if (S.back) held(true);
   else
     paint(skin, E(freeHand[0], freeHand[1], 2.5, 2.5), [
@@ -159,7 +162,7 @@ function drawHero(c, scale, x0, y0, t, o = {}) {
   const raised = !S.back && hand[2] < -70;
   if (raised) held(false);
   ctx.save();
-  ctx.translate(1, top + 1.8);
+  ctx.translate(0.6, top + 1.8);
   h.draw(h);
   ctx.restore();
   if (S.back)
