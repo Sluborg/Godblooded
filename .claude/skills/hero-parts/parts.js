@@ -623,61 +623,6 @@ function lift(top) {
 }
 const CLOAKS = [
   {
-    id: 'cloak-1',
-    rev: 4,
-    name: 'Cloak worn',
-    front(b, c, sw) {
-      const top = bodyTop(b),
-        L = lift(top),
-        [bk, fr] = bodyReach(b, 7),
-        base = b.base;
-      // like a short travelling cape: it wraps the shoulders and upper arms, then its front edge
-      // runs back to the hem behind, so the chest, belt and most of the body stay in view
-      // a cape over the shoulders only: the cut runs just below the shoulder line, so the upper
-      // arms and the body show; behind, it hangs long down the back
-      const pts = [
-        [fr - 1.4, top + 2.6],
-        [fr - 2.6, top + 0.2],
-        [1, top - 1.2],
-        [bk + 1.4, top - 0.4],
-        [bk - 1.2, top + 3.4],
-        [bk - 2.6 + sw * 0.3, top + 10],
-        [bk - 4 + sw, base - 2.2],
-        [bk + 0.6 + sw * 0.8, base - 1.4],
-        [bk + 1.4 + sw * 0.3, top + 9],
-        [bk + 2.6, top + 4.6],
-        [-1.4, top + 3.8],
-        [2.4, top + 3.4],
-        [fr - 2.4, top + 3.6],
-      ].map(L);
-      paint(c, C(pts), [bk - 4, top - 1.2, fr - bk + 4, base - top], { grit: 71 });
-      // the lining shows along the cut; a fold runs from the shoulder down the back
-      stroke(
-        tone(c, 0.3),
-        0.4,
-        [
-          [fr - 2.4, top + 3.8],
-          [2.4, top + 3.6],
-          [-1.4, top + 4],
-          [bk + 2.6, top + 4.8],
-          [bk + 1.4 + sw * 0.3, top + 9.2],
-          [bk + 0.8 + sw * 0.8, base - 1.6],
-        ].map(L),
-      );
-      stroke(
-        tone(c, -0.3),
-        0.4,
-        [
-          [bk + 0.6, top + 3],
-          [bk - 2.4 + sw, base - 2.8],
-        ].map(L),
-      );
-      paint(COL.bronze, E(fr - 1.4, top + 2.6, 1.2, 1.2), [fr - 2.6, top + 1.4, 2.4, 2.4], {
-        rim: false,
-      });
-    },
-  },
-  {
     id: 'cloak-2',
     rev: 3,
     name: 'Cloak thrown back',
@@ -787,24 +732,25 @@ function haft(y0, y1, w = 1.5) {
 const WEAPONS = [
   {
     id: 'weapon-1',
+    rev: 2,
     name: 'Hammer',
-    tip: [0, -13],
+    tip: [0, -12],
     draw(t, ti) {
-      haft(4, -11);
-      head(-4.3, -14.6, 8.6, 5.4, t, ti > 0);
+      haft(4, -10.4);
+      head(-3.3, -13.4, 6.6, 4.2, t, ti > 0);
       if (ti) paint(t.trim, E(0, 4.4, 1.1, 0.9), [-1.1, 3.5, 2.2, 1.8], { rim: false });
     },
   },
   {
     id: 'weapon-2',
-    rev: 2,
+    rev: 3,
     name: 'Maul',
-    tip: [0, -21],
+    tip: [0, -20],
     draw(t, ti) {
-      // a longer handle than the hammer: a two-handed sledge
-      haft(7, -18, 1.8);
-      head(-5.6, -23, 11.2, 7, t, ti > 0);
-      paint(t.trim, R(-1.4, -16.6, 2.8, 1.4, 0.4), [-1.4, -16.6, 2.8, 1.4], { rim: false });
+      // a longer handle than the hammer: a two-handed sledge, its head a size down
+      haft(7, -17.6, 1.7);
+      head(-4.4, -22, 8.8, 5.6, t, ti > 0);
+      paint(t.trim, R(-1.3, -16.6, 2.6, 1.3, 0.4), [-1.3, -16.6, 2.6, 1.3], { rim: false });
     },
   },
   {
