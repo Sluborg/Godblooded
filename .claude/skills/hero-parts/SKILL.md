@@ -56,9 +56,9 @@ whole hero to face left. Every part uses the same view.
   Bands (`belt`, `hem`, `bandPath`) curve down a little in the middle. Clip patterns with
   `within(b, fn)`. The head sits at `(0.2, bodyTop(b) + 1.8)`.
 - **Hands and feet:** balls of radius 2.5 in the head's skin colour; feet ellipses 3.4 x 2. Sizes
-  are fixed for every hero. The weapon hand is the near hand on the left (the cloak side), resting
-  at (-6.2, -10.4); the shield hand is on the right at (6.6, -11.2), held forward. The far foot
-  stands a little higher (further back) than the near foot.
+  are fixed for every hero. The shield is on the near hand (on the left, closest to the camera,
+  at (-5.8, -10.8)), drawn over the body; the weapon is in the far hand on the right (resting at
+  (6.4, -11.6)), drawn behind the body. The far foot stands a little higher (further back).
 - **Weapon:** origin is the grip, the haft points up (-y). Set `tip` to the striking end. One-handed
   weapons reach up to about -17, staffs to about -27.
 - **Shield:** origin is the shield hand; its face is turned to the camera and painted in the party
@@ -66,9 +66,8 @@ whole hero to face left. Every part uses the same view.
 
 ## Layers (back to front)
 
-`cloak.back`, `head.back` (hair or braids that hang behind the body), far foot, near foot, body,
-`cloak.front`, shield (or the free hand), a weapon raised behind the head, head, weapon, weapon
-hand, strike trail.
+`cloak.back`, `head.back` (hair or braids that hang behind the body), far foot, near foot, the
+weapon and the far hand, body, `cloak.front`, head, the near hand with the shield, strike trail.
 
 - **The cloak is one garment** (`CLOAKS`): gathered on top of the shoulders, pinned at the throat,
   hanging down the back. Its shoulders never move; only the hem sways when walking.
