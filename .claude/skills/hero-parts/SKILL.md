@@ -45,9 +45,11 @@ The scripts are plain browser JavaScript, concatenated in the order kit, parts, 
   (-0.8, -8.4).
   Hair and helmets may reach x -9 to 8.6 and y -18.3. Beards may hang to y +5 (a long beard to
   +10).
-- **Body:** origin is the ground under the middle. Egg, barrel or bell from `eggPath`, width 15
-  to 16, height 17 to 19, bottom at y -2.5. The head sits at `(1, bodyTop(b) + 1.8)` so the chin
-  or beard covers the body's top: there is no neck.
+- **Body:** origin is the ground under the middle, a true side view built by `sidePoints(b)`
+  from `w`, `h`, `base` (the bottom, about -2 to -3) and optional `chest`, `belly`, `back`,
+  `flare` (robes) and `flat` (a straight hem). Details sit on the front or back edge, never in the
+  middle. Clip patterns with `within(b, fn)`; use `belt(b, y)` so the belt wraps past both edges
+  with round ends and the buckle on the front. The head sits at `(0.6, bodyTop(b) + 1.8)`.
 - **Feet:** ellipses 3.6 x 2, toes forward, at (-2.4, -1.3) and (3, -1.3). **Hands:** balls of
   radius 2.5 in the head's skin colour; the near hand rests on the chest (3.4, -9.8), the far hand
   peeks out at the front (5.8, -12.4). Sizes are fixed for every hero.

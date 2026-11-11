@@ -103,30 +103,23 @@ function drawHero(c, scale, x0, y0, t, o = {}) {
     fn();
     ctx.restore();
   };
-  // 1. cape down the back
+  // 1. cape down the back; its top is pinned under the mantle and only the lower part sways
   upper(() => {
-    ctx.save();
-    ctx.translate(-1.5, top + 2);
-    ctx.rotate(p.cape);
-    paint(
-      S.cape,
-      C([
-        [0.5, -0.6],
-        [-4.6, 1],
-        [-9.6, 9.6],
-        [-11.6, 17.6],
-        [-6.4, 18.8],
-        [-1.8, 16.4],
-        [0.4, 8],
-      ]),
-      [-11.6, -0.6, 12.2, 19.4],
-      { grit: 71 },
-    );
+    const sway = p.cape * 40;
+    const cape = [
+      [0.5, -0.6],
+      [-4.6, 1],
+      [-9.6, 9.6],
+      [-11.6, 17.6],
+      [-6.4, 18.8],
+      [-1.8, 16.4],
+      [0.4, 8],
+    ].map(([x, y]) => [x - 1.5 + (sway * Math.max(0, y)) / 19, y + top + 2]);
+    paint(S.cape, C(cape), [-13.6, top + 1.4, 14.6, 20.4], { grit: 71 });
     stroke(tone(S.cape, -0.3), 0.4, [
-      [-3, 3],
-      [-6.4, 15],
+      [-4.5 + sway * 0.15, top + 5],
+      [-7.9 + sway * 0.8, top + 17],
     ]);
-    ctx.restore();
     // 2. hair or braids that hang behind the body
     if (h.back) {
       ctx.save();
@@ -177,7 +170,7 @@ function drawHero(c, scale, x0, y0, t, o = {}) {
     paint(
       S.cape,
       C([
-        [mb - 0.4, top + 7.8],
+        [mb - 0.6, top + 9],
         [mb, top + 3],
         [mb + 2.8, top - 0.6],
         [0, top - 1.8],
@@ -186,9 +179,9 @@ function drawHero(c, scale, x0, y0, t, o = {}) {
         [mf + 0.2, top + 5.4],
         [mf - 3, top + 6.4],
         [0, top + 6.6],
-        [mb + 3, top + 7.6],
+        [mb + 3, top + 8.2],
       ]),
-      [mb - 0.4, top - 1.8, mf - mb + 0.6, 9.6],
+      [mb - 0.6, top - 1.8, mf - mb + 0.8, 10.8],
       { grit: 72 },
     );
     stroke(tone(S.cape, -0.3), 0.35, [

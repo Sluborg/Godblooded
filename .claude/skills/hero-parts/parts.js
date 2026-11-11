@@ -68,7 +68,7 @@ function skull(h) {
   );
 }
 // beard: sideburn in front of the ear, down the jaw, out under the nose; len makes it hang lower
-function beard(h, len = 0, color = h.hair) {
+function beard(h, len = 0, color = h.hair, stache = true) {
   paint(
     color,
     C([
@@ -87,18 +87,19 @@ function beard(h, len = 0, color = h.hair) {
     [0.6, -8.4, 8, 11.8 + len],
     { grit: 31 },
   );
-  paint(
-    tone(color, -0.12),
-    C([
-      [5, -6.6],
-      [7.6, -7.2],
-      [9.2, -6],
-      [7.8, -5],
-      [6, -5.2],
-    ]),
-    [5, -7.2, 4.2, 2.2],
-    { rim: false },
-  );
+  if (stache)
+    paint(
+      tone(color, -0.12),
+      C([
+        [5, -6.6],
+        [7.6, -7.2],
+        [9.2, -6],
+        [7.8, -5],
+        [6, -5.2],
+      ]),
+      [5, -7.2, 4.2, 2.2],
+      { rim: false },
+    );
 }
 const HEADS = [
   {
@@ -169,43 +170,47 @@ const HEADS = [
   },
   {
     id: 'head-3',
-    name: 'Iron helm',
-    skin: '#d9a882',
-    hair: '#9c4320',
+    name: 'Braided crown',
+    skin: '#d8a27e',
+    hair: '#8f3a1c',
     draw(h) {
+      // hair swept back to a knot at the nape, a braid wound over the crown
+      paint(
+        h.hair,
+        C([
+          [-7.6, -6],
+          [-8.2, -11.6],
+          [-5.4, -16.2],
+          [0.4, -17.6],
+          [5.6, -16],
+          [4.2, -13.4],
+          [0, -12.6],
+          [-2.6, -10.4],
+          [-3.8, -6.8],
+        ]),
+        [-8.2, -17.6, 13.8, 11.6],
+        { grit: 25 },
+      );
+      paint(h.hair, E(-7.4, -6.4, 2.4, 2.1), [-9.8, -8.5, 4.8, 4.2], { grit: 26 });
       skull(h);
       ear(h);
+      for (let i = 0; i < 6; i++)
+        paint(
+          tone(h.hair, 0.08),
+          E(-4.6 + i * 2, -15.8 - Math.sin((i / 5) * Math.PI) * 1.4, 1.5, 1.15, 0.3),
+          [-6.2, -18, 12.4, 3.6],
+          { rim: false },
+        );
       eye(h);
       nose(h);
-      beard(h, 1);
-      paint(
-        COL.iron,
-        C([
-          [-7.6, -9.4],
-          [-7.4, -13.6],
-          [-4.4, -17.4],
-          [0.8, -18.6],
-          [5.6, -17],
-          [8, -13.4],
-          [8, -11.8],
-          [-7.6, -11.8],
-        ]),
-        [-7.6, -18.6, 15.6, 9.2],
-        { grit: 41 },
-      );
-      paint(COL.bronze, R(-7.9, -13.2, 16.2, 1.8, 0.5), [-7.9, -13.2, 16.2, 1.8], { rim: false });
-      paint(
-        COL.iron,
-        P([
-          [7, -11.6],
-          [8.2, -11.6],
-          [8.4, -8],
-          [7.6, -7.4],
-          [7, -8],
-        ]),
-        [7, -11.6, 1.4, 4.2],
-        { rim: false },
-      );
+      stroke(dark(h.skin), 0.42, [
+        [5.2, -4.6],
+        [6.5, -4.9],
+      ]);
+      stroke('#e7b3a0', 0.4, [
+        [3.4, -7.6],
+        [4.6, -6.2],
+      ]);
     },
   },
   {
@@ -262,8 +267,8 @@ const HEADS = [
       eye(h);
       nose(h);
       stroke(dark(h.skin), 0.42, [
-        [6.2, -4.4],
-        [7.6, -4.8],
+        [5.2, -4.6],
+        [6.5, -4.9],
       ]);
       flat(tone(h.skin, -0.14) + '88', E(4.2, -6, 1.4, 0.8), false);
     },
@@ -291,7 +296,7 @@ const HEADS = [
       ear(h);
       eye(h, { patch: true, brow: '#d8d4cc' });
       nose(h);
-      beard(h, 2.5);
+      beard(h, 2.5, h.hair, false);
       stroke(dark(h.skin), 0.3, [
         [1, -14.4],
         [4.6, -14.6],
@@ -300,264 +305,244 @@ const HEADS = [
   },
 ];
 
-// ---------- bodies (origin = ground, centred) ----------
-// outline points of a body shape (egg, barrel or bell), shared by the path and the mantle fit
-function eggPoints(cx, cy, w, h, kind) {
-  const pts = [];
-  for (let i = 0; i <= 48; i++) {
-    const t = (i / 48) * Math.PI * 2,
-      s = Math.sin(t),
-      py = (s * h) / 2;
-    let px = (Math.cos(t) * w) / 2;
-    if (kind === 'egg') px *= 1 + 0.12 * s;
-    // side view: the chest pushes forward, the back is flatter
-    px *= px > 0 ? 1.06 - 0.08 * s : 0.92;
-    if (kind === 'barrel') px *= 1.06 - 0.12 * s * s;
-    if (kind === 'bell') px *= 0.72 + 0.4 * Math.pow((s + 1) / 2, 1.5);
-    pts.push([cx + px, cy + py]);
-  }
+// ---------- bodies (origin = ground, side view facing right) ----------
+// Every body is a true side view: chest forward, back flatter, seat behind. Details sit on the
+// front or back edge, never in the middle as if the hero faced the viewer.
+function sidePoints(b) {
+  const T = b.base - b.h,
+    B = b.base,
+    hw = b.w / 2,
+    h = b.h,
+    flare = b.flare || 0, // robes widen toward the hem
+    flat = b.flat || false; // a straight hem instead of a rounded bottom
+  const pts = [
+    [0.6, T],
+    [hw * 0.55, T + 0.6],
+    [hw + (b.chest ?? 0.5), T + h * 0.3],
+    [hw + (b.belly ?? 0.2) + flare * 0.5, T + h * 0.62],
+  ];
+  if (flat)
+    pts.push(
+      [hw + flare, B - 0.6],
+      [hw * 0.6 + flare, B],
+      [-hw * 0.6 - flare, B],
+      [-hw - flare * 0.8, B - 0.6],
+    );
+  else
+    pts.push(
+      [hw * 0.8 + flare, B - h * 0.1],
+      [hw * 0.3, B],
+      [-hw * 0.4, B],
+      [-hw * 0.9 - flare, B - h * 0.14],
+    );
+  pts.push(
+    [-hw - (b.back ?? 0) - flare * 0.4, T + h * 0.55],
+    [-hw * 0.86, T + h * 0.2],
+    [-hw * 0.4, T + 0.5],
+  );
   return pts;
 }
-function eggPath(cx, cy, w, h, kind) {
-  return () => {
-    eggPoints(cx, cy, w, h, kind).forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
-    ctx.closePath();
-  };
+const sidePath = (b) => C(sidePoints(b));
+const bodyBox = (b) => [-b.w / 2 - 1, b.base - b.h, b.w + 2, b.h];
+const bodyTop = (b) => b.base - b.h; // where the head sits
+// front and back edge of the body at height y (from the outline points, a little generous)
+function extentAt(b, y) {
+  const pts = sidePoints(b);
+  let back = 0,
+    front = 0;
+  for (let i = 0; i < pts.length; i++) {
+    const [x1, y1] = pts[i],
+      [x2, y2] = pts[(i + 1) % pts.length];
+    if ((y1 - y) * (y2 - y) <= 0 && y1 !== y2) {
+      const x = x1 + ((y - y1) / (y2 - y1)) * (x2 - x1);
+      front = Math.max(front, x);
+      back = Math.min(back, x);
+    }
+  }
+  return [back - 0.3, front + 0.3];
 }
-function belt(y, w, cy, h, kind, buckle = true) {
+// the body's widest reach over its top rows, so the mantle always covers it
+function bodyReach(b, rows) {
+  let back = 0,
+    front = 0;
+  for (let y = bodyTop(b); y <= bodyTop(b) + rows; y += 0.5) {
+    const [bk, fr] = extentAt(b, y);
+    back = Math.min(back, bk);
+    front = Math.max(front, fr);
+  }
+  return [back, front];
+}
+// inside the body outline only
+function within(b, fn) {
   ctx.save();
   ctx.beginPath();
-  eggPath(0, cy, w, h, kind)();
+  sidePath(b)();
   ctx.clip();
-  paint(COL.leather, R(-w, y, w * 2, 2.4, 0), [-w, y, w * 2, 2.4], { rim: false });
+  fn();
   ctx.restore();
+}
+// a belt that wraps the body: a little wider than the body on both edges, round ends, buckle on
+// the front edge
+function belt(b, y, buckle = true) {
+  const [bk, fr] = extentAt(b, y + 1.2);
+  paint(COL.leather, R(bk - 0.3, y, fr - bk + 0.6, 2.4, 1.1), [bk, y, fr - bk, 2.4], {
+    rim: false,
+  });
   if (buckle) {
-    // the buckle sits on the front edge: the hero is seen from the side
-    const bx = w / 2 - 2.6;
-    paint(COL.bronze, E(bx, y + 1.2, 1.7, 1.7), [bx - 1.7, y - 0.5, 3.4, 3.4], { rim: false });
-    stroke(dark(COL.bronze), 0.45, [
-      [bx, y + 0.3],
-      [bx, y + 2.1],
-    ]);
-    stroke(dark(COL.bronze), 0.45, [
-      [bx - 0.8, y + 0.4],
-      [bx + 0.8, y + 0.4],
+    paint(COL.bronze, R(fr - 1.6, y - 0.3, 2, 3, 0.5), [fr - 1.6, y - 0.3, 2, 3], { rim: false });
+    stroke(dark(COL.bronze), 0.4, [
+      [fr - 0.6, y + 0.3],
+      [fr - 0.6, y + 2.1],
     ]);
   }
 }
 const BODIES = [
   {
     id: 'body-1',
-    name: 'Mail egg',
-    w: 15,
+    name: 'Mail shirt',
+    w: 14.5,
     h: 18,
-    kind: 'egg',
     base: -2.5,
     draw(b) {
-      const cy = b.base - b.h / 2;
-      paint('#77808a', eggPath(0, cy, b.w, b.h, b.kind), [-b.w / 2, cy - b.h / 2, b.w, b.h], {
-        grit: 51,
+      paint('#77808a', sidePath(b), bodyBox(b), { grit: 51 });
+      within(b, () => {
+        for (let y = bodyTop(b) + 1; y < b.base; y += 1.5)
+          for (let x = -b.w / 2 - 1 + ((y * 2) % 1.5); x < b.w / 2 + 1; x += 1.5) {
+            ctx.beginPath();
+            ctx.arc(x, y, 0.5, Math.PI, 0);
+            ctx.strokeStyle = '#4f575f99';
+            ctx.lineWidth = 0.18;
+            ctx.stroke();
+          }
+        paint(COL.red, R(-b.w, b.base - 3.4, b.w * 2, 4, 0), [-b.w / 2, b.base - 3.4, b.w, 4], {
+          rim: false,
+        });
       });
-      ctx.save();
-      ctx.beginPath();
-      eggPath(0, cy, b.w, b.h, b.kind)();
-      ctx.clip();
-      for (let y = cy - b.h / 2 + 1; y < cy + b.h / 2; y += 1.5)
-        for (let x = -b.w / 2 + ((y * 2) % 1.5); x < b.w / 2; x += 1.5) {
-          ctx.beginPath();
-          ctx.arc(x, y, 0.5, Math.PI, 0);
-          ctx.strokeStyle = '#4f575f99';
-          ctx.lineWidth = 0.18;
-          ctx.stroke();
-        }
-      paint(
-        COL.red,
-        R(-b.w, cy + b.h / 2 - 3.2, b.w * 2, 4, 0),
-        [-b.w / 2, cy + b.h / 2 - 3.2, b.w, 4],
-        { rim: false },
-      );
-      ctx.restore();
-      belt(cy + 1.4, b.w, cy, b.h, b.kind);
+      belt(b, b.base - 8.6);
     },
   },
   {
     id: 'body-2',
-    name: 'Fur mantle',
-    w: 15,
-    h: 18,
-    kind: 'egg',
-    base: -2.5,
+    name: 'Long robe',
+    w: 14,
+    h: 19,
+    base: -1.8,
+    flat: true,
+    flare: 1.2,
     draw(b) {
-      const cy = b.base - b.h / 2;
-      paint(COL.red, eggPath(0, cy, b.w, b.h, b.kind), [-b.w / 2, cy - b.h / 2, b.w, b.h], {
-        grit: 52,
-      });
-      belt(cy + 1.8, b.w, cy, b.h, b.kind);
-      const top = cy - b.h / 2;
-      paint(
-        COL.fur,
-        C([
-          [-7.2, top + 2.6],
-          [-5, top + 0.2],
-          [-1, top + 0.4],
-          [3.6, top + 2],
-          [7.4, top + 4.6],
-          [6.4, top + 6.4],
-          [2.6, top + 5.6],
-          [-1.6, top + 5],
-          [-6.2, top + 5.2],
-        ]),
-        [-7.2, top + 0.2, 14.6, 6.2],
-        { grit: 53 },
-      );
-      for (let i = 0; i < 6; i++)
-        stroke(tone(COL.fur, -0.25), 0.3, [
-          [-5.4 + i * 2.2, top + 4.8 + i * 0.2],
-          [-5 + i * 2.2, top + 3 + i * 0.3],
+      paint(COL.cloth, sidePath(b), bodyBox(b), { grit: 52 });
+      within(b, () => {
+        paint(COL.red, R(-b.w, b.base - 2.4, b.w * 2, 3, 0), [-b.w / 2, b.base - 2.4, b.w, 3], {
+          rim: false,
+        });
+        // the robe opens down the front edge
+        stroke(tone(COL.cloth, -0.32), 0.45, [
+          [b.w / 2 - 1.2, bodyTop(b) + 6],
+          [b.w / 2 - 0.4, b.base - 2.4],
         ]);
+        stroke(tone(COL.cloth, -0.25), 0.35, [
+          [-b.w / 2 + 2, b.base - 9],
+          [-b.w / 2 + 1.2, b.base - 2.4],
+        ]);
+      });
+      belt(b, b.base - 10, false);
+      stroke(COL.leather, 1, [
+        [b.w / 2 - 0.6, b.base - 8],
+        [b.w / 2 + 0.2, b.base - 4.6],
+      ]);
     },
   },
   {
     id: 'body-3',
     name: 'Iron plate',
-    w: 15.5,
+    w: 15,
     h: 18,
-    kind: 'egg',
     base: -2.5,
+    chest: 1,
     draw(b) {
-      const cy = b.base - b.h / 2;
-      ctx.save();
-      ctx.beginPath();
-      eggPath(0, cy, b.w, b.h, b.kind)();
-      ctx.clip();
-      ctx.restore();
-      paint('#8b9299', eggPath(0, cy, b.w, b.h, b.kind), [-b.w / 2, cy - b.h / 2, b.w, b.h], {
-        grit: 54,
-        hi: 0.3,
+      paint('#8b9299', sidePath(b), bodyBox(b), { grit: 54, hi: 0.3 });
+      within(b, () => {
+        // the plate's edge follows the chest; leather tabs hang below the belt
+        stroke(tone('#8b9299', 0.35), 0.5, [
+          [b.w / 2 - 1.4, bodyTop(b) + 2],
+          [b.w / 2 - 0.2, bodyTop(b) + 9],
+        ]);
+        for (let i = 0; i < 4; i++)
+          paint(
+            COL.leather,
+            R(-b.w / 2 + i * 3.8, b.base - 5.4, 3.4, 6, 0.8),
+            [-b.w / 2 + i * 3.8, b.base - 5.4, 3.4, 6],
+            { rim: false },
+          );
       });
-      // the plate's ridge and rivets follow the front edge (side view)
-      stroke(tone('#8b9299', 0.35), 0.5, [
-        [4.2, cy - b.h / 2 + 2],
-        [5.6, cy + 3],
-      ]);
-      for (const [x, y] of [
-        [-1.6, cy - 4.6],
-        [2, cy - 4.4],
-        [-1.8, cy + 0.8],
-        [2.6, cy + 1.2],
-      ])
-        flat(tone('#8b9299', -0.25), E(x, y, 0.55, 0.55));
-      ctx.save();
-      ctx.beginPath();
-      eggPath(0, cy, b.w, b.h, b.kind)();
-      ctx.clip();
-      for (let i = 0; i < 4; i++)
-        paint(
-          COL.leather,
-          R(-7 + i * 3.8, cy + 4.4, 3.4, 6, 0.8),
-          [-7 + i * 3.8, cy + 4.4, 3.4, 6],
-          { rim: false },
-        );
-      ctx.restore();
-      belt(cy + 2.6, b.w, cy, b.h, b.kind);
+      belt(b, b.base - 7.6);
     },
   },
   {
     id: 'body-4',
     name: 'Bell robe',
-    w: 16,
+    w: 13,
     h: 19,
-    kind: 'bell',
     base: -2,
+    flare: 2.4,
     draw(b) {
-      const cy = b.base - b.h / 2;
-      paint(COL.cloth, eggPath(0, cy, b.w, b.h, b.kind), [-b.w / 2, cy - b.h / 2, b.w, b.h], {
-        grit: 55,
-      });
-      ctx.save();
-      ctx.beginPath();
-      eggPath(0, cy, b.w, b.h, b.kind)();
-      ctx.clip();
-      paint(
-        COL.red,
-        R(-b.w, cy + b.h / 2 - 2.6, b.w * 2, 3, 0),
-        [-b.w / 2, cy + b.h / 2 - 2.6, b.w, 3],
-        { rim: false },
-      );
-      for (let i = 0; i < 6; i++)
-        stroke('#d9b45a', 0.35, [
-          [-6 + i * 2.4, cy + b.h / 2 - 2],
-          [-5.2 + i * 2.4, cy + b.h / 2 - 0.9],
-          [-4.4 + i * 2.4, cy + b.h / 2 - 2],
+      paint('#4f5a6a', sidePath(b), bodyBox(b), { grit: 55 });
+      within(b, () => {
+        paint(COL.red, R(-b.w, b.base - 2.8, b.w * 2, 3.4, 0), [-b.w / 2, b.base - 2.8, b.w, 3.4], {
+          rim: false,
+        });
+        for (let i = 0; i < 7; i++)
+          stroke('#d9b45a', 0.35, [
+            [-8 + i * 2.6, b.base - 2.1],
+            [-7.2 + i * 2.6, b.base - 1],
+            [-6.4 + i * 2.6, b.base - 2.1],
+          ]);
+        stroke(tone('#4f5a6a', -0.3), 0.4, [
+          [b.w / 2 - 1, bodyTop(b) + 7],
+          [b.w / 2 + 1.4, b.base - 2.8],
         ]);
-      stroke(tone(COL.cloth, -0.3), 0.4, [
-        [4.6, cy - 6],
-        [6.6, cy + b.h / 2],
-      ]);
-      stroke(tone(COL.cloth, -0.3), 0.35, [
-        [-4.6, cy - 1],
-        [-6.4, cy + b.h / 2],
-      ]);
-      ctx.restore();
+      });
       stroke(COL.rope, 1.1, [
-        [-5, cy + 0.2],
-        [5.4, cy + 0.6],
+        [extentAt(b, b.base - 10)[0] - 0.2, b.base - 10.2],
+        [extentAt(b, b.base - 10)[1] + 0.2, b.base - 9.8],
       ]);
       stroke(COL.rope, 0.8, [
-        [5, cy + 0.6],
-        [5.6, cy + 4.4],
+        [extentAt(b, b.base - 10)[1] - 0.2, b.base - 9.8],
+        [extentAt(b, b.base - 10)[1] + 0.6, b.base - 6.2],
       ]);
     },
   },
   {
     id: 'body-5',
-    name: 'Leather barrel',
-    w: 16,
+    name: 'Leather jerkin',
+    w: 15.5,
     h: 17,
-    kind: 'barrel',
     base: -3,
+    belly: 0.8,
     draw(b) {
-      const cy = b.base - b.h / 2;
-      paint(COL.leather, eggPath(0, cy, b.w, b.h, b.kind), [-b.w / 2, cy - b.h / 2, b.w, b.h], {
-        grit: 56,
+      paint(COL.leather, sidePath(b), bodyBox(b), { grit: 56 });
+      within(b, () => {
+        // one strap from the back shoulder down to the front hip
+        stroke(COL.leatherD, 1.8, [
+          [-b.w / 2, bodyTop(b) + 3],
+          [b.w / 2 + 1, b.base - 4],
+        ]);
+        paint('#6f767e', R(-b.w, b.base - 3, b.w * 2, 3.4, 0), [-b.w / 2, b.base - 3, b.w, 3.4], {
+          rim: false,
+        });
       });
-      ctx.save();
-      ctx.beginPath();
-      eggPath(0, cy, b.w, b.h, b.kind)();
-      ctx.clip();
-      // one strap over the shoulder, seen from the side
-      stroke(COL.leatherD, 1.8, [
-        [-5.6, cy - 7],
-        [6.4, cy + 4],
-      ]);
       paint(
-        '#6f767e',
-        R(-b.w, cy + b.h / 2 - 3, b.w * 2, 3.4, 0),
-        [-b.w / 2, cy + b.h / 2 - 3, b.w, 3.4],
-        { rim: false },
+        COL.bronze,
+        E(b.w / 2 - 1.4, bodyTop(b) + 6.4, 1.6, 1.6),
+        [b.w / 2 - 3, bodyTop(b) + 4.8, 3.2, 3.2],
+        {
+          rim: false,
+        },
       );
-      ctx.restore();
-      paint(COL.bronze, E(4.6, cy - 1.4, 1.8, 1.8), [2.8, cy - 3.2, 3.6, 3.6], { rim: false });
-      stroke(dark(COL.bronze), 0.45, [
-        [4.6, cy - 2.4],
-        [4.6, cy - 0.4],
-      ]);
+      belt(b, b.base - 7.4, false);
     },
   },
 ];
-const bodyTop = (b) => b.base - b.h; // where the head sits
-// the body's widest reach (front and back) over its top rows, so the mantle always covers it
-function bodyReach(b, rows) {
-  const top = bodyTop(b);
-  let front = 0,
-    back = 0;
-  for (const [x, y] of eggPoints(0, b.base - b.h / 2, b.w, b.h, b.kind))
-    if (y <= top + rows) {
-      front = Math.max(front, x);
-      back = Math.min(back, x);
-    }
-  return [back, front];
-}
 
 // ---------- weapons (origin = grip, haft points up) ----------
 function head(x, y, w, h, t, gemOn) {
@@ -608,11 +593,12 @@ const WEAPONS = [
   {
     id: 'weapon-2',
     name: 'Maul',
-    tip: [0, -18],
+    tip: [0, -21],
     draw(t, ti) {
-      haft(5, -15, 1.8);
-      head(-5.6, -20, 11.2, 7, t, ti > 0);
-      paint(t.trim, R(-1.4, -13.6, 2.8, 1.4, 0.4), [-1.4, -13.6, 2.8, 1.4], { rim: false });
+      // a longer handle than the hammer: a two-handed sledge
+      haft(7, -18, 1.8);
+      head(-5.6, -23, 11.2, 7, t, ti > 0);
+      paint(t.trim, R(-1.4, -16.6, 2.8, 1.4, 0.4), [-1.4, -16.6, 2.8, 1.4], { rim: false });
     },
   },
   {
@@ -632,38 +618,41 @@ const WEAPONS = [
   },
   {
     id: 'weapon-4',
-    name: 'Axe',
-    tip: [5, -13],
+    name: 'Dane axe',
+    tip: [6, -19],
     draw(t, ti) {
-      haft(4, -15);
-      // a bearded axe: thin forged head, straight top, curved edge, the beard hooks down
+      haft(7, -21, 1.4);
+      // a Dane axe: thin neck, then a tall crescent edge with a horn at the top and the bottom
       paint(
         t.metal,
         P([
-          [0.6, -16],
-          [4.8, -16.6],
-          [6.6, -15.2],
-          [7.2, -12.6],
-          [6.6, -9.6],
-          [5.2, -9],
-          [4.4, -11],
-          [2.6, -12.8],
-          [0.6, -13.2],
+          [0.6, -21.6],
+          [2.4, -21.4],
+          [4.4, -23.6],
+          [6.4, -24.4],
+          [7.4, -21.6],
+          [7.6, -18.6],
+          [7, -15.6],
+          [5.6, -13.6],
+          [4.6, -15.4],
+          [3, -17.8],
+          [0.6, -18.4],
         ]),
-        [0.6, -16.6, 6.6, 7.6],
+        [0.6, -24.4, 7, 10.8],
         { grit: 63, hi: 0.32 },
       );
       stroke(tone(t.metal, 0.45), 0.5, [
-        [6.6, -15],
-        [7.1, -12.6],
-        [6.5, -9.8],
+        [6.4, -24],
+        [7.3, -21.6],
+        [7.4, -18.6],
+        [6.8, -15.8],
       ]);
-      paint(t.trim, R(-1.1, -16.4, 2.2, 3.6, 0.4), [-1.1, -16.4, 2.2, 3.6], { rim: false });
-      if (ti === 2) paint(t.gem, E(3, -14.4, 0.8, 0.8), [2.2, -15.2, 1.6, 1.6], { rim: false });
+      paint(t.trim, R(-1, -22.2, 2, 4.4, 0.4), [-1, -22.2, 2, 4.4], { rim: false });
+      if (ti === 2) paint(t.gem, E(3.4, -20, 0.8, 0.8), [2.6, -20.8, 1.6, 1.6], { rim: false });
       else if (ti === 1)
         stroke(t.trim, 0.4, [
-          [2, -14.6],
-          [4.6, -14.2],
+          [2.4, -20.4],
+          [5.4, -21.2],
         ]);
     },
   },
