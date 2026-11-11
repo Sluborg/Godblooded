@@ -93,13 +93,19 @@ Tier 2 adds engraving lines; tier 3 adds a gem, and `hero.js` adds the glow and 
   draw function, then add rows.
 - **Per god:** a palette row (skin, hair, cloth, cape motif). **Per path:** a weapon at 3 tiers.
 - **Batch rhythm:** about 5 new parts per round, sheet checked, forge republished, Stefan grades;
-  parts graded 4 or 5 are kept, 1 to 2 are dropped, 3 gets one revision.
+  parts graded 4 or 5 are kept, anything under 4 is revised (see below).
 
 ## Reading the grades
 
 The forge stores grades and combos in its Artifact database: collection `grades` (doc id = part
-id, field `score` 1-5) and `combos` (`head`, `body`, `weapon`, `tier`, `backHand`, `cape`,
-`note`). Read them with the ArtifactData tool on the forge URL.
+id; fields `score` 1-5, `comment`, `rev`) and `combos` (`head`, `body`, `weapon`, `tier`,
+`backHand`, `cape`, `note`). Read them with the ArtifactData tool on the forge URL.
+
+- **4 passes.** Every part graded below 4 is revised in the next round, using its comment.
+- **Bump `rev` on every change** to a part (add `rev: 2`, then 3 ...). A grade only counts for the
+  `rev` it was given to; the forge shows a changed part as "grade again", so an old grade never
+  sticks to a new drawing.
+- A part that keeps failing after two revisions is replaced by a new one under a new id.
 
 ## Into the game
 

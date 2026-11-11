@@ -170,6 +170,7 @@ const HEADS = [
   },
   {
     id: 'head-3',
+    rev: 2,
     name: 'Braided crown',
     skin: '#d8a27e',
     hair: '#8f3a1c',
@@ -215,6 +216,7 @@ const HEADS = [
   },
   {
     id: 'head-4',
+    rev: 2,
     name: 'Shieldmaiden',
     skin: '#dcaa86',
     hair: '#b0512a',
@@ -264,17 +266,36 @@ const HEADS = [
         [-3, -17.6, 10.4, 5.2],
         { grit: 23 },
       );
+      // a fringe swept over the brow and a braid hanging behind the ear
+      paint(
+        tone(h.hair, 0.06),
+        C([
+          [2, -16.6],
+          [6.2, -15.6],
+          [7.6, -12.8],
+          [5.4, -12.4],
+          [3, -13.4],
+        ]),
+        [2, -16.6, 5.6, 4.2],
+        { rim: false },
+      );
+      for (let i = 0; i < 3; i++)
+        paint(h.hair, E(-3.4, -5.6 + i * 1.7, 1.15, 0.95), [-4.6, -6.6 + i * 1.7, 2.3, 1.9], {
+          rim: false,
+        });
+      paint(COL.bronze, R(-4.5, -0.8, 2.2, 1, 0.4), [-4.5, -0.8, 2.2, 1], { rim: false });
       eye(h);
       nose(h);
       stroke(dark(h.skin), 0.42, [
         [5.2, -4.6],
         [6.5, -4.9],
       ]);
-      flat(tone(h.skin, -0.14) + '88', E(4.2, -6, 1.4, 0.8), false);
+      flat(tone(h.skin, -0.14) + '88', E(4.4, -6.4, 1.2, 0.7), false);
     },
   },
   {
     id: 'head-5',
+    rev: 2,
     name: 'Grey elder',
     skin: '#c99a78',
     hair: '#a7a39b',
@@ -294,13 +315,29 @@ const HEADS = [
         { grit: 24 },
       );
       ear(h);
-      eye(h, { patch: true, brow: '#d8d4cc' });
+      eye(h, { patch: true, brow: '#e4e0d8' });
+      paint(
+        '#e4e0d8',
+        C([
+          [2, -12.4],
+          [5, -12.6],
+          [7.4, -11.4],
+          [6.6, -10.4],
+          [3, -11],
+        ]),
+        [2, -12.6, 5.4, 2.2],
+        {
+          rim: false,
+        },
+      );
       nose(h);
       beard(h, 2.5, h.hair, false);
-      stroke(dark(h.skin), 0.3, [
-        [1, -14.4],
-        [4.6, -14.6],
-      ]);
+      paint(COL.bronze, R(3, 3.6, 2.6, 1.2, 0.4), [3, 3.6, 2.6, 1.2], { rim: false });
+      for (const y of [-14.6, -13.6])
+        stroke(dark(h.skin), 0.3, [
+          [0.8, y],
+          [4.4, y - 0.2],
+        ]);
     },
   },
 ];
@@ -399,6 +436,7 @@ function belt(b, y, buckle = true) {
 const BODIES = [
   {
     id: 'body-1',
+    rev: 2,
     name: 'Mail shirt',
     w: 14.5,
     h: 18,
@@ -423,6 +461,7 @@ const BODIES = [
   },
   {
     id: 'body-2',
+    rev: 2,
     name: 'Long robe',
     w: 14,
     h: 19,
@@ -454,92 +493,122 @@ const BODIES = [
   },
   {
     id: 'body-3',
-    name: 'Iron plate',
-    w: 15,
+    rev: 2,
+    name: 'Iron cuirass',
+    w: 14.5,
     h: 18,
     base: -2.5,
     chest: 1,
     draw(b) {
-      paint('#8b9299', sidePath(b), bodyBox(b), { grit: 54, hi: 0.3 });
+      paint('#77808a', sidePath(b), bodyBox(b), { grit: 54 });
       within(b, () => {
-        // the plate's edge follows the chest; leather tabs hang below the belt
-        stroke(tone('#8b9299', 0.35), 0.5, [
-          [b.w / 2 - 1.4, bodyTop(b) + 2],
-          [b.w / 2 - 0.2, bodyTop(b) + 9],
+        // mail below, a shaped iron breastplate over the chest down to the belt
+        for (let y = b.base - 7; y < b.base; y += 1.5)
+          for (let x = -b.w / 2 - 1 + ((y * 2) % 1.5); x < b.w / 2 + 1; x += 1.5) {
+            ctx.beginPath();
+            ctx.arc(x, y, 0.5, Math.PI, 0);
+            ctx.strokeStyle = '#4f575f99';
+            ctx.lineWidth = 0.18;
+            ctx.stroke();
+          }
+        paint(
+          '#9aa1a8',
+          C([
+            [-b.w / 2 - 1, bodyTop(b) - 1],
+            [b.w / 2 + 2, bodyTop(b) - 1],
+            [b.w / 2 + 2, b.base - 7.6],
+            [-b.w / 2 - 1, b.base - 7.6],
+          ]),
+          [-b.w / 2, bodyTop(b), b.w, b.h - 7.6],
+          { grit: 57, hi: 0.35 },
+        );
+        stroke(tone('#9aa1a8', 0.4), 0.5, [
+          [b.w / 2 - 0.8, bodyTop(b) + 3],
+          [b.w / 2 + 0.2, b.base - 9],
         ]);
-        for (let i = 0; i < 4; i++)
-          paint(
-            COL.leather,
-            R(-b.w / 2 + i * 3.8, b.base - 5.4, 3.4, 6, 0.8),
-            [-b.w / 2 + i * 3.8, b.base - 5.4, 3.4, 6],
-            { rim: false },
-          );
       });
-      belt(b, b.base - 7.6);
+      belt(b, b.base - 8.4);
     },
   },
   {
     id: 'body-4',
-    name: 'Bell robe',
-    w: 13,
+    rev: 2,
+    name: 'Rune robe',
+    w: 13.5,
     h: 19,
-    base: -2,
-    flare: 2.4,
+    base: -1.8,
+    flare: 1.2,
+    flat: true,
     draw(b) {
-      paint('#4f5a6a', sidePath(b), bodyBox(b), { grit: 55 });
+      paint('#46505e', sidePath(b), bodyBox(b), { grit: 55 });
       within(b, () => {
-        paint(COL.red, R(-b.w, b.base - 2.8, b.w * 2, 3.4, 0), [-b.w / 2, b.base - 2.8, b.w, 3.4], {
+        paint('#2f3640', R(-b.w, b.base - 3, b.w * 2, 3.6, 0), [-b.w / 2, b.base - 3, b.w, 3.6], {
           rim: false,
         });
-        for (let i = 0; i < 7; i++)
+        for (let i = 0; i < 7; i++) {
+          const x = -b.w / 2 - 0.6 + i * 2.4;
           stroke('#d9b45a', 0.35, [
-            [-8 + i * 2.6, b.base - 2.1],
-            [-7.2 + i * 2.6, b.base - 1],
-            [-6.4 + i * 2.6, b.base - 2.1],
+            [x, b.base - 2.2],
+            [x + 0.6, b.base - 0.8],
+            [x + 1.2, b.base - 2.2],
           ]);
-        stroke(tone('#4f5a6a', -0.3), 0.4, [
-          [b.w / 2 - 1, bodyTop(b) + 7],
-          [b.w / 2 + 1.4, b.base - 2.8],
+        }
+        stroke(tone('#46505e', -0.3), 0.45, [
+          [b.w / 2 - 1, bodyTop(b) + 6],
+          [b.w / 2 + 0.6, b.base - 3],
         ]);
       });
-      stroke(COL.rope, 1.1, [
-        [extentAt(b, b.base - 10)[0] - 0.2, b.base - 10.2],
-        [extentAt(b, b.base - 10)[1] + 0.2, b.base - 9.8],
-      ]);
-      stroke(COL.rope, 0.8, [
-        [extentAt(b, b.base - 10)[1] - 0.2, b.base - 9.8],
-        [extentAt(b, b.base - 10)[1] + 0.6, b.base - 6.2],
+      // a sash tied at the front, its ends hanging down the front edge
+      const [bk, fr] = extentAt(b, b.base - 10);
+      paint(
+        COL.red,
+        R(bk - 0.3, b.base - 10.6, fr - bk + 0.6, 1.8, 0.8),
+        [bk, b.base - 10.6, fr - bk, 1.8],
+        {
+          rim: false,
+        },
+      );
+      stroke(COL.red, 0.9, [
+        [fr - 0.4, b.base - 9.4],
+        [fr + 0.4, b.base - 5.6],
       ]);
     },
   },
   {
     id: 'body-5',
+    rev: 2,
     name: 'Leather jerkin',
-    w: 15.5,
-    h: 17,
-    base: -3,
-    belly: 0.8,
+    w: 15,
+    h: 17.5,
+    base: -2.6,
+    belly: 0.3,
     draw(b) {
       paint(COL.leather, sidePath(b), bodyBox(b), { grit: 56 });
       within(b, () => {
-        // one strap from the back shoulder down to the front hip
-        stroke(COL.leatherD, 1.8, [
+        stroke(COL.leatherD, 1.6, [
           [-b.w / 2, bodyTop(b) + 3],
-          [b.w / 2 + 1, b.base - 4],
+          [b.w / 2 + 1, b.base - 5],
         ]);
-        paint('#6f767e', R(-b.w, b.base - 3, b.w * 2, 3.4, 0), [-b.w / 2, b.base - 3, b.w, 3.4], {
+        // a pale fur hem
+        paint(COL.fur, R(-b.w, b.base - 3, b.w * 2, 3.4, 0), [-b.w / 2, b.base - 3, b.w, 3.4], {
+          grit: 58,
           rim: false,
         });
       });
-      paint(
-        COL.bronze,
-        E(b.w / 2 - 1.4, bodyTop(b) + 6.4, 1.6, 1.6),
-        [b.w / 2 - 3, bodyTop(b) + 4.8, 3.2, 3.2],
-        {
-          rim: false,
-        },
-      );
-      belt(b, b.base - 7.4, false);
+      // laces cross down the front edge
+      for (let i = 0; i < 4; i++) {
+        const y = bodyTop(b) + 4.6 + i * 2,
+          fr = extentAt(b, y)[1];
+        stroke(COL.rope, 0.35, [
+          [fr - 1.8, y],
+          [fr - 0.4, y + 1.2],
+        ]);
+        stroke(COL.rope, 0.35, [
+          [fr - 0.4, y],
+          [fr - 1.8, y + 1.2],
+        ]);
+      }
+      belt(b, b.base - 7.8);
     },
   },
 ];
@@ -592,6 +661,7 @@ const WEAPONS = [
   },
   {
     id: 'weapon-2',
+    rev: 2,
     name: 'Maul',
     tip: [0, -21],
     draw(t, ti) {
@@ -603,21 +673,35 @@ const WEAPONS = [
   },
   {
     id: 'weapon-3',
+    rev: 2,
     name: 'Hammerstaff',
-    tip: [0, -22],
+    tip: [0, -24],
     draw(t, ti) {
-      haft(10, -19, 1.4);
-      head(-3.8, -23.6, 7.6, 4.8, t, ti > 0);
+      haft(10, -20, 1.8);
+      paint(
+        t.trim,
+        P([
+          [-1, -26.6],
+          [1, -26.6],
+          [0, -29],
+        ]),
+        [-1, -29, 2, 2.4],
+        { rim: false },
+      );
+      head(-4.6, -26.6, 9.2, 6, t, ti > 0);
+      for (const y of [-17.6, -9])
+        paint(t.trim, R(-1.3, y, 2.6, 1.2, 0.4), [-1.3, y, 2.6, 1.2], { rim: false });
       if (ti)
         for (let i = 0; i < 3; i++)
-          stroke(ti === 2 ? '#7cc8ff' : t.trim, 0.35, [
-            [-0.5, -16 + i * 2.6],
-            [0.5, -15 + i * 2.6],
+          stroke(ti === 2 ? '#7cc8ff' : tone(t.trim, 0.3), 0.4, [
+            [-0.6, -15.6 + i * 2.2],
+            [0.6, -14.6 + i * 2.2],
           ]);
     },
   },
   {
     id: 'weapon-4',
+    rev: 2,
     name: 'Dane axe',
     tip: [6, -19],
     draw(t, ti) {
