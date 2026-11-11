@@ -1,0 +1,20 @@
+{
+  "id": "head_thorblood_02",
+  "pxPerUnit": 16,
+  "w": 16.625,
+  "h": 22.75,
+  "pivot": [
+    0.509,
+    0.873
+  ],
+  "ox": -8.46,
+  "oy": -19.867,
+  "scale": 1.016,
+  "measured": {
+    "width": 15.29,
+    "left": -8.33,
+    "right": 7.98,
+    "top": -19.56,
+    "bottom": 2.81
+  }
+}
