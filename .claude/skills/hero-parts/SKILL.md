@@ -58,14 +58,17 @@ The scripts are plain browser JavaScript, concatenated in the order kit, parts, 
 
 ## Layers (side view, facing right)
 
-Back to front: cape, `head.back` (hair or braids that hang behind the body), feet, far hand (and
-its weapon in far-hand mode), body, the cape's drape over the back shoulder, head (face, hair,
-beard), weapon, near hand, strike trail. The mantle (the cape's shoulder
-piece) always covers the top of the body: `hero.js` measures each body's widest reach over its
-top rows (`bodyReach`) and makes the mantle a unit wider, so no body shows above or beside it.
-A body may have any shape below the mantle. A head that has hair falling down the back puts it in
-an optional `back(h)` function so it never covers the body. Beards end on the upper chest (no
-lower than about +4 from the chin). `face: -1` mirrors the whole hero to face left.
+Back to front: `cloak.back`, `head.back` (hair or braids that hang behind the body), feet, far
+hand (and its weapon in far-hand mode), body, `cloak.front`, head (face, hair, beard), weapon,
+near hand, strike trail. `face: -1` mirrors the whole hero to face left.
+
+- **The cloak is one garment** (`CLOAKS` in `parts.js`): clasped at the front, over the shoulders
+  and down the back. Worn, it wraps the shoulders and upper arms and covers the body's top
+  (`bodyReach` fits it wider than each body); thrown back, it is gathered on top of the
+  shoulders and hangs behind. Never a separate shoulder piece on top of a cloak. Its shoulders
+  never move; only the hem sways when walking.
+- Hair falling down the back goes in an optional `head.back(h)`, so it never covers the body.
+- Beards end on the upper chest (no lower than about +4 from the chin).
 
 ## Tiers
 

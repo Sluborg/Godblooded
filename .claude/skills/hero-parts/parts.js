@@ -613,6 +613,109 @@ const BODIES = [
   },
 ];
 
+// ---------- cloaks (one garment: clasped at the front, over the shoulders, down the back) ----------
+// back(b, c, sw) is drawn behind the body, front(b, c, sw) over it. c = party colour, sw = sway
+// of the hem while walking (the part at the shoulders never moves).
+const CLOAKS = [
+  {
+    id: 'cloak-1',
+    name: 'Cloak worn',
+    // wrapped round the shoulders and upper arms; the front edge drops from the clasp to the hem
+    front(b, c, sw) {
+      const top = bodyTop(b),
+        [bk, fr] = bodyReach(b, 7),
+        base = b.base;
+      const pts = [
+        [fr - 1.4, top + 2.6],
+        [fr - 2.6, top + 0.2],
+        [1, top - 1.2],
+        [bk + 1.4, top - 0.4],
+        [bk - 1.2, top + 3.4],
+        [bk - 2.6 + sw * 0.3, top + 10],
+        [bk - 4 + sw, base - 2.2],
+        [bk + 1.4 + sw * 0.8, base - 1.2],
+        [-0.4 + sw * 0.5, base - 3.4],
+        [1.8, top + 12],
+        [fr - 2.6, top + 6.4],
+      ];
+      paint(c, C(pts), [bk - 4, top - 1.2, fr - bk + 4, base - top], { grit: 71 });
+      // the lining shows along the front edge; folds run from the shoulder down the back
+      stroke(tone(c, 0.3), 0.4, [
+        [fr - 2.4, top + 3.4],
+        [fr - 2.8, top + 6.6],
+        [1.8, top + 12],
+        [-0.3 + sw * 0.5, base - 3.6],
+      ]);
+      stroke(tone(c, -0.3), 0.4, [
+        [bk + 0.6, top + 3],
+        [bk - 2.4 + sw, base - 2.8],
+      ]);
+      stroke(tone(c, -0.3), 0.35, [
+        [-1.6, top + 4],
+        [-2.4 + sw * 0.6, base - 3],
+      ]);
+      paint(COL.bronze, E(fr - 1.4, top + 2.6, 1.2, 1.2), [fr - 2.6, top + 1.4, 2.4, 2.4], {
+        rim: false,
+      });
+    },
+  },
+  {
+    id: 'cloak-2',
+    name: 'Cloak thrown back',
+    // gathered on top of the shoulders: the body's sides show, the cloak hangs behind
+    back(b, c, sw) {
+      const top = bodyTop(b),
+        [bk] = bodyReach(b, 7),
+        base = b.base;
+      paint(
+        c,
+        C([
+          [1, top + 0.6],
+          [-3, top],
+          [bk - 0.8, top + 2.4],
+          [bk - 3 + sw * 0.4, top + 10],
+          [bk - 4.2 + sw, base - 2],
+          [bk + 1.8 + sw * 0.8, base - 1],
+          [-1.6, top + 8],
+        ]),
+        [bk - 4.2, top, 5.2 - bk, base - top],
+        { grit: 73 },
+      );
+      stroke(tone(c, -0.3), 0.4, [
+        [bk + 0.4, top + 4],
+        [bk - 2.6 + sw, base - 2.6],
+      ]);
+    },
+    front(b, c) {
+      const top = bodyTop(b),
+        [bk, fr] = bodyReach(b, 7);
+      paint(
+        c,
+        C([
+          [fr - 2.2, top + 1.6],
+          [fr - 3.4, top - 0.4],
+          [0, top - 1.2],
+          [bk + 1, top + 0.2],
+          [bk - 0.6, top + 3.4],
+          [bk + 1.8, top + 4.4],
+          [0, top + 2.4],
+          [fr - 3.2, top + 3.2],
+        ]),
+        [bk - 0.6, top - 1.2, fr - bk, 5.6],
+        { grit: 74 },
+      );
+      for (const x of [-3.6, -0.6, 2.2])
+        stroke(tone(c, -0.3), 0.35, [
+          [x, top - 0.4],
+          [x - 0.8, top + 2.6],
+        ]);
+      paint(COL.bronze, E(fr - 2.2, top + 1.8, 1.1, 1.1), [fr - 3.3, top + 0.7, 2.2, 2.2], {
+        rim: false,
+      });
+    },
+  },
+];
+
 // ---------- weapons (origin = grip, haft points up) ----------
 function head(x, y, w, h, t, gemOn) {
   paint(t.metal, R(x, y, w, h, 0.9), [x, y, w, h], { grit: 61, hi: 0.32 });
