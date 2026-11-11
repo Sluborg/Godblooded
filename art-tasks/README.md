@@ -20,13 +20,14 @@ Fetch repo files as `https://raw.githubusercontent.com/Sluborg/Godblooded/main/<
 
 ## Tracks: one chat per track
 
-| Track     | Makes                                  |
-| --------- | -------------------------------------- |
-| heroes    | Godblood heroes, all classes and tiers |
-| monsters  | mythic monsters, all types and tiers   |
-| buildings | town buildings and lairs, all tiers    |
-| terrain   | ground tiles, trees, rocks, props      |
-| ui        | icons, flags, buttons, effects         |
+| Track     | Makes                                                                            |
+| --------- | -------------------------------------------------------------------------------- |
+| heroes    | closed (heroes are drawn in code)                                                |
+| monsters  | mythic monsters, all types and tiers                                             |
+| buildings | town buildings and lairs, all tiers                                              |
+| terrain   | ground tiles, trees, rocks, props                                                |
+| ui        | icons, flags, buttons, effects                                                   |
+| heads     | hero heads over the code template: its own workflow, `art-tasks/heads/README.md` |
 
 A chat works on one track for its whole life. Only take batches and redo rows of that track.
 
