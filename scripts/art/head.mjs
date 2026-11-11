@@ -1,8 +1,8 @@
 // Imports a painted head from the heads track (art-tasks/heads/): keys the magenta, measures the
 // head against the template (art-tasks/heads/head-template.png: 1024 square, 40 px per unit, head
-// origin at (512, 860)) and writes it at 16 px per unit with its size and pivot. Run
+// origin at (512, 860)) and writes it at 40 px per unit with its size and pivot. Run
 //   node scripts/art/head.mjs <upload.png> <out dir> [id] [--long-beard] [--name=<name>]
-// Writes <out dir>/<id>.png (32 px per unit) and <id>.json ({ id, name, skin, pxPerUnit, w, h, pivot,
+// Writes <out dir>/<id>.png (40 px per unit, the template scale) and <id>.json ({ id, name, skin, pxPerUnit, w, h, pivot,
 // ox, oy, scale, measured, warnings }); skin is the cheek colour as hex.
 // w and h are in units; pivot is the head origin as fractions of the image; ox and oy are the
 // image's top-left corner in units from the origin, so the forge can draw it at the origin.
@@ -116,7 +116,7 @@ export function sampleSkin(img) {
 }
 
 // Keys, measures and scales a head to pxPerUnit. Returns { ok, reason, warnings, img, meta }.
-export function importHead(raw, id, { pxPerUnit = 32, longBeard = false, name = id } = {}) {
+export function importHead(raw, id, { pxPerUnit = 40, longBeard = false, name = id } = {}) {
   const { key } = detectKey(raw);
   if (key !== 'magenta') return { ok: false, reason: `background is ${key}, not magenta` };
   const img = keyOut(raw, 'magenta');
