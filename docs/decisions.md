@@ -841,3 +841,16 @@ replaces the "wider than tall" reading in the entry above. The Thorbloods body i
   Builder save. Newest ("Fixed female head"): body 15 x 26 u, calmer walk (step 3.6, bob 0.5,
   hand swing 0.4, speed 0.5), heads re-tuned, hand skin picked per face. The attack comes from
   raise and strike key poses he sets in the builder.
+
+## 2026-11-11: heroes are drawn in code
+
+- **Direction (Stefan, issue #355 plus chat):** stop painting hero parts. The best heroes so far
+  were the code-drawn October style-test heroes; the detailed painted egg bodies and heads read
+  badly. Heroes are drawn in code on the compact rig (big head, egg body, ball hands and feet),
+  simple shapes first, a little grittier, judged at game size (about 36 px tall). Stefan does not
+  set sizes; he grades looks.
+- **Parts forge:** 5 heads, 5 bodies, 5 weapons (iron, silver, gold) on one page, graded 1-5 and
+  combined (https://claude.ai/artifact/Fo4mjuGVC7VCnJXcgtqiYo). Grades decide which parts stay.
+- **Hero-parts skill** (`.claude/skills/hero-parts/`): the shared kit, the parts, a contact-sheet
+  render and the forge build, so new parts are made the same way. The Hero Builder and the painted
+  O-29 to O-31 parts are parked; ChatGPT keeps buildings, terrain and icons.

@@ -37,6 +37,8 @@ Only the owner edits. Everyone else asks through the owner's inbox.
 - **Balance:** `src/data/` (numbers and rows; Lead keeps the say on what content exists).
 - **Scene also:** look rows in `src/data/` (`heroParts.ts` and later part/look files) and the
   sound presets `src/data/sfx.ts`: colours, shapes and sounds only, no game numbers.
+- **Hero parts skill** (`.claude/skills/hero-parts/`): Art owns `parts.js` (new heads, bodies,
+  weapons); Lead owns the kit, hero, template and scripts until Scene ports them to `src/ui/`.
 - **Integrator, Review:** no files; Integrator may push merge commits to work branches.
 - **Lead also:** `docs/sessions.md`, `docs/inbox/*.md` (see "Talking").
 - **Shared, small careful commits:** `package.json`, `vite.config.ts`, `.github/`.
