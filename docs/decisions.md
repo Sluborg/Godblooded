@@ -854,3 +854,9 @@ replaces the "wider than tall" reading in the entry above. The Thorbloods body i
 - **Hero-parts skill** (`.claude/skills/hero-parts/`): the shared kit, the parts, a contact-sheet
   render and the forge build, so new parts are made the same way. The Hero Builder and the painted
   O-29 to O-31 parts are parked; ChatGPT keeps buildings, terrain and icons.
+
+- **Heroes in 3/4 view** (Stefan, 2026-11-11): heads, bodies, hands and feet are all drawn turned
+  about 45 degrees toward the camera, facing right, and mirrored to face left, the usual view for
+  games seen from above at an angle. Faces show both eyes and the mouth; women read as women; the
+  weapon is in the near hand on the cloak side and a shield's face turns to the camera on the other.
+  The cloak is gathered on the shoulders and hangs behind (the worn cloak is retired).
