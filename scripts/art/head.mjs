@@ -1,9 +1,10 @@
 // Imports a painted head from the heads track (art-tasks/heads/): keys the magenta, measures the
 // head against the template (art-tasks/heads/head-template.png: 1024 square, 40 px per unit, head
 // origin at (512, 860)) and writes it at 40 px per unit with its size and pivot. Run
-//   node scripts/art/head.mjs <upload.png> <out dir> [id] [--long-beard] [--name=<name>]
+//   node scripts/art/head.mjs <upload.png> <out dir> [id] [--long-beard] [--name=<name>] [--fit=<n>]
 // Writes <out dir>/<id>.png (40 px per unit, the template scale) and <id>.json ({ id, name, skin, pxPerUnit, w, h, pivot,
-// ox, oy, scale, measured, warnings }); skin is the cheek colour as hex.
+// ox, oy, scale, measured, warnings, fit? }); skin is the cheek colour as hex; fit (--fit=<n>, absent
+// means 1) is the forge's per-head size factor, set by hand.
 // w and h are in units; pivot is the head origin as fractions of the image; ox and oy are the
 // image's top-left corner in units from the origin, so the forge can draw it at the origin.
 // The upper skull width is compared with the template's example head and the head is scaled to
@@ -116,7 +117,11 @@ export function sampleSkin(img) {
 }
 
 // Keys, measures and scales a head to pxPerUnit. Returns { ok, reason, warnings, img, meta }.
-export function importHead(raw, id, { pxPerUnit = 40, longBeard = false, name = id } = {}) {
+export function importHead(
+  raw,
+  id,
+  { pxPerUnit = 40, longBeard = false, name = id, fit = 1 } = {},
+) {
   const { key } = detectKey(raw);
   if (key !== 'magenta') return { ok: false, reason: `background is ${key}, not magenta` };
   const img = keyOut(raw, 'magenta');
@@ -146,6 +151,7 @@ export function importHead(raw, id, { pxPerUnit = 40, longBeard = false, name = 
     scale: r(m.scale),
     measured: m.measured,
     warnings: m.warnings,
+    ...(fit !== 1 ? { fit } : {}),
   };
   return { ok: true, reason: '', warnings: m.warnings, img: out, meta };
 }
@@ -154,11 +160,14 @@ if (process.argv[1] && basename(process.argv[1]) === 'head.mjs') {
   const args = process.argv.slice(2).filter((a) => !a.startsWith('--'));
   const longBeard = process.argv.includes('--long-beard');
   const nameArg = process.argv.find((a) => a.startsWith('--name='))?.slice(7);
+  const fitArg = Number(process.argv.find((a) => a.startsWith('--fit='))?.slice(6) ?? 1);
   const [src, dir, idArg] = args;
   if (!src || !dir)
-    throw new Error('usage: head.mjs <upload.png> <out dir> [id] [--long-beard] [--name=<name>]');
+    throw new Error(
+      'usage: head.mjs <upload.png> <out dir> [id] [--long-beard] [--name=<name>] [--fit=<n>]',
+    );
   const id = idArg ?? basename(src, '.png').replace(/^.*--/, '');
-  const res = importHead(readPng(src), id, { longBeard, name: nameArg ?? id });
+  const res = importHead(readPng(src), id, { longBeard, name: nameArg ?? id, fit: fitArg });
   if (!res.ok) {
     console.error(`FAIL ${id}: ${res.reason}`);
     process.exit(1);
