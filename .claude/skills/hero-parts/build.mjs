@@ -4,6 +4,7 @@
 // Artifact with capabilities { db: {}, user: {} } so Stefan's grades and combos are saved.
 import { readFileSync, writeFileSync, readdirSync, existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
+import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -21,10 +22,13 @@ function painted(dir) {
       const j = JSON.parse(readFileSync(join(dir, f), 'utf8'));
       const png = join(dir, f.replace(/\.json$/, '.png'));
       if (!existsSync(png)) continue;
-      const uri = 'data:image/png;base64,' + readFileSync(png).toString('base64');
+      const bytes = readFileSync(png);
+      const uri = 'data:image/png;base64,' + bytes.toString('base64');
+      // rev follows the picture: a new painting under the same id invalidates old grades
+      const rev = 'p' + createHash('sha1').update(bytes).digest('hex').slice(0, 8);
       rows.push({
         id: j.id,
-        rev: j.rev || 1,
+        rev,
         name: j.name || 'Painted ' + j.id.split('_').pop(),
         skin: j.skin || '#d9a27c',
         ox: j.ox,
@@ -34,7 +38,7 @@ function painted(dir) {
         uri,
       });
     }
-  return `const PAINTED_READY = Promise.all(${JSON.stringify(rows)}.map((r) => {
+  return `const PAINTED_READY = Promise.all(${JSON.stringify(rows).replace(/</g, '\\u003c')}.map((r) => {
   const img = new Image();
   img.src = r.uri;
   HEADS.push({ ...r, painted: true, img, draw(h) { if (h.img.complete) ctx.drawImage(h.img, h.ox, h.oy, h.w, h.h); } });
