@@ -104,6 +104,8 @@ around that point.
 
 ## Parts kit (heroes from painted segments, Scene's rig, 2026-10-14)
 
+> **Superseded (2026-11-11):** heroes are drawn in code; see `.claude/skills/hero-parts/SKILL.md`. Kept for history.
+
 Heroes are built by code from painted **segments** with real limbs (2-bone arms and legs, the
 code solves elbow and knee) and animated (Scene, `src/data/heroKits.ts`, `src/ui/parts/`). A
 missing part falls back to the code shape. Effects (glow, aura, trail, ravens, lightning) stay in

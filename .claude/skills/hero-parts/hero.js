@@ -23,11 +23,11 @@ const S = {
   cape: CAPES.Red,
   atkStart: 0,
 };
-// 3/4 view facing right: the weapon hand is the near hand on the left (the cloak side), the
-// shield hand is on the right, held forward with the shield's face turned to the camera.
-// Attack keys: [x, y, weapon angle in degrees] for the weapon hand.
-const KEYS = { rest: [-6.2, -10.4, -18], raise: [-4.6, -23.6, -150], strike: [7.6, -11.6, 100] };
-const SHIELD_HAND = [6.6, -11.2];
+// 3/4 view facing right: the shield is on the near hand (on the left, closest to the camera,
+// drawn over the body); the weapon is in the far hand on the right, toward the facing direction,
+// drawn behind the body. Attack keys: [x, y, weapon angle in degrees] for the weapon hand.
+const KEYS = { rest: [6.4, -11.6, 28], raise: [-1.4, -24, -140], strike: [9.8, -10.4, 100] };
+const SHIELD_HAND = [-5.8, -10.8];
 const STEP = 2.2; // distance between two foot spots, in units
 const ease = (q) => q * q * (3 - 2 * q);
 const lerp3 = (a, b, q) => [
@@ -68,15 +68,14 @@ function pose(t, phase = 0) {
       hand = lerp3(K.strike, K.rest, q);
       p.lean = 0.13 * (1 - q);
     }
-  } else hand[0] -= p.swing;
+  } else hand[0] += p.swing * 0.6;
   p.hand = hand;
-  p.off = [SHIELD_HAND[0] + p.swing * 0.6, SHIELD_HAND[1]];
+  p.off = [SHIELD_HAND[0] - p.swing, SHIELD_HAND[1]];
   return p;
 }
 // Layers, back to front (3/4 view, facing right):
-//   cloak.back, head.back (hair or braids behind the body), far foot, near foot, body,
-//   cloak.front, shield (or the free hand), weapon raised behind the head, head, weapon,
-//   weapon hand, strike trail.
+//   cloak.back, head.back (hair or braids behind the body), far foot, near foot, weapon and the
+//   far (weapon) hand, body, cloak.front, head, near hand with the shield, strike trail.
 function drawHero(c, scale, x0, y0, t, o = {}) {
   ctx = c;
   SC = scale;
@@ -139,27 +138,26 @@ function drawHero(c, scale, x0, y0, t, o = {}) {
     ctx.restore();
   };
   upper(() => {
-    // 3. body and the cloak's roll over the shoulders
+    // 3. the weapon in the far hand, behind the body (its head shows past the body's edge)
+    weapon();
+    ball(hand[0], hand[1]);
+    // 4. body and the cloak's roll over the shoulders
     b.draw(b);
     if (cloak.front) cloak.front(b, S.cape, sw);
-    // 4. the shield hand, held forward on the right; the shield's face turned to the camera
-    if (S.shield) {
-      ball(p.off[0], p.off[1]);
-      ctx.save();
-      ctx.translate(p.off[0] + 1.4, p.off[1] + 0.4);
-      SHIELDS[0].draw(tier, ti, S.cape);
-      ctx.restore();
-    } else ball(p.off[0], p.off[1]);
-    // 5. head; a weapon raised behind the head goes under it
-    const raised = hand[2] < -70;
-    if (raised) weapon();
+    // 5. head
     ctx.save();
     ctx.translate(headAt[0], headAt[1]);
     h.draw(h);
     ctx.restore();
-    // 6. the weapon in the near hand, the hand ball over its grip
-    if (!raised) weapon();
-    ball(hand[0], hand[1]);
+    // 6. the near hand, closest to the camera, with the shield strapped on, its face to the camera
+    ball(p.off[0], p.off[1]);
+    if (S.shield) {
+      ctx.save();
+      ctx.translate(p.off[0] - 1.6, p.off[1] + 0.4);
+      ctx.scale(-1, 1);
+      SHIELDS[0].draw(tier, ti, S.cape);
+      ctx.restore();
+    }
     // 7. strike trail
     if (p.trail != null && p.trail > 0) {
       ctx.save();
