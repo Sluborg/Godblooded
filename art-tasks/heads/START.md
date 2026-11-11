@@ -35,11 +35,13 @@ Art pushes a commit to the draft pull request **"Godblooded art wake"**
 (https://github.com/Sluborg/Godblooded/pull/3, branch `art-wake`) whenever there is a new order
 for any track, and writes the order to your orders file. You must notice new orders by yourself.
 
-- **Pull request watch** (if your tools allow it): watch only pull request #3, and only new
-  commits on it. Never the whole repository, never comments or checks: every event costs a run.
-- **Scheduled task** (if your tools allow it): a recurring task in this chat that does one heads
-  run (the workflow's "Every run"). Choose the interval yourself; about once an hour is enough.
-- Set up whatever works, both if you can. If you can set up neither, say so plainly.
+- **Primary: a pull request watch.** Watch **only pull request #3**, and **only new commits** on
+  it (the art manual's "Wake-ups"). Never the whole repository, never comments, reviews or
+  checks: every event costs a run. Earlier chats of this project did exactly this ("PR3
+  new-commit watch enabled"), so try it first.
+- **Fallback: a scheduled task**, only if the watch cannot be set up: a recurring task in this
+  chat that does one heads run (the workflow's "Every run"), about once an hour.
+- If you can set up neither, say so plainly.
 
 ## Do now, in order
 
@@ -53,7 +55,8 @@ for any track, and writes the order to your orders file. You must notice new ord
    hello | <date time> | heads
    - tools: <GitHub read and write, and how (connector or API); fetching raw URLs; image
      generation; Google Drive upload; anything else>
-   - wake: <pull request watch / scheduled task / both / none: what you actually created>
+   - wake: <exactly what you set up, in the words your tool used (for example "PR #3
+     new-commit watch enabled"), or why you could not>
    - interval: <how often you check>
    - cannot: <what you cannot do from our instructions>
    - quota: <what you know about your image generation limits>
