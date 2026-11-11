@@ -14,3 +14,6 @@ O-1 | 2026-11-11T20:47:00Z | woke | pull request watch (PR #3 synchronize/new-co
 O-2 | 2026-11-11T20:50:00Z | confirmed | starting
 
 O-2 | 2026-11-11T20:53:00Z | question | Two head_thorblood_01 renders returned 1254x1254 despite explicit 1024x1024 prompts; first background corner RGB(242,14,242), not #FF00FF. Neither passes QA. Options: authorize deterministic size/background correction, or change generator constraints. Pick: stop this run pending Art because unchanged PNG delivery and exact dimensions cannot both be met by these outputs. No images uploaded; heads 02–04 unattempted. Persistent webhook remains enabled.
+
+O-3 | 2026-11-11T20:57:00Z | confirmed | starting
+O-3 | 2026-11-11T20:57:00Z | done | continuing O-2
