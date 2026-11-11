@@ -623,3 +623,32 @@ describe('grip split (fist drawn around a green haft)', () => {
     expect(alpha(front, 9, 2)).toBe(0); // the bare stub above still goes
   });
 });
+
+describe('head import (heads track)', () => {
+  // A plain block framed like the template: 40 px per unit, origin at (512, 860).
+  async function block(width) {
+    const { TEMPLATE } = await import('./head.mjs');
+    const img = blank(1024, 1024);
+    const u = TEMPLATE.unit;
+    for (let y = Math.round(TEMPLATE.oy - 17 * u); y < TEMPLATE.oy + 3 * u; y++)
+      for (
+        let x = Math.round(TEMPLATE.ox - (width / 2) * u);
+        x < TEMPLATE.ox + (width / 2) * u;
+        x++
+      )
+        img.data.set([150, 90, 60, 255], (y * 1024 + x) * 4);
+    return img;
+  }
+  it('accepts a head at the template size and keeps the origin as pivot', async () => {
+    const { measureHead, REF_WIDTH } = await import('./head.mjs');
+    const m = measureHead(await block(REF_WIDTH));
+    expect(m.ok).toBe(true);
+    expect(m.scale).toBeCloseTo(1, 1);
+  });
+  it('rejects a head far off the template size instead of stretching it', async () => {
+    const { measureHead } = await import('./head.mjs');
+    const m = measureHead(await block(19));
+    expect(m.ok).toBe(false);
+    expect(m.reason).toMatch(/skull width/);
+  });
+});
