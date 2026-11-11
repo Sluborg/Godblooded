@@ -2,7 +2,7 @@
 
 **One style** (Stefan, `docs/decisions.md` "Playtest run 2", 2026-10-14). The painted buildings
 are the anchor; every new picture must look like it came from the same hand. This replaces the
-big-head cartoon taste test; never draw cartoon again (heroes are the one exception: Stefan settled a big-head hero style on 2026-10-18, see "Heroes"). Every batch quotes this page.
+big-head cartoon taste test; never draw cartoon again (heroes are no longer painted: since 2026-11-11 they are drawn in code, see "Heroes"). Every batch quotes this page.
 
 **Quality: every image passes `art-tasks/QA.md` before upload** (redo up to 3 times, then
 report the fault instead of uploading).
@@ -12,7 +12,7 @@ only references. Copy their palette, thin dark-brown outline, top-left light and
 
 | Picture (`public/assets/...` unless noted)  | Copy from it                                           |
 | ------------------------------------------- | ------------------------------------------------------ |
-| `docs/reference/hero-style-*.png` (7)       | **every hero** (settled 2026-10-18): see "Heroes"      |
+| `docs/reference/hero-style-*.png` (7)       | history only: heroes are drawn in code (see "Heroes")  |
 | `buildings/bld_townhall_t1.png` (5)         | the style itself, built for real (rule 14, 2026-10-17) |
 | `buildings/bld_lair_labyrinth_t1.png` (5)   | grim ruin: stone, braziers, bones, mood                |
 | `units/mon_jackal-man_t1_front.png` (5)     | a figure: anatomy, grip on the weapon, trim            |
@@ -28,6 +28,12 @@ buildings; weapons that could not be used; hands that do not really grip; static
 painted in; busy piles of props; a temple that is only a gate.
 
 ## Heroes (settled by Stefan, 2026-10-18, `docs/decisions.md` "Hero style settled")
+
+> **Superseded for heroes (2026-11-11).** Heroes are now drawn in code, not painted (decisions
+> "Heroes are drawn in code", "Heroes in 3/4 view", "Shield on the near hand"). The rules are
+> in `.claude/skills/hero-parts/SKILL.md`. Everything in this section, including the hand rule (weapon on the
+> back hand, shield on the front hand), the body shapes, head scale, collar and cape grey, is
+> kept for history only. Do not paint hero parts; ChatGPT keeps buildings, terrain and icons.
 
 The references are Stefan's seven pictures, fetched raw from main:
 `docs/reference/hero-style-anchor-thor-grim.png`, `-anchor-odin-grim.png`, `-tyr.png`,
