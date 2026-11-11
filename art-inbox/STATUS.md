@@ -462,3 +462,6 @@ Thorblood-heads | 2026-10-20T20:55:20.000Z | heroes | started | O-30 three neckl
 
 
 Thorblood-heads | 2026-10-20T21:03:00.000Z | heroes | O-30 interrupted; not uploaded | Generated and visually inspected neckless m2, f1, f2 (m2 corrected once to remove skin neck wedge). Drive upload blocked because runtime reported no primary turn environment and could not materialize generated data URLs as file references. No files uploaded and no O-30 reply appended, so a later run can continue without treating the order as complete. Persistent webhook unchanged.
+
+
+Heroes-closed | 2026-11-11T19:55:00.000Z | heroes | stopped | O-31 closes the heroes track. O-30 interrupted heads were made before the stop but remain unuploaded and are discarded under the new order; no new images generated or uploaded. Heroes now drawn in code. Persistent webhook remains enabled as required.
