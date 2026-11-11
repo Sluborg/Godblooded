@@ -2,12 +2,12 @@
   "id": "head_thorblood_03",
   "name": "head_thorblood_03",
   "skin": "#db9865",
-  "pxPerUnit": 32,
+  "pxPerUnit": 40,
   "w": 16.25,
-  "h": 15.906,
+  "h": 15.9,
   "pivot": [
     0.522,
-    1.038
+    1.039
   ],
   "ox": -8.488,
   "oy": -16.515,
