@@ -864,3 +864,8 @@ replaces the "wider than tall" reading in the entry above. The Thorbloods body i
   heroes): the shield is on the hand closest to the camera, drawn over the body with its face to
   the camera; the weapon is in the far hand, toward the facing direction, drawn behind the body. The
   painted-parts hand rule in `art-tasks/STYLE.md` is superseded (painted hero parts are parked).
+- **Painted heads over the code template** (Stefan, 2026-11-11): bodies, weapons, shields and the
+  cloak stay code-drawn; heads may be painted by ChatGPT, one per image, over the head template
+  (`.claude/skills/hero-parts/head-template.mjs`) and imported by measurement, never stretched.
+  Bodies mark a hero's class, so heads are picked at random from a growing pool. A new ChatGPT
+  "heads" track first reports how it works and passes a no-image wake test before any painting.
