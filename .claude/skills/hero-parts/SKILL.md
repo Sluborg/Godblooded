@@ -39,36 +39,41 @@ The scripts are plain browser JavaScript, concatenated in the order kit, parts, 
 
 ## Coordinates (game units, y grows down)
 
+Everything is drawn in **3/4 view, turned about 45 degrees toward the camera, facing right**
+(Stefan, 2026-11-11), the usual view for games seen from above at an angle. `face: -1` mirrors the
+whole hero to face left. Every part uses the same view.
+
 - **Hero:** about 44 units tall, ground at y 0.
-- **Head:** near profile. Origin is the chin. Skull from x -6.8 to 7.4, top at y -16.9. One eye
-  at (5.1, -9.4) under one brow, nose on the front edge from x 6.4 to 9.3, ear mid-head at
-  (-0.8, -8.4).
-  Hair and helmets may reach x -9 to 8.6 and y -18.3. Beards may hang to y +5 (a long beard to
-  +10).
-- **Body:** origin is the ground under the middle, a true side view built by `sidePoints(b)`
-  from `w`, `h`, `base` (the bottom, about -2 to -3) and optional `chest`, `belly`, `back`,
-  `flare` (robes) and `flat` (a straight hem). Details sit on the front or back edge, never in the
-  middle. Clip patterns with `within(b, fn)`; use `belt(b, y)` so the belt wraps past both edges
-  with round ends and the buckle on the front. The head sits at `(0.6, bodyTop(b) + 1.8)`.
-- **Feet:** ellipses 3.6 x 2, toes forward, at (-2.4, -1.3) and (3, -1.3). **Hands:** balls of
-  radius 2.5 in the head's skin colour; the near hand rests on the chest (3.4, -9.8), the far hand
-  peeks out at the front (5.8, -12.4). Sizes are fixed for every hero.
-- **Weapon:** origin is the grip, the haft points up (-y). Set `tip` to the striking end (used for
-  the glow). One-handed weapons reach up to about -17, staffs to about -24.
+- **Head:** origin is the chin. Skull ellipse centre (0.4, -8.8), radii 7.4 x 7.9, jaw turned to the
+  right. The face's centre line is at x 3.4 (`FACE_X`): near eye (1.5, -9.4) a little larger, far
+  eye (5, -9.3), nose inside the face just right of the centre line, mouth below it, ear on the
+  left at (-5.2, -8.4). Women (`fem: true`) get thin arched brows, lashes, a smaller nose, lips and
+  an earring; men get heavy brows with the inner ends low. Beards wrap the jaw and end on the upper
+  chest (no lower than about +4 from the chin).
+- **Body:** origin is the ground under the middle. An egg, barrel or bell from `bodyPoints(b)`
+  (`w`, `h`, `base` about -2 to -3, `kind`, optional `flat` hem and `flare`). The front's centre line
+  is at `centreX(b)` (right of the middle): buckle, plate ridge, robe opening and laces go there.
+  Bands (`belt`, `hem`, `bandPath`) curve down a little in the middle. Clip patterns with
+  `within(b, fn)`. The head sits at `(0.2, bodyTop(b) + 1.8)`.
+- **Hands and feet:** balls of radius 2.5 in the head's skin colour; feet ellipses 3.4 x 2. Sizes
+  are fixed for every hero. The weapon hand is the near hand on the left (the cloak side), resting
+  at (-6.2, -10.4); the shield hand is on the right at (6.6, -11.2), held forward. The far foot
+  stands a little higher (further back) than the near foot.
+- **Weapon:** origin is the grip, the haft points up (-y). Set `tip` to the striking end. One-handed
+  weapons reach up to about -17, staffs to about -27.
+- **Shield:** origin is the shield hand; its face is turned to the camera and painted in the party
+  colour, with a metal boss and rim in the tier's metals.
 
-## Layers (side view, facing right)
+## Layers (back to front)
 
-Back to front: `cloak.back`, `head.back` (hair or braids that hang behind the body), feet, far
-hand (and its weapon in far-hand mode), body, `cloak.front`, head (face, hair, beard), weapon,
-near hand, strike trail. `face: -1` mirrors the whole hero to face left.
+`cloak.back`, `head.back` (hair or braids that hang behind the body), far foot, near foot, body,
+`cloak.front`, shield (or the free hand), a weapon raised behind the head, head, weapon, weapon
+hand, strike trail.
 
-- **The cloak is one garment** (`CLOAKS` in `parts.js`): clasped at the front, over the shoulders
-  and down the back. Worn, it wraps the shoulders and upper arms and covers the body's top
-  (`bodyReach` fits it wider than each body); thrown back, it is gathered on top of the
-  shoulders and hangs behind. Never a separate shoulder piece on top of a cloak. Its shoulders
-  never move; only the hem sways when walking.
+- **The cloak is one garment** (`CLOAKS`): gathered on top of the shoulders, pinned at the throat,
+  hanging down the back. Its shoulders never move; only the hem sways when walking.
+  `CLOAK_LENGTH` sets its length.
 - Hair falling down the back goes in an optional `head.back(h)`, so it never covers the body.
-- Beards end on the upper chest (no lower than about +4 from the chin).
 
 ## Tiers
 

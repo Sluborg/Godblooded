@@ -270,7 +270,7 @@
       <button class="b" id="bAtk" type="button" aria-pressed="false">Attack</button>
       <span class="hint">Tier</span>
       <span class="row" id="tiers"></span>
-      <button class="b" id="bHand" type="button" aria-pressed="false">Weapon in back hand</button>
+      <button class="b" id="bShield" type="button" aria-pressed="false">Shield</button>
       <button class="b" id="bFace" type="button" aria-pressed="false">Face left</button>
       <span class="row" id="capes"></span>
     </div>
@@ -287,6 +287,10 @@
   <section aria-labelledby="h-cloaks">
     <h2 id="h-cloaks">Cloaks</h2>
     <div class="cards" id="cloaks"></div>
+  </section>
+  <section aria-labelledby="h-shields">
+    <h2 id="h-shields">Shields</h2>
+    <div class="cards" id="shields"></div>
   </section>
   <section aria-labelledby="h-weapons">
     <h2 id="h-weapons">Weapons</h2>
@@ -409,6 +413,14 @@
       k.front(b, S.cape, 0);
       x.restore();
     }
+    if (kind === 'shield') {
+      SC = 5 * d;
+      x.save();
+      x.translate(54 * d, 50 * d);
+      x.scale(SC, SC);
+      SHIELDS[i].draw(TIER[S.tier], S.tier, S.cape);
+      x.restore();
+    }
     if (kind === 'weapon') {
       SC = 2.6 * d;
       x.save();
@@ -441,6 +453,10 @@
       pick.append(nm);
       pick.onclick = () => {
         S[key] = i;
+        if (kind === 'shield') {
+          S.shield = true;
+          press($('bShield'), true);
+        }
         refreshCards();
       };
       // a grade counts only for the version of the part it was given to (part.rev)
@@ -483,6 +499,7 @@
     buildCards('head', HEADS, 'head', 'heads');
     buildCards('body', BODIES, 'body', 'bodies');
     buildCards('cloak', CLOAKS, 'cloak', 'cloaks');
+    buildCards('shield', SHIELDS, 'shieldIdx', 'shields');
     buildCards('weapon', WEAPONS, 'weapon', 'weapons');
     $('tag').textContent =
       HEADS[S.head].name +
@@ -543,9 +560,9 @@
     S.face = S.face === 1 ? -1 : 1;
     press($('bFace'), S.face === -1);
   };
-  $('bHand').onclick = () => {
-    S.back = !S.back;
-    press($('bHand'), S.back);
+  $('bShield').onclick = () => {
+    S.shield = !S.shield;
+    press($('bShield'), S.shield);
   };
   TIER.forEach((t, i) => {
     const b = document.createElement('button');
@@ -584,7 +601,7 @@
       weapon: WEAPONS[S.weapon].id,
       cloak: CLOAKS[S.cloak].id,
       tier: S.tier,
-      backHand: S.back,
+      shield: S.shield,
       cape: S.cape,
       note: $('note').value.trim(),
       at: new Date().toISOString(),
