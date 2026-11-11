@@ -143,7 +143,7 @@
   }
   .card {
     flex: 0 0 auto;
-    width: 132px;
+    width: 150px;
     background: var(--panel);
     border: 2px solid var(--line);
     border-radius: 8px;
@@ -175,6 +175,25 @@
   .card .name {
     font-weight: 700;
     font-size: 13px;
+  }
+  .card.low {
+    border-color: #a3412c;
+  }
+  .card .status {
+    font-size: 12px;
+    color: var(--dim);
+  }
+  .card textarea {
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 44px;
+    resize: vertical;
+    font: 13px var(--font-body);
+    background: var(--raise);
+    color: var(--fg);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 4px;
   }
   .grade {
     display: flex;
@@ -265,6 +284,10 @@
     <h2 id="h-bodies">Bodies</h2>
     <div class="cards" id="bodies"></div>
   </section>
+  <section aria-labelledby="h-cloaks">
+    <h2 id="h-cloaks">Cloaks</h2>
+    <div class="cards" id="cloaks"></div>
+  </section>
   <section aria-labelledby="h-weapons">
     <h2 id="h-weapons">Weapons</h2>
     <div class="cards" id="weapons"></div>
@@ -273,8 +296,8 @@
   <section aria-labelledby="h-combo">
     <h2 id="h-combo">Save a combo you like</h2>
     <p class="hint">
-      Tap a part to put it on the hero. Grade each part 1 to 5. Grades and saved combos go straight
-      to Lead.
+      Tap a part to put it on the hero. Grade each part 1 to 5 and say what is wrong in its box; 4
+      passes, anything lower gets revised. Grades, comments and combos go straight to Lead.
     </p>
     <div class="row">
       <input
@@ -369,6 +392,23 @@
       b.draw(b);
       x.restore();
     }
+    if (kind === 'cloak') {
+      SC = 3.6 * d;
+      x.save();
+      x.translate(60 * d, 90 * d);
+      x.scale(SC, SC);
+      const b = BODIES[0],
+        k = CLOAKS[i];
+      if (k.back) k.back(b, S.cape, 0);
+      for (const f of [
+        [-2.4, -1.3],
+        [3, -1.3],
+      ])
+        paint(COL.leatherD, E(f[0], f[1], 3.4, 2), [f[0] - 3.4, f[1] - 2, 6.8, 4]);
+      b.draw(b);
+      k.front(b, S.cape, 0);
+      x.restore();
+    }
     if (kind === 'weapon') {
       SC = 2.6 * d;
       x.save();
@@ -403,6 +443,11 @@
         S[key] = i;
         refreshCards();
       };
+      // a grade counts only for the version of the part it was given to (part.rev)
+      const rev = part.rev || 1,
+        g0 = grades[part.id],
+        cur = g0 && (g0.rev || 1) === rev ? g0 : null;
+      if (cur && cur.score && cur.score < 4) card.classList.add('low');
       const gr = document.createElement('div');
       gr.className = 'grade';
       for (let s = 1; s <= 5; s++) {
@@ -411,17 +456,33 @@
         g.textContent = s;
         g.dataset.s = s;
         g.setAttribute('aria-label', part.name + ': grade ' + s);
-        g.setAttribute('aria-pressed', String(grades[part.id] === s));
-        g.onclick = () => setGrade(part.id, s);
+        g.setAttribute('aria-pressed', String(!!cur && cur.score === s));
+        g.onclick = () => setGrade(part, s, null);
         gr.append(g);
       }
-      card.append(pick, gr);
+      const st = document.createElement('span');
+      st.className = 'status';
+      st.textContent = cur
+        ? cur.score >= 4
+          ? 'Passes'
+          : 'Needs work: Lead revises it'
+        : g0
+          ? 'Changed since your grade: grade again'
+          : 'Not graded yet';
+      const note = document.createElement('textarea');
+      note.id = 'c-' + part.id;
+      note.placeholder = 'What is wrong? (optional)';
+      note.setAttribute('aria-label', part.name + ': comment');
+      note.value = cur && cur.comment ? cur.comment : '';
+      note.onchange = () => setGrade(part, null, note.value.trim());
+      card.append(pick, gr, st, note);
       box.append(card);
     });
   }
   function refreshCards() {
     buildCards('head', HEADS, 'head', 'heads');
     buildCards('body', BODIES, 'body', 'bodies');
+    buildCards('cloak', CLOAKS, 'cloak', 'cloaks');
     buildCards('weapon', WEAPONS, 'weapon', 'weapons');
     $('tag').textContent =
       HEADS[S.head].name +
@@ -432,19 +493,27 @@
       ' · ' +
       TIER[S.tier].name;
   }
-  async function setGrade(id, s) {
-    grades[id] = s;
-    refreshCards();
+  // save a grade and/or a comment for the part's current version
+  async function setGrade(part, s, comment) {
+    const id = part.id,
+      rev = part.rev || 1,
+      g0 = grades[id] && (grades[id].rev || 1) === rev ? grades[id] : {};
+    const next = {
+      part: id,
+      rev,
+      score: s ?? g0.score ?? null,
+      comment: comment ?? g0.comment ?? '',
+      at: new Date().toISOString(),
+    };
+    grades[id] = next;
+    if (s != null) refreshCards();
     if (!db) {
       toast('Grades save only when you are signed in');
       return;
     }
     try {
-      await db
-        .collection('grades')
-        .doc(id)
-        .set({ part: id, score: s, at: new Date().toISOString() });
-      toast('Graded ' + s);
+      await db.collection('grades').doc(id).set(next);
+      toast(s != null ? 'Graded ' + s : 'Comment saved');
     } catch (e) {
       toast('Not saved, try again');
     }
@@ -513,6 +582,7 @@
       head: HEADS[S.head].id,
       body: BODIES[S.body].id,
       weapon: WEAPONS[S.weapon].id,
+      cloak: CLOAKS[S.cloak].id,
       tier: S.tier,
       backHand: S.back,
       cape: S.cape,
@@ -571,8 +641,10 @@
       if (!db) return;
       db.collection('grades').onSnapshot(
         (snap) => {
-          for (const d of snap.docs) grades[d.id] = d.data().score;
-          refreshCards();
+          for (const d of snap.docs) grades[d.id] = d.data();
+          // keep a comment being typed: only rebuild when no comment box has focus
+          if (!(document.activeElement && document.activeElement.tagName === 'TEXTAREA'))
+            refreshCards();
         },
         () => {},
       );
