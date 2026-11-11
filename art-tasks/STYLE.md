@@ -33,7 +33,8 @@ painted in; busy piles of props; a temple that is only a gate.
 > "Heroes are drawn in code", "Heroes in 3/4 view", "Shield on the near hand"). The rules are
 > in `.claude/skills/hero-parts/SKILL.md`. Everything in this section, including the hand rule (weapon on the
 > back hand, shield on the front hand), the body shapes, head scale, collar and cape grey, is
-> kept for history only. Do not paint hero parts; ChatGPT keeps buildings, terrain and icons.
+> kept for history only. Do not paint hero parts, except heads over the code template in the
+> heads track (`art-tasks/heads/README.md`); ChatGPT keeps buildings, terrain and icons.
 
 The references are Stefan's seven pictures, fetched raw from main:
 `docs/reference/hero-style-anchor-thor-grim.png`, `-anchor-odin-grim.png`, `-tyr.png`,
