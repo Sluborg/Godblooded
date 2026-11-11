@@ -6,24 +6,26 @@
 // The face's centre line runs at x 3.4: both eyes show (the near one larger), the nose sits
 // inside the face, the ear is on the left, the mouth below the nose.
 const FACE_X = 3.4;
+// one smooth outline for the whole head: cranium, cheek and the jaw turned toward the right
 function skull(h) {
-  paint(h.skin, E(0.4, -8.8, 7.4, 7.9), [-7, -16.7, 14.8, 15.8], { grit: 11 });
-  // jaw and chin turned toward the right
   paint(
     h.skin,
     C([
-      [-3.6, -4.6],
-      [0.6, -0.6],
-      [4.4, 0.4],
-      [7, -3.2],
-      [7.6, -7],
-      [-3, -7],
+      [-7, -9],
+      [-6.4, -13.6],
+      [-2.6, -16.6],
+      [2.6, -16.6],
+      [6.6, -13.8],
+      [7.8, -9.6],
+      [7.6, -6.4],
+      [6.4, -2.6],
+      [4, -0.2],
+      [1, -0.4],
+      [-2.6, -2.4],
+      [-5.6, -5],
     ]),
-    [-3.6, -7, 11.2, 7.4],
-    {
-      grit: 12,
-      rim: false,
-    },
+    [-7, -16.6, 14.8, 16.6],
+    { grit: 11 },
   );
 }
 function ear(h, ring) {
@@ -154,7 +156,7 @@ function beard(h, len = 0, color = h.hair, stache = true) {
 const HEADS = [
   {
     id: 'head-1',
-    rev: 3,
+    rev: 4,
     name: 'Red beard',
     skin: '#d39c76',
     hair: '#a8471d',
@@ -191,7 +193,7 @@ const HEADS = [
   },
   {
     id: 'head-2',
-    rev: 3,
+    rev: 4,
     name: 'Braided beard',
     skin: '#c88f69',
     hair: '#b25a23',
@@ -221,7 +223,7 @@ const HEADS = [
   },
   {
     id: 'head-3',
-    rev: 3,
+    rev: 4,
     name: 'Braided crown',
     fem: true,
     skin: '#e0ae8a',
@@ -277,7 +279,7 @@ const HEADS = [
   },
   {
     id: 'head-4',
-    rev: 3,
+    rev: 4,
     name: 'Shieldmaiden',
     fem: true,
     skin: '#e4b28e',
@@ -337,7 +339,7 @@ const HEADS = [
   },
   {
     id: 'head-5',
-    rev: 3,
+    rev: 4,
     name: 'Blond raider',
     skin: '#d6a07a',
     hair: '#c9a24a',
