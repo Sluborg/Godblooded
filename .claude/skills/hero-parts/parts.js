@@ -157,11 +157,11 @@ const HEADS = [
       nose(h);
       beard(h, -2);
       for (const bx of [3.4, 6]) {
-        for (let i = 0; i < 3; i++)
-          paint(h.hair, E(bx, 0.6 + i * 1.7, 1.2, 1), [bx - 1.2, -0.4 + i * 1.7, 2.4, 2], {
+        for (let i = 0; i < 2; i++)
+          paint(h.hair, E(bx, 0.6 + i * 1.6, 1.2, 1), [bx - 1.2, -0.4 + i * 1.6, 2.4, 2], {
             rim: false,
           });
-        paint(COL.bronze, R(bx - 1.2, 5.2, 2.4, 1.2, 0.4), [bx - 1.2, 5.2, 2.4, 1.2], {
+        paint(COL.bronze, R(bx - 1.2, 3.4, 2.4, 1.1, 0.4), [bx - 1.2, 3.4, 2.4, 1.1], {
           rim: false,
         });
       }
@@ -213,12 +213,23 @@ const HEADS = [
     name: 'Shieldmaiden',
     skin: '#dcaa86',
     hair: '#b0512a',
+    // behind the body: one braid down the back
+    back(h) {
+      for (let i = 0; i < 4; i++)
+        paint(
+          h.hair,
+          E(-6.4 + i * 0.15, -2.4 + i * 2.1, 1.35, 1.1),
+          [-7.8, -3.5 + i * 2.1, 2.7, 2.2],
+          { rim: false },
+        );
+      paint(COL.bronze, R(-7.5, 5.8, 2.4, 1.1, 0.4), [-7.5, 5.8, 2.4, 1.1], { rim: false });
+    },
     draw(h) {
-      // hair mass behind, one braid down the back
+      // hair mass behind the skull, ending at the nape
       paint(
         h.hair,
         C([
-          [-8.4, -4],
+          [-8, -4.4],
           [-8.8, -11.4],
           [-5.6, -16.4],
           [0, -18],
@@ -226,19 +237,11 @@ const HEADS = [
           [3.6, -13.2],
           [-1.6, -11.6],
           [-3.6, -6],
-          [-5, -1],
+          [-5.6, -3.4],
         ]),
-        [-8.8, -18, 14, 17],
+        [-8.8, -18, 14, 14.6],
         { grit: 22 },
       );
-      for (let i = 0; i < 4; i++)
-        paint(
-          h.hair,
-          E(-6.6 + i * 0.15, -1.6 + i * 2.1, 1.35, 1.1),
-          [-8, -2.7 + i * 2.1, 2.7, 2.2],
-          { rim: false },
-        );
-      paint(COL.bronze, R(-7.7, 6.6, 2.4, 1.1, 0.4), [-7.7, 6.6, 2.4, 1.1], { rim: false });
       skull(h);
       ear(h);
       paint(
@@ -288,7 +291,7 @@ const HEADS = [
       ear(h);
       eye(h, { patch: true, brow: '#d8d4cc' });
       nose(h);
-      beard(h, 6);
+      beard(h, 2.5);
       stroke(dark(h.skin), 0.3, [
         [1, -14.4],
         [4.6, -14.6],
@@ -306,6 +309,8 @@ function eggPath(cx, cy, w, h, kind) {
         py = (s * h) / 2;
       let px = (Math.cos(t) * w) / 2;
       if (kind === 'egg') px *= 1 + 0.12 * s;
+      // side view: the chest pushes forward, the back is flatter
+      px *= px > 0 ? 1.06 - 0.08 * s : 0.92;
       if (kind === 'barrel') px *= 1.06 - 0.12 * s * s;
       if (kind === 'bell') px *= 0.72 + 0.4 * Math.pow((s + 1) / 2, 1.5);
       i ? ctx.lineTo(cx + px, cy + py) : ctx.moveTo(cx + px, cy + py);
@@ -384,23 +389,23 @@ const BODIES = [
       paint(
         COL.fur,
         C([
-          [-7.8, top + 4.6],
-          [-6.4, top + 1],
-          [-2, top - 0.6],
-          [3, top - 0.4],
-          [7.2, top + 1.8],
-          [7.6, top + 4.8],
-          [4, top + 5.8],
-          [0, top + 6.2],
-          [-4.4, top + 6],
+          [-7.2, top + 2.6],
+          [-5, top + 0.2],
+          [-1, top + 0.4],
+          [3.6, top + 2],
+          [7.4, top + 4.6],
+          [6.4, top + 6.4],
+          [2.6, top + 5.6],
+          [-1.6, top + 5],
+          [-6.2, top + 5.2],
         ]),
-        [-7.8, top - 0.6, 15.4, 6.8],
+        [-7.2, top + 0.2, 14.6, 6.2],
         { grit: 53 },
       );
       for (let i = 0; i < 6; i++)
         stroke(tone(COL.fur, -0.25), 0.3, [
-          [-5.6 + i * 2.2, top + 5.6],
-          [-5.2 + i * 2.2, top + 3.8],
+          [-5.4 + i * 2.2, top + 4.8 + i * 0.2],
+          [-5 + i * 2.2, top + 3 + i * 0.3],
         ]);
     },
   },
@@ -475,13 +480,13 @@ const BODIES = [
           [-5.2 + i * 2.4, cy + b.h / 2 - 0.9],
           [-4.4 + i * 2.4, cy + b.h / 2 - 2],
         ]);
-      stroke(tone(COL.cloth, -0.3), 0.35, [
-        [-2.4, cy - 2],
-        [-3.4, cy + b.h / 2],
+      stroke(tone(COL.cloth, -0.3), 0.4, [
+        [4.6, cy - 6],
+        [6.6, cy + b.h / 2],
       ]);
       stroke(tone(COL.cloth, -0.3), 0.35, [
-        [3, cy - 1],
-        [4, cy + b.h / 2],
+        [-4.6, cy - 1],
+        [-6.4, cy + b.h / 2],
       ]);
       ctx.restore();
       stroke(COL.rope, 1.1, [
@@ -605,66 +610,77 @@ const WEAPONS = [
   {
     id: 'weapon-4',
     name: 'Axe',
-    tip: [3, -12],
+    tip: [5, -13],
     draw(t, ti) {
-      haft(4, -13);
+      haft(4, -15);
+      // a bearded axe: thin forged head, straight top, curved edge, the beard hooks down
       paint(
         t.metal,
-        C([
-          [0.4, -15.2],
-          [4.6, -16.6],
-          [6.8, -13],
-          [6.4, -9.4],
-          [4.4, -8.6],
-          [0.4, -10],
+        P([
+          [0.6, -16],
+          [4.8, -16.6],
+          [6.6, -15.2],
+          [7.2, -12.6],
+          [6.6, -9.6],
+          [5.2, -9],
+          [4.4, -11],
+          [2.6, -12.8],
+          [0.6, -13.2],
         ]),
-        [0.4, -16.6, 6.4, 8],
+        [0.6, -16.6, 6.6, 7.6],
         { grit: 63, hi: 0.32 },
       );
-      paint(
-        t.trim,
-        P([
-          [-0.4, -14.2],
-          [-2.8, -13],
-          [-0.4, -11.4],
-        ]),
-        [-2.8, -14.2, 2.4, 2.8],
-        { rim: false },
-      );
-      if (ti === 2) paint(t.gem, E(3.4, -12.6, 0.9, 0.9), [2.5, -13.5, 1.8, 1.8], { rim: false });
+      stroke(tone(t.metal, 0.45), 0.5, [
+        [6.6, -15],
+        [7.1, -12.6],
+        [6.5, -9.8],
+      ]);
+      paint(t.trim, R(-1.1, -16.4, 2.2, 3.6, 0.4), [-1.1, -16.4, 2.2, 3.6], { rim: false });
+      if (ti === 2) paint(t.gem, E(3, -14.4, 0.8, 0.8), [2.2, -15.2, 1.6, 1.6], { rim: false });
       else if (ti === 1)
         stroke(t.trim, 0.4, [
-          [2, -14],
-          [5, -12],
-          [2.4, -10],
+          [2, -14.6],
+          [4.6, -14.2],
         ]);
     },
   },
   {
     id: 'weapon-5',
     name: 'Sword',
-    tip: [0, -16],
+    tip: [0, -19],
     draw(t, ti) {
-      paint(COL.leather, R(-0.8, -1.4, 1.6, 4.6, 0.4), [-0.8, -1.4, 1.6, 4.6], { rim: false });
-      paint(t.trim, E(0, 3.8, 1.2, 1), [-1.2, 2.8, 2.4, 2], { rim: false });
-      paint(t.trim, R(-3.2, -2.4, 6.4, 1.3, 0.5), [-3.2, -2.4, 6.4, 1.3], { rim: false });
+      // a long grip, wider than a hand, so the hand ball sits on it
+      paint(COL.leather, R(-0.9, -2.2, 1.8, 7.4, 0.5), [-0.9, -2.2, 1.8, 7.4], { rim: false });
+      for (let y = -1.4; y < 4.8; y += 1.1)
+        stroke(COL.leatherD, 0.3, [
+          [-0.9, y],
+          [0.9, y + 0.5],
+        ]);
+      paint(t.trim, E(0, 5.8, 1.5, 1.2), [-1.5, 4.6, 3, 2.4], { rim: false });
+      paint(t.trim, R(-4.4, -3.6, 8.8, 1.6, 0.6), [-4.4, -3.6, 8.8, 1.6], { rim: false });
       paint(
         t.metal,
         P([
-          [-1.2, -2.4],
-          [1.2, -2.4],
-          [1, -15],
-          [0, -17],
-          [-1, -15],
+          [-1.6, -3.6],
+          [1.6, -3.6],
+          [1.3, -18],
+          [0, -20.4],
+          [-1.3, -18],
         ]),
-        [-1.2, -17, 2.4, 14.6],
+        [-1.6, -20.4, 3.2, 16.8],
         { hi: 0.35, grit: 64 },
       );
-      stroke(tone(t.metal, -0.3), 0.3, [
-        [0, -3],
-        [0, -15],
+      stroke(tone(t.metal, -0.3), 0.32, [
+        [0, -4.2],
+        [0, -18],
       ]);
-      if (ti === 2) paint(t.gem, E(0, -1.75, 0.7, 0.55), [-0.7, -2.3, 1.4, 1.1], { rim: false });
+      if (ti === 2) paint(t.gem, E(0, -2.8, 0.8, 0.6), [-0.8, -3.4, 1.6, 1.2], { rim: false });
+      else if (ti === 1)
+        stroke(t.trim, 0.35, [
+          [-0.6, -6],
+          [0.6, -7],
+          [-0.6, -8],
+        ]);
     },
   },
 ];

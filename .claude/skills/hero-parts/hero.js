@@ -22,9 +22,11 @@ const S = {
   cape: CAPES.Red,
   atkStart: 0,
 };
+// attack keys [x, y, weapon angle in degrees] for the hand that holds the weapon.
+// near = the hand on the viewer's side (drawn over the body); far = the other hand (behind it).
 const KEYS = {
-  front: { rest: [7.2, -10.4, 38], raise: [1.5, -23.5, -128], strike: [11.6, -8.6, 98] },
-  back: { rest: [-6.2, -11.6, -22], raise: [-6, -24.5, -140], strike: [9.4, -10, 92] },
+  near: { rest: [3.4, -9.8, 62], raise: [-1.6, -22.5, -118], strike: [10, -9, 96] },
+  far: { rest: [5.8, -12.4, -6], raise: [-2.4, -23.5, -128], strike: [9.2, -11, 90] },
 };
 const ease = (q) => q * q * (3 - 2 * q);
 const lerp3 = (a, b, q) => [
@@ -44,7 +46,7 @@ function pose(t, phase = 0) {
     cape: Math.sin(w) * 0.04 * walk + Math.sin(t * 1.3) * 0.02,
     trail: null,
   };
-  const K = S.back ? KEYS.back : KEYS.front;
+  const K = S.back ? KEYS.far : KEYS.near;
   let hand = K.rest.slice();
   if (S.atk) {
     const u = ((t - S.atkStart) % 1.3) / 1.3;
@@ -63,11 +65,14 @@ function pose(t, phase = 0) {
       hand = lerp3(K.strike, K.rest, q);
       p.lean = 0.13 * (1 - q);
     }
-  } else if (S.back) hand[0] += p.swing * 0.6;
-  else hand[0] -= p.swing;
+  } else if (S.back) hand[0] += p.swing * 0.8;
+  else hand[0] -= p.swing * 1.2;
   p.hand = hand;
   return p;
 }
+// Layers, back to front (side view, facing right):
+//   cape, head.back (hair or braids behind the body), feet, far hand (and its weapon),
+//   body, cape drape over the shoulder, head (face, hair, beard), weapon, near hand, strike trail.
 function drawHero(c, scale, x0, y0, t, o = {}) {
   ctx = c;
   SC = scale;
@@ -77,124 +82,140 @@ function drawHero(c, scale, x0, y0, t, o = {}) {
     ti = o.tier ?? S.tier,
     tier = TIER[ti];
   const p = pose(t, o.phase || 0);
+  const top = bodyTop(b),
+    headAt = [0.6, top + 1.8];
   ctx.save();
   ctx.translate(x0, y0);
   // side view: everything is drawn facing right; face -1 mirrors the whole hero to face left
   ctx.scale(o.face ?? S.face ?? 1, 1);
   ctx.scale(scale, scale);
-  // ground shadow
   ctx.fillStyle = '#00000040';
   ctx.beginPath();
   ctx.ellipse(0.5, -0.6, 9, 2, 0, 0, 7);
   ctx.fill();
-  ctx.save();
-  ctx.translate(0, p.bob);
-  ctx.rotate(p.lean);
-  const top = bodyTop(b);
-  // cape behind everything
-  ctx.save();
-  ctx.translate(-1.5, top + 2);
-  ctx.rotate(p.cape);
-  paint(
-    S.cape,
-    C([
-      [0.5, -0.6],
-      [-4.6, 1],
-      [-9.6, 9.6],
-      [-11.6, 17.6],
-      [-6.4, 18.8],
-      [-1.8, 16.4],
-      [0.4, 8],
-    ]),
-    [-11.6, -0.6, 12.2, 19.4],
-    { grit: 71 },
-  );
-  stroke(tone(S.cape, -0.3), 0.4, [
-    [-3, 3],
-    [-6.4, 15],
-  ]);
-  stroke(tone(S.cape, -0.3), 0.4, [
-    [-1, 4],
-    [-2.6, 15.6],
-  ]);
-  ctx.restore();
-  ctx.restore();
-  // feet (the body overlaps their tops)
+  const upper = (fn) => {
+    ctx.save();
+    ctx.translate(0, p.bob);
+    ctx.rotate(p.lean);
+    fn();
+    ctx.restore();
+  };
+  // 1. cape down the back
+  upper(() => {
+    ctx.save();
+    ctx.translate(-1.5, top + 2);
+    ctx.rotate(p.cape);
+    paint(
+      S.cape,
+      C([
+        [0.5, -0.6],
+        [-4.6, 1],
+        [-9.6, 9.6],
+        [-11.6, 17.6],
+        [-6.4, 18.8],
+        [-1.8, 16.4],
+        [0.4, 8],
+      ]),
+      [-11.6, -0.6, 12.2, 19.4],
+      { grit: 71 },
+    );
+    stroke(tone(S.cape, -0.3), 0.4, [
+      [-3, 3],
+      [-6.4, 15],
+    ]);
+    ctx.restore();
+    // 2. hair or braids that hang behind the body
+    if (h.back) {
+      ctx.save();
+      ctx.translate(headAt[0], headAt[1]);
+      h.back(h);
+      ctx.restore();
+    }
+  });
+  // 3. feet, toes forward (the body overlaps their tops)
   for (const f of [p.fB, p.fF])
     paint(COL.leatherD, E(f[0] + 0.7, f[1], 3.6, 2), [f[0] - 2.9, f[1] - 2, 7.2, 4], {
-      rim: true,
       grit: 81,
     });
-  ctx.save();
-  ctx.translate(0, p.bob);
-  ctx.rotate(p.lean);
-  const skin = h.skin;
-  const hand = p.hand,
-    held = (behind) => {
-      ctx.save();
-      ctx.translate(hand[0], hand[1]);
-      ctx.rotate((hand[2] * Math.PI) / 180);
-      if (ti === 2) {
-        const g = ctx.createRadialGradient(wpn.tip[0], wpn.tip[1], 0, wpn.tip[0], wpn.tip[1], 9);
-        g.addColorStop(0, '#9fd8ff66');
-        g.addColorStop(1, '#9fd8ff00');
-        ctx.fillStyle = g;
-        ctx.beginPath();
-        ctx.arc(wpn.tip[0], wpn.tip[1], 9, 0, 7);
-        ctx.fill();
-      }
-      wpn.draw(tier, ti);
-      ctx.restore();
-      paint(skin, E(hand[0], hand[1], 2.5, 2.5), [hand[0] - 2.5, hand[1] - 2.5, 5, 5], {
-        rim: true,
-      });
-    };
-  const freeHand = S.back ? [6.8 - p.swing, -10.8] : [-6.2 + p.swing * 0.6, -11.6];
-  if (S.back) held(true);
-  else
-    paint(skin, E(freeHand[0], freeHand[1], 2.5, 2.5), [
-      freeHand[0] - 2.5,
-      freeHand[1] - 2.5,
-      5,
-      5,
-    ]);
-  b.draw(b);
-  const raised = !S.back && hand[2] < -70;
-  if (raised) held(false);
-  ctx.save();
-  ctx.translate(0.6, top + 1.8);
-  h.draw(h);
-  ctx.restore();
-  if (S.back)
-    paint(skin, E(freeHand[0], freeHand[1], 2.5, 2.5), [
-      freeHand[0] - 2.5,
-      freeHand[1] - 2.5,
-      5,
-      5,
-    ]);
-  else if (!raised) held(false);
-  // strike trail
-  if (p.trail != null && p.trail > 0) {
+  const skin = h.skin,
+    hand = p.hand;
+  const ball = (x, y) => paint(skin, E(x, y, 2.5, 2.5), [x - 2.5, y - 2.5, 5, 5]);
+  const weapon = () => {
     ctx.save();
-    ctx.globalCompositeOperation = 'lighter';
-    ctx.strokeStyle = `rgba(255,240,210,${0.35 * p.trail})`;
-    ctx.lineWidth = 1.6;
-    ctx.lineCap = 'round';
-    ctx.beginPath();
-    ctx.arc(9, -15, 13, -1.7, 0.7);
-    ctx.stroke();
+    ctx.translate(hand[0], hand[1]);
+    ctx.rotate((hand[2] * Math.PI) / 180);
     if (ti === 2) {
-      ctx.strokeStyle = `rgba(120,200,255,${0.6 * p.trail})`;
-      ctx.lineWidth = 0.8;
+      const g = ctx.createRadialGradient(wpn.tip[0], wpn.tip[1], 0, wpn.tip[0], wpn.tip[1], 9);
+      g.addColorStop(0, '#9fd8ff66');
+      g.addColorStop(1, '#9fd8ff00');
+      ctx.fillStyle = g;
       ctx.beginPath();
-      ctx.moveTo(18, -14);
-      ctx.lineTo(15, -10);
-      ctx.lineTo(19, -8);
-      ctx.lineTo(16, -3);
-      ctx.stroke();
+      ctx.arc(wpn.tip[0], wpn.tip[1], 9, 0, 7);
+      ctx.fill();
     }
+    wpn.draw(tier, ti);
     ctx.restore();
-  }
-  ctx.restore();
+  };
+  // the empty hand: the far hand peeks out at the chest; in far-hand mode the near hand is empty
+  const empty = S.back ? [3.4 - p.swing * 1.2, -9.8] : [5.8 + p.swing * 0.8, -12.4];
+  upper(() => {
+    // 4. far hand, behind the body
+    if (S.back) {
+      weapon();
+      ball(hand[0], hand[1]);
+    } else ball(empty[0], empty[1]);
+    // 5. body
+    b.draw(b);
+    // 6. the cape's drape over the back shoulder, pinned at the throat
+    paint(
+      S.cape,
+      C([
+        [3.6, top + 1.8],
+        [0, top + 0.8],
+        [-4.6, top + 1.8],
+        [-7, top + 5],
+        [-5.6, top + 6.2],
+        [-2, top + 4.6],
+        [2.4, top + 4.4],
+      ]),
+      [-7, top + 0.8, 10.6, 5.4],
+      { grit: 72 },
+    );
+    paint(COL.bronze, E(3, top + 3.2, 1.1, 1.1), [1.9, top + 2.1, 2.2, 2.2], { rim: false });
+    // 7. head; a weapon raised behind the head goes under it
+    const raised = !S.back && hand[2] < -70;
+    if (raised) weapon();
+    ctx.save();
+    ctx.translate(headAt[0], headAt[1]);
+    h.draw(h);
+    ctx.restore();
+    // 8. weapon in the near hand, the hand ball over its grip
+    if (!S.back) {
+      if (!raised) weapon();
+      ball(hand[0], hand[1]);
+    } else ball(empty[0], empty[1]);
+    // 9. strike trail
+    if (p.trail != null && p.trail > 0) {
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.strokeStyle = `rgba(255,240,210,${0.35 * p.trail})`;
+      ctx.lineWidth = 1.6;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.arc(7, -15, 13, -1.7, 0.7);
+      ctx.stroke();
+      if (ti === 2) {
+        ctx.strokeStyle = `rgba(120,200,255,${0.6 * p.trail})`;
+        ctx.lineWidth = 0.8;
+        ctx.beginPath();
+        ctx.moveTo(18, -14);
+        ctx.lineTo(15, -10);
+        ctx.lineTo(19, -8);
+        ctx.lineTo(16, -3);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+  });
   ctx.restore();
 }

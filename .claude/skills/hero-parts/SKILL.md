@@ -40,17 +40,27 @@ The scripts are plain browser JavaScript, concatenated in the order kit, parts, 
 ## Coordinates (game units, y grows down)
 
 - **Hero:** about 44 units tall, ground at y 0.
-- **Head:** origin is the chin. Skull ellipse centre (0.6, -8.8), radii 7.4 x 7.9. Near eye
-  (5.3, -9.5), far eye (1.7, -9.7), nose from x 6.6 to 8.7 around y -8, ear at (-4.6, -8.4).
+- **Head:** near profile. Origin is the chin. Skull from x -6.8 to 7.4, top at y -16.9. One eye
+  at (5.1, -9.4) under one brow, nose on the front edge from x 6.4 to 9.3, ear mid-head at
+  (-0.8, -8.4).
   Hair and helmets may reach x -9 to 8.6 and y -18.3. Beards may hang to y +5 (a long beard to
   +10).
 - **Body:** origin is the ground under the middle. Egg, barrel or bell from `eggPath`, width 15
   to 16, height 17 to 19, bottom at y -2.5. The head sits at `(1, bodyTop(b) + 1.8)` so the chin
   or beard covers the body's top: there is no neck.
-- **Feet:** ellipses 3.4 x 2 at (-2.4, -1.3) and (3, -1.3). **Hands:** balls of radius 2.5 in the
-  head's skin colour. Sizes are fixed for every hero.
+- **Feet:** ellipses 3.6 x 2, toes forward, at (-2.4, -1.3) and (3, -1.3). **Hands:** balls of
+  radius 2.5 in the head's skin colour; the near hand rests on the chest (3.4, -9.8), the far hand
+  peeks out at the front (5.8, -12.4). Sizes are fixed for every hero.
 - **Weapon:** origin is the grip, the haft points up (-y). Set `tip` to the striking end (used for
   the glow). One-handed weapons reach up to about -17, staffs to about -24.
+
+## Layers (side view, facing right)
+
+Back to front: cape, `head.back` (hair or braids that hang behind the body), feet, far hand (and
+its weapon in far-hand mode), body, the cape's drape over the back shoulder, head (face, hair,
+beard), weapon, near hand, strike trail. A head that has hair falling down the back puts it in
+an optional `back(h)` function so it never covers the body. Beards end on the upper chest (no
+lower than about +4 from the chin). `face: -1` mirrors the whole hero to face left.
 
 ## Tiers
 
