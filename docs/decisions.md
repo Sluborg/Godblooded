@@ -860,3 +860,6 @@ replaces the "wider than tall" reading in the entry above. The Thorbloods body i
   games seen from above at an angle. Faces show both eyes and the mouth; women read as women; the
   weapon is in the near hand on the cloak side and a shield's face turns to the camera on the other.
   The cloak is gathered on the shoulders and hangs behind (the worn cloak is retired).
+- **Shield on the near hand** (Stefan, 2026-11-11, replaces the 2026-10-19 hand rule for the 3/4
+  heroes): the shield is on the hand closest to the camera, drawn over the body with its face to
+  the camera; the weapon is in the far hand, toward the facing direction, drawn behind the body.
