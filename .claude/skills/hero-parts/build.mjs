@@ -36,7 +36,9 @@ function painted(dir) {
         k = +(auto * (j.fit || 1)).toFixed(3);
       // rev follows the picture and its size: a new painting or a resize invalidates old grades
       const rev =
-        'p' + createHash('sha1').update(bytes).digest('hex').slice(0, 8) + (k !== 1 ? '-k' + k : '');
+        'p' +
+        createHash('sha1').update(bytes).digest('hex').slice(0, 8) +
+        (k !== 1 ? '-k' + k : '');
       rows.push({
         id: j.id,
         rev,
