@@ -11,6 +11,7 @@ Fetch every repo file fresh, with `?t=<current time>` on the raw URL (cached cop
 
 | What                   | Branch      | Path                                                                                             |
 | ---------------------- | ----------- | ------------------------------------------------------------------------------------------------ |
+| Start (a new chat)     | `main`      | `art-tasks/heads/START.md`                                                                       |
 | This workflow          | `main`      | `art-tasks/heads/README.md`                                                                      |
 | The prompt rules       | `main`      | `art-tasks/heads/PROMPT.md`                                                                      |
 | The template (image)   | `main`      | `art-tasks/heads/head-template.png`                                                              |
